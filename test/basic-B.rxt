@@ -1,0 +1,57 @@
+IAD1   # Must be first four characters
+
+# Basic test of two measurement functionality
+# These are accurate values for total reflectance transmittance
+# for a sample between glass sides for g=0 and various mus and mua
+ 
+1.40   # Index of refraction of the sample
+1.50   # Index of refraction of the top and bottom slides
+1.0    # [mm] Thickness of sample
+1.0    # [mm] Thickness of slides
+0.1    # [mm] Diameter of illumination beam
+1.00   # Reflectivity of the reflectance calibration standard
+
+0      # Number of spheres used during each measurement
+
+       # Properties of sphere (unused)
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+25.4   # [mm] Sample Port Diameter
+12.7   # [mm] Entrance Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+       # Properties of sphere (unused)
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+25.4   # [mm] Sample Port Diameter
+12.7   # [mm] Entrance Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+2      # Number of measurements, M_R, M_T
+
+#M_R 	              M_T             #mus mua
+0.5148573444505178 0.1959644571679601 #5   0.1
+0.3701321358705934 0.0929664649724017 #5   0.3
+0.2989763800085638 0.0527160912635514 #5   0.5
+0.2552899905384752 0.0328462518016609 #5   0.7
+0.2252300672926150 0.0217065281727672 #5   0.9
+0.6248524802699547 0.1004121032354037 #10  0.1
+0.4758274179187398 0.0350162179837752 #10  0.3
+0.3990923511998981 0.0156151638867672 #10  0.5
+0.3494510599841692 0.0079233635594288 #10  0.7
+0.3137489625708088 0.0043656791062148 #10  0.9
+0.6808399492043953 0.0607372578398821 #15  0.1
+0.5367154510994456 0.0166095575040650 #15  0.3
+0.4603973141034097 0.0061861181973436 #15  0.5
+0.4095191467663043 0.0026977016460068 #15  0.7
+0.3720173012161364 0.0013001215705761 #15  0.9
+0.7162010972059861 0.0400597491902211 #20  0.1
+0.5783489647316922 0.0088683569489287 #20  0.3
+0.5037690166262928 0.0028359057692700 #20  0.5
+0.4530217023633932 0.0010894765111262 #20  0.7
+0.4149999553613176 0.0004697553575306 #20  0.9
+0.7412266710066386 0.0279131918705861 #25  0.1
+0.6094283922288846 0.0051087135687198 #25  0.3
+0.5368738851657168 0.0014268811835740 #25  0.5
+0.4867550342227706 0.0004901835041755 #25  0.7
+0.4487541006177004 0.0001916681753960 #25  0.9

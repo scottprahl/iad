@@ -1,0 +1,23 @@
+INSTALLATION
+
+In principle (on Linux and MacOS X) you should be able to just type
+
+  make
+
+to create excutable versions of the ad and iad programs.  To quickly test
+if these are working try
+
+  ./iad -help
+
+  ./iad -M 0 -q 4 test/vio1
+
+which will process the file vio1.rt and produce vio1.abg.  To install the 
+program just type
+
+  sudo make install
+
+and the binary executable files (iad and ad) will be created and placed in 
+/usr/local/bin so that you can use them from any directory 
+(if /usr/local/bin is in your path).
+
+If you are using windows then you will need to work a bit more.  Sorry.

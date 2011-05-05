@@ -1,0 +1,37 @@
+IAD1   # Must be first four characters
+
+# Basic test of two measurement functionality
+# These are accurate values for total reflectance transmittance
+# for a sample between glass sides for g=0 and various mus and mua
+ 
+1.40   # Index of refraction of the sample
+1.50   # Index of refraction of the top and bottom slides
+1.0    # [mm] Thickness of sample
+1.0    # [mm] Thickness of slides
+0.1    # [mm] Diameter of illumination beam
+1.00   # Reflectivity of the reflectance calibration standard
+
+0      # Number of spheres used during each measurement
+
+       # Properties of sphere (unused)
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+25.4   # [mm] Sample Port Diameter
+12.7   # [mm] Entrance Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+       # Properties of sphere (unused)
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+25.4   # [mm] Sample Port Diameter
+12.7   # [mm] Entrance Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+1      # Number of measurements, M_R, M_T
+
+#M_R 	            #mua  mus  g
+0.2992621379268361  #0.1  1.0  0.0
+0.1722475379306846  #0.3  1.0  0.0
+0.1308339701159747  #0.5  1.0  0.0
+0.1096241197070925  #0.7  1.0  0.0
+0.0966223181570366  #0.9  1.0  0.0

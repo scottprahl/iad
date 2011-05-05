@@ -1,0 +1,41 @@
+IAD1
+#
+# eva test data			{Two comment lines are ignored}
+# by Scott Prahl 				{also ignored}
+#
+1.84         # Index of refraction of sample
+1.5          # Index of refraction of top slide
+1.0          # [mm] Thickness of sample
+1.0          # [mm] Thickness of slides
+2.0          # [mm] Diameter of illumination beam
+0.99         # Reflectance of calibration standard
+
+0            # [mm] Number of spheres used during each measurement
+
+             # Refection sphere properties (unused because n_spheres=0)
+203.2        # [mm] Sphere Diameter
+25.4         # [mm] Sample Port Diameter
+12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Detector Port Diameter
+0.96         # Reflectivity of the sphere wall
+
+             # Transmission sphere properties (unused because n_spheres=0)
+203.2        # [mm] Sphere Diameter
+25.4         # [mm] Sample Port Diameter
+12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Detector Port Diameter
+0.96         # Reflectivity of the sphere wall
+
+2            # [mm] Number of measurements
+
+#wave	refl	trans	thickness
+100	0.05037	0.12226
+119	0.05134	0.16765
+136	0.05308	0.22278
+151	0.05608	0.28684
+164	0.06104	0.35796
+175	0.06887	0.43334
+184	0.08096	0.50981
+191	0.09981	0.58511
+196	0.13085	0.66015
+199	0.18031	0.73757

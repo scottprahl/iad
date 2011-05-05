@@ -1,0 +1,38 @@
+IAD1
+#
+# 1994 July 21 -- Data
+# 2'' Cell -- India Ink
+#
+1.33         # Index of refraction of sample
+1.507        # Index of refraction of top slide
+1.0          # [mm] Thickness of sample
+1.0          # [mm] Thickness of slides
+2.0          # [mm] Diameter of illumination beam
+0.99         # Reflectance of calibration standard
+
+1            # [mm] Number of spheres used during each measurement
+
+             # Refection sphere properties
+203.2        # [mm] Sphere Diameter
+20.3         # [mm] Sample Port Diameter
+47.7         # [mm] Entrance Port Diameter
+1.0          # [mm] Detector Port Diameter
+0.91351037   # Reflectivity of the sphere wall
+
+             # Transmission sphere properties
+203.2        # [mm] Sphere Diameter
+20.3         # [mm] Sample Port Diameter
+47.7         # [mm] Entrance Port Diameter
+1.0          # [mm] Detector Port Diameter
+0.91351037   # Reflectivity of the sphere wall
+
+3            # [mm] Number of measurements
+
+#Vr	Vt	Vcol
+0.04889	0.11542	0.1112069
+0.04834	0.04542	0.04299586
+0.04854	0.04609	0.04362069
+0.05276	0.29280	0.2866426
+0.05284	0.29742	0.29110473
+0.04803	0.04584	0.04344521
+0.04823	0.04628	0.04384724

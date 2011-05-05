@@ -1,0 +1,34 @@
+IAD1
+#
+# 1994 July 28 -- Data
+# 2'' Cell -- poly d=.624
+#
+1.33         # Index of refraction of sample
+1.507        # Index of refraction of top slide
+1.0          # [mm] Thickness of sample
+1.0          # [mm] Thickness of slides
+2.0          # [mm] Diameter of illumination beam
+0.99         # Reflectance of calibration standard
+
+1            # [mm] Number of spheres used during each measurement
+
+             # Refection sphere properties
+203.2        # [mm] Sphere Diameter
+10.2         # [mm] Sample Port Diameter
+50.9         # [mm] Entrance Port Diameter
+1.0          # [mm] Detector Port Diameter
+0.99543132   # Reflectivity of the sphere wall
+
+             # Transmission sphere properties
+203.2        # [mm] Sphere Diameter
+10.2         # [mm] Sample Port Diameter
+50.9         # [mm] Entrance Port Diameter
+1.0          # [mm] Detector Port Diameter
+0.99543132   # Reflectivity of the sphere wall
+
+3            # [mm] Number of measurements
+
+#Vr	Vt	Vcol
+0.08947	0.73151	0.56831066
+0.08952	0.72944	0.56362873
+0.09103	0.75489	0.58934391

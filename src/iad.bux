@@ -1,0 +1,7 @@
+@i ad.aux
+@i ad.bux
+@$mnbrak "<nr\_mnbrk.h>" \zip@>
+@$amoeba "<nr\_amoeb.h>" \zip@>
+@$brent "<nr\_brent.h>" \zip@>
+@$cshow "<console.h>" \zip@>
+@$THINK_C "compiler" \zip@>

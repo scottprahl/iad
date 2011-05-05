@@ -1,0 +1,37 @@
+IAD1
+#
+# Titanium Dioxide          {ignored}
+# Constrained absorption    {also ignored}
+#
+1.33         # Index of refraction of sample
+1.5          # Index of refraction of top slide
+1.0          # [mm] Thickness of sample
+1.0          # [mm] Thickness of slides
+2.0          # [mm] Diameter of illumination beam
+0.99         # Reflectance of calibration standard
+
+0            # [mm] Number of spheres used during each measurement
+
+             # Refection sphere properties (unused because n_spheres=0)
+203.2        # [mm] Sphere Diameter
+25.4         # [mm] Sample Port Diameter
+12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Detector Port Diameter
+0.96         # Reflectivity of the sphere wall
+
+             # Transmission sphere properties (unused because n_spheres=0)
+203.2        # [mm] Sphere Diameter
+25.4         # [mm] Sample Port Diameter
+12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Detector Port Diameter
+0.96         # Reflectivity of the sphere wall
+
+2            # [mm] Number of measurements
+
+#Rd	Td	{ignored}
+0.10733	0.613
+0.15833	0.691
+0.22533	0.708
+0.45433	0.322
+0.53833	0.245
+0.53833	0.190

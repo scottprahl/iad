@@ -1,0 +1,55 @@
+IAD1
+#
+# 1994 June 6 -- Data
+# David D. Royston
+#
+1.33         # Index of refraction of sample
+1.507        # Index of refraction of top slide
+1.0          # [mm] Thickness of sample
+1.0          # [mm] Thickness of slides
+2.0          # [mm] Diameter of illumination beam
+0.99         # Reflectance of calibration standard
+
+1            # [mm] Number of spheres used during each measurement
+
+             # Refection sphere properties
+203.2        # [mm] Sphere Diameter
+20.3         # [mm] Sample Port Diameter
+47.2         # [mm] Entrance Port Diameter
+1.0          # [mm] Detector Port Diameter
+0.88493      # Reflectivity of the sphere wall
+
+             # Transmission sphere properties
+203.2        # [mm] Sphere Diameter
+20.3         # [mm] Sample Port Diameter
+47.2         # [mm] Entrance Port Diameter
+1.0          # [mm] Detector Port Diameter
+0.88493      # Reflectivity of the sphere wall
+
+3            # [mm] Number of measurements
+
+#Vr	Vt	Vcol
+0.24545	0.37305	0.05489
+0.22444	0.41343	0.08074
+0.21137	0.44437	0.10503
+0.19208	0.48913	0.15644
+0.16976	0.52343	0.20901
+0.14652	0.57225	0.29480
+0.12117	0.63132	0.40412
+0.24462	0.38195	0.05507
+0.22775	0.41064	0.07961
+0.21094	0.44116	0.10431
+0.19212	0.49396	0.15919
+0.16886	0.51474	0.20572
+0.14501	0.57776	0.29989
+0.12155	0.61873	0.39236
+0.24711	0.38424	0.05487
+0.22529	0.42056	0.08413
+0.20971	0.44071	0.10552
+0.19250	0.48465	0.15652
+0.17007	0.51472	0.20362
+0.14524	0.57436	0.29317
+0.12301	0.64812	0.41885
+0.25044	0.38756	0.05487
+0.22946	0.41881	0.08570
+0.21219	0.44508	0.10449

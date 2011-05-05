@@ -1,0 +1,42 @@
+IAD1
+#
+# Tests using calculated values for M_R and M_T
+# by Scott Prahl
+#
+1.4          # Index of refraction of sample
+1.0          # Index of refraction of top slide
+1.0          # [mm] Thickness of sample
+1.0          # [mm] Thickness of slides
+2.0          # [mm] Diameter of illumination beam
+1.00         # Reflectance of calibration standard
+
+0            # [mm] Number of spheres used during each measurement
+
+             # Refection sphere properties (unused because n_spheres=0)
+203.2        # [mm] Sphere Diameter
+25.4         # [mm] Sample Port Diameter
+12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Detector Port Diameter
+0.96         # Reflectivity of the sphere wall
+
+             # Transmission sphere properties (unused because n_spheres=0)
+203.2        # [mm] Sphere Diameter
+25.4         # [mm] Sample Port Diameter
+12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Detector Port Diameter
+0.96         # Reflectivity of the sphere wall
+
+2            # [mm] Number of measurements
+
+#       M_R     	       M_T        	a	   b    g
+2.77865808457e-2	1.73065997660e-2 # 0.00 4.0000 0.00
+4.20236699283e-2	1.91254597157e-2 # 0.19 4.0000 0.00
+6.00960999727e-2	2.19067707658e-2 # 0.36 4.0000 0.00
+8.34695920348e-2	2.63617299497e-2 # 0.51 4.0000 0.00
+1.14361397922e-1	3.38563099504e-2 # 0.64 4.0000 0.00
+1.56228601933e-1	4.70846891403e-2 # 0.75 4.0000 0.00
+2.14577898383e-1	7.13708102703e-2 # 0.84 4.0000 0.00
+2.97877311707e-1	1.16591498256e-1 # 0.91 4.0000 0.00
+4.15349513292e-1	1.96420803666e-1 # 0.96 4.0000 0.00
+5.54938077927e-1	3.06980103254e-1 # 0.99 4.0000 0.00
+6.29535913467e-1	3.70464086533e-1 # 1.00 4.0000 0.00

@@ -1,0 +1,251 @@
+VERSION 3.3.0
+
+OVERVIEW
+
+This program (Inverse Adding-Doubling or iad) will calculate the intrinsic optical properties
+of a sample given measurements of the total reflection and transmission.
+
+The original program (Prahl, AO, 1980) uses the Adding-Doubling method of
+van de Hulst to determine the optical properties of a sample by trial and
+error.  The original program extended the Adding-Doubling method to include
+the presence of flat boundaries characterized by Fresnel reflection.
+
+Determining optical properties with the IAD method requires careful measurements
+using integrating spheres.  Integrating spheres are wonderful devices, but 
+suffer from having a non-linear response to the presence of a sample.  For 
+example, even after correcting for dark noise, the detector on a sphere 
+containing a sample with 25% reflection will not measure exactly one-half 
+the value of a 50% sample. (The presence of the sample changes the number
+of times that light bounces in the sphere.  More reflective samples have
+more bounces and a greater chance of being captured by the detector.  Thus
+the 50% sample will record slightly more than twice the value from the
+25% sample.)
+
+The original program accounted for this integrating sphere effect.  Unfortunately
+the nomenclature used was horribly obtuse and the derivations in the published
+papers filled with errors.  Consequently, no one (including myself or my students)
+used it.  Nevertheless the sphere effects could be included and were present
+in the code.
+
+Over the last decade, many people have used the IAD method to measure
+optical properties.
+
+Then one day when producing phantoms for a company, the internal
+validation checks of the optical properties failed.  
+
+van de Hulst (Multiple
+Light Scattering, 1978) to include boundaries that were characterized by
+
+
+
+OBTAINING
+
+All files can be obtained from the OMLC website
+
+http://omlc.ogi.edu/software/iad/
+
+The source code and build instructions for Unix (linux, Mac OS X) and Window
+
+INSTALLATION
+
+In principle you should be able to just type
+
+  make
+
+to create excutable versions of the ad and iad programs.  To quickly test
+if these are working try
+
+  ./iad -help
+
+  ./iad -M 0 -q 4 test/vio1
+
+which will process the file vio1.rt and produce vio1.abg.  To install the 
+program just type
+
+  sudo make install
+
+and the binary executable files (iad and ad) will be created and placed in 
+/usr/local/bin so that you can use them from any directory 
+(if /usr/local/bin is in your path).
+
+If you are using windows then you will need to work a bit more. 
+
+NEW FEATURES
+
+*** New file format.  
+This format is much saner and easier to use.  See the FILE FORMAT section below 
+for more details.
+
+*** Monte Carlo Corrections 
+This version now includes a small Monte Carlo program that can be used
+to estimate the amount of light lost out the edges of the sample.  This
+light is not collected by the spheres and would typically be attributed
+to increased absorption.  There are two potential sources of lost light.
+The light lost from the initial collimated illumination (ur1_lost and ut1_lost)
+and the light lost because of diffuse light in the sphere illuminating the
+sample (uru_lost and utu_lost).  These values are included in the output file.
+
+This iad version of the program now calculates the optical properties for
+four different cases (1) no sphere and no lost light corrections, (2) only
+sphere corrections, (3) only lost light corrections, and (4) both sphere and
+lost light corrections.
+
+*** Shared library support.  
+It works for me.  Edit the Makefile for your platform and try
+
+	make lib
+	sudo make install-lib
+
+*** Mathematica support.  
+If you have mma, then (if you have installed the right
+tools) and have the libraries installed then you should be able to type
+
+	make mma
+	sudo make install mma
+
+and then load the iad module and then type 'Plot[UR1[a,b,g], {g,0.5,0.8}]' 
+in mma to get a graph.  Very cool.
+
+DOCUMENTATION
+
+Look in the docs directory.  The iad_src.pdf is a complete listing of the
+program.  I have not rewritten the manual, but it has some things that are
+not completely wrong.
+
+FILE FORMAT
+
+By convention, the reflection and transmission files end in `.rxt' and all 
+emitted files will have `.txt' at the end of the filename.  The `.rxt' files
+are just ascii files with the reflection and transmission data for a single
+experiment all gathered together.  The file format requires that the first
+three characters be `IAD' to designate the file as having the proper format.
+After this there are 18 numbers that describe how the experiment was done.
+These parameters come in exactly the order specifed below.  (I have worked 
+hard to reduce these to the fewest possible.  My students had to change 
+their headers several times before this set and ordering were settled upon.)
+The length units for the numbers are in millimeters; the calculated optical 
+properties will have units of 1/mm.  
+
+To make it easy to remember the order of the numbers, it is possible to insert
+comments that describe each parameter as well as to annotate the experiment.
+These 18 numbers are separated by white space.  All comments begin with a 
+octothorpe `#' (pound sign, number sign, sharp symbol, crosshatch, hash mark) 
+and the comment continues to the end of the line.  White space (carridge returns, 
+linefeeds, tabs, spaces and comments) are all reduced to a single space.  
+
+So for example, one example header may look like
+
+\begin{verbatim}
+IAD    # Must be first three characters of the file
+
+# Sample header with a single set of sphere coefficients
+#    The order of entries is important 
+#    18 numbers are always required, even if 
+#    Anything after a '#' is ignored
+#    Blank lines are also ignored
+ 
+1.34   # Index of refraction of the sample
+1.50   # Index of refraction of the top and bottom slides
+1.0    # [mm] Thickness of sample
+1.0    # [mm] Thickness of slides
+5.0    # [mm] Diameter of illumination beam
+0.96   # Reflectivity of the reflectance calibration standard
+
+1      # Number of spheres used during each measurement
+
+       # Properties of sphere used for reflection measurements
+203.2  # [mm] Sphere Diameter        (8.0 inches)
+25.4   # [mm] Sample Port Diameter   (1.0 inch)
+12.7   # [mm] Entrance Port Diameter (0.5 inches)
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+       # Properties of sphere used for transmission measurements
+       # these will not be used, because one sphere is specified above
+203.2  # [mm] Sphere Diameter        (8.0 inches)
+25.4   # [mm] Sample Port Diameter   (1.0 inch)
+12.7   # [mm] Entrance Port Diameter (0.5 inches)
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+2      # Number of measurements, R, T
+\end{verbatim}
+
+This header could also be written more concisely and more cryptically as
+
+IAD 1.34 1.5 1 1 5 .96 1 203.2 25.4 12.7 1 .96 203.2 25.4 12.7 1 .96 2
+
+I want to emphasize that all eighteen numbers are required in each header.
+You might ask, ``Why must I make up sphere parameters when no spheres were
+used in the experiment!'' The answer is ``because I said so.''  I did this
+because the old method was based on line numbers.  It was critical that you
+put the right number on the right line.  Since I was always screwing this up
+in the data files or in the code that interpreted the data files, 
+I figured that a better way was needed.
+
+Right now 
+
+Everything should be obvious.  The `fraction of light that hits the
+sphere first' is an experimentally derived number.  It represents the
+fraction of light in the reflection experiment that does not hit the
+sample first.  As this fraction goes to one, then all the light 
+hits the sphere wall first and the illumination on the sample is diffuse.
+
+COMMAND LINE OPTIONS
+
+iad now has a number of command line arguments to make your life easier.
+
+Options:
+	  -h               display help
+	  -m               machine readable output
+	  -g               anisotropy value to use (default 0.0)
+	  -p #             # of Monte Carlo photons (default 100000)
+	  -n #             specify index of refraction of slab
+	  -o filename      explicitly specify filename for output
+	  -q #             number of quadrature points (default=8)
+	  -r #             total reflection measurement
+	  -t #             total transmission measurement
+	  -u #             unscattered transmission measurement
+	  -v               version information
+	  -M #             number of Monte Carlo iterations
+	  -Q               quiet -- silence output to stderr
+
+Examples:
+	  iad data                    optical values put in data.abg
+	  iad -m data                 data.abg in machine readable format
+	  iad -o out data             calculated values in out
+	  iad -r 0.3                  R_total=0.3, b=inf, find albedo
+	  iad -r 0.3 -t 0.4           R_total=0.3, T_total=0.4, find a,b,g
+	  iad -r 0.3 -t 0.4 -n 1.5    R_total=0.3, T_total=0.4, n=1.5, find a,b
+	  iad -r 0.3 -t 0.4           R_total=0.3, T_total=0.4, find a,b
+	  iad -p 1000 data            only 1000 photons
+	  iad -q 4 data               four quadrature points
+	  iad -M 0 data               no MC    (iad)
+	  iad -M 1 data               MC once  (iad -> MC -> iad)
+	  iad -M 2 data               MC twice (iad -> MC -> iad -> MC -> iad)
+	  iad -M 0 -q 4 data          Fast and crude conversion
+
+PACKAGING
+	The code is written in ANSI C.  The actual source files
+	(.w) are written in CWEB, from which the (.c) and (.h)
+	files are generated.  The documenation (.tex) is also
+	generated from the same base (.w) files.  
+	
+	In deference to those who do not want to do Literate
+	Programming, I include the files in raw ANSI C (no comments)
+	and a heavily commented listing is available as doc/iad_src.pdf
+	and doc/ad_src.pdf.  
+		           
+	The CWEB system is available on the Comphrensive
+	TeX Archive Network (CTAN).  I am actually sorry that I used
+	CWEB for this project.  The documentation is beautiful, but
+	CWEB certainly creates an artificial barrier to usage.  
+	
+SUPPORT
+
+I have not rewritten the user's manual.  If you have problems
+fax me a (503) 216-2422 or send me email at prahl@bme.ogi.edu.
+
+Scott Prahl
+http://omlc.ogi.edu
+
