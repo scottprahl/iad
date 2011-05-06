@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Dec 2010
 #
 
-VERSION = 3-8-3
+VERSION = 3-8-4
 
 #Base directory - adapt as needed
 PREFIX=/usr/local
