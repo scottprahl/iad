@@ -1010,7 +1010,7 @@ void print_optical_property_result(FILE *fp,
     else 
         fprintf(fp, "%6d\t", line);
      
-    if (mu_a > 10) mu_a = 9.9999;
+    if (mu_a > 100) mu_a = 99.9999;
     if (mu_sp > 1000) mu_sp = 999.9999;
     
     fprintf(fp, "%0.3e\t%0.3e\t", m.m_r, LR);   
