@@ -372,7 +372,7 @@ fprintf(fp,"%6.1f\t",m.lambda);
 else
 fprintf(fp,"%6d\t",line);
 
-if(mu_a> 100)mu_a= 99.9999;
+if(mu_a> 200)mu_a= 199.9999;
 if(mu_sp> 1000)mu_sp= 999.9999;
 
 fprintf(fp,"%0.3e\t%0.3e\t",m.m_r,LR);
