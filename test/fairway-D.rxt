@@ -1,0 +1,46 @@
+IAD1   # Must be first four characters
+
+# Complete problematic data set, but with beam reduced in size
+ 
+1.6	# Index of refraction of the sample
+1.515	# Index of refraction of the top and bottom slides
+2.7	# [mm] Thickness of sample
+1.2	# [mm] Thickness of slides
+9	# [mm] Diameter of illumination beam
+0.985	# Reflectivity of the reflectance calibration standard
+
+1      # Number of spheres used during each measurement
+
+       # Properties of sphere used for reflectance measurements
+152.4  # [mm] Sphere Diameter  (6 in * 25.4 mm/in)
+25   # [mm] Sample Port Diameter
+15   # [mm] Entrance Port Diameter
+18   # [mm] Detector Port Diameter
+0.98   # Reflectivity of the sphere wall
+
+       # Properties of sphere used in transmittance measurements
+152.4  # [mm] Sphere Diameter  (6 in * 25.4 mm/in)
+25   # [mm] Sample Port Diameter
+15   # [mm] Entrance Port Diameter
+18   # [mm] Detector Port Diameter
+0.98   # Reflectivity of the sphere wall
+
+2      # Number of measurements, M_R, M_T
+
+#lambda		M_R		M_T
+650		0.163327	0.565022	#Sample "20"
+757		0.152954	0.607527
+1064		0.178886	0.538462
+650		0.428030	0.313901	#Sample "100"
+757		0.397680	0.360215
+1064		0.447214	0.307692
+650		0.540669	0.237668	#Sample "200"
+757		0.507807	0.279570
+1064		0.536657	0.230769
+670		0.045056	0.403587	#Sample "2 drops"
+757		0.042827	0.413978
+1064		0.089443	0.384615
+670		0.084480	0.219731	#Sample "20 - 2 drops"
+757		0.079536	0.247312
+1064		0.089443	0.230769
+
