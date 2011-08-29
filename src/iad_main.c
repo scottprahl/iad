@@ -50,7 +50,7 @@ extern int optind;
 static void print_version(void)
 {
 fprintf(stderr,"iad %s\n",Version);
-fprintf(stderr,"Copyright 2010 Scott Prahl, prahl@bme.ogi.edu\n");
+fprintf(stderr,"Copyright 2011 Scott Prahl, prahls@ohsu.edu\n");
 fprintf(stderr,"          (see Applied Optics, 32:559-568, 1993)\n");
 exit(0);
 }
@@ -1026,7 +1026,7 @@ calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 #line 555 "iad_main.w"
 
 
-if(m.as_r!=0&&r.default_a!=0){
+if(m.as_r!=0&&r.default_a!=0&&m.num_spheres> 0){
 double mu_sp_last= mu_sp;
 double mu_a_last= mu_a;
 
@@ -1370,7 +1370,7 @@ calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 #line 555 "iad_main.w"
 
 
-if(m.as_r!=0&&r.default_a!=0){
+if(m.as_r!=0&&r.default_a!=0&&m.num_spheres> 0){
 double mu_sp_last= mu_sp;
 double mu_a_last= mu_a;
 
