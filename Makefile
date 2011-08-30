@@ -111,8 +111,10 @@ mma/AD.exe:
 	
 install: ad iad
 	mkdir -p $(BIN_INSTALL)
+	rm -f $(BIN_INSTALL)/ad
 	cp ad  $(BIN_INSTALL)
-	cp iad $(BIN_INSTALL)
+	rm -f $(BIN_INSTALL)/iad
+	cp -f iad $(BIN_INSTALL)
 
 install-lib: libiad$(LIB_EXT) libiad.h
 	mkdir -p $(LIB_INSTALL)

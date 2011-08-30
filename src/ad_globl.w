@@ -252,7 +252,7 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, 
 		if (angle[cone_index] <= mu_slab) break;
 	}
 	
-	if (angle[cone_index] != mu_slab) {
+	if (fabs(angle[cone_index] - mu_slab) > 1e-5) {
 		fprintf(stderr, "Something is wrong with the quadrature\n");
 		fprintf(stderr, "For an external angle cos(theta)=%8.5f\n", mu);
 		fprintf(stderr, "and an internal angle cos(theta)=%8.5f\n", mu_slab);
