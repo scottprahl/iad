@@ -1,0 +1,50 @@
+IAD1   # Must be first four characters
+
+# Input Example with a single set of sphere coefficients
+# The order of entries is important 
+# Anything after a '#' is ignored, blank lines are also ignored
+ 
+1.468   # Index of refraction of the sample
+1   # Index of refraction of the top and bottom slides
+3.72    # [mm] Thickness of sample
+0    # [mm] Thickness of slides
+5.0    # [mm] Diameter of illumination beam
+0.98   # Reflectivity of the reflectance calibration standard
+
+1      # Number of spheres used during each measurement
+
+       # Properties of sphere used for reflection measurements
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+44.5   # [mm] Sample Port Diameter
+6.35   # [mm] Entrance Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+       # Properties of sphere used for transmission measurements
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+44.5   # [mm] Sample Port Diameter
+0      # [mm] Entrance Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+2      # Number of measurements, M_R, M_T
+##Wavelength	M_R	M_T
+359.000000	0.0676598387337058	0.392955421066919
+360.000000	0.0539325842636031	0.518358531261516
+361.000000	0.043137255	0.65429687496624
+362.000000	0.060362173044302	0.492901508474454
+363.000000	0.0387355298342596	0.61837312826898
+480.000000	0.0242332793990737	0.00891453078727884
+481.000000	0.0231398816267289	0.00717458148276126
+482.000000	0.0234662041962462	0.00633670491541863
+483.000000	0.0256585426444169	0.00802960548724005
+665.000000	0.0513560959396095	0.967080429301177
+666.000000	0.049667530359317	0.964087874624866
+667.000000	0.0456191915238316	0.954316156711248
+668.000000	0.0493850245138369	0.949000721801654
+669.000000	0.0494051725961237	0.971066242763526
+719.000000	0.04913572342789	0.960492981855529
+720.000000	0.0473492924042151	0.955621441013695
+721.000000	0.0532627056824403	0.978447861605101
+722.000000	0.0550038035629068	0.949868137137618
+723.000000	0.0467672413832175	0.974557880821005

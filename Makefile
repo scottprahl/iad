@@ -4,13 +4,13 @@
 
 VERSION = 3-8-4
 
-#Base directory - adapt as needed
-PREFIX=/usr/local
+#Base directory for installation
+DESTDIR=/usr/local
 
 #typical install hierarchy
-BIN_INSTALL=$(PREFIX)/bin
-LIB_INSTALL=$(PREFIX)/lib
-INC_INSTALL=$(PREFIX)/include
+BIN_INSTALL=$(DESTDIR)/bin
+LIB_INSTALL=$(DESTDIR)/lib
+INC_INSTALL=$(DESTDIR)/include
 
 #Library extension
 LIB_EXT = .dylib		#MacOS X shared lib
@@ -54,7 +54,9 @@ TEST =	\
 		test/royston9-C.rxt test/royston9-D.rxt test/royston_ink1.rxt test/sample-A.rxt   test/sample-B.rxt\
 		test/sample-C.rxt   test/sample-D.rxt   test/sample-E.rxt     test/sample-F.rxt   test/sample-G.rxt\
 		test/sevick-A.rxt   test/sevick-B.rxt   test/terse-A.rxt      test/terse-B.rxt    test/tio2_vis.rxt\
-		test/uterus.rxt     test/valid.bat      test/vio-A.rxt        test/vio-B.rxt      test/x_bad_data.rxt
+		test/uterus.rxt     test/valid.bat      test/vio-A.rxt        test/vio-B.rxt      test/x_bad_data.rxt\
+		test/ville1.rxt     test/fairway-A.rxt  test/fairway-B.rxt    test/fairway-C.rxt  test/fairway-D.rxt\
+		test/fairway-E.rxt  test/basic-E.rxt
 		
 		
 MMA =  mma/AD.m mma/AD.tm mma/Makefile
