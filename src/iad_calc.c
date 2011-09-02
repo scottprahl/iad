@@ -100,6 +100,8 @@ Same_Calc_State (struct measure_type m, struct invert_type r)
     return FALSE;
   if (r.slab.cos_angle != RR.slab.cos_angle)
     return FALSE;
+  if ((m.num_measures == 3) && (m.m_u != MGRID.m_u))
+    return (FALSE);
   return TRUE;
 }
 

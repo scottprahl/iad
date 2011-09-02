@@ -464,6 +464,7 @@ boolean_type Same_Calc_State(struct measure_type m, struct invert_type r)
     if (r.slab.b_top_slide    != RR.slab.b_top_slide)    return FALSE;
     if (r.slab.b_bottom_slide != RR.slab.b_bottom_slide) return FALSE;
     if (r.slab.cos_angle      != RR.slab.cos_angle)      return FALSE;
+    if ((m.num_measures==3) && (m.m_u!=MGRID.m_u)) return (FALSE);
     return TRUE;
 }
 
