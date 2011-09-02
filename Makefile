@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Dec 2010
 #
 
-VERSION = 3-8-4
+VERSION = 3-8-5
 
 #Base directory for installation
 DESTDIR=/usr/local
