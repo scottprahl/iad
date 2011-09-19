@@ -92,6 +92,7 @@ double mua,musp,mus,d;
 	@<Tests with no absorption@>@;
 	@<Tests with absorption and scattering@>@;
 	@<Tests for Paulo@>@;
+	@<Tests that vary g@>@;
 	return 0;
 }
 
@@ -101,91 +102,7 @@ turn on more and more functionality.
 
 @<Tests with full cone@>=
 
-slab.n_slab = 1.333;
-slab.n_top_slide = 1.5;
-slab.n_bottom_slide = 1.5;
-slab.cos_angle = 1;
-slab.phase_function = HENYEY_GREENSTEIN;
-mua=3.9;
-musp=11.5;
 
-slab.g=0.1;
-d=0.08;
-while (slab.g<0.9) {
-mus=musp/(1-slab.g);
-slab.a=mus/(mua+mus);
-slab.b=d*(mua+mus);
-RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-
-slab.cos_angle = cos(atan2(10,150));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
-printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
-slab.cos_angle = cos(atan2(10,70));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
-printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
-slab.g += 0.2;
-}
-printf("\n");
-
-slab.g=0.1;
-d=0.105;
-while (slab.g<0.9) {
-mus=musp/(1-slab.g);
-slab.a=mus/(mua+mus);
-slab.b=d*(mua+mus);
-RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-
-slab.cos_angle = cos(atan2(10,150));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
-printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
-slab.cos_angle = cos(atan2(10,70));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
-printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
-slab.g += 0.2;
-}
-printf("\n");
-
-slab.g=0.1;
-d=0.2;
-while (slab.g<0.9) {
-mus=musp/(1-slab.g);
-slab.a=mus/(mua+mus);
-slab.b=d*(mua+mus);
-RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-
-slab.cos_angle = cos(atan2(10,150));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
-printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
-slab.cos_angle = cos(atan2(10,70));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
-printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
-slab.g += 0.2;
-}
-exit(0);
-d=0.105;
-slab.b=d*(mua+mus);
-slab.cos_angle = cos(atan2(10,150));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-PrintTestResults(9,3,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
-slab.cos_angle = cos(atan2(10,70));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-PrintTestResults(9,4,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
-
-d=0.2;
-slab.b=d*(mua+mus);
-slab.cos_angle = cos(atan2(10,150));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-PrintTestResults(9,5,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
-slab.cos_angle = cos(atan2(10,70));
-RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-PrintTestResults(9,6,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
-	
 slab.n_slab = 1.0;
 slab.n_top_slide = 1.0;
 slab.n_bottom_slide = 1.0;
@@ -420,3 +337,76 @@ PrintTestResults(5,1,&slab,0.0,0.0,0.0,0.0,bUR1,bUT1,bURU,bUTU);
 slab.n_slab = 1.4;
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(5,2,&slab,0.0,0.0,0.0,0.0,bUR1,bUT1,bURU,bUTU);
+
+@ @<Tests that vary g@>=
+
+printf("\nTests that compare fraction of light collected\n");
+printf("for the same absorption and reduced scattering but\n");
+printf("different sphere sizes with same port size.\n");
+
+slab.n_slab = 1.333;
+slab.n_top_slide = 1.5;
+slab.n_bottom_slide = 1.5;
+slab.cos_angle = 1;
+slab.phase_function = HENYEY_GREENSTEIN;
+mua=3.9;
+musp=11.5;
+
+slab.g=0.1;
+d=0.08;
+while (slab.g<0.9) {
+mus=musp/(1-slab.g);
+slab.a=mus/(mua+mus);
+slab.b=d*(mua+mus);
+RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
+
+slab.cos_angle = cos(atan2(10,150));
+RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
+printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
+slab.cos_angle = cos(atan2(10,70));
+RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
+printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
+slab.g += 0.2;
+}
+printf("\n");
+
+slab.g=0.1;
+d=0.105;
+while (slab.g<0.9) {
+mus=musp/(1-slab.g);
+slab.a=mus/(mua+mus);
+slab.b=d*(mua+mus);
+RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
+
+slab.cos_angle = cos(atan2(10,150));
+RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
+printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
+slab.cos_angle = cos(atan2(10,70));
+RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
+printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
+slab.g += 0.2;
+}
+printf("\n");
+
+slab.g=0.1;
+d=0.2;
+while (slab.g<0.9) {
+mus=musp/(1-slab.g);
+slab.a=mus/(mua+mus);
+slab.b=d*(mua+mus);
+RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
+
+slab.cos_angle = cos(atan2(10,150));
+RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
+printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
+slab.cos_angle = cos(atan2(10,70));
+RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
+printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
+slab.g += 0.2;
+}
