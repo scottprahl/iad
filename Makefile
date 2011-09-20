@@ -43,7 +43,7 @@ DOCS =	doc/CHANGELOG        doc/ToDo                  doc/manual.tex      \
 		doc/ch3spheresT.pdf  doc/ch3Doublespheres.pdf  doc/colltrans.pdf   \
 		doc/lightloss.pdf    doc/niek_graph.pdf        doc/glass-slide.pdf \
 		doc/cmdexe.png       doc/valid.png             doc/dual8.png \
-                doc/dual90.png
+        doc/dual90.png       doc/iad.bib
 
 TEST =	\
 		test/Makefile       test/basic-A.rxt    test/basic-B.rxt      test/basic-C.rxt    test/basic-D.rxt\
