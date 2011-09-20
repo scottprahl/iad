@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Dec 2010
 #
 
-VERSION = 3-9-0
+VERSION = 3-9-2
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -137,7 +137,7 @@ install-all:
 	make install-mma
 
 dist: 
-#	make doc
+	make doc
 	touch src/version.h
 	cd src && ./version.pl
 	make clean
@@ -222,8 +222,11 @@ ad_doc:
 iad_doc:
 	cd src ; make ad_doc
 
-manual_doc:
-	cd doc ; make
+manual_doc doc/manual.pdf: doc/manual.tex 
+	cd doc ; pdflatex manual
+	cd doc ; bibtex manual
+	cd doc ; pdflatex manual
+	cd doc ; pdflatex manual
 	
 changelog:
 	src/svnlog.pl --repro http://omlc.ogi.edu/svn/project/iad/trunk > doc/CHANGELOG
@@ -239,8 +242,8 @@ realclean:
 	cd src ; make realclean
 	rm -f mpgraph.mp texexec-mpgraph.mp texexec.tmp
 	rm -f ad iad libiad.h libiad$(LIB_EXT)
-	cd doc	; make realclean
-	cd mma	; make realclean
+	rm -f doc/manual.pdf doc/manual.bbl doc/manual.blg doc/manual.out doc/manual.toc 
+	cd mma	; make clean
 	cd test ; make clean
 	rm -f $(CSRC) $(HSRC)
 	

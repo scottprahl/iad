@@ -239,13 +239,13 @@ PACKAGING
 	The CWEB system is available on the Comphrensive
 	TeX Archive Network (CTAN).  I am actually sorry that I used
 	CWEB for this project.  The documentation is beautiful, but
-	CWEB certainly creates an artificial barrier to usage.  
+	CWEB certainly creates an yet another layer of complexity.  
 	
 SUPPORT
 
 I have not rewritten the user's manual.  If you have problems
-fax me a (503) 216-2422 or send me email at prahl@bme.ogi.edu.
+email me at prahls@ohsu.edu.
 
 Scott Prahl
-http://omlc.ogi.edu
+http://www.bme.ogi.edu/~prahl
 

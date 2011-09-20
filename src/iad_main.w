@@ -342,9 +342,11 @@ extern int   optind;
                 break;
 
             default:
+            	fprintf(stderr, "unknown option '%c'\n", c);
+            	/* fall through */
+            	
             case 'h':
             case '?':
-            	fprintf(stderr, "unknown option '%c'\n", c);
                 print_usage();
                 break;
         }
@@ -902,7 +904,6 @@ fprintf(stderr, "  iad data                  Optical values put in data.txt\n");
 fprintf(stderr, "  iad -c 1 data             Assume M_R has no unscattered reflectance\n");
 fprintf(stderr, "  iad -c 2 data             Assume M_T has no unscattered transmittance\n");
 fprintf(stderr, "  iad -c 3 data             Assume M_R & M_T have no unscattered light\n");
-fprintf(stderr, "  iad -C -i 8 -S 0 data     Dual beam spectrometer with 8 degree incidence\n");
 fprintf(stderr, "  iad -e 0.0001 data        Better convergence to R & T values\n");
 fprintf(stderr, "  iad -f 1.0 data           All light hits reflectance sphere wall first\n");
 fprintf(stderr, "  iad -o out data           Calculated values in out\n");
@@ -927,9 +928,11 @@ fprintf(stderr, "  iad -x  16 data           DEBUG_SPHERE_EFFECTS\n");
 fprintf(stderr, "  iad -x  32 data           DEBUG_BEST_GUESS\n");
 fprintf(stderr, "  iad -x  64 data           DEBUG_EVERY_CALC\n");
 fprintf(stderr, "  iad -x 128 data           DEBUG_SEARCH\n");
-fprintf(stderr, "  iad -x 255 data           All debugging output\n\n");
-fprintf(stderr, "  apply iad data1 data2     pPocess multiple files\n\n");
-fprintf(stderr, "Report bugs to <prahl@@bme.ogi.edu>\n\n");
+fprintf(stderr, "  iad -x 255 data           All debugging output\n");
+fprintf(stderr, "  iad -X -i 8 data          Dual beam spectrometer with 8 degree incidence\n\n");
+fprintf(stderr, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
+fprintf(stderr, "  apply iad data1 data2     Process multiple files\n\n");
+fprintf(stderr, "Report bugs to <prahls@@ohsu.edu>\n\n");
 exit(0);
 }
 
