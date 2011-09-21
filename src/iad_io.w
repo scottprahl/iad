@@ -331,7 +331,7 @@ int check_magic(FILE *fp)
         if (1<=params && params<=7) {
 			switch (m.method) {
 				case UNKNOWN:
-					printf(" using an unknown method.");
+					printf(" using an unknown method.\n");
 					break;
 				case SUBSTITUTION:
 					printf(" using the substitution (single-beam) method.\n");

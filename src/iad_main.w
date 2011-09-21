@@ -928,8 +928,8 @@ fprintf(stderr, "  iad -x  32 data           DEBUG_BEST_GUESS\n");
 fprintf(stderr, "  iad -x  64 data           DEBUG_EVERY_CALC\n");
 fprintf(stderr, "  iad -x 128 data           DEBUG_SEARCH\n");
 fprintf(stderr, "  iad -x 255 data           All debugging output\n\n");
-fprintf(stderr, "  apply iad data1 data2     pPocess multiple files\n\n");
-fprintf(stderr, "Report bugs to <prahl@@bme.ogi.edu>\n\n");
+fprintf(stderr, "  apply iad data1 data2     process multiple files\n\n");
+fprintf(stderr, "Report bugs to <prahls@@ohsu.edu>\n\n");
 exit(0);
 }
 

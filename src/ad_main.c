@@ -84,7 +84,7 @@ print_usage (void)
   fprintf (stderr,
 	   "    8) bbottomslide = optical depth of bottom slide (for IR)\n");
   fprintf (stderr, "    9) q = number of quadrature points\n\n");
-  fprintf (stderr, "Report bugs to <prahl@bme.ogi.edu>\n\n");
+  fprintf (stderr, "Report bugs to <prahls@ohsu.edu>\n\n");
   exit (0);
 }
 

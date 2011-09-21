@@ -291,7 +291,7 @@ Write_Header (struct measure_type m, struct invert_type r, int params)
       switch (m.method)
 	{
 	case UNKNOWN:
-	  printf (" using an unknown method.");
+	  printf (" using an unknown method.\n");
 	  break;
 	case SUBSTITUTION:
 	  printf (" using the substitution (single-beam) method.\n");

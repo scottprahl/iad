@@ -222,7 +222,7 @@ determine_search (struct measure_type m, struct invert_type r)
 
   Estimate_RT (m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
-  if (tc == 0 && m.m_u == 0 && independent == 3)
+  if ((tc == 0 || m.m_u == 0) && independent == 3)
     independent--;
 
   if (rd == 0 && independent == 2)
