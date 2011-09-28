@@ -1,5 +1,12 @@
 # Ignore binaries
-ad iad ad.exe iad.exe
+ad 
+iad 
+ad.exe 
+iad.exe
+
+# macosx cruft
+.DS_Store
+.svn/*
 
 # Ignore archives
 *.zip
