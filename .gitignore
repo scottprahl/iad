@@ -1,8 +1,20 @@
 # Ignore binaries
-ad 
-iad 
-ad.exe 
+ad
+iad
+ad.exe
 iad.exe
+src/ad_cone_test
+oldzip/*
+script/*
+doc/manual.aux
+doc/manual.bbl
+doc/manual.blg
+doc/manual.log
+doc/manual.out
+doc/manual.pdf
+doc/manual.toc
+doc/ad_src.pdf
+doc/iad_src.pdf
 
 # macosx cruft
 .DS_Store
