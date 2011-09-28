@@ -396,7 +396,7 @@ extern int   optind;
     r.slab.a = r.a;
     r.slab.b = r.b;
     r.slab.g = r.g;
-    fprintf(stderr, "a=%f b=%f g=%f\n", r.a, r.b, r.g);
+
     Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
     Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
     if (cl_verbosity>0) {

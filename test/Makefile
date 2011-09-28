@@ -31,7 +31,7 @@ ville1.txt: ville1.rxt
 	../iad -a 0 ville1.rxt
 
 basic-E.txt: basic-E.rxt
-	../iad -q 8 basic-E.rxt
+	../iad -g 0.9 basic-E.rxt
 
 $(OUT_FILES): %.txt: %.rxt
 	../iad $(OPTIONS) $<

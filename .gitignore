@@ -1,0 +1,19 @@
+# Ignore binaries
+ad iad ad.exe iad.exe
+
+# Ignore archives
+*.zip
+
+# Ignore (generated) .txt files,
+test/*.txt
+
+# Ignore generated .o and .c and .h files
+src/*.c
+src/*.h
+src/*.o
+
+# Don't ignore these files
+!src/version.h
+!src/nr*.[ch]
+!src/mc_lost.[ch]
+!src/mygetopt.[ch]
