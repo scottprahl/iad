@@ -13,7 +13,7 @@ src/*.h
 src/*.o
 
 # Don't ignore these files
-!src/version.h
+!src/version.[ch]
 !src/nr*.[ch]
 !src/mc_lost.[ch]
 !src/mygetopt.[ch]
