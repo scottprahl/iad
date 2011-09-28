@@ -358,20 +358,33 @@ extern int   optind;
 @ @<Calculate and Print the Forward Calculation@>=
     { double mu_sp, mu_a;
     if (cl_default_a == UNINITIALIZED) {
-        if (cl_default_mua != UNINITIALIZED && cl_default_mus != UNINITIALIZED)
-            r.a = cl_default_mus / (cl_default_mua+cl_default_mus);
-        else 
+    
+        if (cl_default_mus == UNINITIALIZED) 
             r.a = 0;
-    } else 
+        else if (cl_default_mua == UNINITIALIZED)
+            r.a = 1;
+        else
+            r.a = cl_default_mus / (cl_default_mua+cl_default_mus);
+
+    } else
         r.a = cl_default_a;
         
     if (cl_default_b == UNINITIALIZED) {
-        if (cl_default_mua != UNINITIALIZED 
-         && cl_default_mus != UNINITIALIZED
-         && cl_sample_d    != UNINITIALIZED)
-            r.b = cl_sample_d * (cl_default_mua+cl_default_mus);
-        else 
+    
+        if (cl_sample_d == UNINITIALIZED) 
             r.b = HUGE_VAL;
+            
+        else if (r.a == 0) {
+        	if (cl_default_mua == UNINITIALIZED)
+        		r.b = HUGE_VAL;
+        	else 
+        		r.b = cl_default_mua * cl_sample_d;
+        } else {
+        	if (cl_default_mus == UNINITIALIZED)
+        		r.b = HUGE_VAL;
+        	else 
+        		r.b = cl_default_mus/r.a * cl_sample_d;
+        }
     } else 
         r.b = cl_default_b;
 
@@ -383,6 +396,7 @@ extern int   optind;
     r.slab.a = r.a;
     r.slab.b = r.b;
     r.slab.g = r.g;
+    fprintf(stderr, "a=%f b=%f g=%f\n", r.a, r.b, r.g);
     Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
     Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
     if (cl_verbosity>0) {
