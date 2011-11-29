@@ -112,7 +112,7 @@ extern int   optind;
   int process_command_line = 0;
   int params = 0;
   
-  int    cl_quadrature_points = 8;
+  int    cl_quadrature_points = UNINITIALIZED;
   int    cl_verbosity = 2;
   
   double cl_forward_calc= UNINITIALIZED;
@@ -506,7 +506,10 @@ measurements.
 
 @ @<Command-line changes to |r|@>=  
     
-    r.method.quad_pts = cl_quadrature_points;  
+    if (cl_quadrature_points != UNINITIALIZED)
+    	r.method.quad_pts = cl_quadrature_points;
+    else
+    	r.method.quad_pts = 8;
 
 	if (cl_default_a != UNINITIALIZED) 
         r.default_a = cl_default_a;
@@ -715,8 +718,14 @@ properties can be determined.
 
     if (cl_cos_angle != UNINITIALIZED) {
         m.slab_cos_angle = cl_cos_angle;
-        cl_quadrature_points = 12 * (cl_quadrature_points / 12);
-        if (cl_quadrature_points<12) cl_quadrature_points = 12;
+        if (cl_quadrature_points == UNINITIALIZED)
+        	cl_quadrature_points = 12;
+
+        if (cl_quadrature_points != 12 * (cl_quadrature_points / 12)) {
+        	fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
+        	fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
+        	exit(0);
+        }
 	}
 
     if (cl_sample_n != UNINITIALIZED) 

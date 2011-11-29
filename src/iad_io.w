@@ -343,17 +343,22 @@ int check_magic(FILE *fp)
 
 		switch (m.num_spheres) {
 		case 0:
-            printf("# No sphere corrections were used.\n");
+            printf("# No sphere corrections were used");
             break;
 
 		case 1:
-            printf("# Single sphere corrections were used.\n");
+            printf("# Single sphere corrections were used");
             break;
 
 		case 2:
-			printf("# Double sphere corrections were used.\n");
+			printf("# Double sphere corrections were used");
 			break;
 		}
+		
+		printf(" with light incident at %d degrees from the normal", 
+			       (int) (acos(m.slab_cos_angle)*57.2958));
+		printf(".\n");
+		
         switch (r.search) {
 			case FIND_AB:   
 				 printf("# The inverse routine varied the albedo and optical depth.\n");
