@@ -928,15 +928,10 @@ fprintf(stderr, "  iad -x  16 data           DEBUG_SPHERE_EFFECTS\n");
 fprintf(stderr, "  iad -x  32 data           DEBUG_BEST_GUESS\n");
 fprintf(stderr, "  iad -x  64 data           DEBUG_EVERY_CALC\n");
 fprintf(stderr, "  iad -x 128 data           DEBUG_SEARCH\n");
-<<<<<<< HEAD
-fprintf(stderr, "  iad -x 255 data           All debugging output\n\n");
-fprintf(stderr, "  apply iad data1 data2     process multiple files\n\n");
-=======
 fprintf(stderr, "  iad -x 255 data           All debugging output\n");
 fprintf(stderr, "  iad -X -i 8 data          Dual beam spectrometer with 8 degree incidence\n\n");
 fprintf(stderr, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
 fprintf(stderr, "  apply iad data1 data2     Process multiple files\n\n");
->>>>>>> ed0b0a2b1d3dc1513995f8c737bf6b98871a5359
 fprintf(stderr, "Report bugs to <prahls@@ohsu.edu>\n\n");
 exit(0);
 }
