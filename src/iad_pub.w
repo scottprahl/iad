@@ -324,7 +324,7 @@ optical properties to determine.
 
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
-    if ((tc==0 || m.m_u==0) && independent == 3) /* no information in tc */
+    if (m.m_u==0 && independent == 3) /* no information in tc */
         independent--;
 
     if (rd==0 && independent == 2) /* no information in rd */
