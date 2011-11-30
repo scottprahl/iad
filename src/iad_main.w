@@ -112,7 +112,7 @@ extern int   optind;
   int process_command_line = 0;
   int params = 0;
   
-  int    cl_quadrature_points = 8;
+  int    cl_quadrature_points = UNINITIALIZED;
   int    cl_verbosity = 2;
   
   double cl_forward_calc= UNINITIALIZED;
@@ -358,20 +358,33 @@ extern int   optind;
 @ @<Calculate and Print the Forward Calculation@>=
     { double mu_sp, mu_a;
     if (cl_default_a == UNINITIALIZED) {
-        if (cl_default_mua != UNINITIALIZED && cl_default_mus != UNINITIALIZED)
-            r.a = cl_default_mus / (cl_default_mua+cl_default_mus);
-        else 
+    
+        if (cl_default_mus == UNINITIALIZED) 
             r.a = 0;
-    } else 
+        else if (cl_default_mua == UNINITIALIZED)
+            r.a = 1;
+        else
+            r.a = cl_default_mus / (cl_default_mua+cl_default_mus);
+
+    } else
         r.a = cl_default_a;
         
     if (cl_default_b == UNINITIALIZED) {
-        if (cl_default_mua != UNINITIALIZED 
-         && cl_default_mus != UNINITIALIZED
-         && cl_sample_d    != UNINITIALIZED)
-            r.b = cl_sample_d * (cl_default_mua+cl_default_mus);
-        else 
+    
+        if (cl_sample_d == UNINITIALIZED) 
             r.b = HUGE_VAL;
+            
+        else if (r.a == 0) {
+        	if (cl_default_mua == UNINITIALIZED)
+        		r.b = HUGE_VAL;
+        	else 
+        		r.b = cl_default_mua * cl_sample_d;
+        } else {
+        	if (cl_default_mus == UNINITIALIZED)
+        		r.b = HUGE_VAL;
+        	else 
+        		r.b = cl_default_mus/r.a * cl_sample_d;
+        }
     } else 
         r.b = cl_default_b;
 
@@ -383,6 +396,7 @@ extern int   optind;
     r.slab.a = r.a;
     r.slab.b = r.b;
     r.slab.g = r.g;
+
     Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
     Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
     if (cl_verbosity>0) {
@@ -492,7 +506,10 @@ measurements.
 
 @ @<Command-line changes to |r|@>=  
     
-    r.method.quad_pts = cl_quadrature_points;  
+    if (cl_quadrature_points != UNINITIALIZED)
+    	r.method.quad_pts = cl_quadrature_points;
+    else
+    	r.method.quad_pts = 8;
 
 	if (cl_default_a != UNINITIALIZED) 
         r.default_a = cl_default_a;
@@ -701,8 +718,14 @@ properties can be determined.
 
     if (cl_cos_angle != UNINITIALIZED) {
         m.slab_cos_angle = cl_cos_angle;
-        cl_quadrature_points = 12 * (cl_quadrature_points / 12);
-        if (cl_quadrature_points<12) cl_quadrature_points = 12;
+        if (cl_quadrature_points == UNINITIALIZED)
+        	cl_quadrature_points = 12;
+
+        if (cl_quadrature_points != 12 * (cl_quadrature_points / 12)) {
+        	fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
+        	fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
+        	exit(0);
+        }
 	}
 
     if (cl_sample_n != UNINITIALIZED) 

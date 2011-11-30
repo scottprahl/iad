@@ -1,5 +1,5 @@
 1) Use cos_angle consistently between main program and the cone programs
-2) follow up errors when processing basic_D.rxt and basic_E.rxt
+2) look into unnecessary grid invalidation 
 3) think about a simple sanity test to check releases
 4) add the ability to use the results of the last calculation
 

@@ -16,18 +16,23 @@ basic-A.txt       fairway-B.txt     ink-B.txt         royston3-B.txt    royston_
 basic-B.txt       fairway-C.txt     ink-C.txt         royston3-C.txt    sample-A.txt      sevick-b.txt      x_bad_data.txt\
 basic-C.txt       fairway-D.txt     kenlee-A.txt      royston3-D.txt    sample-B.txt      terse-A.txt\
 basic-D.txt       fairway-E.txt     kenlee-B.txt      royston3-E.txt    sample-C.txt      terse-B.txt\
-basic-E.txt       il-A.txt          kenlee-C.txt      royston9-A.txt    sample-D.txt      tio2_vis.txt\
+il-A.txt          kenlee-C.txt      royston9-A.txt    sample-D.txt      tio2_vis.txt \
 double.txt        il-B.txt          newton.txt        royston9-B.txt    sample-E.txt      uterus.txt\
-example2.txt      il-C.txt          royston2.txt      royston9-C.txt    sample-F.txt      ville1.txt\
+example2.txt      il-C.txt          royston2.txt      royston9-C.txt    sample-F.txt      \
 fairway-A.txt     ink-A.txt         royston3-A.txt    royston9-D.txt    sample-G.txt      vio-A.txt\
+
+SPECIAL_OUT_FILES = ville1.txt basic-E.txt
 
 OPTIONS   =  -M0
 
-all: ville1.txt $(OUT_FILES)
+all: $(OUT_FILES)
 
 ville1.txt: ville1.rxt
-	../iad -a 0 ville1
-	
+	../iad -a 0 ville1.rxt
+
+basic-E.txt: basic-E.rxt
+	../iad -g 0.9 basic-E.rxt
+
 $(OUT_FILES): %.txt: %.rxt
 	../iad $(OPTIONS) $<
 
