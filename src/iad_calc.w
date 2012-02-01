@@ -57,6 +57,7 @@ double FRACTION = 0.0;
     @<Prototype for |Fill_AB_Grid|@>;
     @<Prototype for |Fill_AG_Grid|@>;
 
+    @<Definition for |RT_Flip|@>@;
     @<Definition for |Allocate_Grid|@>@;
     @<Definition for |Valid_Grid|@>@;
     @<Definition for |fill_grid_entry|@>@;
@@ -617,6 +618,45 @@ void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
     Set_Calc_State(old_mm, old_rr);
 }
 
+@ Routine to incorporate flipping of sample if needed.  This is pretty
+simple.  The assumption is that flipping is handled relative to the
+reflection side of the sphere.  Thus even when flipping is needed,
+the usual call to |RT()| will result in the correct values for the
+reflectances.  The transmission values can then be calculated by
+swapping the top and bottom slides.  
+
+Technically, the value of slab should be |const| but it is not so that
+we don't pay a copying overhead whenever |flip| is false (the usual case).
+
+@<Prototype for |RT_Flip|@>=
+void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU, double *UTU)
+
+@ @<Definition for |RT_Flip|@>=
+    @<Prototype for |RT_Flip|@>
+{
+    double swap, correct_UR1, correct_URU;
+    RT(n, slab, UR1, UT1, URU, UTU);
+    if (flip) {
+    	correct_UR1 = *UR1;
+    	correct_URU = *URU;
+    	swap=slab->n_top_slide;
+    	slab->n_top_slide = slab->n_bottom_slide;
+    	slab->n_bottom_slide = swap;
+    	swap=slab->b_top_slide;
+    	slab->b_top_slide = slab->b_bottom_slide;
+    	slab->b_bottom_slide = swap;
+    	RT(n, slab, UR1, UT1, URU, UTU);
+    	swap=slab->n_top_slide;
+    	slab->n_top_slide = slab->n_bottom_slide;
+    	slab->n_bottom_slide = swap;
+    	swap=slab->b_top_slide;
+    	slab->b_top_slide = slab->b_bottom_slide;
+    	slab->b_bottom_slide = swap;
+    	*UR1 = correct_UR1;
+    	*URU = correct_URU;
+    }
+}
+
 @ Simple routine to put values into the grid
 
 Presumes that |RR.slab| is properly set up.
@@ -630,7 +670,7 @@ static void fill_grid_entry(int i, int j)
     if (Debug(DEBUG_EVERY_CALC)) 
         fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
                 
-    RT(RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
+    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
     
     if (Debug(DEBUG_EVERY_CALC)) 
         fprintf(stderr, "ur1=%8.5f ut1=%8.5f\n", ur1, ut1);
@@ -972,12 +1012,13 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
     if (Debug(DEBUG_EVERY_CALC)) 
         fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
                 
-    RT(RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
+    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
     
     if (Debug(DEBUG_EVERY_CALC)) 
         fprintf(stderr, "ur1=%8.5f ut1=%8.5f (not M_R and M_T!)\n", ur1, ut1);
 
-    Sp_mu_RT(RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide, 
+    Sp_mu_RT_Flip(MM.flip_sample, 
+             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide, 
              RR.slab.b_top_slide, RR.slab.b,      RR.slab.b_bottom_slide, 
              RR.slab.cos_angle, &Rc, &Tc);
 
@@ -1007,7 +1048,8 @@ double Calculate_Grid_Distance(int i, int j)
     RR.slab.b = The_Grid[GRID_SIZE*i+j][B_COLUMN];
     RR.slab.g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
     
-    Sp_mu_RT(RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide, 
+    Sp_mu_RT_Flip(MM.flip_sample,
+             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide, 
              RR.slab.b_top_slide, b,      RR.slab.b_bottom_slide, 
              RR.slab.cos_angle, &Rc, &Tc);
 

@@ -243,17 +243,17 @@ int check_magic(FILE *fp)
         printf("# Inverse Adding-Doubling %s \n",Version);
         printf("# \n");
         printf("#                        Beam diameter = %7.1f mm\n", m.d_beam);
-        printf("#                     Sample thickness = %7.1f mm\n", 
+        printf("#                     Sample thickness = %7.3f mm\n", 
                 m.slab_thickness );
-        printf("#                  Top slide thickness = %7.1f mm\n", 
+        printf("#                  Top slide thickness = %7.3f mm\n", 
                         m.slab_top_slide_thickness );
-        printf("#               Bottom slide thickness = %7.1f mm\n", 
+        printf("#               Bottom slide thickness = %7.3f mm\n", 
                         m.slab_bottom_slide_thickness );
-        printf("#           Sample index of refraction = %7.3f\n", 
+        printf("#           Sample index of refraction = %7.4f\n", 
                 m.slab_index );
-        printf("#        Top slide index of refraction = %7.3f\n", 
+        printf("#        Top slide index of refraction = %7.4f\n", 
                 m.slab_top_slide_index );
-        printf("#     Bottom slide index of refraction = %7.3f\n", 
+        printf("#     Bottom slide index of refraction = %7.4f\n", 
                 m.slab_bottom_slide_index );
 
 @ @<Write irradiation info@>=
@@ -329,6 +329,9 @@ int check_magic(FILE *fp)
         }
         
         if (1<=params && params<=7) {
+        	if (m.flip_sample)
+        		printf(" (sample flipped) ");
+        		
 			switch (m.method) {
 				case UNKNOWN:
 					printf(" using an unknown method.\n");

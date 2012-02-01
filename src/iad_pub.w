@@ -226,7 +226,7 @@ if the number of spheres is more than zero.
 	if (m.m_t < 0)
 		return IAD_MT_TOO_SMALL;      
 
-	Sp_mu_RT(r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide, 
+	Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide, 
 			 r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
 	
 	if (m.num_spheres == 0 && m.m_t > tu) {
@@ -613,6 +613,8 @@ void Initialize_Measure(struct measure_type *m)
     
     m->sphere_with_rc=1.0;
     m->sphere_with_tc=1.0;
+
+    m->flip_sample = 0;
     
     m->m_r=0.0;
     m->m_t=0.0;

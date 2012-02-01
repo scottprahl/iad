@@ -67,10 +67,12 @@ int main (int argc, char **argv)
 #define _CRT_SECURE_NO_WARNINGS
 #define _CRT_NONSTDC_NO_WARNINGS
 
-#define NO_SLIDES            0
-#define ONE_SLIDE_ON_TOP     1
-#define TWO_IDENTICAL_SLIDES 2
-#define ONE_SLIDE_ON_BOTTOM  3
+#define NO_SLIDES                 0
+#define ONE_SLIDE_ON_TOP          1
+#define TWO_IDENTICAL_SLIDES      2
+#define ONE_SLIDE_ON_BOTTOM       3
+#define ONE_SLIDE_NEAR_SPHERE     4
+#define ONE_SLIDE_NOT_NEAR_SPHERE 5
 
 #define MR_IS_ONLY_RD        1
 #define MT_IS_ONLY_TD        2
@@ -246,9 +248,16 @@ extern int   optind;
                     cl_slides = ONE_SLIDE_ON_TOP;
                 else if (optarg[0]=='b' || optarg[0]=='B')
                     cl_slides = ONE_SLIDE_ON_BOTTOM;
+                else if (optarg[0]=='n' || optarg[0]=='N')
+                    cl_slides = ONE_SLIDE_NEAR_SPHERE;
+                else if (optarg[0]=='f' || optarg[0]=='F')
+                    cl_slides = ONE_SLIDE_NOT_NEAR_SPHERE;
                 else {
-                    fprintf(stderr, "Argument for -G option must be 't' (for top)");
-                    fprintf(stderr, " or 'b' for bottom or '0' or '2'\n");
+                    fprintf(stderr, "Argument for -G option must be \n");
+                    fprintf(stderr, "    't' --- light always hits top slide first\n");
+                    fprintf(stderr, "    'b' --- light always hits bottom slide first\n");
+                    fprintf(stderr, "    'n' --- slide always closest to sphere\n");
+                    fprintf(stderr, "    'f' --- slide always farthest from sphere\n");
                     exit(1);
                 }
                 break;
@@ -752,22 +761,30 @@ properties can be determined.
         m.slab_top_slide_thickness    = cl_slide_d;
     }
     
-    if (cl_slides == NO_SLIDES) {
+    if (cl_slides == NO_SLIDES  ) {
         m.slab_bottom_slide_index     = 1.0;
         m.slab_bottom_slide_thickness = 0.0;
         m.slab_top_slide_index        = 1.0;
         m.slab_top_slide_thickness    = 0.0;
     }
 
-    if (cl_slides == ONE_SLIDE_ON_TOP) {
+    if (cl_slides == ONE_SLIDE_ON_TOP ||
+        cl_slides == ONE_SLIDE_NEAR_SPHERE) {
         m.slab_bottom_slide_index     = 1.0;
         m.slab_bottom_slide_thickness = 0.0;
     }
 
-    if (cl_slides == ONE_SLIDE_ON_BOTTOM) {
+    if (cl_slides == ONE_SLIDE_ON_BOTTOM ||
+        cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE) {
         m.slab_top_slide_index        = 1.0;
         m.slab_top_slide_thickness    = 0.0;
     }
+    
+    if (cl_slides == ONE_SLIDE_NEAR_SPHERE || 
+        cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+    	m.flip_sample = 1;
+    else
+    	m.flip_sample = 0;
     
     if (cl_method != UNINITIALIZED)
     	m.method = (int) cl_method;
@@ -899,7 +916,10 @@ fprintf(stderr, "  -F #             use this scattering coefficient \n");
 fprintf(stderr, "  -F 'P lambda0 mus0 gamma'   mus=mus0*(lambda/lambda0)^gamma\n");
 fprintf(stderr, "  -F 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma\n");
 fprintf(stderr, "  -g #             scattering anisotropy (default 0) \n");
-fprintf(stderr, "  -G #             't' (one top) or 'b' (one bottom) slide\n");
+fprintf(stderr, "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
+fprintf(stderr, "                   '0' or '2'                --- number of slides\n");
+fprintf(stderr, "                   't' (top) or 'b' (bottom) --- one slide that is hit by light first\n");
+fprintf(stderr, "                   'n' (near) or 'f' (far)   --- one slide position relative to sphere\n");
 fprintf(stderr, "  -h               display help\n");
 fprintf(stderr, "  -i #             light is incident at this angle in degrees\n");
 fprintf(stderr, "  -M #             number of Monte Carlo iterations\n");

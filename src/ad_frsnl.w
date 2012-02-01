@@ -19,6 +19,7 @@ calculate Fresnel reflection.
     @<Definition for |Absorbing_Glass_RT|@>@;
     @<Definition for |R1|@>@;
     @<Definition for |Sp_mu_RT|@>@;
+    @<Definition for |Sp_mu_RT_Flip|@>@;
     @<Definition for |Diffuse_Glass_R|@>@;
 
 @ @(ad_frsnl.h@>=
@@ -26,6 +27,7 @@ calculate Fresnel reflection.
     @<Prototype for |Cos_Snell|@>;
     @<Prototype for |Absorbing_Glass_RT|@>;
     @<Prototype for |Sp_mu_RT|@>;
+    @<Prototype for |Sp_mu_RT_Flip|@>;
     @<Prototype for |Diffuse_Glass_R|@>;
     @<Prototype for |Glass|@>;
 
@@ -341,7 +343,26 @@ I also check to make sure that the exponent is not too small.
 
 @*2 Unscattered refl and trans for a sample.
 
-|Sp_mu_RT| calculates the unscattered reflection and transmission (i.e., specular) 
+@ |Sp_mu_RT_Flip| finds the reflectance to incorporate flipping of the sample.  This
+is needed when the sample is flipped between measurements.  
+
+@<Prototype for |Sp_mu_RT_Flip|@>=
+void Sp_mu_RT_Flip(int flip, double n_top, double n_slab, double n_bottom, 
+                        double tau_top, double tau_slab, double tau_bottom, double mu, 
+                        double *r, double *t)
+
+@ @<Definition for |Sp_mu_RT_Flip|@>=
+    @<Prototype for |Sp_mu_RT_Flip|@>
+{
+    Sp_mu_RT(n_top, n_slab, n_bottom, tau_top, tau_slab, tau_bottom, mu, r, t);
+    if (flip && n_top != n_bottom && tau_top != tau_bottom) {
+    	double correct_r = *r;
+    	Sp_mu_RT(n_bottom, n_slab, n_top, tau_bottom, tau_slab, tau_top, mu, r, t);
+    	*r = correct_r;
+    }
+}
+
+@ |Sp_mu_RT| calculates the unscattered reflection and transmission (i.e., specular) 
 for light incident at
 an angle having a cosine |mu| from air onto a non-absorbing glass plate with index |n_top|
 on a sample with index |n_slab| resting on another non-absorbing glass plate with index

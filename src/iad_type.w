@@ -129,6 +129,7 @@ typedef struct measure_type {
   int num_spheres;
   int num_measures;
   int method;
+  int flip_sample;
 
   double d_beam;
   double sphere_with_rc;
