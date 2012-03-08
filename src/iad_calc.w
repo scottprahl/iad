@@ -48,7 +48,6 @@ static double GG_bs;
 static double GG_ba;
 static boolean_type The_Grid_Initialized = FALSE;
 static boolean_type The_Grid_Search = -1;
-double FRACTION = 0.0;
 
     @<Definition for |Set_Calc_State|@>@;
     @<Definition for |Get_Calc_State|@>@;
@@ -1063,7 +1062,7 @@ double Calculate_Grid_Distance(int i, int j)
 @ This is the routine that actually finds the distance.  I have factored
 this part out so that it can be used in the |Near_Grid_Point| routine.
 
-|Rc| and |Tc| refer to the ballistic reflection and transmission.  
+|Rc| and |Tc| refer to the unscattered (collimated) reflection and transmission.  
 
 The only tricky part is to remember that the we are trying to match the
 measured values.  The measured values are affected by sphere parameters
@@ -1087,16 +1086,9 @@ void Calculate_Distance_With_Corrections(
     R_diffuse = URU - MM.uru_lost;
     T_diffuse = UTU - MM.utu_lost;
     
-    R_direct = UR1 - MM.ur1_lost - (1 - MM.sphere_with_rc) * Rc;
-    T_direct = UT1 - MM.ut1_lost - (1 - MM.sphere_with_tc) * Tc;
+    R_direct = UR1 - MM.ur1_lost - Rc + MM.fraction_of_rc_in_mr * Rc;
+    T_direct = UT1 - MM.ut1_lost - Tc + MM.fraction_of_tc_in_mt * Tc;
 
-    if (FRACTION) {
-        if ( UR1-Rc > 0.01) 
-            R_direct = UR1 - MM.ur1_lost * (UR1-Rc) - (1 - MM.sphere_with_rc) * Rc;
-        if ( UT1-Tc > 0.01) 
-            T_direct = UT1 - MM.ut1_lost * (UT1-Tc) - (1 - MM.sphere_with_tc) * Tc;
-    }
-    
     switch (MM.num_spheres) {
         case 0:
             @<Calc |M_R| and |M_T| for no spheres@>@;

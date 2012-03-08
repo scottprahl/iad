@@ -261,10 +261,10 @@ int check_magic(FILE *fp)
 
 @ @<Write general sphere info@>=
 
-        printf("#   Unscattered light collected in M_R = %7.1f %%\n", 
-        m.sphere_with_rc*100);
-        printf("#   Unscattered light collected in M_T = %7.1f %%\n", 
-        m.sphere_with_tc*100);
+        printf("#    Fraction unscattered refl. in M_R = %7.1f %%\n", 
+        m.fraction_of_rc_in_mr*100);
+        printf("#   Fraction unscattered trans. in M_T = %7.1f %%\n", 
+        m.fraction_of_tc_in_mt*100);
         printf("# \n");
 
 @ @<Write first sphere info@>=

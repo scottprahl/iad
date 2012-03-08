@@ -611,8 +611,8 @@ void Initialize_Measure(struct measure_type *m)
     m->num_measures=1;
     m->method = UNKNOWN;
     
-    m->sphere_with_rc=1.0;
-    m->sphere_with_tc=1.0;
+    m->fraction_of_rc_in_mr=1.0;
+    m->fraction_of_tc_in_mt=1.0;
 
     m->flip_sample = 0;
     

@@ -132,8 +132,8 @@ typedef struct measure_type {
   int flip_sample;
 
   double d_beam;
-  double sphere_with_rc;
-  double sphere_with_tc;
+  double fraction_of_rc_in_mr;
+  double fraction_of_tc_in_mt;
 
   double m_r, m_t, m_u;
 

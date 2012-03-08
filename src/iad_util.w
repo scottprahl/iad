@@ -250,10 +250,10 @@ not and then just adding or subtracting the specular reflection as
 appropriate.
 
 @<Estimate the backscattered reflection@>=
-	if (m.sphere_with_rc) {	
+	if (m.fraction_of_rc_in_mr) {	
 		*rt = m.m_r;	
-		*rd = *rt - *rc;
-		if (*rd <0 ) {
+		*rd = *rt - m.fraction_of_rc_in_mr * (*rc);
+		if (*rd < 0 ) {
 			*rd = 0;
 			*rc = *rt;
 		}
@@ -272,7 +272,7 @@ transmission from the total transmission.
 		*tt = 0.0;
 		*td = 0.0;
 	}
-	else if (m.sphere_with_tc) {
+	else if (m.fraction_of_tc_in_mt) {
 			*tt = m.m_t;
 			*td = *tt - *tc;
 			if (*td < 0) {
@@ -801,10 +801,10 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
 			m.slab_top_slide_index );
 	fprintf(stderr,"#     Bottom slide index of refraction = %7.3f\n", 
 			m.slab_bottom_slide_index );
-	fprintf(stderr,"#   Unscattered light collected in M_R = %7.1f %%\n", 
-	m.sphere_with_rc*100);
-	fprintf(stderr,"#   Unscattered light collected in M_T = %7.1f %%\n", 
-	m.sphere_with_tc*100);
+	fprintf(stderr,"#    Fraction unscattered light in M_R = %7.1f %%\n", 
+	m.fraction_of_rc_in_mr*100);
+	fprintf(stderr,"#    Fraction unscattered light in M_T = %7.1f %%\n", 
+	m.fraction_of_tc_in_mt*100);
 	fprintf(stderr,"# \n");
 	fprintf(stderr,"# Reflection sphere\n");
 	fprintf(stderr,"#                      sphere diameter = %7.1f mm\n", 

@@ -124,7 +124,6 @@ extern int   optind;
   double cl_default_mua = UNINITIALIZED;
   double cl_default_mus = UNINITIALIZED;
   double cl_tolerance   = UNINITIALIZED;
-  double cl_no_unscat   = UNINITIALIZED;
   double cl_slide_OD    = UNINITIALIZED;
   
   double cl_cos_angle   = UNINITIALIZED;
@@ -137,6 +136,8 @@ extern int   optind;
   double cl_default_fr  = UNINITIALIZED;
   double cl_rstd_t      = UNINITIALIZED;
   double cl_rstd_r      = UNINITIALIZED;
+  double cl_rc_fraction = UNINITIALIZED;
+  double cl_tc_fraction = UNINITIALIZED;
 
   double cl_mus0        = UNINITIALIZED;
   double cl_musp0       = UNINITIALIZED;
@@ -160,7 +161,7 @@ extern int   optind;
 
 @<Handle options@>=
     while ((c = my_getopt(argc, argv, 
-            "?1:2:a:A:b:B:c:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:S:t:T:u:vV:x:Xz")) != EOF) {
+            "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:S:t:T:u:vV:x:Xz")) != EOF) {
         int n;
         char cc;
         
@@ -190,8 +191,20 @@ extern int   optind;
                 cl_beam_d = strtod(optarg, NULL);
                 break;
 
-            case 'c':
-                cl_no_unscat = strtod(optarg, NULL);
+			case 'c':
+				cl_rc_fraction = strtod(optarg, NULL);
+                if (cl_rc_fraction<0.0 || cl_rc_fraction>1.0) {
+                    fprintf(stderr, "required: 0 <= fraction of unscattered refl. in M_R <= 1\n");
+                    exit(0);
+                }
+                break;
+
+            case 'C':
+				cl_tc_fraction = strtod(optarg, NULL);
+                if (cl_tc_fraction < 0.0 || cl_tc_fraction > 1.0) {
+                    fprintf(stderr, "required: 0 <= fraction of unscattered trans. in M_T <= 1\n");
+                    exit(0);
+                }
                 break;
 
             case 'd':
@@ -842,11 +855,11 @@ properties can be determined.
     if (cl_num_spheres != UNINITIALIZED)
         m.num_spheres = (int) cl_num_spheres;
 
-    if ((cl_no_unscat == MR_IS_ONLY_RD) || (cl_no_unscat == NO_UNSCATTERED_LIGHT))
-        m.sphere_with_rc = 0.0;
+    if (cl_rc_fraction != UNINITIALIZED)
+        m.fraction_of_rc_in_mr = cl_rc_fraction;
 
-    if ((cl_no_unscat == MT_IS_ONLY_TD) || (cl_no_unscat == NO_UNSCATTERED_LIGHT))
-        m.sphere_with_tc = 0.0;
+    if (cl_tc_fraction != UNINITIALIZED)
+        m.fraction_of_tc_in_mt = cl_tc_fraction;
  
     if (cl_UR1 != UNINITIALIZED) 
         m.m_r = cl_UR1;
@@ -905,8 +918,8 @@ fprintf(stderr, "  -a #             use this albedo \n");
 fprintf(stderr, "  -A #             use this absorption coefficient \n");
 fprintf(stderr, "  -b #             use this optical thickness \n");
 fprintf(stderr, "  -B #             beam diameter \n");
-fprintf(stderr, "  -c #             measurements have unscattered light?\n");
-fprintf(stderr, "  -C               do not correct for diffuse light loss\n");
+fprintf(stderr, "  -c #             fraction of unscattered refl in MR\n");
+fprintf(stderr, "  -C #             fraction of unscattered trans in MT\n");
 fprintf(stderr, "  -d #             thickness of sample \n");
 fprintf(stderr, "  -D #             thickness of slide \n");
 fprintf(stderr, "  -e #             error tolerance (default 0.0001) \n");
@@ -944,9 +957,8 @@ fprintf(stderr, "  -X               dual beam configuration\n");
 fprintf(stderr, "  -z               do forward calculation\n");
 fprintf(stderr, "Examples:\n");
 fprintf(stderr, "  iad data                  Optical values put in data.txt\n");
-fprintf(stderr, "  iad -c 1 data             Assume M_R has no unscattered reflectance\n");
-fprintf(stderr, "  iad -c 2 data             Assume M_T has no unscattered transmittance\n");
-fprintf(stderr, "  iad -c 3 data             Assume M_R & M_T have no unscattered light\n");
+fprintf(stderr, "  iad -c 0.9 data           Assume M_R includes 90%% of unscattered reflectance\n");
+fprintf(stderr, "  iad -C 0.8 data           Assume M_T includes 80%% of unscattered transmittance\n");
 fprintf(stderr, "  iad -e 0.0001 data        Better convergence to R & T values\n");
 fprintf(stderr, "  iad -f 1.0 data           All light hits reflectance sphere wall first\n");
 fprintf(stderr, "  iad -o out data           Calculated values in out\n");
