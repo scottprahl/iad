@@ -68,6 +68,8 @@ This is the most common case.
 @ @<Definition for |U_Find_AB|@>=
 @<Prototype for |U_Find_AB|@> 
 {
+	@<Allocate local simplex variables@>@;
+
 	if (Debug(DEBUG_SEARCH)) {
 		fprintf(stderr,"In U_Find_AB");
 		fprintf(stderr," (mu=%6.4f)",r->slab.cos_angle);
@@ -75,8 +77,6 @@ This is the most common case.
 			fprintf(stderr,"  default_g = %8.5f", r->default_g);
 		fprintf(stderr,"\n");
 	}
-
-	@<Allocate local simplex variables@>@;
 	
 	r->slab.g = (r->default_g == UNINITIALIZED) ? 0 : r->default_g;
 	Set_Calc_State(m, *r);
@@ -487,6 +487,7 @@ away.
 @ @<Definition for |U_Find_AG|@>=
 @<Prototype for |U_Find_AG|@> 
 {
+	@<Allocate local simplex variables@>@;
 
 	if (Debug(DEBUG_SEARCH)) {
 		fprintf(stderr,"In U_Find_AG");
@@ -496,8 +497,6 @@ away.
 		fprintf(stderr,"\n");
 	}
 	
-	@<Allocate local simplex variables@>@;
-
 	if (m.num_measures==3) 
 		r->slab.b = What_Is_B(r->slab, m.m_u);
 	else if (r->default_b == UNINITIALIZED)
@@ -591,6 +590,8 @@ albedo).
 @ @<Definition for |U_Find_BG|@>=
 @<Prototype for |U_Find_BG|@> 
 {
+	@<Allocate local simplex variables@>@;
+
 	if (Debug(DEBUG_SEARCH)) {
 		fprintf(stderr,"In U_Find_BG");
 		fprintf(stderr," (mu=%6.4f)",r->slab.cos_angle);
@@ -599,7 +600,6 @@ albedo).
 		fprintf(stderr,"\n");
 	}
 
-	@<Allocate local simplex variables@>@;
 	r->slab.a = (r->default_a == UNINITIALIZED) ? 0 : r->default_a;
 	Set_Calc_State(m, *r);
 
@@ -763,6 +763,8 @@ $b$.
 @ @<Definition for |U_Find_BsG|@>=
 @<Prototype for |U_Find_BsG|@> 
 {	
+	@<Allocate local simplex variables@>@;
+
 	if (Debug(DEBUG_SEARCH)) {
 		fprintf(stderr,"In U_Find_BsG");
 		fprintf(stderr," (mu=%6.4f)",r->slab.cos_angle);
@@ -771,7 +773,6 @@ $b$.
 		fprintf(stderr,"\n");
 	}
 
-	@<Allocate local simplex variables@>@;
 	Set_Calc_State(m, *r);
 	@<Get the initial |a|, |b|, and |g|@>@;
 	@<Initialize the nodes of the |bs| and |g| simplex@>@;

@@ -1086,8 +1086,8 @@ void Calculate_Distance_With_Corrections(
     R_diffuse = URU - MM.uru_lost;
     T_diffuse = UTU - MM.utu_lost;
     
-    R_direct = UR1 - MM.ur1_lost - Rc + MM.fraction_of_rc_in_mr * Rc;
-    T_direct = UT1 - MM.ut1_lost - Tc + MM.fraction_of_tc_in_mt * Tc;
+    R_direct = UR1 - MM.ur1_lost - (1.0 - MM.fraction_of_rc_in_mr) * Rc;
+    T_direct = UT1 - MM.ut1_lost - (1.0 - MM.fraction_of_tc_in_mt) * Tc;
 
     switch (MM.num_spheres) {
         case 0:
