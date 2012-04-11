@@ -103,7 +103,6 @@ extern int   optind;
 @ @<Declare variables for |main|@>=
   struct measure_type m;
   struct invert_type r;
-  double m_r, m_t;
   char *g_out_name = NULL;
   char c;
   int first_line = 1;
@@ -377,8 +376,16 @@ extern int   optind;
     argc -= optind;
     argv += optind;
 
-@ @<Calculate and Print the Forward Calculation@>=
-    { double mu_sp, mu_a;
+@ We are doing a forward calculation.  We still need to set the albedo
+and optical depth appropriately.  Obviously when the -a switch is used
+then the albedo should be fixed as a constant equal to |cl_default_a|.
+The other cases are less clear.  If scattering and absorption are both
+specified, then calculate the albedo using these values.  If the scattering
+is not specified, then we assume that the sample is an unscattering sample
+and therefore the albedo is zero.  On the other hand, if the scattering is
+specified and the absorption is not, then the albedo is set to one.
+
+@<Calculate and Print the Forward Calculation@>=
     if (cl_default_a == UNINITIALIZED) {
     
         if (cl_default_mus == UNINITIALIZED) 
@@ -391,6 +398,14 @@ extern int   optind;
     } else
         r.a = cl_default_a;
         
+@ This is slightly more tricky because there are four things
+that can affect the optical thickness --- |cl_default_b|, the
+default mua, default mus and the thickness.  If the sample thickness
+is unspecified, then the only reasonable thing to do is to assume
+that the sample is very thick.  Otherwise, we use the sample thickness
+to calculate the optical thickness.
+
+@<Calculate and Print the Forward Calculation@>=
     if (cl_default_b == UNINITIALIZED) {
     
         if (cl_sample_d == UNINITIALIZED) 
@@ -410,23 +425,28 @@ extern int   optind;
     } else 
         r.b = cl_default_b;
 
+@ The easiest case, use the default value or set it to zero
+@<Calculate and Print the Forward Calculation@>=
     if (cl_default_g == UNINITIALIZED) 
         r.g = 0;
     else
         r.g = cl_default_g;
         
+@ @<Calculate and Print the Forward Calculation@>=
     r.slab.a = r.a;
     r.slab.b = r.b;
     r.slab.g = r.g;
 
-    Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
-    Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
-    if (cl_verbosity>0) {
-        Write_Header (m, r, -1);
-        print_results_header(stdout);
-    }
-    print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0,0);
-}
+    { 
+		double mu_sp, mu_a, m_r, m_t;
+    	Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
+		Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
+		if (cl_verbosity>0) {
+			Write_Header (m, r, -1);
+			print_results_header(stdout);
+		}
+		print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0,0);
+	}
 
 @ Make sure that the file is not named '-' and warn about too many files
 

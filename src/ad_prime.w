@@ -108,12 +108,13 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
 @ @<Definition for |RT|@>=
     @<Prototype for |RT|@>
 {
+    @<Declare variables for |RT|@>@;
+
 	if (slab->cos_angle != 1.0) {
 		RT_Cone(n,slab,OBLIQUE,UR1,UT1,URU,UTU);
 		return;
 	}
 	
-    @<Declare variables for |RT|@>@;
     @<Validate input parameters@>@;
     
     @<Allocate and calculate R and T for homogeneous slab@>@;
