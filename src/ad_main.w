@@ -106,6 +106,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
 {
     int fileflag;
     fileflag = scanf("%lf", &slab.a);
+    slab.cos_angle = g_incident_cosine;
     
     if (fileflag!=EOF) 
         fileflag=scanf("%lf", &slab.b);
@@ -251,7 +252,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
 static void print_version(void)
 {
     fprintf(stderr, "ad %s\n\n",Version);
-    fprintf(stderr, "Copyright (C) 2010 Free Software Foundation, Inc.\n");
+    fprintf(stderr, "Copyright (C) 2012 Free Software Foundation, Inc.\n");
     fprintf(stderr, "This is free software; see the source for copying conditions.\n");
     fprintf(stderr, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
     fprintf(stderr, "FOR A PARTICULAR PURPOSE.\n");
