@@ -872,8 +872,11 @@ properties can be determined.
             m.num_spheres = 2;
     }
 
-    if (cl_num_spheres != UNINITIALIZED)
+    if (cl_num_spheres != UNINITIALIZED) {
         m.num_spheres = (int) cl_num_spheres;
+        if (m.num_spheres > 0 && m.method == UNKNOWN) 
+        	m.method = SUBSTITUTION;
+	}
 
     if (cl_rc_fraction != UNINITIALIZED)
         m.fraction_of_rc_in_mr = cl_rc_fraction;
