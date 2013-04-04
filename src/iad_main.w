@@ -954,8 +954,10 @@ fprintf(stderr, "  -F 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma
 fprintf(stderr, "  -g #             scattering anisotropy (default 0) \n");
 fprintf(stderr, "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
 fprintf(stderr, "                   '0' or '2'                --- number of slides\n");
-fprintf(stderr, "                   't' (top) or 'b' (bottom) --- one slide that is hit by light first\n");
-fprintf(stderr, "                   'n' (near) or 'f' (far)   --- one slide position relative to sphere\n");
+fprintf(stderr, "                   't' (top) or 'b' (bottom) \
+--- one slide that is hit by light first\n");
+fprintf(stderr, "                   'n' (near) or 'f' (far)   \
+--- one slide position relative to sphere\n");
 fprintf(stderr, "  -h               display help\n");
 fprintf(stderr, "  -i #             light is incident at this angle in degrees\n");
 fprintf(stderr, "  -M #             number of Monte Carlo iterations\n");
@@ -980,8 +982,10 @@ fprintf(stderr, "  -X               dual beam configuration\n");
 fprintf(stderr, "  -z               do forward calculation\n");
 fprintf(stderr, "Examples:\n");
 fprintf(stderr, "  iad data                  Optical values put in data.txt\n");
-fprintf(stderr, "  iad -c 0.9 data           Assume M_R includes 90%% of unscattered reflectance\n");
-fprintf(stderr, "  iad -C 0.8 data           Assume M_T includes 80%% of unscattered transmittance\n");
+fprintf(stderr, "  iad -c 0.9 data           \
+Assume M_R includes 90%% of unscattered reflectance\n");
+fprintf(stderr, "  iad -C 0.8 data           \
+Assume M_T includes 80%% of unscattered transmittance\n");
 fprintf(stderr, "  iad -e 0.0001 data        Better convergence to R & T values\n");
 fprintf(stderr, "  iad -f 1.0 data           All light hits reflectance sphere wall first\n");
 fprintf(stderr, "  iad -o out data           Calculated values in out\n");

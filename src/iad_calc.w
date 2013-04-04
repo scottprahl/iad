@@ -628,7 +628,8 @@ Technically, the value of slab should be |const| but it is not so that
 we don't pay a copying overhead whenever |flip| is false (the usual case).
 
 @<Prototype for |RT_Flip|@>=
-void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU, double *UTU)
+void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *UT1, 
+             double *URU, double *UTU)
 
 @ @<Definition for |RT_Flip|@>=
     @<Prototype for |RT_Flip|@>
