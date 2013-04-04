@@ -183,13 +183,13 @@ a cone whose cosine is |mu|.  Note that |mu| is defined on the air side
 of the slab and that |mu| is the cosine of the angle that the cone makes
 with the normal to the slab,
 $$
-\hbox{UR1} = \int_\nu^1 R(\nu',1) 2\nu'\,d\nu'
+\hbox{UR1} \equiv \int_\mu^1 R(\nu',1) 2\nu'\,d\nu'
 $$
 Similarly for irradiance characterized by diffuse light within a cone
 one can calculate the amount of reflectance returing within that cone
 as
 $$
-\hbox{URU} = n^2 \int_\nu^1 \int_\nu^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
+\hbox{URU} \equiv n^2 \int_\mu^1 \int_\nu^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance.
 
@@ -217,8 +217,7 @@ void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, 
     temp = 0.0;
     for (j = last_j; j <= n; j++)
       temp += R[i][j] * twoaw[j];
-      *URU += temp * twoaw[i];
-/*    *URU += temp * weight[i];*/
+    *URU += temp * twoaw[i];
   }
   *UR1 = temp;
   *URU *= n_slab * n_slab / (1 - mu * mu);
@@ -228,12 +227,12 @@ void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, 
 Note that |mu| is the cosine of the angle that the cone makes
 with the normal to the slab in air,
 $$
-\hbox{URx} = \int_\nu^1 R(\nu',\mu) 2\nu'\,d\nu'
+\hbox{URx} = \int_\mu^1 R(\nu',\mu) 2\nu'\,d\nu'
 $$
 For diffuse irradiance, the total flux back is a double integral
 as
 $$
-\hbox{URU} = n^2 \int_\nu^1 \int_\nu^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
+\hbox{URU} = n^2 \int_\mu^1 \int_\nu^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance.
 
@@ -244,21 +243,37 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, 
 	@<Prototype for |URU_and_URx_Cone|@>
 {
 	int i, j, cone_index;
-	double mu_slab, urx;
+	double mu_slab, urx, delta, closest_delta;
+	double degrees = 180.0/3.1415926535;
 	
 	mu_slab = sqrt(n_slab*n_slab-1+mu*mu)/n_slab;
 	
-	for (cone_index=n; cone_index>=1; cone_index--) {
-		if (angle[cone_index] <= mu_slab) break;
+	closest_delta = 1;
+	cone_index = n;
+	
+	for (i=n; i>=1; i--) {
+		delta = fabs(angle[i] - mu_slab);
+		if (delta < closest_delta) {
+			closest_delta = delta;
+			cone_index = i;
+		}
 	}
 	
 	if (fabs(angle[cone_index] - mu_slab) > 1e-5) {
 		fprintf(stderr, "Something is wrong with the quadrature\n");
-		fprintf(stderr, "For an external angle cos(theta)=%8.5f\n", mu);
-		fprintf(stderr, "and an internal angle cos(theta)=%8.5f\n", mu_slab);
-		fprintf(stderr, "closest angle is cos(theta)=%8.5f\n", angle[cone_index]);
+		fprintf(stderr, "theta_i = %5.2f degrees or ", acos(mu)*degrees);
+		fprintf(stderr, "cos(theta_i) = %8.5f\n", mu);
+		fprintf(stderr, "theta_t = %5.2f degrees or ", acos(mu_slab)*degrees);
+		fprintf(stderr, "cos(theta_t) = %8.5f\n", mu_slab);
+		fprintf(stderr, " index  degrees cosine\n");
+		for (i=n; i>=1; i--) {
+		    fprintf(stderr, " %5d   %5.2f ", i, acos(angle[i])*degrees);
+		    fprintf(stderr, " %8.5f\n", angle[i]);
+		}
+
+		fprintf(stderr, "Closest quadrature angle is i=%5d ", cone_index);
+		fprintf(stderr, "or cos(theta)=%8.5f\n", angle[cone_index]);
 		fprintf(stderr, "Assuming normal incidence\n");
-		cone_index = n;
 	}
 	
     *URU = 0.0;
