@@ -50,7 +50,7 @@ libiad.h : ad_prime.w iad_pub.w ad_cone.w ad_layers.w
 	cd src ; ctangle -bhp ad_layers
 	cat lib_ad.h lib_iad.h ad_cone_ez.h ad_layers.h > libiad.tmp
 	./cobweb.pl < libiad.tmp > libiad.tmp2
-	$INDENT $(INDENT_OPT) < libiad.tmp2 > libiad.h
+	$(INDENT) $(INDENT_OPT) < libiad.tmp2 > libiad.h
 	rm -f libiad.tmp lib_ad.h lib_iad.h libiad.tmp2
 
 ad_cone_test: $(AD_OBJ) $(NR_OBJ) ad_cone_test.o mygetopt.o version.o
