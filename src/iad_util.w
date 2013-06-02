@@ -81,7 +81,7 @@ double What_Is_B(struct AD_slab_type slab, double Tc)
 	@<Prototype for |What_Is_B|@>
 
 {
-	double r1, r2, t1, t2;
+	double r1, r2, t1, t2, mu_in_slab;
 
 	@<Calculate specular reflection and transmission@>@;
 	@<Check for bad values of |Tc|@>@;
@@ -99,8 +99,12 @@ but there are always those annoying special cases.
 @<Calculate specular reflection and transmission@>=
 	Absorbing_Glass_RT(1.0, slab.n_top_slide, slab.n_slab, 
 	                   slab.cos_angle, slab.b_top_slide, &r1, &t1);
+
+	mu_in_slab = Cos_Snell(1.0, slab.cos_angle, slab.n_slab);
+	
 	Absorbing_Glass_RT(slab.n_slab, slab.n_bottom_slide, 1.0, 
-	                   slab.cos_angle, slab.b_bottom_slide, &r2, &t2);
+	                   mu_in_slab, slab.b_bottom_slide, &r2, &t2);
+	
 
 @ Bad values for the unscattered transmission are those that 
 are non-positive, those greater than one, and those greater than
@@ -832,4 +836,3 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
 	fprintf(stderr,"lost  ur1=%10.5f ut1=%10.5f   uru=%10.5f  utu=%10.5f\n", 
 		m.ur1_lost, m.ut1_lost, m.utu_lost, m.utu_lost);
 }
-

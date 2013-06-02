@@ -1,9 +1,11 @@
 \def\title{ad}
+\def\adversion{3-9-10}
+\def\adyear{2013}
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
-% Version 3.6.0 --- Feb 2010
+% Version 3.9.10 --- April 2013
 
-% Copyright (C) 2010 Scott Prahl
+% Copyright (C) 2013 Scott Prahl
 
 % Permission is granted to make and distribute verbatim copies of this
 % document provided that the copyright notice and this permission notice
@@ -14,16 +16,15 @@
 % entire resulting derived work is given a different name and distributed
 % under the terms of a permission notice identical to this one.
 
-
-\def\title{Adding-Doubling (Version 3.6.0)}
+\def\title{Adding-Doubling (Version \adversion)}
 \def\topofcontents{\null\vfill
   \centerline{\titlefont The Adding-Doubling Program}
   \vskip 15pt
-  \centerline{(Version 3.6.0)}
+  \centerline{(Version \adversion)}
   \vfill}
 \def\botofcontents{\vfill
 \noindent
-Copyright \copyright\ 2010 Scott Prahl
+Copyright \copyright\ \adyear\ Scott Prahl
 \bigskip\noindent
 Permission is granted to make and distribute verbatim copies of this
 document provided that the copyright notice and this permission notice
