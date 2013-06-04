@@ -66,7 +66,9 @@ ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o mygetopt.o version.o
 ad_doc: ad.w
 	cweave -bph ad
 	pdftex ad
-	mv ad.pdf ../doc/ad_src.pdf
+	qpdf ad.pdf --pages ad.pdf 121-122 ad.pdf 1-120 -- ad2.pdf
+	mv ad2.pdf ../doc/ad_src.pdf
+	rm ad.pdf 
 
 #	cd src ; ctwill -bhp ad.w
 #	cd src ; ctwill -bhp ad.w
@@ -84,7 +86,10 @@ ad_doc: ad.w
 iad_doc: iad.w
 	cweave -bph iad
 	pdftex iad
-	mv iad.pdf ../doc/iad_src.pdf
+#	mv iad.pdf ../doc/iad_src.pdf
+	qpdf iad.pdf --pages iad.pdf 131 iad.pdf 1-130 -- iad2.pdf
+	mv iad2.pdf ../doc/iad_src.pdf
+	rm iad.pdf 
 #	cd src ; ctwill -bhp iad.w
 #	cd src ; ctwill -bhp iad.w
 #	cd src ; tex iad.tex

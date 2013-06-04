@@ -363,10 +363,12 @@ void Sp_mu_RT_Flip(int flip, double n_top, double n_slab, double n_bottom,
 }
 
 @ |Sp_mu_RT| calculates the unscattered reflection and transmission (i.e., specular) 
-for light incident at
-an angle having a cosine |mu| from air onto a non-absorbing glass plate with index |n_top|
-on a sample with index |n_slab| resting on another non-absorbing glass plate with index
+through a glass-slab-glass sandwich.  Light is incident at
+an angle having a cosine |mu| from air onto a possibly absorbing glass plate with index |n_top|
+on a sample with index |n_slab| resting on another possibly absorbing glass plate with index
 |n_bottom| and then exiting into air again.
+
+The optical thickness of the slab is |tau_slab|.
 
 @<Prototype for |Sp_mu_RT|@>=
     void Sp_mu_RT(double n_top, double n_slab, double n_bottom, 
@@ -376,11 +378,14 @@ on a sample with index |n_slab| resting on another non-absorbing glass plate wit
 @ @<Definition for |Sp_mu_RT|@>=
     @<Prototype for |Sp_mu_RT|@>
 {
-    double r_top, r_bottom, t_top, t_bottom, mu_slab, beer, denom, temp;
+    double r_top, r_bottom, t_top, t_bottom, mu_slab, beer, denom, temp, mu_in_slab;
     *r=0;
     *t=0;
     Absorbing_Glass_RT(1.0, n_top, n_slab, mu, tau_top, &r_top, &t_top);
-    Absorbing_Glass_RT(n_slab, n_bottom, 1.0, mu, tau_bottom, &r_bottom, &t_bottom);
+    
+	mu_in_slab = Cos_Snell(1.0, mu, n_slab);
+    Absorbing_Glass_RT(n_slab, n_bottom, 1.0, mu_in_slab, tau_bottom, &r_bottom, &t_bottom);
+    
     @<Calculate |beer|@>@;
     @<Calculate |r| and |t|@>@;
 }

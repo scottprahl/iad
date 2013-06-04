@@ -1,8 +1,8 @@
 #
-#  Makefile by Scott Prahl, Dec 2010
+#  Makefile by Scott Prahl, Apr 2013
 #
 
-VERSION = 3-9-9
+VERSION = 3-9-10
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -138,9 +138,9 @@ install-all:
 	make install-mma
 
 dist: 
-	make doc
 	touch src/version.h
 	cd src && ./version.pl
+	make doc
 	make clean
 	make
 #	make changelog
@@ -218,10 +218,12 @@ iad_debug: $(WSRC) $(NRSRC)
 	cp src/iad iad$(BINARY_EXTENSION)
 
 ad_doc: 
-	cd src ; make iad_doc
+	perl -pi -e 's/\\def\\adversion.*/\\def\\adversion{$(VERSION)}/' src/ad.w
+	cd src ; make ad_doc
 
 iad_doc:
-	cd src ; make ad_doc
+	perl -pi -e 's/\\def\\iadversion.*/\\def\\iadversion{$(VERSION)}/' src/iad.w
+	cd src ; make iad_doc
 
 manual_doc doc/manual.pdf: doc/manual.tex 
 	cd doc ; pdflatex manual
