@@ -109,6 +109,7 @@ lib :
 mma: mma/AD.m mma/AD.exe
 
 mma/AD.exe:
+	make install-lib
 	cd mma ; make
 	
 install: ad iad
