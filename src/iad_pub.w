@@ -848,9 +848,13 @@ void Calculate_Minimum_MR(struct measure_type m,
 }
 
 @ The minimum possible value of |MR| for a given |MT| will be when
-the albedo is zero and the maximal value will be when the albedo
-is unity.  In the first case there will be light loss and in the
-second we will assume that light loss is neglible (to maximize |MR|).
+the albedo is zero and the maximum value will be when the albedo
+is one.  In the first case there will be no light loss and in the
+second we will assume that any light loss is neglible (to maximize |MR|).
+
+The second case is perhaps over-simplified.  Obviously for a fixed thickness
+as the albedo increases, the reflectance will increase.  So how does |U_Find_B()|
+work when the albedo is set to 1?  
 
 The problem is that to calculate these values one must know the 
 optical thickness.  Fortunately with the recent addition of 
@@ -865,7 +869,7 @@ int MinMax_MR_MT(struct measure_type m,
 @ @<Definition for |MinMax_MR_MT|@>=
     @<Prototype for |MinMax_MR_MT|@>
 {
-    double distance, m_r, x, min, max;
+    double distance, measured_m_r, min_possible_m_r, max_possible_m_r, temp_m_t;
         
     if (m.m_r < 0)
         return IAD_MR_TOO_SMALL;
@@ -876,21 +880,21 @@ int MinMax_MR_MT(struct measure_type m,
     if (m.m_t == 0) 
         return IAD_NO_ERROR;
         
-    m_r = m.m_r;
+    measured_m_r = m.m_r;
     
     m.m_r = 0;
     r.search = FIND_B;
     
     r.default_a = 0;
     U_Find_B(m, &r);
-    Calculate_Distance(&min, &x, &distance);
-    if (m_r < min) 
+    Calculate_Distance(&min_possible_m_r, &temp_m_t, &distance);
+    if (measured_m_r < min_possible_m_r) 
         return IAD_MR_TOO_SMALL;
 
     r.default_a = 1.0;
     U_Find_B(m, &r);
-    Calculate_Distance(&max, &x, &distance);
-    if (m_r > max) 
+    Calculate_Distance(&max_possible_m_r, &temp_m_t, &distance);
+    if (measured_m_r > max_possible_m_r) 
         return IAD_MR_TOO_BIG;
     
     return IAD_NO_ERROR;
