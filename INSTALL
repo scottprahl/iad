@@ -9,9 +9,9 @@ if these are working try
 
   ./iad -help
 
-  ./iad -M 0 -q 4 test/vio1
+  ./iad -M 0 -q 4 test/vio-A
 
-which will process the file vio1.rt and produce vio1.abg.  To install the 
+which will process the file vio-A.rt and produce vio-A.abg.  To install the 
 program just type
 
   sudo make install

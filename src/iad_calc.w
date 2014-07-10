@@ -1159,11 +1159,11 @@ $$
 	P_d      = G     * (R_direct  * (1-MM.f_r) + MM.f_r*MM.rw_r);
 	P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r*MM.rw_r);
 	P_0      = G_0   * (                         MM.f_r*MM.rw_r);   
-	*M_R     =  MM.rstd_r * (P_d - P_0)/(P_std - P_0);
+	*M_R     = MM.rstd_r * (P_d - P_0)/(P_std - P_0);
 
 	GP       = Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
 	GP_std   = Gain(TRANSMISSION_SPHERE, MM, 0.0);
-    *M_T     =  T_direct * GP / GP_std;
+    *M_T     = T_direct * GP / GP_std;
 }
 
 @ The dual beam case is different because the sphere efficiency
@@ -1226,7 +1226,7 @@ double R_0, T_0;
 R_0 = Two_Sphere_R(MM, 0, 0, 0, 0);
 T_0 = Two_Sphere_T(MM, 0, 0, 0, 0);
 
-*M_R =  (Two_Sphere_R(MM, R_direct, R_diffuse, T_direct, T_diffuse) - R_0)/
+*M_R = MM.rstd_r * (Two_Sphere_R(MM, R_direct, R_diffuse, T_direct, T_diffuse) - R_0)/
                    (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r, 0, 0) - R_0);
 *M_T =  (Two_Sphere_T(MM, R_direct, R_diffuse, T_direct, T_diffuse) - T_0)/
                    (Two_Sphere_T(MM, 0, 0, 1, 1) - T_0);

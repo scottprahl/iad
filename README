@@ -42,7 +42,7 @@ OBTAINING
 
 All files can be obtained from the OMLC website
 
-http://omlc.ogi.edu/software/iad/
+http://omlc.org/software/iad/
 
 The source code and build instructions for Unix (linux, Mac OS X) and Window
 
@@ -57,9 +57,9 @@ if these are working try
 
   ./iad -help
 
-  ./iad -M 0 -q 4 test/vio1
+  ./iad -M 0 -q 4 test/vio-A
 
-which will process the file vio1.rt and produce vio1.abg.  To install the 
+which will process the file vio-A.rxt and produce vio-A.abg.  To install the 
 program just type
 
   sudo make install
@@ -247,5 +247,5 @@ I have not rewritten the user's manual.  If you have problems
 email me at prahls@ohsu.edu.
 
 Scott Prahl
-http://www.bme.ogi.edu/~prahl
+http://omlc.org/~prahl
 

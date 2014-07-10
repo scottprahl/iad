@@ -9,6 +9,7 @@
 VERSION      = 8.0
 SYS          = MacOSX
 
+CC           = /opt/local/bin/gcc-mp-4.9
 INSTALL_DIR  = /Users/prahl/Library/Mathematica/Applications/Optics
 MLINKDIR     = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit
 CADDSDIR     = ${MLINKDIR}/CompilerAdditions
@@ -20,7 +21,7 @@ MPREP        = ${CADDSDIR}/mprep
 all : AD
 
 .c.o :
-	${CC} -c -I${INC_DIR} $<
+	${CC} -c -I${INC_DIR} -I/usr/local/include $<
 
 ADtm.c : AD.tm
 	${MPREP} $? -o $@
@@ -37,4 +38,4 @@ install:
 clean:
 	rm -f ADtm.o AD.o ADtm.c AD
 	
-.PHONY : clean install
+.PHONY : clean install lib

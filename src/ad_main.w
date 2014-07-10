@@ -252,7 +252,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
 static void print_version(void)
 {
     fprintf(stderr, "ad %s\n\n",Version);
-    fprintf(stderr, "Copyright (C) 2012 Free Software Foundation, Inc.\n");
+    fprintf(stderr, "Copyright (C) 2014 Free Software Foundation, Inc.\n");
     fprintf(stderr, "This is free software; see the source for copying conditions.\n");
     fprintf(stderr, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
     fprintf(stderr, "FOR A PARTICULAR PURPOSE.\n");
@@ -298,7 +298,7 @@ static void print_usage(void)
     fprintf(stderr, "    7) btopslide = optical depth of top slide (for IR)\n");
     fprintf(stderr, "    8) bbottomslide = optical depth of bottom slide (for IR)\n");
     fprintf(stderr, "    9) q = number of quadrature points\n\n");
-    fprintf(stderr, "Report bugs to <prahls@@ohsu.edu>\n\n");
+    fprintf(stderr, "Report bugs to <scott.prahl@@oit.edu>\n\n");
     exit(0);
 }
 

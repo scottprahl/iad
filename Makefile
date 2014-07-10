@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Apr 2013
 #
 
-VERSION = 3-9-10
+VERSION = 3-9-11
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -119,7 +119,7 @@ install: ad iad
 	rm -f $(BIN_INSTALL)/iad
 	cp -f iad $(BIN_INSTALL)
 
-install-lib: libiad$(LIB_EXT) libiad.h
+install-lib: lib libiad$(LIB_EXT) libiad.h
 	mkdir -p $(LIB_INSTALL)
 	mkdir -p $(INC_INSTALL)
 	cp libiad.h $(INC_INSTALL)
@@ -143,7 +143,6 @@ dist:
 	make doc
 	make clean
 	make
-#	make changelog
 	cd src ; make tidy
 	mkdir -p	   iad-$(VERSION)
 	mkdir -p	   iad-$(VERSION)/doc
@@ -230,9 +229,6 @@ manual_doc doc/manual.pdf: doc/manual.tex
 	cd doc ; bibtex manual
 	cd doc ; pdflatex manual
 	cd doc ; pdflatex manual
-	
-changelog:
-	src/svnlog.pl --repro http://omlc.ogi.edu/svn/project/iad/trunk > doc/CHANGELOG
 	
 clean:
 	rm -f ad iad *.pdf libiad.a libiad.so libiad.dylib libiad.h src/lib_iad.h src/lib_ad.h

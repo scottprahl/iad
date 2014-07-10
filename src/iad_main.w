@@ -922,7 +922,7 @@ properties can be determined.
 static void print_version(void)
 {
     fprintf(stderr, "iad %s\n",Version);
-    fprintf(stderr, "Copyright 2011 Scott Prahl, prahls@@ohsu.edu\n");
+    fprintf(stderr, "Copyright 2014 Scott Prahl, scott.prahl@@oit.edu\n");
     fprintf(stderr, "          (see Applied Optics, 32:559-568, 1993)\n");
     exit(0);
 }
@@ -1014,7 +1014,7 @@ fprintf(stderr, "  iad -x 255 data           All debugging output\n");
 fprintf(stderr, "  iad -X -i 8 data          Dual beam spectrometer with 8 degree incidence\n\n");
 fprintf(stderr, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
 fprintf(stderr, "  apply iad data1 data2     Process multiple files\n\n");
-fprintf(stderr, "Report bugs to <prahls@@ohsu.edu>\n\n");
+fprintf(stderr, "Report bugs to <scott.prahl@@oit.edu>\n\n");
 exit(0);
 }
 
