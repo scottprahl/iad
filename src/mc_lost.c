@@ -376,7 +376,7 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
         total_photons = photons;
     else {
         total_photons = 1000000;
-        total_time = abs(photons);
+        total_time = labs(photons);
     }
         
     *r_lost = 0;
