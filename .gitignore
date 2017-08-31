@@ -32,7 +32,7 @@ src/*.h
 src/*.o
 
 # Don't ignore these files
-!src/version.[ch]
+!src/version.h
 !src/nr*.[ch]
 !src/mc_lost.[ch]
 !src/mygetopt.[ch]
