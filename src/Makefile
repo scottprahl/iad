@@ -1,6 +1,6 @@
 all : ad iad
 
-INDENT = /opt/local/indent
+INDENT = indent
 
 INDENT_OPT = -bad -bap -c33 -ci1 -d1 -di20 -i4 -l78 -nbc -nfc1 -psl
 INDENT_OPT =
@@ -9,9 +9,10 @@ ASSERT = -DNDEBUG
 #ASSERT =
 
 LOCAL_LIBRARIES = -lm
-SHARED_LIB_OPT = -lm -shared
+SHARED_LIB_OPT = -lm -shared 
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
-				  -compatibility_version 2.0 -current_version 2.0.0
+				  -compatibility_version 2.0 -current_version 2.0.0 \
+				  -arch i386 -arch x86_64
 
 CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -std=c99
 

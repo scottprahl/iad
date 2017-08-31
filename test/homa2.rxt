@@ -1,0 +1,57 @@
+IAD1   # Must be first four characters
+
+# Data from Homa Assadi
+# Data collected with a Shimadzu 3600UV with ISR-3100 Integrating Sphere
+# The reference beam travelled through air
+
+1.33   # Index of refraction of the sample
+1.5171 # Index of refraction of the top and bottom slides
+10.3   # [mm] Thickness of sample
+0.85   # [mm] Thickness of slides
+7.4    # [mm] Diameter of illumination beam
+0.98   # Reflectivity of the reflectance calibration standard
+1      # Number of spheres used during each measurement
+
+# Properties of reflectance measurement sphere
+60      # [mm] Sphere Diameter
+17.41   # [mm] Sample Port Diameter
+17.41   # [mm] Entrance Port Diameter
+13.12   # [mm] Detector Port Diameter
+0.98    # Reflectivity of the sphere wall
+
+# Properties of transmittance measurement sphere
+60      # [mm] Sphere Diameter
+17.41   # [mm] Sample Port Diameter
+17.41   # [mm] Entrance Port Diameter
+13.12   # [mm] Detector Port Diameter
+0.98    # Reflectivity of the sphere wall
+
+2	    # Two Measurements: M_R M_T
+#lambda M_R   M_T
+530	0.06875	0.65075
+532	0.06855	0.65298
+534	0.06832	0.65481
+536	0.06814	0.6568
+538	0.06789	0.65841
+540	0.06767	0.66025
+542	0.06741	0.66188
+544	0.06716	0.66382
+546	0.06696	0.66553
+548	0.06671	0.66728
+550	0.06655	0.66902
+552	0.06634	0.67084
+554	0.06618	0.67276
+556	0.066	0.67422
+558	0.06582	0.67588
+560	0.06565	0.67729
+562	0.06553	0.67891
+564	0.06541	0.68028
+566	0.06526	0.68168
+568	0.06509	0.6833
+570	0.06491	0.68493
+572	0.06472	0.68636
+574	0.06447	0.68771
+576	0.06423	0.68892
+578	0.064	0.6905
+580	0.06385	0.69182
+

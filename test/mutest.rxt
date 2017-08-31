@@ -1,0 +1,36 @@
+IAD1   # Must be first four characters
+
+# Input Example with a single set of sphere coefficients
+# The order of entries is important 
+# Anything after a '#' is ignored, blank lines are also ignored
+
+1.3329 # Index of refraction of the sample; water-HPC mixture
+1.5168 # Index of refraction of the top and bottom slides value
+1.5    # [mm] Thickness of sample
+1.0    # [mm] Thickness of slides; sandwiched (1mm x 2)
+5.0    # [mm] F220SMA-B; THEORETICAL 1/e2 OUTPUT BEAM DIAMETER 2.1mm
+0.99   # Thorlabs IS236A-4
+
+1      # Number of spheres used during each measurement
+
+      # Properties of sphere used for reflection measurements
+50.8   # [mm] Sphere Diameter
+12.5   # [mm] Sample Port Diameter
+12.5   # [mm] Entrance Port Diameter
+0.400  # [mm] Detector Port Diameter; Ocean fiber white/pink 400um
+0.99   # Reflectivity of the sphere wall
+
+      # Properties of sphere used for transmission measurements
+50.8   # [mm] Sphere Diameter
+12.5   # [mm] Sample Port Diameter
+0      # [mm] Entrance Port Diameter; zero for single transmission sphere
+0.400  # [mm] Detector Port Diameter; Ocean fiber white/pink 400um
+0.99   # Reflectivity of the sphere wall
+
+3      # Number of measurements, M_R, M_T, M_U
+
+#lambda/nm	M_R	M_T	M_U
+400.17	0.088374	0.5471	0
+405.07	0.083351	0.5427	0
+410.33	0.088785	0.54529	0
+
