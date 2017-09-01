@@ -1,10 +1,8 @@
 # Inverse Adding-Doubling
 
-** VERSION 3.10.0 **
+by Scott Prahl
 
-** Scott Prahl **
-
-** Oregon Tech **
+September 2017
 
 ## OVERVIEW
 
