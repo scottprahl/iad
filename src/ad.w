@@ -1,5 +1,5 @@
 \def\title{ad}
-\def\adversion{3-9-12}
+\def\adversion{3-10-0}
 \def\adyear{2014}
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.

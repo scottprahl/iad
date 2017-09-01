@@ -7,17 +7,17 @@ In principle (on Linux and MacOS X) you should be able to just type
 to create excutable versions of the ad and iad programs.  To quickly test
 if these are working try
 
-  ./iad -help
+  make test
+
+or
 
   ./iad -M 0 -q 4 test/vio-A
 
-which will process the file vio-A.rt and produce vio-A.abg.  To install the 
-program just type
+which processes the file vio-A.rt to produce vio-A.abg.  To install the 
+program
 
   sudo make install
 
 and the binary executable files (iad and ad) will be created and placed in 
 /usr/local/bin so that you can use them from any directory 
 (if /usr/local/bin is in your path).
-
-If you are using windows then you will need to work a bit more.  Sorry.
