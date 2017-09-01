@@ -18,7 +18,6 @@ doc/iad_src.pdf
 
 # macosx cruft
 .DS_Store
-.svn/*
 
 # Ignore archives
 *.zip
@@ -30,6 +29,12 @@ test/*.txt
 src/*.c
 src/*.h
 src/*.o
+src/libiad.dylib
+src/libiad.so
+src/libiad.h
+libiad.h
+libiad.dylib
+libiad.so
 
 # Don't ignore these files
 !src/version.h
