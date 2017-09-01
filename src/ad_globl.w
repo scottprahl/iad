@@ -1,13 +1,5 @@
 @*1 AD Global Variables.
 Global Routines and Variables.
-Changed version to reflect bug fix in the Fresnel routine section.
-
-Revised in May 1995 to allow slides to absorb and various modifications
-to improve the way that the file looks.
-
-Revision May 1996 to remove uninitialized tfluence
-
-Revision May 1998 to improve |wrarray|.
 
 @(ad_globl.c@>=
 #include <math.h>
@@ -178,18 +170,17 @@ void Zero_Layer(int n, double **r, double **t)
 	t[i][i] = 1 / twoaw[i];
 }
 
-@ Figure out the reflection for collimated irradiance returning within
-a cone whose cosine is |mu|.  Note that |mu| is defined on the air side
-of the slab and that |mu| is the cosine of the angle that the cone makes
-with the normal to the slab,
+@ Figure out the reflection/transmission for collimated and diffuse irradiance 
+returning within
+a cone with apex angle $2\theta$.  The angle is specified by |mu|=$\cos\theta$.
+Note that |mu| is defined on the air side of the slab and that |mu| is the cosine 
+of the angle that the side of the cone makes with the normal to the slab,
 $$
 \hbox{UR1} \equiv \int_\mu^1 R(\nu',1) 2\nu'\,d\nu'
 $$
-Similarly for irradiance characterized by diffuse light within a cone
-one can calculate the amount of reflectance returing within that cone
-as
+We do the same thing for diffuse incident light
 $$
-\hbox{URU} \equiv n^2 \int_\mu^1 \int_\nu^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
+\hbox{URU} \equiv n^2 \int_\mu^1 \int_0^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance.
 
@@ -213,7 +204,7 @@ void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, 
     last_j++;
 
   *URU = 0.0;
-  for (i = last_j; i <= n; i++) {
+  for (i = 1; i <= n; i++) {
     temp = 0.0;
     for (j = last_j; j <= n; j++)
       temp += R[i][j] * twoaw[j];
@@ -223,16 +214,17 @@ void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, 
   *URU *= n_slab * n_slab / (1 - mu * mu);
 }
 
-@ Figure out the reflection for oblique irradiance returning from a layer
-Note that |mu| is the cosine of the angle that the cone makes
-with the normal to the slab in air,
+@ Figure out the total reflection/transmission for collimated oblique irradiance
+at an angle $\theta$ from a normal to the slab.  The angle is specified by 
+|mu|=$\cos\theta$. Note that |mu| is defined on the air side of the slab.
 $$
-\hbox{URx} = \int_\mu^1 R(\nu',\mu) 2\nu'\,d\nu'
+\hbox{URx} = \int_0^1 R(\nu',\mu) 2\nu'\,d\nu'
 $$
-For diffuse irradiance, the total flux back is a double integral
-as
+For the diffuse case, we assume that light is uniformly diffuse over a cone of
+angles from 0 to $\theta$ from the normal (from |mu| to 1) and find the total
+returned reflected/transmitted light
 $$
-\hbox{URU} = n^2 \int_\mu^1 \int_\nu^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
+\hbox{URU} = n^2 \int_\mu^1 \int_0^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance.
 
@@ -277,7 +269,7 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, 
 	}
 	
     *URU = 0.0;
-	for (i = 1; i <= n; i++) {
+	for (i = cone_index; i <= n; i++) {
 		urx = 0.0;
 		for (j = 1; j <= n; j++)
 			urx += R[i][j] * twoaw[j];
