@@ -100,13 +100,12 @@ double best_nearby(double (*funk) (double[]), int *evals,
 void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(double []), int *nfunk)
 {
     double newf, fbefore, steplength, tmp;
-    double xbefore[VARS], newx[VARS], startpt[VARS], delta[VARS];
+    double xbefore[VARS], newx[VARS], delta[VARS];
     double rho = RBEGIN;
     int i, keep, evals;
 
     for (i = 0; i < nvars; i++) {
     	xbefore[i] = p[1][i+1];
-    	startpt[i] = p[1][i+1];
     	delta[i]   = p[2+i][i+1] - p[1][i+1];
     }
         

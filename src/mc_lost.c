@@ -169,10 +169,14 @@ double cos_critical_angle(double n_i, double n_t)
 /* refract a photon into or out of the medium across a z-plane*/
 void refract(double n_i, double n_t, double *u, double *v, double *w)
 {
-    double nu, c, wold;
+    double nu, c;
     
-    if (n_i == n_t) return;
+#ifndef NDEBUG
+    double wold;
     wold = *w;
+#endif
+
+    if (n_i == n_t) return;
     c    = n_i/n_t;
     nu   = *w * c; 
     
@@ -360,10 +364,12 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
     double r_beam;
     double mu_t = b / d_sample;
     double r_port_squared = d_port * d_port / 4.0;
-    double ww, total_weight,extra;
+    double total_weight,extra;
     double total_time=0;
     clock_t start_time=0;
-        
+#ifndef NDEBUG
+	double ww;
+#endif        
     /* high resolution clock ... may be zero at start of process */
     start_time = clock();   
         
@@ -400,7 +406,9 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
             continue;
         } 
         
+#ifndef NDEBUG
         ww = w;
+#endif
         refract(1.0, n_sample, &u, &v, &w);
         assert(fabs(sin(acos(ww)) - n_sample*sin(acos(w)))<1e-8 || ww == -w);
         assert(fabs(u*u+v*v+w*w-1.0) < 1e-8);
