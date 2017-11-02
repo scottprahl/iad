@@ -29,7 +29,6 @@ test/*.txt
 src/*.o
 src/libiad.dylib
 src/libiad.so
-src/libiad.h
 libiad.h
 libiad.dylib
 libiad.so
