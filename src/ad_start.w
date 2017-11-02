@@ -338,7 +338,7 @@ $$
 Exactly how this integral is approximated determines the type of initialization.
 Wiscombe evaluated a number of initialization methods and found two that were
 useful.  These are the infinitesimal generator and the diamond methods.  The
-infinitesmial generator initialization makes the approximation
+infinitesmal generator initialization makes the approximation
 $$
 L_{1/2}(-\nu)=L(\tau^*_1,-\nu)
 \qquad\qquad
@@ -349,7 +349,7 @@ $$
 L_{1/2}(\nu)={1\over2} [L(\tau^*_0,\nu)+L(\tau^*_1,\nu)]
 $$
 
-@*2 Infinitesmial Generator Initialization.
+@*2 Infinitesmal Generator Initialization.
 
 @ |Get_IGI_Layer| generates the starting matrix with the inifinitesimal generator method.
 The accuracy is $O(d)$ and assumes that the average irradiance upwards is

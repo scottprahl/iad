@@ -1,7 +1,7 @@
 @*1 AD Prime.
 This has the rather stupid name prime because I was at a loss for another.
-Currently this is very poorly commented.  The fluence routine has not even been
-checked.  There may or may not be errors associated with the $n^2$ law 
+Currently this is poorly commented.  The fluence routine has not even been
+checked.  There may or may not be errors associated with the $n^2$-law 
 in there.  It just needs to be checked.
 
 @(ad_prime.c@>=
@@ -252,12 +252,12 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
     free_dmatrix(R, 1, n, 1, n);
     free_dmatrix(T, 1, n, 1, n);
 
-@*2 Simple interfaces for Perl module.
+@*2 Simple interfaces for Perl, Python, or Mathematica.
 
 |ez_RT| is a top level routine for accessing the adding-doubling algorithm.
-This routine was created so that I could make a Perl xs module.  Since I did
-not know how to mess around with passing structures, I changed the interface
-to avoid using structures.
+This routine was originally created so that I could make a Perl .xs module.  
+Since I did not know how to mess around with passing structures, I changed 
+the interface to avoid using structures.
 
 @<Prototype for |ez_RT|@>=
 void ez_RT(int n,   double nslab, 
@@ -286,7 +286,7 @@ struct AD_slab_type slab;
     RT(n, &slab, UR1, UT1, URU, UTU);
 }
 
-@*2 Unscattered relflection and transmission. 
+@*2 Unscattered reflection and transmission. 
                 
 |ez_RT_unscattered| is a top level routine for accessing the adding-doubling algorithm.
 This routine was created so that I could make a Perl module.  Since I did
