@@ -26,8 +26,6 @@ doc/iad_src.pdf
 test/*.txt
 
 # Ignore generated .o and .c and .h files
-src/*.c
-src/*.h
 src/*.o
 src/libiad.dylib
 src/libiad.so
