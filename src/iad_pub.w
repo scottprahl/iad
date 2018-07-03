@@ -399,6 +399,8 @@ for the optical thickness assuming the albedo is one.
         	search = FIND_B_WITH_NO_SCATTERING;
         else if (r.default_a == 1)
         	search = FIND_B_WITH_NO_ABSORPTION;
+        else if (tt == 0) 
+            search = FIND_G;
         else
         	search = FIND_B;
 	}
@@ -433,7 +435,9 @@ anisotropy.
 @<Two parameter search@>=
     if (r.default_a != UNINITIALIZED) {
         
-        if ((r.default_a  == 0) || (r.default_g  != UNINITIALIZED))
+        if (r.default_a  == 0)
+            search =  FIND_B;
+        else if (r.default_g  != UNINITIALIZED)
             search =  FIND_B;
         else
             search =  FIND_BG;
@@ -836,7 +840,7 @@ void Calculate_Minimum_MR(struct measure_type m,
 		r.slab.a = r.default_a;
 
 	if (r.default_g == UNINITIALIZED)
-		r.slab.g = 0;
+		r.slab.g = 0.99;
 	else
 		r.slab.g = r.default_g;
 
