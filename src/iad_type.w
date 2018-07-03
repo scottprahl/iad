@@ -100,6 +100,7 @@ Finally, for convenience I create a Boolean type.
 @d DEBUG_EVERY_CALC         64
 @d DEBUG_SEARCH            128
 @d DEBUG_RD_ONLY           256
+@d DEBUG_GRID_CALC         512
 @d DEBUG_ANY               0xFFFFFFFF
 
 @d UNKNOWN                   0
