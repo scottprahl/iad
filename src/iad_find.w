@@ -378,7 +378,7 @@ is no sense even using it because the slab is not infinitely thick.
 	double Rt, Tt, Rd, Rc, Td, Tc;
 	
 	if (Debug(DEBUG_SEARCH)) {
-		fprintf(stderr,"In U_Find_A");
+		fprintf(stderr,"In U_Find_G");
 		fprintf(stderr," (mu=%6.4f)",r->slab.cos_angle);
 		if (r->default_a != UNINITIALIZED) 
 			fprintf(stderr,"  default_a = %8.5f", r->default_a);
