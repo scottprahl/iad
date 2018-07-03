@@ -27,6 +27,9 @@ OPTIONS   =  -M0
 
 all: $(OUT_FILES)
 
+sevick-A.txt: sevick-A.rxt
+	../iad -g 0.9 sevick-A.rxt
+
 ville1.txt: ville1.rxt
 	../iad -a 0 ville1.rxt
 
