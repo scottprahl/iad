@@ -329,16 +329,27 @@ optical properties to determine.
     int search=0;
     int independent = m.num_measures;
 
+    if (Debug(DEBUG_SEARCH)) {
+        fprintf(stderr,"\n*** Determine_Search()\n");
+        fprintf(stderr,"    starting with %d measurement(s)\n",m.num_measures);
+    }
+
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
-    if (m.m_u==0 && independent == 3) /* no information in tc */
+    if (m.m_u==0 && independent == 3) {
+        if (Debug(DEBUG_SEARCH)) fprintf(stderr,"    no information in tc\n");
         independent--;
+    }
 
-    if (rd==0 && independent == 2) /* no information in rd */
+    if (rd==0 && independent == 2) {
+        if (Debug(DEBUG_SEARCH)) fprintf(stderr,"    no information in rd\n");
         independent--;
+    }
         
-    if (td==0 && independent == 2) /* no information in td */
+    if (td==0 && independent == 2) {
+        if (Debug(DEBUG_SEARCH)) fprintf(stderr,"    no information in td\n");
         independent--;
+    }
         
     if (independent == 1) {
         @<One parameter search@>@;
@@ -354,7 +365,6 @@ optical properties to determine.
     }
     
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr,"\n*** Determine_Search()\n");
         fprintf(stderr,"    independent measurements = %3d\n",independent);
         fprintf(stderr,"    m_r=%8.5f m_t=%8.5f (rd = %8.5f td=%8.5f)\n",m.m_r, m.m_t, rd,td);
         if (search==FIND_A)    fprintf(stderr,"    search = FIND_A\n");
