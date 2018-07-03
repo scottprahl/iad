@@ -2,7 +2,7 @@
 #line 55 "iad_pub.w"
 
 /*26:*/
-#line 545 "iad_pub.w"
+#line 561 "iad_pub.w"
 
 void ez_Inverse_RT(double n,double nslide,double UR1,double UT1,double Tc,
 double*a,double*b,double*g,int*error)
@@ -11,7 +11,7 @@ double*a,double*b,double*g,int*error)
 #line 56 "iad_pub.w"
 ;
 /*30:*/
-#line 656 "iad_pub.w"
+#line 672 "iad_pub.w"
 
 void Spheres_Inverse_RT(double*setup,
 double*analysis,

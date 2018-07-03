@@ -222,16 +222,37 @@ determine_search (struct measure_type m, struct invert_type r)
   int search = 0;
   int independent = m.num_measures;
 
+  if (Debug (DEBUG_SEARCH))
+    {
+      fprintf (stderr, "\n*** Determine_Search()\n");
+      fprintf (stderr, "    starting with %d measurement(s)\n",
+	       m.num_measures);
+      fprintf (stderr, "    m_r=%.5f\n", m.m_r);
+      fprintf (stderr, "    m_t=%.5f\n", m.m_t);
+    }
+
   Estimate_RT (m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
   if (m.m_u == 0 && independent == 3)
-    independent--;
+    {
+      if (Debug (DEBUG_SEARCH))
+	fprintf (stderr, "    no information in tc\n");
+      independent--;
+    }
 
   if (rd == 0 && independent == 2)
-    independent--;
+    {
+      if (Debug (DEBUG_SEARCH))
+	fprintf (stderr, "    no information in rd\n");
+      independent--;
+    }
 
   if (td == 0 && independent == 2)
-    independent--;
+    {
+      if (Debug (DEBUG_SEARCH))
+	fprintf (stderr, "    no information in td\n");
+      independent--;
+    }
 
   if (independent == 1)
     {
@@ -242,6 +263,8 @@ determine_search (struct measure_type m, struct invert_type r)
 	    search = FIND_B_WITH_NO_SCATTERING;
 	  else if (r.default_a == 1)
 	    search = FIND_B_WITH_NO_ABSORPTION;
+	  else if (tt == 0)
+	    search = FIND_G;
 	  else
 	    search = FIND_B;
 	}
@@ -272,7 +295,9 @@ determine_search (struct measure_type m, struct invert_type r)
       if (r.default_a != UNINITIALIZED)
 	{
 
-	  if ((r.default_a == 0) || (r.default_g != UNINITIALIZED))
+	  if (r.default_a == 0)
+	    search = FIND_B;
+	  else if (r.default_g != UNINITIALIZED)
 	    search = FIND_B;
 	  else
 	    search = FIND_BG;
@@ -323,7 +348,6 @@ determine_search (struct measure_type m, struct invert_type r)
 
   if (Debug (DEBUG_SEARCH))
     {
-      fprintf (stderr, "\n*** Determine_Search()\n");
       fprintf (stderr, "    independent measurements = %3d\n", independent);
       fprintf (stderr, "    m_r=%8.5f m_t=%8.5f (rd = %8.5f td=%8.5f)\n",
 	       m.m_r, m.m_t, rd, td);
@@ -718,7 +742,7 @@ Calculate_Minimum_MR (struct measure_type m,
 		      struct invert_type r, double *mr, double *mt)
 {
   if (r.default_b == UNINITIALIZED)
-    r.slab.b = 999;
+    r.slab.b = 9999;
   else
     r.slab.b = r.default_b;
 
@@ -728,7 +752,7 @@ Calculate_Minimum_MR (struct measure_type m,
     r.slab.a = r.default_a;
 
   if (r.default_g == UNINITIALIZED)
-    r.slab.g = 0;
+    r.slab.g = 0.99;
   else
     r.slab.g = r.default_g;
 

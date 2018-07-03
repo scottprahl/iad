@@ -234,7 +234,7 @@ U_Find_G (struct measure_type m, struct invert_type *r)
 
   if (Debug (DEBUG_SEARCH))
     {
-      fprintf (stderr, "In U_Find_A");
+      fprintf (stderr, "In U_Find_G");
       fprintf (stderr, " (mu=%6.4f)", r->slab.cos_angle);
       if (r->default_a != UNINITIALIZED)
 	fprintf (stderr, "  default_a = %8.5f", r->default_a);

@@ -200,13 +200,23 @@ fill_grid_entry (int i, int j)
   if (RR.slab.b <= 1e-6)
     RR.slab.b = 1e-6;
   if (Debug (DEBUG_EVERY_CALC))
-    fprintf (stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b,
-	     RR.slab.g);
+    {
+      if (!CALCULATING_GRID)
+	fprintf (stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b,
+		 RR.slab.g);
+      else
+	{
+	  if (j == 0)
+	    fprintf (stderr, ".");
+	  if (i + 1 == GRID_SIZE && j == 0)
+	    fprintf (stderr, "\n");
+	}
+    }
 
   RT_Flip (MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru,
 	   &utu);
 
-  if (Debug (DEBUG_EVERY_CALC))
+  if (Debug (DEBUG_EVERY_CALC) && !CALCULATING_GRID)
     fprintf (stderr, "ur1=%8.5f ut1=%8.5f\n", ur1, ut1);
 
   The_Grid[GRID_SIZE * i + j][A_COLUMN] = RR.slab.a;
@@ -217,7 +227,7 @@ fill_grid_entry (int i, int j)
   The_Grid[GRID_SIZE * i + j][URU_COLUMN] = uru;
   The_Grid[GRID_SIZE * i + j][UTU_COLUMN] = utu;
 
-  if (Debug (DEBUG_GRID))
+  if (Debug (DEBUG_GRID_CALC))
     {
       fprintf (stderr, "+ %2d %2d ", i, j);
       fprintf (stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b,
@@ -817,7 +827,7 @@ Calculate_Distance_With_Corrections (double UR1, double UT1,
 
 
   if ((Debug (DEBUG_ITERATIONS) && !CALCULATING_GRID) ||
-      (Debug (DEBUG_GRID) && CALCULATING_GRID))
+      (Debug (DEBUG_GRID_CALC) && CALCULATING_GRID))
     {
       static int once = 0;
 
@@ -846,8 +856,9 @@ Calculate_Grid_Distance (int i, int j)
 {
   double ur1, ut1, uru, utu, Rc, Tc, b, dev, LR, LT;
 
-  if (Debug (DEBUG_GRID))
+  if (Debug (DEBUG_GRID_CALC))
     fprintf (stderr, "g %2d %2d ", i, j);
+
   b = The_Grid[GRID_SIZE * i + j][B_COLUMN];
   ur1 = The_Grid[GRID_SIZE * i + j][UR1_COLUMN];
   ut1 = The_Grid[GRID_SIZE * i + j][UT1_COLUMN];
@@ -896,7 +907,7 @@ Calculate_Distance (double *M_R, double *M_T, double *deviation)
 		 RR.slab.cos_angle, &Rc, &Tc);
 
   if ((!CALCULATING_GRID && Debug (DEBUG_ITERATIONS)) ||
-      (CALCULATING_GRID && Debug (DEBUG_GRID)))
+      (CALCULATING_GRID && Debug (DEBUG_GRID_CALC)))
     fprintf (stderr, "        ");
 
   Calculate_Distance_With_Corrections (ur1, ut1, Rc, Tc, uru, utu, M_R, M_T,
