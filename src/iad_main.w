@@ -54,7 +54,6 @@ int main (int argc, char **argv)
     	@<Command-line changes to |m|@>
         while (Read_Data_Line (stdin, &m, params) == 0) {
             @<Calculate and write optical properties@>
-            first_line = 0;
         }
     }
     if (cl_verbosity>0) fprintf(stderr,"\n\n");
@@ -105,7 +104,6 @@ extern int   optind;
   struct invert_type r;
   char *g_out_name = NULL;
   char c;
-  int first_line = 1;
 
   long n_photons = 100000;  
   int MC_iterations = 19;
