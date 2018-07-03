@@ -12,20 +12,26 @@ example2.rxt      il-C.rxt          royston2.rxt      royston9-C.rxt    sample-F
 fairway-A.rxt     ink-A.rxt         royston3-A.rxt    royston9-D.rxt    sample-G.rxt      vio-A.rxt
 
 OUT_FILES =  \
-basic-A.txt       fairway-B.txt     ink-B.txt         royston3-B.txt    royston_ink1.txt  sevick-A.txt      vio-B.txt\
-basic-B.txt       fairway-C.txt     ink-C.txt         royston3-C.txt    sample-A.txt      sevick-b.txt      x_bad_data.txt\
+basic-A.txt       fairway-B.txt     ink-B.txt         royston3-B.txt    royston_ink1.txt  vio-B.txt\
+basic-B.txt       fairway-C.txt     ink-C.txt         royston3-C.txt    sample-A.txt      x_bad_data.txt\
 basic-C.txt       fairway-D.txt     kenlee-A.txt      royston3-D.txt    sample-B.txt      terse-A.txt\
 basic-D.txt       fairway-E.txt     kenlee-B.txt      royston3-E.txt    sample-C.txt      terse-B.txt\
 il-A.txt          kenlee-C.txt      royston9-A.txt    sample-D.txt      tio2_vis.txt \
-double.txt        il-B.txt          newton.txt        royston9-B.txt    sample-E.txt      uterus.txt\
+double.txt        il-B.txt          newton.txt        royston9-B.txt    sample-E.txt      \
 example2.txt      il-C.txt          royston2.txt      royston9-C.txt    sample-F.txt      \
 fairway-A.txt     ink-A.txt         royston3-A.txt    royston9-D.txt    sample-G.txt      vio-A.txt\
 
-SPECIAL_OUT_FILES = ville1.txt basic-E.txt
+SPECIAL_OUT_FILES = ville1.txt basic-E.txt sevick-A.txt sevick-b.txt  uterus.txt
 
 OPTIONS   =  -M0
 
 all: $(OUT_FILES)
+
+uterus.txt: uterus.rxt
+	../iad -g 0.9 uterus.rxt
+	
+sevick-b.txt: sevick-b.rxt
+	../iad -g 0.9 sevick-b.rxt
 
 sevick-A.txt: sevick-A.rxt
 	../iad -g 0.9 sevick-A.rxt
