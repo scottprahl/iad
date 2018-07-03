@@ -116,6 +116,7 @@ tidy:
 	rm -f ad_boil.c
 	rm -f *.bak *.BAK
 	rm -f iad_type.c
+	rm -f iad_main.h
 	gnuindent $(INDENT_OPT) ad*.c iad*.c ad*.h iad*.h
 	rm *~
 	
