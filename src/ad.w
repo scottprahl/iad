@@ -1,11 +1,10 @@
 \def\title{ad}
 \def\adversion{3-10-3}
-\def\adyear{2014}
+\def\adyear{2018}
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
-% Version 3.9.11 --- July 2014
 
-% Copyright (C) 2014 Scott Prahl
+% Copyright (C) 2018 Scott Prahl
 
 % Permission is granted to make and distribute verbatim copies of this
 % document provided that the copyright notice and this permission notice
