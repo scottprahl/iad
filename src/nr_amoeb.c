@@ -26,7 +26,7 @@ amoeba (double **p, double y[], int ndim, double ftol,
 {
     int i, ihi, ilo, inhi, j, mpts = ndim + 1;
     double sum, swap, ysave, ytry, *psum;
-//    double rtol;
+/*    double rtol;*/
    
     psum = dvector (1, ndim);
     *nfunk = 0;
@@ -46,7 +46,7 @@ amoeba (double **p, double y[], int ndim, double ftol,
                 inhi = i;
         }
         
-//        rtol = 2.0 * fabs (y[ihi] - y[ilo]) / (fabs (y[ihi]) + fabs (y[ilo]));
+/*        rtol = 2.0 * fabs (y[ihi] - y[ilo]) / (fabs (y[ihi]) + fabs (y[ilo])); */
         if (y[ilo] < ftol) {
             SWAP (y[1], y[ilo])
             for (i = 1; i <= ndim; i++)
