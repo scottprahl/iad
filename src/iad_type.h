@@ -72,6 +72,7 @@
 #define DEBUG_EVERY_CALC 64
 #define DEBUG_SEARCH 128
 #define DEBUG_RD_ONLY 256
+#define DEBUG_GRID_CALC 512
 #define DEBUG_ANY 0xFFFFFFFF \
 
 #define UNKNOWN 0
