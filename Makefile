@@ -81,7 +81,7 @@ CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/ia
 		src/ad_layers.c		src/version.c		 
  
 HSRC  = src/ad_bound.h		src/ad_globl.h		 src/ad_phase.h	  src/ad_start.h  src/iad_io.h	   src/iad_type.h \
-		src/ad_doubl.h		src/ad_main.h		 src/ad_prime.h	  src/iad_calc.h  src/iad_main.h   src/iad_util.h \
+		src/ad_doubl.h		src/ad_main.h		 src/ad_prime.h	  src/iad_calc.h  src/iad_util.h \
 		src/ad_frsnl.h		src/ad_matrx.h		 src/ad_radau.h	  src/iad_find.h  src/iad_pub.h	   src/ad_cone.h  \
 		src/ad_cone_ez.h	src/ad_layers.h
 
