@@ -32,7 +32,7 @@ Note, it really doesn't help to change the method from
     @<Definition for |Spheres_Inverse_RT|@>@;
     @<Definition for |Calculate_MR_MT|@>@;
     @<Definition for |MinMax_MR_MT|@>@;
-	@<Definition for |Calculate_Minimum_MR|@>@;
+    @<Definition for |Calculate_Minimum_MR|@>@;
     
 @ All the information that needs to be written to
 the header file \.{iad\_pub.h}.  This eliminates the need to maintain a set of 
@@ -47,7 +47,7 @@ header files as well.
     @<Prototype for |Initialize_Measure|@>;
     @<Prototype for |Calculate_MR_MT|@>;
     @<Prototype for |MinMax_MR_MT|@>;
-	@<Prototype for |Calculate_Minimum_MR|@>;
+    @<Prototype for |Calculate_Minimum_MR|@>;
 
 @ Here is the header file needed to access one interesting routine in the 
 \.{libiad.so} library.
@@ -69,11 +69,11 @@ that are appropriate for your experiment.
 @ @<Definition for |Inverse_RT|@>=
     @<Prototype for |Inverse_RT|@>
 {
-	if (0 && Debug(DEBUG_LOST_LIGHT)) {
-		fprintf(stderr, "** Inverse_RT (%d spheres) **\n", m.num_spheres);
-		fprintf(stderr, "    M_R      = %8.5f, MT       = %8.5f\n", m.m_r, m.m_t);
-		fprintf(stderr, "    UR1 lost = %8.5f, UT1 lost = %8.5f\n", m.ur1_lost, m.ut1_lost);
-	}
+    if (0 && Debug(DEBUG_LOST_LIGHT)) {
+        fprintf(stderr, "** Inverse_RT (%d spheres) **\n", m.num_spheres);
+        fprintf(stderr, "    M_R      = %8.5f, MT       = %8.5f\n", m.m_r, m.m_t);
+        fprintf(stderr, "    UR1 lost = %8.5f, UT1 lost = %8.5f\n", m.ur1_lost, m.ut1_lost);
+    }
 
     r->found = FALSE;
 
@@ -203,11 +203,11 @@ no need to check |MR| because it is ignored.
 
 @<Check MR for zero or one spheres@>=
 
-	if (r.default_a == UNINITIALIZED || r.default_a > 0) {
-		double mr,mt;
-		Calculate_Minimum_MR(m,r,&mr,&mt);
-		if (m.m_r < mr)
-			return IAD_MR_TOO_SMALL;
+    if (r.default_a == UNINITIALIZED || r.default_a > 0) {
+        double mr,mt;
+        Calculate_Minimum_MR(m,r,&mr,&mt);
+        if (m.m_r < mr)
+            return IAD_MR_TOO_SMALL;
     }
 
 @ The transmittance is also constrained by the index of refraction of the
@@ -223,18 +223,18 @@ if the number of spheres is more than zero.
 
 @<Check MT for zero or one spheres@>=
 
-	if (m.m_t < 0)
-		return IAD_MT_TOO_SMALL;      
+    if (m.m_t < 0)
+        return IAD_MT_TOO_SMALL;      
 
-	Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide, 
-			 r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
-	
-	if (m.num_spheres == 0 && m.m_t > tu) {
+    Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide, 
+             r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
+    
+    if (m.num_spheres == 0 && m.m_t > tu) {
 fprintf(stderr,"ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n", 
 r.slab.n_top_slide,r.slab.n_slab,r.slab.n_bottom_slide);
-		fprintf(stderr,"tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu, m.m_t, m.rstd_t);
-		return IAD_MT_TOO_BIG;
-	}
+        fprintf(stderr,"tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu, m.m_t, m.rstd_t);
+        return IAD_MT_TOO_BIG;
+    }
 
 @  The unscattered transmission is now always included in the total 
 transmittance.  Therefore the unscattered transmittance must fall betwee
@@ -396,14 +396,14 @@ for the optical thickness assuming the albedo is one.
 @<One parameter search@>=
     if (r.default_a  != UNINITIALIZED) {
         if (r.default_a == 0)
-        	search = FIND_B_WITH_NO_SCATTERING;
+            search = FIND_B_WITH_NO_SCATTERING;
         else if (r.default_a == 1)
-        	search = FIND_B_WITH_NO_ABSORPTION;
+            search = FIND_B_WITH_NO_ABSORPTION;
         else if (tt == 0) 
             search = FIND_G;
         else
-        	search = FIND_B;
-	}
+            search = FIND_B;
+    }
     else if (r.default_b  != UNINITIALIZED)
         search = FIND_A;
 
@@ -806,7 +806,7 @@ void Calculate_MR_MT(struct measure_type m,
     struct invert_type old_rr;
     
     if (include_MC && m.num_spheres > 0) 
-    	MC_Lost(m, r, -2000, &ur1, &ut1, &uru, &utu, 
+        MC_Lost(m, r, -2000, &ur1, &ut1, &uru, &utu, 
             &(m.ur1_lost), &(m.ut1_lost), &(m.uru_lost), &(m.utu_lost));   
         
     Get_Calc_State(&old_mm, &old_rr);
@@ -829,26 +829,26 @@ void Calculate_Minimum_MR(struct measure_type m,
 @ @<Definition for |Calculate_Minimum_MR|@>=
     @<Prototype for |Calculate_Minimum_MR|@>
 {
-	if (r.default_b == UNINITIALIZED)
-		r.slab.b = 999;
-	else
-		r.slab.b = r.default_b;
+    if (r.default_b == UNINITIALIZED)
+        r.slab.b = 999;
+    else
+        r.slab.b = r.default_b;
 
-	if (r.default_a == UNINITIALIZED)
-		r.slab.a = 0;
-	else
-		r.slab.a = r.default_a;
+    if (r.default_a == UNINITIALIZED)
+        r.slab.a = 0;
+    else
+        r.slab.a = r.default_a;
 
-	if (r.default_g == UNINITIALIZED)
-		r.slab.g = 0.99;
-	else
-		r.slab.g = r.default_g;
+    if (r.default_g == UNINITIALIZED)
+        r.slab.g = 0.99;
+    else
+        r.slab.g = r.default_g;
 
-	r.a = r.slab.a;
-	r.b = r.slab.b;
-	r.g = r.slab.g;
-	
-	Calculate_MR_MT(m,r,0,mr,mt);
+    r.a = r.slab.a;
+    r.b = r.slab.b;
+    r.g = r.slab.g;
+    
+    Calculate_MR_MT(m,r,0,mr,mt);
 }
 
 @ The minimum possible value of |MR| for a given |MT| will be when
