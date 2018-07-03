@@ -332,6 +332,8 @@ optical properties to determine.
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"\n*** Determine_Search()\n");
         fprintf(stderr,"    starting with %d measurement(s)\n",m.num_measures);
+        fprintf(stderr,"    m_r=%.5f\n",m.m_r);
+        fprintf(stderr,"    m_t=%.5f\n",m.m_t);
     }
 
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
@@ -840,7 +842,7 @@ void Calculate_Minimum_MR(struct measure_type m,
     @<Prototype for |Calculate_Minimum_MR|@>
 {
     if (r.default_b == UNINITIALIZED)
-        r.slab.b = 999;
+        r.slab.b = 9999;
     else
         r.slab.b = r.default_b;
 
