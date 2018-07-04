@@ -11,10 +11,11 @@ Inverse Adding-Doubling determines the intrinsic optical properties of a flat sc
 This package provides two executables `ad` and `iad`.  The first does a forward adding-doubling calculation (i.e., given the albedo, optical thickness, and anisotropy it returns the total reflection and transmission).  The second
 does the reverse.
 
-This program (Prahl et al., *Applied Optics*, **32**, 559-568, 1993) uses the Adding-Doubling method of
-van de Hulst (*Multiple Light Scattering*, Academic Press, 1978).  The Adding-Doubling method was extended to account for index of refraction changes at boundaries as well as corrections that must accompany integrating sphere experiments.
+This program [Prahl et al., *Applied Optics*, **32**, 559-568, 1993](https://omlc.org/~prahl/pubs/pdfx/prahl93a.pdf) uses the Adding-Doubling method of [van de Hulst *Multiple Light Scattering*, Academic Press, 1978](https://www.amazon.com/Multiple-Light-Scattering-Formulas-Applications-ebook/dp/B01D4CMF80).  I extended the Adding-Doubling method to account for Fresnel reflection at boundaries as well as corrections that must accompany integrating sphere experiments.
 
 Finally, integrating spheres do not always collect all the light that exits from the front or back surface of a sample.  Since this is impossible to account for the 1D adding-doubling technique, a Monte Carlo simulation is included in the inverse calculation.
+
+Details about using the program are documented in the accompanying [manual](https://github.com/scottprahl/iad/blob/master/doc/manual.pdf).
 
 ## INSTALLATION
 

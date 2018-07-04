@@ -6,7 +6,7 @@ OVERVIEW
 INSTALLATION
 ============
 
-On Linux and MacOS X, you should be able to just type
+On Linux and macOS, you should be able to just type
 
     make
 
@@ -20,11 +20,16 @@ To verify that the program is working properly, try
     make test
 
 to initiate a series of command-line tests.  All the tests should pass (there'll
-be a '*' in the 
+be a '*' at the end of each line).  Alternatively, you can try these from the
+command-line
+
+    ./ad -a 0.8 -b 1.0 -g 0.5
+
+    ./iad -r 0.09636 -t 0.67004 -d 0.5
 
     ./iad -M 0 -q 4 test/vio-A
 
-which processes the file `test/vio-A.rxt` to produce `test/vio-A.txt`.  To install the program
+The last of these processes the file `test/vio-A.rxt` to create `test/vio-A.txt`.  To install the program
 
     sudo make install
 
