@@ -2,11 +2,11 @@
 
 by Scott Prahl
 
-September 2017
+July 2018
 
 ## OVERVIEW
 
-Inverse Adding-Doubling (IAD) determines the intrinsic optical properties of a scattering and absoption sample using measurements of the total reflection and transmission.  Basically, optical properties are repeatedly guessed until the calculated reflection and transmission match the measured values.
+Inverse Adding-Doubling determines the intrinsic optical properties of a flat scattering and absoption sample using measurements of the total reflection and transmission.  Basically, optical properties are repeatedly guessed until the calculated reflection and transmission match the measured values.
 
 This package provides two executables `ad` and `iad`.  The first does a forward adding-doubling calculation (i.e., given the albedo, optical thickness, and anisotropy it returns the total reflection and transmission).  The second
 does the reverse.
@@ -16,42 +16,32 @@ van de Hulst (*Multiple Light Scattering*, Academic Press, 1978).  The Adding-Do
 
 Finally, integrating spheres do not always collect all the light that exits from the front or back surface of a sample.  Since this is impossible to account for the 1D adding-doubling technique, a Monte Carlo simulation is included in the inverse calculation.
 
-
 ## INSTALLATION
 
 In principle you should be able to just type
 
-    make
-
-to create excutable versions of the `ad` and `iad` programs.  To quickly test
-if these are working try
-
-    ./ad -a 0.8 -b 1.0 -g 0.5
-
-    ./iad -r 0.09636 -t 0.67004 -d 0.5
-
-    ./iad -M 0 -q 4 test/vio-A
-
-The last command will process the file `vio-A.rxt` to produce `vio-A.abg`.  To install
-
     make install
 
-and the binary executable files (`iad` and `ad`) will be created and placed in a default location of
-`/usr/local/bin/`.
+to create and install executable versions of the `ad` and `iad` programs.  See
+[INSTALL.md](https://github.com/scottprahl/iad/blob/master/INSTALL.md) for more details.
 
+
+### Changelog
+
+This is located in the `doc/` directory.
 
 ### Shared library support.  
 
-Edit the Makefile to select the right type of shared library for your platform
+Edit the `Makefile` to select the right type of shared library for your platform
 
-	make install-lib
+    make install-lib
 
 ### Mathematica support.  
 
 If you have Mathematica, then (and only if you have installed the right
 tools and edited the Makefile for your platform) and have the libraries installed then you should be able to type
 
-	make mma
+    make mma
 	make install mma
 
 and then load the iad module and then type 
@@ -62,8 +52,7 @@ in Mathematica to get a graph.  Very cool.
 
 ### Python support
 
-Once you have installed the shared library (`.dylib` under MacOS) or (`.so` under linux)
-then you can install python bindings
+Once you have installed the shared library (`.dylib` under macOS) or (`.so` under linux) then you can install python bindings
 
     pip install iadpython
 
