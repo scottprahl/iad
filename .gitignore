@@ -11,12 +11,9 @@ doc/manual.bbl
 doc/manual.blg
 doc/manual.log
 doc/manual.out
-doc/manual.pdf
 doc/manual.toc
-doc/ad_src.pdf
-doc/iad_src.pdf
 
-# macosx cruft
+# macOS cruft
 .DS_Store
 
 # Ignore archives
