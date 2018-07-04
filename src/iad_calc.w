@@ -525,27 +525,61 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
 @ First check are to test if the grid has ever been filled
 
 @<Tests for invalid grid@>=
-    if (The_Grid==NULL) return(FALSE);
-    if (!The_Grid_Initialized) return(FALSE);
+    if (The_Grid==NULL) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill because NULL\n");
+        return(FALSE);
+    }
+    if (!The_Grid_Initialized) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill because not initialized\n");
+        return(FALSE);
+    }
 
 @ If the type of search has changed then report the grid as invalid
 
 @<Tests for invalid grid@>=
-    if (The_Grid_Search != s) return(FALSE);
+    if (The_Grid_Search != s) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill because search type changed\n");
+        return(FALSE);
+    }
 
 @ Compare the |m.m_u| value only if there are three measurements
 
 @<Tests for invalid grid@>=
 
-    if ((m.num_measures==3) && (m.m_u!=MGRID.m_u)) return (FALSE);
+    if ((m.num_measures==3) && (m.m_u!=MGRID.m_u)) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill because unscattered light changed\n");
+        return (FALSE);
+    }
     
 @ Make sure that the boundary conditions have not changed.
 
 @<Tests for invalid grid@>=
-    if (m.slab_index              != MGRID.slab_index) return(FALSE);
-    if (m.slab_cos_angle          != MGRID.slab_cos_angle) return(FALSE);
-    if (m.slab_top_slide_index    != MGRID.slab_top_slide_index) return(FALSE);
-    if (m.slab_bottom_slide_index != MGRID.slab_bottom_slide_index) return(FALSE);
+    if (m.slab_index              != MGRID.slab_index) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill slab refractive index changed\n");
+        return(FALSE);
+    }
+    if (m.slab_cos_angle          != MGRID.slab_cos_angle) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill incident light changed\n");
+        return(FALSE);
+    }
+
+    if (m.slab_top_slide_index    != MGRID.slab_top_slide_index) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill top slide refractive index changed\n");
+        return(FALSE);
+    }
+
+    if (m.slab_bottom_slide_index != MGRID.slab_bottom_slide_index) {
+        if (Debug(DEBUG_GRID)) 
+            fprintf(stderr,"GRID: Fill bottom slide refractive index changed\n");
+        return(FALSE);
+    }
 
 
 @ Routine to just figure out the distance to a particular a, b, g point
@@ -637,23 +671,23 @@ void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *U
     double swap, correct_UR1, correct_URU;
     RT(n, slab, UR1, UT1, URU, UTU);
     if (flip) {
-    	correct_UR1 = *UR1;
-    	correct_URU = *URU;
-    	swap=slab->n_top_slide;
-    	slab->n_top_slide = slab->n_bottom_slide;
-    	slab->n_bottom_slide = swap;
-    	swap=slab->b_top_slide;
-    	slab->b_top_slide = slab->b_bottom_slide;
-    	slab->b_bottom_slide = swap;
-    	RT(n, slab, UR1, UT1, URU, UTU);
-    	swap=slab->n_top_slide;
-    	slab->n_top_slide = slab->n_bottom_slide;
-    	slab->n_bottom_slide = swap;
-    	swap=slab->b_top_slide;
-    	slab->b_top_slide = slab->b_bottom_slide;
-    	slab->b_bottom_slide = swap;
-    	*UR1 = correct_UR1;
-    	*URU = correct_URU;
+        correct_UR1 = *UR1;
+        correct_URU = *URU;
+        swap=slab->n_top_slide;
+        slab->n_top_slide = slab->n_bottom_slide;
+        slab->n_bottom_slide = swap;
+        swap=slab->b_top_slide;
+        slab->b_top_slide = slab->b_bottom_slide;
+        slab->b_bottom_slide = swap;
+        RT(n, slab, UR1, UT1, URU, UTU);
+        swap=slab->n_top_slide;
+        slab->n_top_slide = slab->n_bottom_slide;
+        slab->n_bottom_slide = swap;
+        swap=slab->b_top_slide;
+        slab->b_top_slide = slab->b_bottom_slide;
+        slab->b_bottom_slide = swap;
+        *UR1 = correct_UR1;
+        *URU = correct_URU;
     }
 }
 
@@ -716,7 +750,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     double min_b = -8;  /* exp(-10) is smallest thickness */
     double max_b = +8;   /* exp(+8) is greatest thickness */
 
-    if (Debug(DEBUG_GRID)) 
+    if (Debug(Debug(DEBUG_GRID))) 
         fprintf(stderr, "Filling AB grid\n");
         
     if (The_Grid==NULL) Allocate_Grid(r.search);
@@ -817,7 +851,7 @@ void Fill_AG_Grid(struct measure_type m, struct invert_type r)
 int i,j;
 double a;
 
-    if (Debug(DEBUG_GRID))
+    if (Debug(Debug(DEBUG_GRID)))
         fprintf(stderr, "Filling AG grid\n");
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
@@ -864,7 +898,7 @@ int i,j;
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero |GG|@>@;
     
-    if (Debug(DEBUG_GRID)) 
+    if (Debug(Debug(DEBUG_GRID))) 
         fprintf(stderr, "Filling BG grid\n");
 
     Set_Calc_State(m,r);
@@ -901,7 +935,7 @@ double bs, ba;
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero |GG|@>@;
 
-    if (Debug(DEBUG_GRID)) 
+    if (Debug(Debug(DEBUG_GRID))) 
         fprintf(stderr, "Filling BaG grid\n");
 
     Set_Calc_State(m,r);
@@ -1104,10 +1138,10 @@ void Calculate_Distance_With_Corrections(
 
         case 1:
         case -2:
-        	if (MM.method == COMPARISON)
-            	@<Calc |M_R| and |M_T| for dual beam sphere@>@;
+            if (MM.method == COMPARISON)
+                @<Calc |M_R| and |M_T| for dual beam sphere@>@;
             else
-            	@<Calc |M_R| and |M_T| for single beam sphere@>@;
+                @<Calc |M_R| and |M_T| for single beam sphere@>@;
             break;
 
         case 2:
@@ -1159,17 +1193,17 @@ $$
     double P_std, P_d, P_0;
     double G, G_0, G_std, GP_std, GP;
     
-	G_0      = Gain(REFLECTION_SPHERE, MM, 0.0);
-	G        = Gain(REFLECTION_SPHERE, MM, R_diffuse);
-	G_std    = Gain(REFLECTION_SPHERE, MM, MM.rstd_r);
-	
-	P_d      = G     * (R_direct  * (1-MM.f_r) + MM.f_r*MM.rw_r);
-	P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r*MM.rw_r);
-	P_0      = G_0   * (                         MM.f_r*MM.rw_r);   
-	*M_R     = MM.rstd_r * (P_d - P_0)/(P_std - P_0);
+    G_0      = Gain(REFLECTION_SPHERE, MM, 0.0);
+    G        = Gain(REFLECTION_SPHERE, MM, R_diffuse);
+    G_std    = Gain(REFLECTION_SPHERE, MM, MM.rstd_r);
+    
+    P_d      = G     * (R_direct  * (1-MM.f_r) + MM.f_r*MM.rw_r);
+    P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r*MM.rw_r);
+    P_0      = G_0   * (                         MM.f_r*MM.rw_r);   
+    *M_R     = MM.rstd_r * (P_d - P_0)/(P_std - P_0);
 
-	GP       = Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
-	GP_std   = Gain(TRANSMISSION_SPHERE, MM, 0.0);
+    GP       = Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
+    GP_std   = Gain(TRANSMISSION_SPHERE, MM, 0.0);
     *M_T     = T_direct * GP / GP_std;
 }
 
@@ -1203,7 +1237,7 @@ calculations are made and therefore that is a potential error.
 
 @<Calc |M_R| and |M_T| for dual beam sphere@>=
 {
-	*M_R     = (1-MM.f_r) * R_direct/((1-MM.f_r) + MM.f_r*MM.rw_r/MM.rstd_r);
+    *M_R     = (1-MM.f_r) * R_direct/((1-MM.f_r) + MM.f_r*MM.rw_r/MM.rstd_r);
     *M_T     = T_direct;
 }
 
