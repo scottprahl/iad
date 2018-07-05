@@ -12,6 +12,9 @@ doc/manual.blg
 doc/manual.log
 doc/manual.out
 doc/manual.toc
+src/ad.*
+src/iad.*
+src/lib_*
 
 # macOS cruft
 .DS_Store
@@ -34,3 +37,5 @@ libiad.so
 !src/nr*.[ch]
 !src/mc_lost.[ch]
 !src/mygetopt.[ch]
+!src/ad.w
+!src/iad.w
