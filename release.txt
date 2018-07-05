@@ -22,3 +22,5 @@
 # create release tag on github
     git tag v3.10.3
     git push origin v3.10.3
+
+# edit release notes on github  https://github.com/scottprahl/iad/releases/
