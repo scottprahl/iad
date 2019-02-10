@@ -24,3 +24,6 @@
     git push origin v3.10.3
 
 # edit release notes on github  https://github.com/scottprahl/iad/releases/
+
+# Upload files and fix links on omlc.org
+    https://omlc.org/software/iad/index.html
