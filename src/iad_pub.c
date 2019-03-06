@@ -520,8 +520,6 @@ ez_Inverse_RT (double n, double nslide, double UR1, double UT1, double Tc,
   m.slab_cos_angle = 1.0;
 
   m.num_measures = 3;
-  fprintf (stderr, "ut1=%f\n", UT1);
-  fprintf (stderr, "Tc=%f\n", Tc);
   if (UT1 == 0)
     m.num_measures--;
   if (Tc == 0)
@@ -634,8 +632,6 @@ Spheres_Inverse_RT (double *setup,
   m.m_u = measurements[2];
 
   m.num_measures = 3;
-  fprintf (stderr, "m.m_t=%f\n", m.m_t);
-  fprintf (stderr, "m.m_u=%f\n", m.m_u);
   if (m.m_t == 0)
     m.num_measures--;
   if (m.m_u == 0)
@@ -671,6 +667,118 @@ Spheres_Inverse_RT (double *setup,
     }
 
   results[3] = r.error;
+}
+
+
+
+
+void
+Spheres_Inverse_RT2 (double *sample,
+		     double *illumination,
+		     double *sphere_r,
+		     double *sphere_t,
+		     double *analysis,
+		     double *measurement, double *a, double *b, double *g)
+{
+  struct measure_type m;
+  struct invert_type r;
+  long num_photons;
+  double ur1, ut1, uru, utu;
+  int i, mc_runs = 1;
+
+  Initialize_Measure (&m);
+
+
+  m.slab_index = sample[0];
+  m.slab_top_slide_index = sample[1];
+  m.slab_bottom_slide_index = sample[2];
+  m.slab_thickness = sample[3];
+  m.slab_top_slide_thickness = sample[4];
+  m.slab_bottom_slide_thickness = sample[5];
+  m.slab_top_slide_thickness = 0;
+  m.slab_bottom_slide_thickness = 0;
+
+
+
+  m.d_beam = illumination[0];
+
+
+
+
+  m.num_spheres = illumination[5];
+
+
+
+  {
+    double d_sample_r, d_entrance_r, d_detector_r;
+
+    m.d_sphere_r = sphere_r[0];
+    d_sample_r = sphere_r[1];
+    d_entrance_r = sphere_r[2];
+    d_detector_r = sphere_r[3];
+    m.rw_r = sphere_r[4];
+    m.rd_r = sphere_r[5];
+
+    m.as_r = (d_sample_r / m.d_sphere_r) * (d_sample_r / m.d_sphere_r);
+    m.ae_r = (d_entrance_r / m.d_sphere_r) * (d_entrance_r / m.d_sphere_r);
+    m.ad_r = (d_detector_r / m.d_sphere_r) * (d_detector_r / m.d_sphere_r);
+    m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
+  }
+
+
+
+  {
+    double d_sample_t, d_entrance_t, d_detector_t;
+
+    m.d_sphere_t = sphere_t[0];
+    d_sample_t = sphere_t[1];
+    d_entrance_t = sphere_t[2];
+    d_detector_t = sphere_t[3];
+    m.rw_t = sphere_t[4];
+    m.rd_t = sphere_t[5];
+
+    m.as_t = (d_sample_t / m.d_sphere_t) * (d_sample_t / m.d_sphere_t);
+    m.ae_t = (d_entrance_t / m.d_sphere_t) * (d_entrance_t / m.d_sphere_t);
+    m.ad_t = (d_detector_t / m.d_sphere_t) * (d_detector_t / m.d_sphere_t);
+    m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
+  }
+
+
+
+  r.method.quad_pts = (int) analysis[0];
+  mc_runs = (int) analysis[1];
+  num_photons = (long) analysis[2];
+
+
+
+
+  m.rstd_r = measurement[0];
+  m.m_r = measurement[1];
+  m.m_t = measurement[2];
+  m.m_u = measurement[3];
+
+  m.num_measures = 3;
+  if (m.m_t == 0)
+    m.num_measures--;
+  if (m.m_u == 0)
+    m.num_measures--;
+
+  Initialize_Result (m, &r);
+
+  Inverse_RT (m, &r);
+  for (i = 0; i < mc_runs; i++)
+    {
+      MC_Lost (m, r, num_photons, &ur1, &ut1, &uru, &utu,
+	       &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+      Inverse_RT (m, &r);
+    }
+
+  if (r.error == IAD_NO_ERROR)
+    {
+      *a = r.a;
+      *b = r.b;
+      *g = r.g;
+    }
 }
 
 

@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-VERSION = 3-10-3
+VERSION = 3-11-0
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -35,9 +35,9 @@ AD_OBJ	= src/nr_zbrak.o  src/ad_bound.o src/ad_doubl.o src/ad_frsnl.o src/ad_glo
 NR_OBJ	= src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnbrk.o src/nr_rtsaf.o\
 		  src/nr_util.o   src/nr_hj.o
 
-MAIN = Makefile INSTALL README.md
+MAIN = Makefile INSTALL.md README.md
 
-DOCS =	doc/CHANGELOG        doc/ToDo                  doc/manual.tex      \
+DOCS =	doc/CHANGELOG        doc/ToDo.md               doc/manual.tex      \
 		doc/ad_src.pdf       doc/iad_src.pdf	       doc/manual.pdf      \
 		doc/ch3RTcorr.pdf    doc/ch3spheremeas.pdf     doc/ch3spheresR.pdf \
 		doc/ch3spheresT.pdf  doc/ch3Doublespheres.pdf  doc/colltrans.pdf   \

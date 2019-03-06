@@ -2,4 +2,4 @@
          The version number obtained from       <../Makefile>
          The date is the last change to         <version.h>
 */
-char *Version = "3-10-3 (3 Jul 2018)";
+char *Version = "3-11-0 (5 Mar 2019)";
