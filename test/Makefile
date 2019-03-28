@@ -1,6 +1,9 @@
 #
 #  Makefile by Scott Prahl in Nov 1998
 #
+
+IAD_EXECUTABLE ?= ../iad
+
 TST_FILES = \
 basic-A.rxt       fairway-B.rxt     ink-B.rxt         royston3-B.rxt    royston_ink1.rxt  sevick-A.rxt      vio-B.rxt\
 basic-B.rxt       fairway-C.rxt     ink-C.rxt         royston3-C.rxt    sample-A.rxt      sevick-b.rxt      x_bad_data.rxt\
@@ -28,22 +31,22 @@ OPTIONS   =  -M0
 all: $(OUT_FILES)
 
 uterus.txt: uterus.rxt
-	../iad -g 0.9 uterus.rxt
+	$(IAD_EXECUTABLE) -g 0.9 uterus.rxt
 	
 sevick-b.txt: sevick-b.rxt
-	../iad -g 0.9 sevick-b.rxt
+	$(IAD_EXECUTABLE) -g 0.9 sevick-b.rxt
 
 sevick-A.txt: sevick-A.rxt
-	../iad -g 0.9 sevick-A.rxt
+	$(IAD_EXECUTABLE) -g 0.9 sevick-A.rxt
 
 ville1.txt: ville1.rxt
-	../iad -a 0 ville1.rxt
+	$(IAD_EXECUTABLE) -a 0 ville1.rxt
 
 basic-E.txt: basic-E.rxt
-	../iad -g 0.9 basic-E.rxt
+	$(IAD_EXECUTABLE) -g 0.9 basic-E.rxt
 
 $(OUT_FILES): %.txt: %.rxt
-	../iad $(OPTIONS) $<
+	$(IAD_EXECUTABLE) $(OPTIONS) $<
 
 clean:
 	rm -f *.txt
