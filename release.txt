@@ -5,12 +5,14 @@
 
 # things to do when releasing a new version
     make realclean
-    make test        # visually check for failures
-   
+    make shorttest        # visually check for failures
+    make longtest        # visually check for failures
+    make win_test
+
 # fix the version number in the Makefile
     sed -i -E 's/VERSION = 3-10-[0-9]/VERSION = 3-10-3/' Makefile
     make realclean
-    make dist
+    make dists
 
 # now commit the new files
     git commit Makefile src/ad.w src/iad.w doc/ad_src.pdf doc/iad_src.pdf -m 'new version numbers'
@@ -25,5 +27,6 @@
 
 # edit release notes on github  https://github.com/scottprahl/iad/releases/
 
-# Upload files and fix links on omlc.org
-    https://omlc.org/software/iad/index.html
+# Upload files to omlc.org
+    sftp omlc.org /var/www/html/software/iad/iad-latest.zip <<< $'put iad-latest.zip'
+    sftp omlc.org /var/www/html/software/iad/iad-win-latest.zip <<< $'put iad-win-latest.zip'
