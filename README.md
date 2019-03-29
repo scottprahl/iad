@@ -28,13 +28,29 @@ to create and install executable versions of the `ad` and `iad` programs.  See
 
     iad test/basic-A.rxt
 
-to convert the reflection and transmission measurements to optical properties that will be in the generated file `test/basic-A.txt`
+to translate the reflection and transmission measurements to optical properties in the generated file `test/basic-A.txt`
 
-> For Windows, I provide executable binaries `ad.exe` and `iad.exe` that were compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run within the `Command Prompt` application `cmd.exe`.  These binaries are packaged in a separate `iad-win` distribution on [github](https://github/scottprahl/iad/releases) and [omlc](https://omlc.org/software/iad/).
+> For Windows, there are executable binaries `ad.exe` and `iad.exe` compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run using the `Command Prompt` application `cmd.exe`.  These binaries are packaged in a separate `iad-win` distributions on [github](https://github.com/scottprahl/iad/releases) or [omlc](https://omlc.org/software/iad/).
 
 ### Changelog
 
 This is located in the `doc/` directory.
+
+### Python support
+
+Once you have installed the shared library (`.dylib` under macOS) or (`.so` under linux) then you can install python bindings
+
+    pip install iadpython
+
+then in Jupyter 
+
+    import numpy as np
+    import matplotlib.pyplot as plt
+    import iadpython as iad
+    
+    g = np.linspace(0.5,0.8,50)
+    plt.plot(g, iad.rt(1,1,0.5,1.0,g))
+    plt.show()
 
 ### Shared library support.  
 
@@ -56,27 +72,8 @@ and then load the iad module and then type
 
 in Mathematica to get a graph.  Very cool.
 
-### Python support
-
-Once you have installed the shared library (`.dylib` under macOS) or (`.so` under linux) then you can install python bindings
-
-    pip install iadpython
-
-then in Jupyter 
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import iadpython as iad
-    
-    g = np.linspace(0.5,0.8,50)
-    plt.plot(g, iad.rt(1,1,0.5,1.0,g))
-    plt.show()
-    
-
 ## Author
 
 Scott Prahl
-
-`scott.prahl@oit.edu`
 
 http://omlc.org/~prahl
