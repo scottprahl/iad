@@ -6,7 +6,7 @@ July 2018
 
 ## OVERVIEW
 
-Inverse Adding-Doubling determines the intrinsic optical properties of a flat scattering and absoption sample using measurements of the total reflection and transmission.  Basically, optical properties are repeatedly guessed until the calculated reflection and transmission match the measured values.
+Inverse Adding-Doubling is a command-line program that determines the intrinsic optical properties of a flat scattering and absoption sample using measurements of the total reflection and transmission.  Basically, optical properties are repeatedly guessed until the calculated reflection and transmission match the measured values.
 
 This package provides two executables `ad` and `iad`.  The first does a forward adding-doubling calculation (i.e., given the albedo, optical thickness, and anisotropy it returns the total reflection and transmission).  The second
 does the reverse.
@@ -19,13 +19,18 @@ Details about using the program are documented in the accompanying [manual](http
 
 ## INSTALLATION
 
-In principle you should be able to just type
+In principle, in a unix environment you should be able to just type
 
     make install
 
 to create and install executable versions of the `ad` and `iad` programs.  See
-[INSTALL.md](https://github.com/scottprahl/iad/blob/master/INSTALL.md) for more details.
+[INSTALL.md](https://github.com/scottprahl/iad/blob/master/INSTALL.md) for more details. Then run
 
+    iad test/basic-A.rxt
+
+to convert the reflection and transmission measurements to optical properties that will be in the generated file `test/basic-A.txt`
+
+> For Windows, I provide executable binaries `ad.exe` and `iad.exe` that were compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run within the `Command Prompt` application `cmd.exe`.  These binaries are packaged in a separate `iad-win` distribution on [github](https://github/scottprahl/iad/releases) and [omlc](https://omlc.org/software/iad/).
 
 ### Changelog
 
