@@ -18,14 +18,14 @@ extern int optind;
 static void
 print_version (void)
 {
-  fprintf (stderr, "ad %s\n\n", Version);
-  fprintf (stderr, "Copyright (C) 2014 Free Software Foundation, Inc.\n");
+  fprintf (stderr, "ad %s\n", Version);
+  fprintf (stderr, "Copyright 2019 Scott Prahl, scott.prahl@oit.edu\n");
+  fprintf (stderr, "          (see Applied Optics, 32:559-568, 1993)\n\n");
   fprintf (stderr,
 	   "This is free software; see the source for copying conditions.\n");
   fprintf (stderr,
 	   "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
   fprintf (stderr, "FOR A PARTICULAR PURPOSE.\n");
-  fprintf (stderr, "\nWritten by Scott Prahl\n");
   exit (0);
 }
 
