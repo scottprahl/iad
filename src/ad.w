@@ -4,7 +4,7 @@
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
 
-% Copyright (C) 2019 Scott Prahl
+% Copyright 2019 Scott Prahl
 
 % Permission is granted to make and distribute verbatim copies of this
 % document provided that the copyright notice and this permission notice

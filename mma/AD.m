@@ -10,7 +10,7 @@
 
 (* :Package Version:1.4*)
 
-(* :Copyright:Copyright 2010, Oregon Medical Laser Center*)
+(* :Copyright:Copyright 2019, Scott Prahl*)
 
 (* :History:Originally written by Scott Prahl, November 2002 *)
 
