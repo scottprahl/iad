@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-VERSION = 3-11-0
+VERSION = 3-11-2
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -16,6 +16,9 @@ INC_INSTALL=$(DESTDIR)/include
 LIB_EXT = .dylib		#MacOS X shared lib
 #LIB_EXT = .so			#linux shared lib
 #LIB_EXT = .a			#static lib
+
+# default executable name
+IAD_EXECUTABLE = ./iad
 
 #Mathematica install requires binaries to be installed and then the
 #files stored in the right place
@@ -35,7 +38,7 @@ AD_OBJ	= src/nr_zbrak.o  src/ad_bound.o src/ad_doubl.o src/ad_frsnl.o src/ad_glo
 NR_OBJ	= src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnbrk.o src/nr_rtsaf.o\
 		  src/nr_util.o   src/nr_hj.o
 
-MAIN = Makefile INSTALL.md README.md
+MAIN = Makefile INSTALL.md README.md License
 
 DOCS =	doc/CHANGELOG        doc/ToDo.md               doc/manual.tex      \
 		doc/ad_src.pdf       doc/iad_src.pdf	       doc/manual.pdf      \
@@ -78,20 +81,21 @@ NRSRC = src/nr_amoeb.c		src/nr_amotr.h		 src/nr_gaulg.c	  src/nr_mnbrk.h  src/nr
 CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/iad_calc.c   src/iad_io.c	  \
 		src/iad_main.c		src/ad_doubl.c	     src/iad_util.c   src/ad_radau.c  src/iad_pub.c \
 		src/ad_prime.c		src/iad_find.c		 src/ad_phase.c	  src/ad_main.c	  src/ad_bound.c   src/ad_cone.c \
-		src/ad_layers.c		src/version.c		 
+		src/ad_layers.c		src/version.c		 src/ad_cone.c    src/ad_layers.c  src/ad_main.c   src/ad_prime.c 
  
-HSRC  = src/ad_bound.h		src/ad_globl.h		 src/ad_phase.h	  src/ad_start.h  src/iad_io.h	   src/iad_type.h \
-		src/ad_doubl.h		src/ad_main.h		 src/ad_prime.h	  src/iad_calc.h  src/iad_util.h \
-		src/ad_frsnl.h		src/ad_matrx.h		 src/ad_radau.h	  src/iad_find.h  src/iad_pub.h	   src/ad_cone.h  \
-		src/ad_cone_ez.h	src/ad_layers.h
+HSRC  = src/ad_bound.h		src/ad_globl.h		 src/ad_phase.h	  src/ad_start.h   src/iad_io.h	   src/iad_type.h \
+		src/ad_doubl.h		src/ad_main.h		 src/ad_prime.h	  src/iad_calc.h   src/iad_util.h \
+		src/ad_frsnl.h		src/ad_matrx.h		 src/ad_radau.h	  src/iad_find.h   src/iad_pub.h	   src/ad_cone.h  \
+		src/ad_cone_ez.h	src/ad_layers.h      src/ad_cone.h    scr/ad_cone_ez.h src/ad_layers.h   src/ad_prime.h 
+ 
 
-OSRC  = src/system.bux src/ad.bux src/iad.bux src/cobweb.pl src/version.pl src/Makefile src/iad.vcproj src/toDOS.pl
+OSRC  = src/system.bux src/ad.bux src/iad.bux src/cobweb.pl src/version.pl src/Makefile src/toDOS.pl
 
 #tricky perl script that avoids variable names
 #there must be a better way to do this name mangling!
 #this is necessary because you can only have one period in a zip archive name
 
-XP_VERSION := $(shell echo $(VERSION) | perl -pe 's/\./-/g; print "xp-version-"')
+#VERSION := $(shell echo $(VERSION) | perl -pe 's/\./-/g; print "xp-version-"')
 
 all :  ad iad
 	
@@ -137,6 +141,8 @@ install-all:
 	make install-lib
 	make install-mma
 
+dists: dist windist
+
 dist: 
 	touch src/version.h
 	cd src && ./version.pl
@@ -161,44 +167,35 @@ dist:
 #	$(TAR) cvf - iad-$(VERSION) | gzip > iad-$(VERSION).tar.gz
 	zip -r iad-$(VERSION) iad-$(VERSION)
 	rm -rf iad-$(VERSION)
+	cp iad-$(VERSION).zip iad-latest.zip
 
-zip: 
-#	make doc
-#	cd src ; make tidy
-	mkdir -p	       $(XP_VERSION)
-	mkdir -p	       $(XP_VERSION)/doc
-	mkdir -p	       $(XP_VERSION)/test
-	mkdir -p	       $(XP_VERSION)/src
-	ln INSTALL	       $(XP_VERSION)
-	ln README	       $(XP_VERSION)
-	ln iad.exe	       $(XP_VERSION)
-	ln ad.exe	       $(XP_VERSION)
-	ln doc/manual.pdf  $(XP_VERSION)/doc
-	ln doc/iad_src.pdf $(XP_VERSION)/doc
-	ln doc/ad_src.pdf  $(XP_VERSION)/doc
-	ln $(TEST)	       $(XP_VERSION)/test
-	ln $(HSRC)	       $(XP_VERSION)/src
-	ln $(CSRC)	       $(XP_VERSION)/src
-	ln $(NRSRC)	       $(XP_VERSION)/src
-	ln src/iad.vcproj  $(XP_VERSION)/src
-	rm $(XP_VERSION)/src/ad_cone.c    
-	rm $(XP_VERSION)/src/ad_cone.h 
-	rm $(XP_VERSION)/src/ad_cone_ez.h
-	rm $(XP_VERSION)/src/ad_layers.c  
-	rm $(XP_VERSION)/src/ad_layers.h
-	rm $(XP_VERSION)/src/ad_main.c
-	rm $(XP_VERSION)/src/ad_main.h
-	rm $(XP_VERSION)/src/nr_hj.c      
-	rm $(XP_VERSION)/src/nr_hj.h
-	src/toDOS.pl $(XP_VERSION)/src/*.c
-	src/toDOS.pl xp_iad/src/*.h
-	src/toDOS.pl $(XP_VERSION)/test/*.rxt
-	src/toDOS.pl $(XP_VERSION)/test/valid.bat
-	rm $(XP_VERSION)/src/*.bak 
-	rm $(XP_VERSION)/test/*.bak
-	rm $(XP_VERSION)/test/Makefile
-	zip -r $(XP_VERSION) $(XP_VERSION)
-	rm -rf $(XP_VERSION)
+win : ad.exe iad.exe
+
+windist: ad.exe iad.exe
+	make doc
+	cd src ; make tidy
+	mkdir -p           iad-win-$(VERSION)
+	mkdir -p           iad-win-$(VERSION)/doc
+	mkdir -p           iad-win-$(VERSION)/test
+	mkdir -p           iad-win-$(VERSION)/src
+	ln ad.exe iad.exe  iad-win-$(VERSION)
+	ln $(MAIN)         iad-win-$(VERSION)
+	ln $(DOCS)         iad-win-$(VERSION)/doc
+	ln $(TEST)         iad-win-$(VERSION)/test
+	ln $(WSRC)         iad-win-$(VERSION)/src
+	ln $(HSRC)         iad-win-$(VERSION)/src
+	ln $(CSRC)         iad-win-$(VERSION)/src
+	ln $(NRSRC)        iad-win-$(VERSION)/src
+	ln $(OSRC)         iad-win-$(VERSION)/src
+	src/toDOS.pl       iad-win-$(VERSION)/src/*.c
+	src/toDOS.pl       iad-win-$(VERSION)/src/*.h
+	src/toDOS.pl       iad-win-$(VERSION)/test/*.rxt
+	src/toDOS.pl       iad-win-$(VERSION)/test/valid.bat
+	rm iad-win-$(VERSION)/src/*.bak 
+	rm iad-win-$(VERSION)/test/*.bak
+	zip -r iad-win-$(VERSION) iad-win-$(VERSION)
+	rm -rf iad-win-$(VERSION)
+	cp iad-win-$(VERSION).zip iad-win-latest.zip
 
 ad: $(WSRC) $(NRSRC)
 	cd src ; make ad
@@ -207,6 +204,18 @@ ad: $(WSRC) $(NRSRC)
 iad: $(WSRC) $(NRSRC)
 	cd src ; make iad
 	cp src/iad iad$(BINARY_EXTENSION)
+
+ad.exe: $(WSRC) $(NRSRC)
+	cd src ; make clean
+	cd src ; make CC=i686-w64-mingw32-gcc ad
+	mv src/ad.exe ad.exe
+	cd src ; make clean
+    
+iad.exe: $(WSRC) $(NRSRC)
+	cd src ; make clean
+	cd src ; make CC=i686-w64-mingw32-gcc iad
+	mv src/iad.exe iad.exe
+	cd src ; make clean
 
 ad_debug: $(WSRC) $(NRSRC)
 	cd src ; make ad_debug
@@ -235,6 +244,7 @@ clean:
 	rm -f src/*.o test/*.abg
 	rm -f texexec.tmp texexec.tui mpgraph.mp mprun.mp texexec-mpgraph.mp texexec.tex
 	rm -f src/*.aux src/*.dvi src/*.idx src/*.ref src/*.sref src/*.tex src/*.toc src/*.log src/*.scn
+	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
 	
 realclean:
 	make clean
@@ -242,137 +252,153 @@ realclean:
 	rm -f mpgraph.mp texexec-mpgraph.mp texexec.tmp
 	rm -f ad iad libiad.h libiad$(LIB_EXT)
 	rm -f doc/manual.pdf doc/manual.bbl doc/manual.blg doc/manual.out doc/manual.toc 
+	rm -f doc/manual.aux doc/manual.log
 	cd mma	; make clean
 	cd test ; make clean
 	rm -f $(CSRC) $(HSRC)
-	
-test:
+
+tidy:
+	cd src ; make tidy
+
+shorttest:
 	@echo "********* Basic tests ***********"
-	./iad -V 0 -r 0
-	./iad -V 0 -r 1
-	./iad -V 0 -r 0.4
-	./iad -V 0 -r 0.4 -t 0.1
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.049787
+	$(IAD_EXECUTABLE) -V 0 -r 0
+	$(IAD_EXECUTABLE) -V 0 -r 1
+	$(IAD_EXECUTABLE) -V 0 -r 0.4
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.049787
 	@echo "********* Specify sample index ************"
-	./iad -V 0 -r 0.4 -n 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -n 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.5
 	@echo "********* Specify slide index ************"
-	./iad -V 0 -r 0.4 -n 1.4 -N 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5
 	@echo "********* One slide on top ************"
-	./iad -V 0 -r 0.4 -n 1.4 -N 1.5 -G t
-	./iad -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5 -G t
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G t
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G t
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5 -G t
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5 -G t
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G t
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G t
 	@echo "********* One slide on bottom ************"
-	./iad -V 0 -r 0.4 -n 1.4 -N 1.5 -G b
-	./iad -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5 -G b
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G b
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G b
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5 -G b
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5 -G b
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G b
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G b
 	@echo "********* Absorbing Slide Tests ***********"
-	./iad -V 0 -r 0.0000000 -t 0.135335 -E 0.5
-	./iad -V 0 -r 0.0249268 -t 0.155858 -E 0.5
-	./iad -V 0 -r 0.0520462 -t 0.134587 -E 0.5 -n 1.5 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.0000000 -t 0.135335 -E 0.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.0249268 -t 0.155858 -E 0.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.0520462 -t 0.134587 -E 0.5 -n 1.5 -N 1.5
 	@echo "********* Constrain g ************"
-	./iad -V 0 -r 0.4        -g 0.9
-	./iad -V 0 -r 0.4 -t 0.1 -g 0.9
-	./iad -V 0 -r 0.4        -g 0.9 -n 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -g 0.9 -n 1.5
-	./iad -V 0 -r 0.4        -g 0.9 -n 1.4 -N 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -g 0.9 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -g 0.9
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -g 0.9
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -g 0.9 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -g 0.9 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -g 0.9 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -g 0.9 -n 1.4 -N 1.5
 	@echo "********* Constrain a ************"
-	./iad -V 0 -r 0.4        -a 0.9
-	./iad -V 0 -r 0.4 -t 0.1 -a 0.9
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -a 0.9
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -a 0.9
 	@echo "********* Constrain b ************"
-	./iad -V 0 -r 0.4        -b 3
-	./iad -V 0 -r 0.4 -t 0.1 -b 3
-	./iad -V 0 -r 0.4 -t 0.1 -b 3 -n 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -b 3 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -b 3
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.4 -N 1.5
 	@echo "********* Constrain mu_s ************"
-	./iad -V 0 -r 0.4        -F 30
-	./iad -V 0 -r 0.4 -t 0.1 -F 30
-	./iad -V 0 -r 0.4        -F 30 -n 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -F 30 -n 1.5
-	./iad -V 0 -r 0.4        -F 30 -n 1.4 -N 1.5
-	./iad -V 0 -r 0.4 -t 0.1 -F 30 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -F 30
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -F 30 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -F 30 -n 1.4 -N 1.5
 	@echo "********* Constrain mu_a ************"
-	./iad -V 0 -r 0.3        -A 0.6
-	./iad -V 0 -r 0.3 -t 0.1 -A 0.6
-	./iad -V 0 -r 0.3        -A 0.6 -n 1.5
-	./iad -V 0 -r 0.3 -t 0.1 -A 0.6 -n 1.5
-	./iad -V 0 -r 0.3        -A 0.6 -n 1.4 -N 1.5
-	./iad -V 0 -r 0.3 -t 0.1 -A 0.6 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6
+	$(IAD_EXECUTABLE) -V 0 -r 0.3 -t 0.1 -A 0.6
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3 -t 0.1 -A 0.6 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3 -t 0.1 -A 0.6 -n 1.4 -N 1.5
 	@echo "********* Constrain mu_a and g************"
-	./iad -V 0 -r 0.3        -A 0.6 -g 0.6
-	./iad -V 0 -r 0.3        -A 0.6 -g 0.6 -n 1.5
-	./iad -V 0 -r 0.3        -A 0.6 -g 0.6 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -g 0.6
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -g 0.6 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -g 0.6 -n 1.4 -N 1.5
 	@echo "********* Constrain mu_s and g************"
-	./iad -V 0 -r 0.3        -F 2.0 -g 0.5
-	./iad -V 0 -r 0.3        -F 2.0 -g 0.5 -n 1.5
-	./iad -V 0 -r 0.3        -F 2.0 -g 0.5 -n 1.4 -N 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -F 2.0 -g 0.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -F 2.0 -g 0.5 -n 1.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.3        -F 2.0 -g 0.5 -n 1.4 -N 1.5
 	@echo "********* Basic One Sphere tests ***********"
-	./iad -V 0 -r 0.4                     -S 1
-	./iad -V 0 -r 0.4 -t 0.1              -S 1
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1
-	./iad -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1
+	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1
 	@echo "******** Basic 10,000 photon tests *********"
-	./iad -V 0 -r 0.4                     -S 1 -p 10000
-	./iad -V 0 -r 0.4 -t 0.1              -S 1 -p 10000
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1 -p 10000
-	./iad -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -p 10000
+	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1 -p 10000
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1 -p 10000
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1 -p 10000
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -p 10000
 	@echo "******** Basic timed photon tests *********"
-	./iad -V 0 -r 0.4                     -S 1 -p -500
-	./iad -V 0 -r 0.4 -t 0.1              -S 1 -p -500
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1 -p -500
-	./iad -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -p -500
+	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1 -p -500
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1 -p -500
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1 -p -500
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -p -500
 	@echo "********* More One Sphere tests ***********"
-	./iad -V 0 -r 0.4                     -S 1 -1 '200 13 13 0'
-	./iad -V 0 -r 0.4 -t 0.1              -S 1 -1 '200 13 13 0'
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1 -1 '200 13 13 0'
-	./iad -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -1 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1 -1 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1 -1 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1 -1 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -1 '200 13 13 0'
 	@echo "********* Basic Two Sphere tests ***********"
-	./iad -V 0 -r 0.4                     -S 2
-	./iad -V 0 -r 0.4 -t 0.1              -S 2
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002     -S 2
-	./iad -V 0 -r 0.2 -t 0.1 -u 0.0049787 -S 2
+	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 2
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 2
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 2
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.1 -u 0.0049787 -S 2
 	@echo "********* More Two Sphere tests ***********"
-	./iad -V 0 -r 0.4                     -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
-	./iad -V 0 -r 0.4 -t 0.1              -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
-	./iad -V 0 -r 0.4 -t 0.1 -u 0.002     -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
-	./iad -V 0 -r 0.2 -t 0.1 -u 0.0049787 -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.1 -u 0.0049787 -S 2 -1 '200 13 13 0' -2 '200 13 13 0'
 	@echo "********* Oblique tests ***********"
-	./iad -V 0 -i 60 -r 0.00000 -t 0.13691
-	./iad -V 0 -i 60 -r 0.14932 -t 0.23181
-	./iad -V 0 -i 60 -r 0.61996 -t 0.30605
+	$(IAD_EXECUTABLE) -V 0 -i 60 -r 0.00000 -t 0.13691
+	$(IAD_EXECUTABLE) -V 0 -i 60 -r 0.14932 -t 0.23181
+	$(IAD_EXECUTABLE) -V 0 -i 60 -r 0.61996 -t 0.30605
 	@echo "********* Different Tstd and Rstd ***********"
-	./iad -V 0 -r 0.4 -t 0.005  -d 1 -M 0  -S 1 -1 '200 13 13 0' -T 0.5
-	./iad -V 0 -r 0.4 -t 0.005  -d 1 -M 0  -S 1 -1 '200 13 13 0'
-	./iad -V 0 -r 0.2 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 0' -R 0.5
-	./iad -V 0 -r 0.2 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 0'
-	
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.005  -d 1 -M 0  -S 1 -1 '200 13 13 0' -T 0.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.005  -d 1 -M 0  -S 1 -1 '200 13 13 0'
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 0' -R 0.5
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 0'
+
+longtest:
+	cd test ; make 
+
+wintest: ad.exe iad.exe
+	make IAD_EXECUTABLE='wine ./iad.exe' shorttest
+	cd test ; make IAD_EXECUTABLE='wine ../iad.exe'
+
 help::
 	@echo;\
 	echo "Targets available for this Makefile:";\
-	echo "ad		  -- compile forward Adding-Doubling program";\
-	echo "iad		  -- compile inverse Adding-Doubling program";\
-	echo "clean		  -- remove most generated objects";\
-	echo "docs		  -- generate TEX out of all files";\
-	echo "dist		  -- gzipped tarball of all files";\
-	echo "install	  -- install ad and iad programs";\
-	echo "install-lib -- install interface and library programs";\
-	echo "install-mma -- install Mathematica files";\
-	echo "install-all -- install all the above";\
-	echo "lib		  -- library binary and interface files";\
-	echo "mma		  -- adding-doubling files for Mathematica interface";\
-	echo "realclean	  -- remove all generated objects";\
-	echo "test		  -- run iad program on a bunch of test files";\
-	echo "tidy		  -- generate .c and .h files"
+	echo "ad           compile forward Adding-Doubling program";\
+	echo "iad          compile inverse Adding-Doubling program";\
+	echo "clean        remove most generated objects";\
+	echo "docs         generate TEX out of all files";\
+	echo "dist         gzipped tarball of all files";\
+	echo "install      install ad and iad programs";\
+	echo "install-lib  install interface and library programs";\
+	echo "install-mma  install Mathematica files";\
+	echo "install-all  install all the above";\
+	echo "lib          create library binary and interface files";\
+	echo "longtest     run iad program on a bunch of test files";\
+	echo "mma          binary AD files for Mathematica";\
+	echo "realclean    remove all generated objects";\
+	echo "shorttest    test iad program from command line";\
+	echo "tidy         generate .c and .h files";\
+	echo "win          generate ad.exe and iad.exe using MingGW-w64";\
+	echo "windist      create a windows distribution";\
+	echo "wintest      execute command-line and file tests in wine"
 
 .SECONDARY: $(HSRC) $(CSRC)
 
-.PHONY : clean realclean dist docs test check lib mma install install-all iad_doc ad_doc manual_doc new_version
+.PHONY : clean realclean dists dist docs test check lib mma install install-all \
+		iad_doc ad_doc manual_doc new_version tidy win windist wintest

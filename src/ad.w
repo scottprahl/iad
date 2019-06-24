@@ -1,10 +1,10 @@
 \def\title{ad}
-\def\adversion{3-11-0}
-\def\adyear{2018}
+\def\adversion{3-11-2}
+\def\adyear{2019}
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
 
-% Copyright (C) 2018 Scott Prahl
+% Copyright 2019 Scott Prahl
 
 % Permission is granted to make and distribute verbatim copies of this
 % document provided that the copyright notice and this permission notice
