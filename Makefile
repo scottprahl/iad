@@ -169,8 +169,6 @@ dist:
 	rm -rf iad-$(VERSION)
 	cp iad-$(VERSION).zip iad-latest.zip
 
-win : ad.exe iad.exe
-
 windist: ad.exe iad.exe
 	make doc
 	cd src ; make tidy
