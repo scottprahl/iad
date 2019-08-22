@@ -80,13 +80,14 @@ NRSRC = src/nr_amoeb.c		src/nr_amotr.h		 src/nr_gaulg.c	  src/nr_mnbrk.h  src/nr
 
 CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/iad_calc.c   src/iad_io.c	  \
 		src/iad_main.c		src/ad_doubl.c	     src/iad_util.c   src/ad_radau.c  src/iad_pub.c \
-		src/ad_prime.c		src/iad_find.c		 src/ad_phase.c	  src/ad_main.c	  src/ad_bound.c   src/ad_cone.c \
-		src/ad_layers.c		src/version.c		 
+		src/ad_prime.c		src/iad_find.c		 src/ad_phase.c	  src/ad_bound.c  src/ad_cone.c \
+		src/ad_layers.c		src/version.c 
  
-HSRC  = src/ad_bound.h		src/ad_globl.h		 src/ad_phase.h	  src/ad_start.h  src/iad_io.h	   src/iad_type.h \
-		src/ad_doubl.h		src/ad_main.h		 src/ad_prime.h	  src/iad_calc.h  src/iad_util.h \
-		src/ad_frsnl.h		src/ad_matrx.h		 src/ad_radau.h	  src/iad_find.h  src/iad_pub.h	   src/ad_cone.h  \
-		src/ad_cone_ez.h	src/ad_layers.h
+HSRC  = src/ad_bound.h		src/ad_globl.h		 src/ad_phase.h	  src/ad_start.h   src/iad_io.h	   src/iad_type.h \
+		src/ad_doubl.h		src/ad_main.h		 src/ad_prime.h	  src/iad_calc.h   src/iad_util.h \
+		src/ad_frsnl.h		src/ad_matrx.h		 src/ad_radau.h	  src/iad_find.h   src/iad_pub.h  \
+		src/ad_cone_ez.h	src/ad_layers.h      src/ad_cone.h 
+ 
 
 OSRC  = src/system.bux src/ad.bux src/iad.bux src/cobweb.pl src/version.pl src/Makefile src/toDOS.pl
 
@@ -167,8 +168,6 @@ dist:
 	zip -r iad-$(VERSION) iad-$(VERSION)
 	rm -rf iad-$(VERSION)
 	cp iad-$(VERSION).zip iad-latest.zip
-
-win : ad.exe iad.exe
 
 windist: ad.exe iad.exe
 	make doc
