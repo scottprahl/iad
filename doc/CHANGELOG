@@ -1,3 +1,8 @@
+v3.11.3
+improve an error message when using -F
+add command-line option to specify search explicitly
+improve help message
+
 v3.11.2
 Add separate License file
 Make copyright notices consistent
