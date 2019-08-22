@@ -7,7 +7,7 @@
     make realclean
     make shorttest        # visually check for failures
     make longtest        # visually check for failures
-    make win_test
+    make wintest
 
 # fix the version number in the Makefile
     sed -i -E 's/VERSION = 3-10-[0-9]/VERSION = 3-10-3/' Makefile
