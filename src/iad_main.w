@@ -42,17 +42,18 @@ int main (int argc, char **argv)
         return 0;
     }
 
-   if (process_command_line) {
+    @<prepare file for reading@>
+
+    if (process_command_line) {
         @<Count command-line measurements@>
         @<Calculate and write optical properties@>
         return 0;
     }
 
-    @<prepare file for reading@>
     if (Read_Header (stdin, &m, &params) == 0) {
         start_time = clock();
-    	@<Command-line changes to |m|@>
         while (Read_Data_Line (stdin, &m, params) == 0) {
+            @<Command-line changes to |m|@>
             @<Calculate and write optical properties@>
         }
     }
@@ -486,6 +487,7 @@ to calculate the optical thickness.
    
         free(rt_name);
         free(base_name);
+        process_command_line = 0;
     }
     
     if (g_out_name!=NULL) {
