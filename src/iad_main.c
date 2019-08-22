@@ -130,16 +130,17 @@ print_usage (void)
   fprintf (stderr, "  -z               do forward calculation\n");
   fprintf (stderr, "Examples:\n");
   fprintf (stderr,
-	   "  iad data                  Optical values put in data.txt\n");
-  fprintf (stderr, "  iad -c 0.9 data           \
+	   "  iad file.rxt              Results will be put in file.txt\n");
+  fprintf (stderr, "  iad file                  Same as above\n");
+  fprintf (stderr, "  iad -c 0.9 file.rxt       \
 Assume M_R includes 90%% of unscattered reflectance\n");
-  fprintf (stderr, "  iad -C 0.8 data           \
+  fprintf (stderr, "  iad -C 0.8 file.rxt       \
 Assume M_T includes 80%% of unscattered transmittance\n");
   fprintf (stderr,
-	   "  iad -e 0.0001 data        Better convergence to R & T values\n");
+	   "  iad -e 0.0001 file.rxt    Better convergence to R & T values\n");
   fprintf (stderr,
-	   "  iad -f 1.0 data           All light hits reflectance sphere wall first\n");
-  fprintf (stderr, "  iad -o out data           Calculated values in out\n");
+	   "  iad -f 1.0 file.rxt       All light hits reflectance sphere wall first\n");
+  fprintf (stderr, "  iad -o out file.rxt       Calculated values in out\n");
   fprintf (stderr,
 	   "  iad -r 0.3                R_total=0.3, b=inf, find albedo\n");
   fprintf (stderr,
@@ -148,35 +149,35 @@ Assume M_T includes 80%% of unscattered transmittance\n");
 	   "  iad -r 0.3 -t 0.4 -n 1.5  R_total=0.3, T_total=0.4, n=1.5, find a,b\n");
   fprintf (stderr,
 	   "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b\n");
-  fprintf (stderr, "  iad -p 1000 data          Only 1000 photons\n");
+  fprintf (stderr, "  iad -p 1000 file.rxt      Only 1000 photons\n");
   fprintf (stderr,
-	   "  iad -p -100 data          Allow only 100ms per iteration\n");
-  fprintf (stderr, "  iad -q 4 data             Four quadrature points\n");
-  fprintf (stderr, "  iad -M 0 data             No MC    (iad)\n");
+	   "  iad -p -100 file.rxt      Allow only 100ms per iteration\n");
+  fprintf (stderr, "  iad -q 4 file.rxt         Four quadrature points\n");
+  fprintf (stderr, "  iad -M 0 file.rxt         No MC    (iad)\n");
   fprintf (stderr,
-	   "  iad -M 1 data             MC once  (iad -> MC -> iad)\n");
+	   "  iad -M 1 file.rxt         MC once  (iad -> MC -> iad)\n");
   fprintf (stderr,
-	   "  iad -M 2 data             MC twice (iad -> MC -> iad -> MC -> iad)\n");
-  fprintf (stderr, "  iad -M 0 -q 4 data        Fast and crude conversion\n");
+	   "  iad -M 2 file.rxt         MC twice (iad -> MC -> iad -> MC -> iad)\n");
+  fprintf (stderr, "  iad -M 0 -q 4 file.rxt    Fast and crude conversion\n");
   fprintf (stderr,
-	   "  iad -G t data             One top slide with properties from data.rxt\n");
+	   "  iad -G t file.rxt         One top slide with properties from file.rxt\n");
   fprintf (stderr,
-	   "  iad -G b -N 1.5 -D 1 data Use 1 bottom slide with n=1.5 and thickness=1\n");
+	   "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
   fprintf (stderr,
-	   "  iad -x   1 data           Show sphere and MC effects\n");
-  fprintf (stderr, "  iad -x   2 data           DEBUG_GRID\n");
-  fprintf (stderr, "  iad -x   4 data           DEBUG_ITERATIONS\n");
-  fprintf (stderr, "  iad -x   8 data           DEBUG_LOST_LIGHT\n");
-  fprintf (stderr, "  iad -x  16 data           DEBUG_SPHERE_EFFECTS\n");
-  fprintf (stderr, "  iad -x  32 data           DEBUG_BEST_GUESS\n");
-  fprintf (stderr, "  iad -x  64 data           DEBUG_EVERY_CALC\n");
-  fprintf (stderr, "  iad -x 128 data           DEBUG_SEARCH\n");
-  fprintf (stderr, "  iad -x 255 data           All debugging output\n");
+	   "  iad -x   1 file.rxt       Show sphere and MC effects\n");
+  fprintf (stderr, "  iad -x   2 file.rxt       DEBUG_GRID\n");
+  fprintf (stderr, "  iad -x   4 file.rxt       DEBUG_ITERATIONS\n");
+  fprintf (stderr, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
+  fprintf (stderr, "  iad -x  16 file.rxt       DEBUG_SPHERE_EFFECTS\n");
+  fprintf (stderr, "  iad -x  32 file.rxt       DEBUG_BEST_GUESS\n");
+  fprintf (stderr, "  iad -x  64 file.rxt       DEBUG_EVERY_CALC\n");
+  fprintf (stderr, "  iad -x 128 file.rxt       DEBUG_SEARCH\n");
+  fprintf (stderr, "  iad -x 255 file.rxt       All debugging output\n");
   fprintf (stderr,
-	   "  iad -X -i 8 data          Dual beam spectrometer with 8 degree incidence\n\n");
+	   "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
   fprintf (stderr,
 	   "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
-  fprintf (stderr, "  apply iad data1 data2     Process multiple files\n\n");
+  fprintf (stderr, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
   fprintf (stderr, "Report bugs to <scott.prahl@oit.edu>\n\n");
   exit (0);
 }
@@ -478,6 +479,7 @@ main (int argc, char **argv)
   double cl_rc_fraction = UNINITIALIZED;
   double cl_tc_fraction = UNINITIALIZED;
 
+  double cl_search = UNINITIALIZED;
   double cl_mus0 = UNINITIALIZED;
   double cl_musp0 = UNINITIALIZED;
   double cl_mus0_pwr = UNINITIALIZED;
@@ -502,7 +504,7 @@ main (int argc, char **argv)
 
 
   while ((c = my_getopt (argc, argv,
-			 "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:S:t:T:u:vV:x:Xz"))
+			 "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz"))
 	 != EOF)
     {
       int n;
@@ -588,9 +590,15 @@ main (int argc, char **argv)
 	    sscanf (optarg, "%c %lf %lf %lf", &cc, &cl_mus0_lambda, &cl_mus0,
 		    &cl_mus0_pwr);
 
-	  if (n != 4)
+	  if (n != 4 || (cc != 'P' && cc != 'R'))
 	    {
-	      fprintf (stderr, "Screwy argument for -F option\n");
+	      fprintf (stderr,
+		       "Screwy argument for -F option.  Try something like\n");
+	      fprintf (stderr, " -F 1.0              for mus =1.0\n");
+	      fprintf (stderr,
+		       " -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
+	      fprintf (stderr,
+		       " -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
 	      exit (1);
 	    }
 
@@ -686,6 +694,10 @@ main (int argc, char **argv)
 
 	case 'R':
 	  cl_rstd_r = strtod (optarg, NULL);
+	  break;
+
+	case 's':
+	  cl_search = (int) strtod (optarg, NULL);
 	  break;
 
 	case 'S':
@@ -953,6 +965,8 @@ main (int argc, char **argv)
 	r.default_bs = cl_default_mus * m.slab_thickness;
     }
 
+  if (cl_search != UNINITIALIZED)
+    r.search = cl_search;
 
 
 
@@ -1121,6 +1135,8 @@ main (int argc, char **argv)
 	      r.default_bs = cl_default_mus * m.slab_thickness;
 	  }
 
+	if (cl_search != UNINITIALIZED)
+	  r.search = cl_search;
 
 
 
@@ -1517,6 +1533,8 @@ main (int argc, char **argv)
 		  r.default_bs = cl_default_mus * m.slab_thickness;
 	      }
 
+	    if (cl_search != UNINITIALIZED)
+	      r.search = cl_search;
 
 
 

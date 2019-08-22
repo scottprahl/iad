@@ -257,10 +257,6 @@ appropriate.
 	if (m.fraction_of_rc_in_mr) {	
 		*rt = m.m_r;	
 		*rd = *rt - m.fraction_of_rc_in_mr * (*rc);
-        if (Debug(DEBUG_SEARCH)) {
-            fprintf(stderr,"        rt = %.5f\n",*rt);
-            fprintf(stderr,"    est rd = %.5f\n",*rd);
-        }
 		if (*rd < 0 ) {
 			*rd = 0;
 			*rc = *rt;
@@ -270,6 +266,10 @@ appropriate.
 		*rd = m.m_r;
 		*rt = *rd + *rc;
 	}
+    if (Debug(DEBUG_SEARCH)) {
+        fprintf(stderr,"        rt = %.5f\n",*rt);
+        fprintf(stderr,"    est rd = %.5f\n",*rd);
+    }
 
 @ The transmission values follow in much the same way as the 
 diffuse reflection values --- just subtract the specular
@@ -281,17 +281,21 @@ transmission from the total transmission.
 		*td = 0.0;
 	}
 	else if (m.fraction_of_tc_in_mt) {
-			*tt = m.m_t;
-			*td = *tt - *tc;
-			if (*td < 0) {
-				*tc = *tt;
-				*td = 0;
-			}
+        *tt = m.m_t;
+        *td = *tt - *tc;
+        if (*td < 0) {
+            *tc = *tt;
+            *td = 0;
+        }
 	}
 	else {
 		*td = m.m_t;
 		*tt = *td + *tc;
 	}
+    if (Debug(DEBUG_SEARCH)) {
+        fprintf(stderr,"        tt = %.5f\n",*tt);
+        fprintf(stderr,"    est td = %.5f\n",*td);
+    }
 
 @*2 Transforming properties.
 Routines to convert optical properties to calculation space 

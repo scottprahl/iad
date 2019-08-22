@@ -81,11 +81,6 @@ Estimate_RT (struct measure_type m, struct invert_type r, double *rt,
     {
       *rt = m.m_r;
       *rd = *rt - m.fraction_of_rc_in_mr * (*rc);
-      if (Debug (DEBUG_SEARCH))
-	{
-	  fprintf (stderr, "        rt = %.5f\n", *rt);
-	  fprintf (stderr, "    est rd = %.5f\n", *rd);
-	}
       if (*rd < 0)
 	{
 	  *rd = 0;
@@ -96,6 +91,11 @@ Estimate_RT (struct measure_type m, struct invert_type r, double *rt,
     {
       *rd = m.m_r;
       *rt = *rd + *rc;
+    }
+  if (Debug (DEBUG_SEARCH))
+    {
+      fprintf (stderr, "        rt = %.5f\n", *rt);
+      fprintf (stderr, "    est rd = %.5f\n", *rd);
     }
 
 
@@ -119,6 +119,11 @@ Estimate_RT (struct measure_type m, struct invert_type r, double *rt,
     {
       *td = m.m_t;
       *tt = *td + *tc;
+    }
+  if (Debug (DEBUG_SEARCH))
+    {
+      fprintf (stderr, "        tt = %.5f\n", *tt);
+      fprintf (stderr, "    est td = %.5f\n", *td);
     }
 
 

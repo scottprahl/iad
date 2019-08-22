@@ -83,8 +83,9 @@ that are appropriate for your experiment.
     r->found = FALSE;
 
     @<Exit with bad input data@>@;
-    
-    r->search = determine_search(m,*r);
+
+    if (r->search == FIND_AUTO)
+        r->search = determine_search(m,*r);
     
     if (r->search == FIND_B_WITH_NO_ABSORPTION) {
         r->default_a = 1;
@@ -154,7 +155,7 @@ if (r->iterations==IAD_MAX_ITERATIONS)
 int measure_OK(struct measure_type m, struct invert_type r)
 
 @ It would just be nice to stop computing with bad data.  This does not
-work in practice becasue it turns out that there is often bogus data in a full wavelength
+work in practice because it turns out that there is often bogus data in a full wavelength
 scan.  Often the reflectance is too low for short wavelengths and at
 long wavelengths the detector (photomultiplier tube) does not work worth
 a damn.
@@ -207,12 +208,22 @@ If the default albedo has been specified as zero, then there is really
 no need to check |MR| because it is ignored.
 
 @<Check MR for zero or one spheres@>=
-
-    if (r.default_a == UNINITIALIZED || r.default_a > 0) {
+    {
         double mr,mt;
         Calculate_Minimum_MR(m,r,&mr,&mt);
-        if (m.m_r < mr)
-            return IAD_MR_TOO_SMALL;
+        
+        /* one parameter search only needs one good measurement */
+        if (r.search==FIND_A  || r.search==FIND_G || r.search==FIND_B || 
+            r.search==FIND_Bs || r.search == FIND_Ba) {
+            if (m.m_r < mr && m.m_t<=0)
+                return IAD_MR_TOO_SMALL;
+        } else {
+        
+            if (r.default_a == UNINITIALIZED || r.default_a > 0) {
+                if (m.m_r < mr)
+                    return IAD_MR_TOO_SMALL;
+            }
+        }
     }
 
 @ The transmittance is also constrained by the index of refraction of the

@@ -39,7 +39,8 @@ Inverse_RT (struct measure_type m, struct invert_type *r)
 
 
 
-  r->search = determine_search (m, *r);
+  if (r->search == FIND_AUTO)
+    r->search = determine_search (m, *r);
 
   if (r->search == FIND_B_WITH_NO_ABSORPTION)
     {
@@ -107,14 +108,27 @@ measure_OK (struct measure_type m, struct invert_type r)
   if (m.num_spheres != 2)
     {
 
+      {
+	double mr, mt;
+	Calculate_Minimum_MR (m, r, &mr, &mt);
 
-      if (r.default_a == UNINITIALIZED || r.default_a > 0)
-	{
-	  double mr, mt;
-	  Calculate_Minimum_MR (m, r, &mr, &mt);
-	  if (m.m_r < mr)
-	    return IAD_MR_TOO_SMALL;
-	}
+
+	if (r.search == FIND_A || r.search == FIND_G || r.search == FIND_B ||
+	    r.search == FIND_Bs || r.search == FIND_Ba)
+	  {
+	    if (m.m_r < mr && m.m_t <= 0)
+	      return IAD_MR_TOO_SMALL;
+	  }
+	else
+	  {
+
+	    if (r.default_a == UNINITIALIZED || r.default_a > 0)
+	      {
+		if (m.m_r < mr)
+		  return IAD_MR_TOO_SMALL;
+	      }
+	  }
+      }
 
 
 
