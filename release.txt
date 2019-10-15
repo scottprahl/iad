@@ -18,7 +18,7 @@
 # now commit the new files
     git commit Makefile src/ad.w src/iad.w doc/ad_src.pdf doc/iad_src.pdf -m 'new version numbers'
 
-# update CHANGELOG.txt  `git shortlog`
+# update doc/CHANGELOG.txt  `git shortlog`
     git commit -m 'update recent changes' CHANGELOG.txt
     git push
 

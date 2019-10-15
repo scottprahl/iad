@@ -1,3 +1,6 @@
+v3.11.4
+solve compilation problem on Raspberry Pi by adding -fsigned-char complier option
+
 v3.11.3
 improve an error message when using -F
 add command-line option to specify search explicitly
