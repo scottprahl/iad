@@ -13,7 +13,7 @@ SHARED_LIB_OPT = -lm -shared
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
 				  -compatibility_version 2.0 -current_version 2.0.0 \
 
-CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC
+CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC -fsigned-char
 
 IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o 
 
@@ -173,3 +173,5 @@ realclean:
 	rm -f iad.idx iad.log iad.scn iad.tex iad.toc iad.pdf
 	
 .PHONEY : clean realclean lib
+
+.PRECIOUS: %.c %.h

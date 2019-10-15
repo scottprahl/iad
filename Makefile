@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-VERSION = 3-11-3
+VERSION = 3-11-4
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -196,10 +196,12 @@ windist: ad.exe iad.exe
 	cp iad-win-$(VERSION).zip iad-win-latest.zip
 
 ad: $(WSRC) $(NRSRC)
+	touch src/*.c src/*.h
 	cd src ; make ad
 	cp src/ad ad$(BINARY_EXTENSION)
 
 iad: $(WSRC) $(NRSRC)
+	touch src/*.c src/*.h
 	cd src ; make iad
 	cp src/iad iad$(BINARY_EXTENSION)
 
@@ -400,3 +402,4 @@ help::
 
 .PHONY : clean realclean dists dist docs test check lib mma install install-all \
 		iad_doc ad_doc manual_doc new_version tidy win windist wintest
+		

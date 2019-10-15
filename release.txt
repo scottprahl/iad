@@ -5,6 +5,7 @@
 
 # things to do when releasing a new version
     make realclean
+    make
     make shorttest        # visually check for failures
     make longtest        # visually check for failures
     make wintest
