@@ -46,7 +46,7 @@ extern int optind;
 
 
 /*20:*/
-#line 930 "iad_main.w"
+#line 931 "iad_main.w"
 
 
 static void print_version(void)
@@ -64,7 +64,7 @@ exit(0);
 #line 17 "iad_main.w"
 
 /*21:*/
-#line 943 "iad_main.w"
+#line 944 "iad_main.w"
 
 static void print_usage(void)
 {
@@ -161,7 +161,7 @@ exit(0);
 #line 18 "iad_main.w"
 
 /*27:*/
-#line 1150 "iad_main.w"
+#line 1151 "iad_main.w"
 
 static char*strdup_together(char*s,char*t)
 {
@@ -188,7 +188,7 @@ return both;
 #line 19 "iad_main.w"
 
 /*28:*/
-#line 1173 "iad_main.w"
+#line 1174 "iad_main.w"
 
 
 static double seconds_elapsed(clock_t start_time)
@@ -201,7 +201,7 @@ return(double)(finish_time-start_time)/CLOCKS_PER_SEC;
 #line 20 "iad_main.w"
 
 /*26:*/
-#line 1132 "iad_main.w"
+#line 1133 "iad_main.w"
 
 static void print_error_legend(void)
 {
@@ -223,7 +223,7 @@ fprintf(stderr,"   +  ==> Did not converge\n\n");
 #line 21 "iad_main.w"
 
 /*30:*/
-#line 1216 "iad_main.w"
+#line 1217 "iad_main.w"
 
 
 static char what_char(int err)
@@ -272,7 +272,7 @@ fflush(stderr);
 #line 22 "iad_main.w"
 
 /*22:*/
-#line 1037 "iad_main.w"
+#line 1038 "iad_main.w"
 
 static void Calculate_Mua_Musp(struct measure_type m,
 struct invert_type r,double*musp,double*mua)
@@ -293,7 +293,7 @@ return;
 }
 
 /*:22*//*23:*/
-#line 1060 "iad_main.w"
+#line 1061 "iad_main.w"
 
 static void calculate_coefficients(struct measure_type m,
 struct invert_type r,
@@ -310,7 +310,7 @@ Calculate_Mua_Musp(m,r,musp,mua);
 #line 23 "iad_main.w"
 
 /*29:*/
-#line 1187 "iad_main.w"
+#line 1188 "iad_main.w"
 
 
 static int parse_string_into_array(char*s,double*a,int n)
@@ -344,7 +344,7 @@ return 1;
 #line 24 "iad_main.w"
 
 /*24:*/
-#line 1072 "iad_main.w"
+#line 1073 "iad_main.w"
 
 static void print_results_header(FILE*fp)
 {
@@ -368,7 +368,7 @@ fprintf(fp,"\n");
 #line 25 "iad_main.w"
 
 /*25:*/
-#line 1096 "iad_main.w"
+#line 1097 "iad_main.w"
 
 void print_optical_property_result(FILE*fp,
 struct measure_type m,
@@ -468,16 +468,17 @@ double cl_sphere_two[5]= {UNINITIALIZED,UNINITIALIZED,UNINITIALIZED,
 UNINITIALIZED,UNINITIALIZED};
 
 clock_t start_time= clock();
+char command_line_options[]= \
+"?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
 
 /*:4*/
 #line 30 "iad_main.w"
 
 
 /*5:*/
-#line 161 "iad_main.w"
+#line 163 "iad_main.w"
 
-while((c= my_getopt(argc,argv,
-"?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz"))!=EOF){
+while((c= my_getopt(argc,argv,command_line_options))!=EOF){
 int n;
 char cc;
 
@@ -706,7 +707,7 @@ argv+= optind;
 
 Initialize_Measure(&m);
 /*18:*/
-#line 769 "iad_main.w"
+#line 770 "iad_main.w"
 
 
 if(cl_cos_angle!=UNINITIALIZED){
@@ -853,7 +854,7 @@ m.f_r= cl_default_fr;
 
 Initialize_Result(m,&r);
 /*13:*/
-#line 557 "iad_main.w"
+#line 558 "iad_main.w"
 
 
 if(cl_quadrature_points!=UNINITIALIZED)
@@ -906,7 +907,7 @@ r.search= cl_search;
 
 if(cl_forward_calc!=UNINITIALIZED){
 /*6:*/
-#line 395 "iad_main.w"
+#line 396 "iad_main.w"
 
 if(cl_default_a==UNINITIALIZED){
 
@@ -921,7 +922,7 @@ r.a= cl_default_mus/(cl_default_mua+cl_default_mus);
 r.a= cl_default_a;
 
 /*:6*//*7:*/
-#line 415 "iad_main.w"
+#line 416 "iad_main.w"
 
 if(cl_default_b==UNINITIALIZED){
 
@@ -943,7 +944,7 @@ r.b= cl_default_mus/r.a*cl_sample_d;
 r.b= cl_default_b;
 
 /*:7*//*8:*/
-#line 436 "iad_main.w"
+#line 437 "iad_main.w"
 
 if(cl_default_g==UNINITIALIZED)
 r.g= 0;
@@ -951,7 +952,7 @@ else
 r.g= cl_default_g;
 
 /*:8*//*9:*/
-#line 442 "iad_main.w"
+#line 443 "iad_main.w"
 
 r.slab.a= r.a;
 r.slab.b= r.b;
@@ -975,7 +976,7 @@ return 0;
 }
 
 /*10:*/
-#line 460 "iad_main.w"
+#line 461 "iad_main.w"
 
 if(argc> 1){
 fprintf(stderr,"Only a single file can be processed at a time\n");
@@ -1023,7 +1024,7 @@ exit(1);
 
 if(process_command_line){
 /*19:*/
-#line 911 "iad_main.w"
+#line 912 "iad_main.w"
 
 
 m.num_measures= 3;
@@ -1047,11 +1048,11 @@ cl_default_b= What_Is_B(s,m.m_u);
 #line 48 "iad_main.w"
 
 /*11:*/
-#line 509 "iad_main.w"
+#line 510 "iad_main.w"
 
 {
 /*12:*/
-#line 541 "iad_main.w"
+#line 542 "iad_main.w"
 
 static int rt_total= 0;
 static int mc_total= 0;
@@ -1069,12 +1070,12 @@ double LT= 0;
 rt_total++;
 
 /*:12*/
-#line 511 "iad_main.w"
+#line 512 "iad_main.w"
 
 
 Initialize_Result(m,&r);
 /*13:*/
-#line 557 "iad_main.w"
+#line 558 "iad_main.w"
 
 
 if(cl_quadrature_points!=UNINITIALIZED)
@@ -1122,7 +1123,7 @@ if(cl_search!=UNINITIALIZED)
 r.search= cl_search;
 
 /*:13*/
-#line 514 "iad_main.w"
+#line 515 "iad_main.w"
 
 
 if(cl_method==COMPARISON&&m.d_sphere_r!=0&&m.as_r==0){
@@ -1136,7 +1137,7 @@ exit(0);
 }
 
 /*14:*/
-#line 603 "iad_main.w"
+#line 604 "iad_main.w"
 
 
 if(rt_total==1&&cl_verbosity> 0){
@@ -1155,14 +1156,14 @@ print_results_header(stdout);
 }
 
 /*:14*/
-#line 526 "iad_main.w"
+#line 527 "iad_main.w"
 
 
 Inverse_RT(m,&r);
 calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
 /*15:*/
-#line 626 "iad_main.w"
+#line 627 "iad_main.w"
 
 
 if(m.as_r!=0&&r.default_a!=0&&m.num_spheres> 0){
@@ -1202,7 +1203,7 @@ break;
 }
 
 /*:15*/
-#line 531 "iad_main.w"
+#line 532 "iad_main.w"
 
 
 print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
@@ -1223,7 +1224,7 @@ if(Read_Header(stdin,&m,&params)==0){
 start_time= clock();
 while(Read_Data_Line(stdin,&m,params)==0){
 /*18:*/
-#line 769 "iad_main.w"
+#line 770 "iad_main.w"
 
 
 if(cl_cos_angle!=UNINITIALIZED){
@@ -1368,11 +1369,11 @@ m.f_r= cl_default_fr;
 #line 56 "iad_main.w"
 
 /*11:*/
-#line 509 "iad_main.w"
+#line 510 "iad_main.w"
 
 {
 /*12:*/
-#line 541 "iad_main.w"
+#line 542 "iad_main.w"
 
 static int rt_total= 0;
 static int mc_total= 0;
@@ -1390,12 +1391,12 @@ double LT= 0;
 rt_total++;
 
 /*:12*/
-#line 511 "iad_main.w"
+#line 512 "iad_main.w"
 
 
 Initialize_Result(m,&r);
 /*13:*/
-#line 557 "iad_main.w"
+#line 558 "iad_main.w"
 
 
 if(cl_quadrature_points!=UNINITIALIZED)
@@ -1443,7 +1444,7 @@ if(cl_search!=UNINITIALIZED)
 r.search= cl_search;
 
 /*:13*/
-#line 514 "iad_main.w"
+#line 515 "iad_main.w"
 
 
 if(cl_method==COMPARISON&&m.d_sphere_r!=0&&m.as_r==0){
@@ -1457,7 +1458,7 @@ exit(0);
 }
 
 /*14:*/
-#line 603 "iad_main.w"
+#line 604 "iad_main.w"
 
 
 if(rt_total==1&&cl_verbosity> 0){
@@ -1476,14 +1477,14 @@ print_results_header(stdout);
 }
 
 /*:14*/
-#line 526 "iad_main.w"
+#line 527 "iad_main.w"
 
 
 Inverse_RT(m,&r);
 calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
 /*15:*/
-#line 626 "iad_main.w"
+#line 627 "iad_main.w"
 
 
 if(m.as_r!=0&&r.default_a!=0&&m.num_spheres> 0){
@@ -1523,7 +1524,7 @@ break;
 }
 
 /*:15*/
-#line 531 "iad_main.w"
+#line 532 "iad_main.w"
 
 
 print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);

@@ -155,12 +155,13 @@ extern int   optind;
                              UNINITIALIZED, UNINITIALIZED };
 
   clock_t start_time=clock();
+  char command_line_options[] = 
+             "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
 
-@ use the |mygetop| to process options.  We only handle help at the moment
+@ use the |my_getopt()| to process options.
 
 @<Handle options@>=
-    while ((c = my_getopt(argc, argv, 
-            "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz")) != EOF) {
+    while ((c = my_getopt(argc, argv, command_line_options)) != EOF) {
         int n;
         char cc;
         
