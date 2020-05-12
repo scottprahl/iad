@@ -223,8 +223,6 @@ libiad.dll: $(WSRC) $(NRSRC)
 	cd src ; make clean
 	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" libiad.dll
 	mv src/libiad.dll .
-	cd src ; make libiad.h
-	cp src/libiad.h .
 	cd src ; make clean
 
 ad_debug: $(WSRC) $(NRSRC)
