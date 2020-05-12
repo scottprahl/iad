@@ -43,6 +43,9 @@ libiad.so: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 libiad.dylib: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 	$(CC) $(DYNAMIC_LIB_OPT) -o libiad.dylib $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o
 
+libiad.dll: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
+	$(CC) -shared -o libiad.dll $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o
+
 libiad.h : ad_prime.w iad_pub.w ad_cone.w ad_layers.w
 	cd src ; ctangle -bhp ad_prime
 	cd src ; ctangle -bhp iad_pub
