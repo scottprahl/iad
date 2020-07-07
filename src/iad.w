@@ -1,10 +1,10 @@
 \def\title{iad}
 \def\iadversion{3-11-4}
-\def\iadyear{2019}
+\def\iadyear{2020}
 
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
-% Copyright 2019 Scott Prahl
+% Copyright 2020 Scott Prahl
 
 % Permission is granted to make and distribute verbatim copies of this
 % document provided that the copyright notice and this permission notice

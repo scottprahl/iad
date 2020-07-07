@@ -45,7 +45,7 @@ static void
 print_version (void)
 {
   fprintf (stderr, "iad %s\n", Version);
-  fprintf (stderr, "Copyright 2019 Scott Prahl, scott.prahl@oit.edu\n");
+  fprintf (stderr, "Copyright 2020 Scott Prahl, scott.prahl@oit.edu\n");
   fprintf (stderr, "          (see Applied Optics, 32:559-568, 1993)\n\n");
   fprintf (stderr,
 	   "This is free software; see the source for copying conditions.\n");

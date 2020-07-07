@@ -111,7 +111,7 @@ single routine |measure_OK| to do just this.
     if (r->method.quad_pts<4) 
         r->error = IAD_QUAD_PTS_NOT_VALID;
         
-    if (0 && (r->error != IAD_NO_ERROR)) 
+    if (r->error != IAD_NO_ERROR)
         return;
   
 @ Now I fob the real work off to the unconstrained minimization
@@ -172,8 +172,8 @@ routine |MinMax_MR_MT| below.
     double ru, tu;
 
     if (m.num_spheres != 2) {  
-        @<Check MR for zero or one spheres@>@;
         @<Check MT for zero or one spheres@>@;
+        @<Check MR for zero or one spheres@>@;
     } else {
         int error = MinMax_MR_MT(m,r);
         if (error != IAD_NO_ERROR) return error;
