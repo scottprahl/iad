@@ -169,14 +169,16 @@ dist:
 	rm -rf iad-$(VERSION)
 	cp iad-$(VERSION).zip iad-latest.zip
 
-windist: ad.exe iad.exe
+windist: ad.exe iad.exe libiad.dll
 	make doc
 	cd src ; make tidy
 	mkdir -p           iad-win-$(VERSION)
 	mkdir -p           iad-win-$(VERSION)/doc
 	mkdir -p           iad-win-$(VERSION)/test
 	mkdir -p           iad-win-$(VERSION)/src
-	ln ad.exe iad.exe  iad-win-$(VERSION)
+	ln ad.exe          iad-win-$(VERSION)
+	ln iad.exe         iad-win-$(VERSION)
+	ln libiad.dll      iad-win-$(VERSION)
 	ln $(MAIN)         iad-win-$(VERSION)
 	ln $(DOCS)         iad-win-$(VERSION)/doc
 	ln $(TEST)         iad-win-$(VERSION)/test
@@ -207,14 +209,20 @@ iad: $(WSRC) $(NRSRC)
 
 ad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
-	cd src ; make CC=i686-w64-mingw32-gcc ad
+	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" ad
 	mv src/ad.exe ad.exe
 	cd src ; make clean
     
 iad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
-	cd src ; make CC=i686-w64-mingw32-gcc iad
+	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" iad
 	mv src/iad.exe iad.exe
+	cd src ; make clean
+
+libiad.dll: $(WSRC) $(NRSRC)
+	cd src ; make clean
+	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" libiad.dll
+	mv src/libiad.dll .
 	cd src ; make clean
 
 ad_debug: $(WSRC) $(NRSRC)
@@ -245,6 +253,7 @@ clean:
 	rm -f texexec.tmp texexec.tui mpgraph.mp mprun.mp texexec-mpgraph.mp texexec.tex
 	rm -f src/*.aux src/*.dvi src/*.idx src/*.ref src/*.sref src/*.tex src/*.toc src/*.log src/*.scn
 	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
+	rm -f libiad.dll src/libiad.dll
 	
 realclean:
 	make clean

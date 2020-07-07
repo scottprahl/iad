@@ -29,8 +29,10 @@ test/*.txt
 src/*.o
 src/libiad.dylib
 src/libiad.so
+src/libiad.dll
 libiad.dylib
 libiad.so
+libiad.dll
 
 # Don't ignore these files
 !src/version.h
