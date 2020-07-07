@@ -142,19 +142,61 @@ iad_main.o :  iad_main.w ad_globl.o iad_type.h iad_pub.o iad_io.o mygetopt.o iad
 iad_io.o   :  iad_io.w iad_type.h iad_pub.h 
 nr_amoeb.o :  iad_type.h 
 
-iad_calc.h :  iad_calc.w		#needed because iad_util.o includes iad_calc.h
-	ctangle -bhp iad_calc.w
+ad_bound.c ad_bound.h : ad_bound.w
+	ctangle -bhp $<
+
+ad_cone.c ad_cone.h: ad_cone.w
+	ctangle -bhp $<
+
+ad_doubl.c ad_doubl.h: ad_doubl.w
+	ctangle -bhp $<
+
+ad_frsnl.c ad_frsnl.h: ad_frsnl.w
+	ctangle -bhp $<
+
+ad_globl.c ad_globl.h: ad_globl.w
+	ctangle -bhp $<
+
+ad_layers.c ad_layers.h: ad_layers.w
+	ctangle -bhp $<
+
+ad_main.c ad_main.h: ad_main.w
+	ctangle -bhp $<
+
+ad_matrx.c ad_matrx.h: ad_matrx.w
+	ctangle -bhp $<
+
+ad_prime.c ad_prime.h: ad_prime.w
+	ctangle -bhp $<
+
+ad_radau.c ad_radau.h: ad_radau.w
+	ctangle -bhp $<
+
+ad_start.c ad_start.h: ad_start.w
+	ctangle -bhp $<
+
+iad_calc.c iad_calc.h: iad_calc.w
+	ctangle -bhp $<
+
+iad_find.c iad_find.h: iad_find.w
+	ctangle -bhp $<
+
+iad_io.c iad_io.h: iad_io.w
+	ctangle -bhp $<
+
+iad_main.c iad_main.h: iad_main.w
+	ctangle -bhp $<
+
+iad_pub.c iad_pub.h: iad_pub.w
+	ctangle -bhp $<
 
 iad_type.h : iad_type.w
-	ctangle -bhp iad_type.w
+	ctangle -bhp $<
 	rm iad_type.c
 
-iad_pub.h : iad_pub.w          #needed because iad_io.o includes iad_pub.h
-	ctangle -bhp iad_pub.w
+iad_util.c iad_util.h: iad_util.w
+	ctangle -bhp $<
 
-ad_bound.h : ad_bound.w
-	ctangle -bhp ad_bound.w
-	
 mc_lost.c : iad_type.h
 
 version.o : 
