@@ -527,11 +527,14 @@ measurements.
     @<Write Header @>@;
 
     Inverse_RT (m, &r);
-    calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
+    
+    if (r.error == IAD_NO_ERROR) {
+        calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
-    @<Improve result using Monte Carlo@>@;
-        
+        @<Improve result using Monte Carlo@>@;
+    }
     print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
+
 
     if (Debug(DEBUG_LOST_LIGHT)) 
         fprintf(stderr,"\n");

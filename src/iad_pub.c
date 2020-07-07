@@ -34,7 +34,7 @@ Inverse_RT (struct measure_type m, struct invert_type *r)
   if (r->method.quad_pts < 4)
     r->error = IAD_QUAD_PTS_NOT_VALID;
 
-  if (0 && (r->error != IAD_NO_ERROR))
+  if (r->error != IAD_NO_ERROR)
     return;
 
 
@@ -108,6 +108,25 @@ measure_OK (struct measure_type m, struct invert_type r)
   if (m.num_spheres != 2)
     {
 
+
+      if (m.m_t < 0)
+	return IAD_MT_TOO_SMALL;
+
+      Sp_mu_RT_Flip (m.flip_sample, r.slab.n_top_slide, r.slab.n_slab,
+		     r.slab.n_bottom_slide, r.slab.b_top_slide, 0,
+		     r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
+
+      if (m.num_spheres == 0 && m.m_t > tu)
+	{
+	  fprintf (stderr, "ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n",
+		   r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide);
+	  fprintf (stderr, "tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu,
+		   m.m_t, m.rstd_t);
+	  return IAD_MT_TOO_BIG;
+	}
+
+
+
       {
 	double mr, mt;
 	Calculate_Minimum_MR (m, r, &mr, &mt);
@@ -129,25 +148,6 @@ measure_OK (struct measure_type m, struct invert_type r)
 	      }
 	  }
       }
-
-
-
-
-      if (m.m_t < 0)
-	return IAD_MT_TOO_SMALL;
-
-      Sp_mu_RT_Flip (m.flip_sample, r.slab.n_top_slide, r.slab.n_slab,
-		     r.slab.n_bottom_slide, r.slab.b_top_slide, 0,
-		     r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
-
-      if (m.num_spheres == 0 && m.m_t > tu)
-	{
-	  fprintf (stderr, "ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n",
-		   r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide);
-	  fprintf (stderr, "tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu,
-		   m.m_t, m.rstd_t);
-	  return IAD_MT_TOO_BIG;
-	}
 
 
     }

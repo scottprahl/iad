@@ -1233,58 +1233,65 @@ main (int argc, char **argv)
 
 
 	Inverse_RT (m, &r);
-	calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
 
-
-
-	if (m.as_r != 0 && r.default_a != 0 && m.num_spheres > 0)
+	if (r.error == IAD_NO_ERROR)
 	  {
-	    double mu_sp_last = mu_sp;
-	    double mu_a_last = mu_a;
+	    calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
 
-	    if (Debug (DEBUG_LOST_LIGHT))
+
+
+	    if (m.as_r != 0 && r.default_a != 0 && m.num_spheres > 0)
 	      {
-		print_results_header (stderr);
-		print_optical_property_result (stderr, m, r, LR, LT, mu_a,
-					       mu_sp, mc_iter, rt_total);
-	      }
-
-	    while (mc_iter < MC_iterations)
-	      {
-
-		MC_Lost (m, r, -1000, &ur1, &ut1, &uru, &utu,
-			 &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
-
-		mc_total++;
-		mc_iter++;
-
-		Inverse_RT (m, &r);
-		calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
-
-		if (fabs (mu_a_last - mu_a) / (mu_a + 0.0001) < r.MC_tolerance
-		    && fabs (mu_sp_last - mu_sp) / (mu_sp + 0.0001) <
-		    r.MC_tolerance)
-		  break;
-
-		mu_a_last = mu_a;
-		mu_sp_last = mu_sp;
+		double mu_sp_last = mu_sp;
+		double mu_a_last = mu_a;
 
 		if (Debug (DEBUG_LOST_LIGHT))
-		  print_optical_property_result (stderr, m, r, LR, LT, mu_a,
-						 mu_sp, mc_iter, rt_total);
-		else
-		  print_dot (start_time, r.error, mc_total, rt_total, mc_iter,
-			     cl_verbosity, &any_error);
+		  {
+		    print_results_header (stderr);
+		    print_optical_property_result (stderr, m, r, LR, LT, mu_a,
+						   mu_sp, mc_iter, rt_total);
+		  }
 
-		if (r.error != IAD_NO_ERROR)
-		  break;
+		while (mc_iter < MC_iterations)
+		  {
+
+		    MC_Lost (m, r, -1000, &ur1, &ut1, &uru, &utu,
+			     &m.ur1_lost, &m.ut1_lost, &m.uru_lost,
+			     &m.utu_lost);
+
+		    mc_total++;
+		    mc_iter++;
+
+		    Inverse_RT (m, &r);
+		    calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
+
+		    if (fabs (mu_a_last - mu_a) / (mu_a + 0.0001) <
+			r.MC_tolerance
+			&& fabs (mu_sp_last - mu_sp) / (mu_sp + 0.0001) <
+			r.MC_tolerance)
+		      break;
+
+		    mu_a_last = mu_a;
+		    mu_sp_last = mu_sp;
+
+		    if (Debug (DEBUG_LOST_LIGHT))
+		      print_optical_property_result (stderr, m, r, LR, LT,
+						     mu_a, mu_sp, mc_iter,
+						     rt_total);
+		    else
+		      print_dot (start_time, r.error, mc_total, rt_total,
+				 mc_iter, cl_verbosity, &any_error);
+
+		    if (r.error != IAD_NO_ERROR)
+		      break;
+		  }
 	      }
+
+
 	  }
-
-
-
 	print_optical_property_result (stdout, m, r, LR, LT, mu_a, mu_sp,
 				       mc_iter, rt_total);
+
 
 	if (Debug (DEBUG_LOST_LIGHT))
 	  fprintf (stderr, "\n");
@@ -1587,61 +1594,67 @@ main (int argc, char **argv)
 
 
 	    Inverse_RT (m, &r);
-	    calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
 
-
-
-	    if (m.as_r != 0 && r.default_a != 0 && m.num_spheres > 0)
+	    if (r.error == IAD_NO_ERROR)
 	      {
-		double mu_sp_last = mu_sp;
-		double mu_a_last = mu_a;
+		calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
 
-		if (Debug (DEBUG_LOST_LIGHT))
+
+
+		if (m.as_r != 0 && r.default_a != 0 && m.num_spheres > 0)
 		  {
-		    print_results_header (stderr);
-		    print_optical_property_result (stderr, m, r, LR, LT, mu_a,
-						   mu_sp, mc_iter, rt_total);
-		  }
-
-		while (mc_iter < MC_iterations)
-		  {
-
-		    MC_Lost (m, r, -1000, &ur1, &ut1, &uru, &utu,
-			     &m.ur1_lost, &m.ut1_lost, &m.uru_lost,
-			     &m.utu_lost);
-
-		    mc_total++;
-		    mc_iter++;
-
-		    Inverse_RT (m, &r);
-		    calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
-
-		    if (fabs (mu_a_last - mu_a) / (mu_a + 0.0001) <
-			r.MC_tolerance
-			&& fabs (mu_sp_last - mu_sp) / (mu_sp + 0.0001) <
-			r.MC_tolerance)
-		      break;
-
-		    mu_a_last = mu_a;
-		    mu_sp_last = mu_sp;
+		    double mu_sp_last = mu_sp;
+		    double mu_a_last = mu_a;
 
 		    if (Debug (DEBUG_LOST_LIGHT))
-		      print_optical_property_result (stderr, m, r, LR, LT,
-						     mu_a, mu_sp, mc_iter,
-						     rt_total);
-		    else
-		      print_dot (start_time, r.error, mc_total, rt_total,
-				 mc_iter, cl_verbosity, &any_error);
+		      {
+			print_results_header (stderr);
+			print_optical_property_result (stderr, m, r, LR, LT,
+						       mu_a, mu_sp, mc_iter,
+						       rt_total);
+		      }
 
-		    if (r.error != IAD_NO_ERROR)
-		      break;
+		    while (mc_iter < MC_iterations)
+		      {
+
+			MC_Lost (m, r, -1000, &ur1, &ut1, &uru, &utu,
+				 &m.ur1_lost, &m.ut1_lost, &m.uru_lost,
+				 &m.utu_lost);
+
+			mc_total++;
+			mc_iter++;
+
+			Inverse_RT (m, &r);
+			calculate_coefficients (m, r, &LR, &LT, &mu_sp,
+						&mu_a);
+
+			if (fabs (mu_a_last - mu_a) / (mu_a + 0.0001) <
+			    r.MC_tolerance
+			    && fabs (mu_sp_last - mu_sp) / (mu_sp + 0.0001) <
+			    r.MC_tolerance)
+			  break;
+
+			mu_a_last = mu_a;
+			mu_sp_last = mu_sp;
+
+			if (Debug (DEBUG_LOST_LIGHT))
+			  print_optical_property_result (stderr, m, r, LR, LT,
+							 mu_a, mu_sp, mc_iter,
+							 rt_total);
+			else
+			  print_dot (start_time, r.error, mc_total, rt_total,
+				     mc_iter, cl_verbosity, &any_error);
+
+			if (r.error != IAD_NO_ERROR)
+			  break;
+		      }
 		  }
+
+
 	      }
-
-
-
 	    print_optical_property_result (stdout, m, r, LR, LT, mu_a, mu_sp,
 					   mc_iter, rt_total);
+
 
 	    if (Debug (DEBUG_LOST_LIGHT))
 	      fprintf (stderr, "\n");
