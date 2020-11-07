@@ -52,8 +52,8 @@ void RT_Layers_All(int n,
 	@<Validate layer properties@>@;
 	@<Allocate slab memory@>@;
 	@<Initialize slab structure@>@;
-	@<Allocate and generate top and bottom boundaries@>@;
 	@<Initialize composite layer@>@;
+	@<Allocate and generate top and bottom boundaries@>@;
 	@<Add all composite layers together@>@;
 	@<Add top and bottom boundaries@>@;
 	@<Free memory for |RT_Layers|@>@;
@@ -113,7 +113,9 @@ void RT_Layers_All(int n,
 	atemp = dmatrix(1, n, 1, n);
 	btemp = dmatrix(1, n, 1, n);
 
-@ Create the matrices needed for the top and bottom
+@ Create the matrices needed for the top and bottom.  This needs to be done
+after a call to |RT_matrices()| so that quadrature angles are chosen.
+
 @<Allocate and generate top and bottom boundaries@>=
 	R01 = dvector(1, n);
 	R10 = dvector(1, n);
