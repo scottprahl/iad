@@ -52,7 +52,6 @@ int N=32;
 	@<Tests with absorbing bounding layers@>@;
 	@<Tests with absorbing and clear layers@>@;
 	@<Tests with layers reversed@>@;
-	@<Tests for Yinchu@>@;
 	return 0;
 }
 
@@ -66,6 +65,9 @@ scattering back in and repeat the same set of tests.
 a[0]=0.0;
 b[0]=0.1;
 g[0]=0.875;
+RT_Layers(N, 1.0, 1.0, 1.0, 1, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
+PrintTestResults(1,1,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
+
 ez_RT(N, 1.0, 1.0, 1.0, a[0], b[0], g[0], &aUR1, &aUT1, &aURU, &aUTU);
 RT_Layers(N, 1.0, 1.0, 1.0, 1, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,1,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);

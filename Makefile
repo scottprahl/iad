@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-VERSION = 3-11-4
+VERSION = 3-11-5
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -232,6 +232,10 @@ ad_debug: $(WSRC) $(NRSRC)
 iad_debug: $(WSRC) $(NRSRC)
 	cd src ; make iad_debug
 	cp src/iad iad$(BINARY_EXTENSION)
+
+layer_test: $(WSRC) $(NRSRC)
+	cd src ; make layer_test
+	src/layer_test$(BINARY_EXTENSION)
 
 ad_doc: 
 	perl -pi -e 's/\\def\\adversion.*/\\def\\adversion{$(VERSION)}/' src/ad.w

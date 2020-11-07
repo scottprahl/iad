@@ -122,7 +122,18 @@ tidy:
 	rm -f iad_main.h
 	gindent $(INDENT_OPT) ad*.c iad*.c ad*.h iad*.h
 	rm *~
-	
+
+ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o mygetopt.o version.o
+
+layer_test: $(AD_OBJ) $(NR_OBJ) mygetopt.o version.o ad_layers.o ad_layers_test.o	
+	ctangle -bhp ad_layers.w
+	$(CC) -c -o ad_layers.o ad_layers.c 
+	ctangle -bhp ad_layers_test.w
+	$(CC) -c -o ad_layers_test.o ad_layers_test.c 
+	./version.pl 
+	$(CC) -c -o version.o version.c 	
+	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
+
 # non-trivial dependencies
 lib_ad.h   :  ad
 lib_iad.h  :  iad
@@ -144,6 +155,7 @@ iad_find.o :  iad_find.w ad_globl.o nr_util.o iad_type.h iad_util.o iad_calc.o
 iad_main.o :  iad_main.w ad_globl.o iad_type.h iad_pub.o iad_io.o mygetopt.o iad_calc.o
 iad_io.o   :  iad_io.w iad_type.h iad_pub.h 
 nr_amoeb.o :  iad_type.h 
+ad_layers.o: nr_util.o ad_globl.o ad_bound.o ad_doubl.o ad_prime.o ad_matrx.o ad_prime.o
 
 ad_bound.c ad_bound.h : ad_bound.w
 	ctangle -bhp $<

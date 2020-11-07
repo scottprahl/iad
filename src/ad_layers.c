@@ -100,6 +100,12 @@ RT_Layers_All (int n,
 
 
 
+  RT_Matrices (n, &slab, &method, R23, T23);
+  Copy_Matrix (n, R23, R32);
+  Copy_Matrix (n, T23, T32);
+
+
+
   R01 = dvector (1, n);
   R10 = dvector (1, n);
   T01 = dvector (1, n);
@@ -111,12 +117,6 @@ RT_Layers_All (int n,
   T34 = dvector (1, n);
   T43 = dvector (1, n);
   Init_Boundary (slab, n, R34, R43, T34, T43, BOTTOM_BOUNDARY);
-
-
-
-  RT_Matrices (n, &slab, &method, R23, T23);
-  Copy_Matrix (n, R23, R32);
-  Copy_Matrix (n, T23, T32);
 
 
 

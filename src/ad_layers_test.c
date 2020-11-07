@@ -41,6 +41,9 @@ main (int argc, char **argv)
   a[0] = 0.0;
   b[0] = 0.1;
   g[0] = 0.875;
+  RT_Layers (N, 1.0, 1.0, 1.0, 1, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
+  PrintTestResults (1, 1, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
+
   ez_RT (N, 1.0, 1.0, 1.0, a[0], b[0], g[0], &aUR1, &aUT1, &aURU, &aUTU);
   RT_Layers (N, 1.0, 1.0, 1.0, 1, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
   PrintTestResults (1, 1, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
@@ -319,49 +322,6 @@ main (int argc, char **argv)
   PrintTestResults (6, 1, aUR1, aUT1, aURU, aUTU, dUR1, dUT1, dURU, dUTU);
   PrintTestResults (6, 2, bUR1, bUT1, bURU, bUTU, cUR1, cUT1, cURU, cUTU);
 
-
-
-
-  for (i = 0; i < 5; i++)
-    {
-      a[i] = 0.95;
-      b[i] = 0.5;
-      g[i] = 0.875;
-    }
-  a[0] = 0.1;
-
-  RT_Layers (N, 1.0, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
-  PrintTestResults (7, 1, bUR1, bUT1, bURU, bUTU, 0, 0, 0, 0);
-
-  RT_Layers (64, 1.4, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
-  PrintTestResults (7, 2, bUR1, bUT1, bURU, bUTU, 0, 0, 0, 0);
-
-  for (i = 0; i < 5; i++)
-    {
-      a[i] = 0.95;
-      b[i] = 0.5;
-      g[i] = 0.875;
-    }
-  a[1] = 0.1;
-
-  RT_Layers (N, 1.0, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
-  PrintTestResults (7, 3, bUR1, bUT1, bURU, bUTU, 0, 0, 0, 0);
-
-  RT_Layers (64, 1.4, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
-  PrintTestResults (7, 4, bUR1, bUT1, bURU, bUTU, 0, 0, 0, 0);
-
-  for (i = 0; i < 5; i++)
-    {
-      a[i] = 0.95;
-      b[i] = 0.05;
-      g[i] = 0.875;
-    }
-
-  RT_Layers (N, 1.0, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
-  PrintTestResults (7, 5, bUR1, bUT1, bURU, bUTU, 0, 0, 0, 0);
-
-  RT_Layers (64, 1.4, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
-  PrintTestResults (7, 6, bUR1, bUT1, bURU, bUTU, 0, 0, 0, 0);
 
   return 0;
 }
