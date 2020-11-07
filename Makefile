@@ -258,6 +258,7 @@ clean:
 	rm -f src/*.aux src/*.dvi src/*.idx src/*.ref src/*.sref src/*.tex src/*.toc src/*.log src/*.scn
 	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
 	rm -f libiad.dll src/libiad.dll
+	rm -f src/layer_test
 	
 realclean:
 	make clean
