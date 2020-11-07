@@ -89,8 +89,7 @@ ad_doc: ad.w
 iad_doc: iad.w
 	cweave -bph iad
 	pdftex iad
-#	mv iad.pdf ../doc/iad_src.pdf
-	qpdf iad.pdf --pages iad.pdf 131 iad.pdf 1-130 -- iad2.pdf
+	qpdf iad.pdf --pages iad.pdf 134 iad.pdf 1-133 -- iad2.pdf
 	mv iad2.pdf ../doc/iad_src.pdf
 	rm iad.pdf 
 #	cd src ; ctwill -bhp iad.w
