@@ -199,7 +199,8 @@ main (int argc, char **argv)
   double anisotropy = 0;
   double albedo = 0.5;
   double index_of_refraction = 1.0;
-  double index_of_slide = 1.0;
+  double index_of_slide1 = 1.0;
+  double index_of_slide2 = 1.0;
   double optical_thickness = 100;
   char *g_out_name = NULL;
   double g_incident_cosine = 1;
@@ -220,7 +221,7 @@ main (int argc, char **argv)
     char c;
     double x;
 
-    while ((c = my_getopt (argc, argv, "h?vma:b:g:i:n:o:q:s:")) != EOF)
+    while ((c = my_getopt (argc, argv, "h?vma:b:g:i:n:o:q:s:t:")) != EOF)
       {
 	switch (c)
 	  {
@@ -243,7 +244,12 @@ main (int argc, char **argv)
 	    break;
 
 	  case 's':
-	    index_of_slide = strtod (optarg, NULL);
+	    index_of_slide1 = strtod (optarg, NULL);
+	    index_of_slide2 = index_of_slide1;
+	    break;
+
+	  case 't':
+	    index_of_slide2 = strtod (optarg, NULL);
 	    break;
 
 	  case 'm':
@@ -387,8 +393,8 @@ main (int argc, char **argv)
       slab.b = optical_thickness;
       slab.g = anisotropy;
       slab.n_slab = index_of_refraction;
-      slab.n_top_slide = index_of_slide;
-      slab.n_bottom_slide = index_of_slide;
+      slab.n_top_slide = index_of_slide1;
+      slab.n_bottom_slide = index_of_slide2;
       slab.b_top_slide = 0.0;
       slab.b_bottom_slide = 0.0;
       slab.cos_angle = g_incident_cosine;

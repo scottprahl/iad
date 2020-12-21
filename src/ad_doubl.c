@@ -1,6 +1,7 @@
 
 #include <math.h>
 #include <float.h>
+#include <stdio.h>
 #include "nr_util.h"
 #include "ad_matrx.h"
 #include "ad_globl.h"
@@ -208,6 +209,7 @@ Double_Until (int n, double **r, double **t, double start, double end)
 	Basic_Add_Layers (n, r, t, r, r, t, t, r, t, a, b);
 	start *= 2;
       }
+
 
     free_dmatrix (a, 1, n, 1, n);
     free_dmatrix (b, 1, n, 1, n);
