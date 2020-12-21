@@ -11,31 +11,32 @@ This has the routines needed to add layers together in various combinations.
 @(ad_doubl.c@>=
 #include <math.h>
 #include <float.h>
+#include <stdio.h>
 #include "nr_util.h"
 #include "ad_matrx.h"
 #include "ad_globl.h"
 #include "ad_doubl.h"
 
-	@<Definition for |Star_Multiply|@>@;
-	@<Definition for |Star_One_Minus|@>@;
-	@<Definition for |Basic_Add_Layers|@>@;
-	@<Definition for |Basic_Add_Layers_With_Sources|@>@;
-	@<Definition for |Add|@>@;
-	@<Definition for |Add_With_Sources|@>@;
-	@<Definition for |Add_Homogeneous|@>@;
-	@<Definition for |Double_Once|@>@;
-	@<Definition for |Double_Until|@>@;
-	@<Definition for |Double_Until_Infinite|@>@;
-	@<Definition for |Between|@>@;
+    @<Definition for |Star_Multiply|@>@;
+    @<Definition for |Star_One_Minus|@>@;
+    @<Definition for |Basic_Add_Layers|@>@;
+    @<Definition for |Basic_Add_Layers_With_Sources|@>@;
+    @<Definition for |Add|@>@;
+    @<Definition for |Add_With_Sources|@>@;
+    @<Definition for |Add_Homogeneous|@>@;
+    @<Definition for |Double_Once|@>@;
+    @<Definition for |Double_Until|@>@;
+    @<Definition for |Double_Until_Infinite|@>@;
+    @<Definition for |Between|@>@;
 
 @ @(ad_doubl.h@>=
     @<Prototype for |Add|@>;
-	@<Prototype for |Add_With_Sources|@>;
-	@<Prototype for |Add_Homogeneous|@>;
-	@<Prototype for |Double_Once|@>;
-	@<Prototype for |Double_Until|@>;
-	@<Prototype for |Double_Until_Infinite|@>;
-	@<Prototype for |Between|@>;
+    @<Prototype for |Add_With_Sources|@>;
+    @<Prototype for |Add_Homogeneous|@>;
+    @<Prototype for |Double_Once|@>;
+    @<Prototype for |Double_Until|@>;
+    @<Prototype for |Double_Until_Infinite|@>;
+    @<Prototype for |Between|@>;
 
 @*2 Basic Routine to Add Layers Without Sources.
 
@@ -91,14 +92,14 @@ that this would just force the allocation of the matrix into the
 @<Definition for |Basic_Add_Layers|@>=
 
 static void Basic_Add_Layers(int n,
-	double **R10, double **T01, 
-	double **R12, double **R21, double **T12, double **T21,
-	double **R20, double **T02,
-	double **a, double **b)
+    double **R10, double **T01, 
+    double **R12, double **R21, double **T12, double **T21,
+    double **R20, double **T02,
+    double **a, double **b)
 {
   Star_Multiply(n, R10, R12, a);/* |a=|$\,\bfr^{10}\star\bfr^{12}$ */
   Star_One_Minus(n, a);/* |a=|$\,\bfe-\bfr^{10}\star\bfr^{12}$ */
-  Left_Inverse_Multiply(n, a, T12, b);	
+  Left_Inverse_Multiply(n, a, T12, b);  
           /* |b=|$\,\bft^{12}(\bfe-\bfr^{10}\bfr^{12})^{-1}$ */
   
 
@@ -149,15 +150,15 @@ $$
 @<Definition for |Basic_Add_Layers_With_Sources|@>=
 
 static void Basic_Add_Layers_With_Sources(int n,
-	double **R10, double **T01, 
-	double **R12, double **R21, double **T12, double **T21,
-	double **R20, double **T02, 
-	double **J01, double **J12, double **J21, double **J02,
-	double **a, double **b)
+    double **R10, double **T01, 
+    double **R12, double **R21, double **T12, double **T21,
+    double **R20, double **T02, 
+    double **J01, double **J12, double **J21, double **J02,
+    double **a, double **b)
 {
   Star_Multiply(n, R10, R12, a);/* |a=|$\,\bfr^{10}\star\bfr^{12}$ */
   Star_One_Minus(n, a);/* |a=|$\,\bfe-\bfr^{10}\star\bfr^{12}$ */
-  Left_Inverse_Multiply(n, a, T12, b);	
+  Left_Inverse_Multiply(n, a, T12, b);  
           /* |b=|$\,\bft^{12}(\bfe-\bfr^{10}\bfr^{12})^{-1}$ */
   
 
@@ -182,9 +183,9 @@ static void Basic_Add_Layers_With_Sources(int n,
 @
 @<Prototype for |Add|@>=
 void Add(int n, 
-	double **R01, double **R10, double **T01, double **T10, 
-	double **R12, double **R21, double **T12, double **T21, 
-	double **R02, double **R20, double **T02, double **T20)
+    double **R01, double **R10, double **T01, double **T10, 
+    double **R12, double **R21, double **T12, double **T21, 
+    double **R02, double **R20, double **T02, double **T20)
 
 @ |Add| returns the reflection and transmission matrices
 for two different layers added together.  These matrices
@@ -193,7 +194,7 @@ do not have to be homogeneous.  The output matrices
 input matrices.
 
 @<Definition for |Add|@>=
-	@<Prototype for |Add|@>
+    @<Prototype for |Add|@>
 {
   @<Allocate memory for |a| and |b|@>@;
 
@@ -206,9 +207,9 @@ input matrices.
 @
 @<Prototype for |Add_With_Sources|@>=
 void Add_With_Sources(int n, 
-	double **R01, double **R10, double **T01, double **T10, double **J01, double **J10,
-	double **R12, double **R21, double **T12, double **T21, double **J12, double **J21, 
-	double **R02, double **R20, double **T02, double **T20, double **J02, double **J20)
+    double **R01, double **R10, double **T01, double **T10, double **J01, double **J10,
+    double **R12, double **R21, double **T12, double **T21, double **J12, double **J21, 
+    double **R02, double **R20, double **T02, double **T20, double **J02, double **J20)
 
 @ |Add_With_Sources| returns the reflection and transmission matrices
 for two different layers added together.  These matrices
@@ -217,7 +218,7 @@ do not have to be homogeneous.  The output matrices
 input matrices.
 
 @<Definition for |Add_With_Sources|@>=
-	@<Prototype for |Add_With_Sources|@>
+    @<Prototype for |Add_With_Sources|@>
 {
   @<Allocate memory for |a| and |b|@>@;
 
@@ -230,13 +231,13 @@ input matrices.
 @
 @<Prototype for |Add_Homogeneous|@>=
 void Add_Homogeneous(int n, 
-	double **R01, double **T01, 
-	double **R12, double **T12, 
-	double **R02, double **T02)
+    double **R01, double **T01, 
+    double **R12, double **T12, 
+    double **R02, double **T02)
 
 @
 @<Definition for |Add_Homogeneous|@>=
-	@<Prototype for |Add_Homogeneous|@>
+    @<Prototype for |Add_Homogeneous|@>
 {
   @<Allocate memory for |a| and |b|@>@;
 
@@ -255,7 +256,7 @@ void Double_Once(int n, double **R, double **T)
 
 @
 @<Definition for |Double_Once|@>=
-	@<Prototype for |Double_Once|@>
+    @<Prototype for |Double_Once|@>
 {
   @<Allocate memory for |a| and |b|@>@;
   Basic_Add_Layers(n, R, T, R, R, T, T, R, T, a, b);
@@ -274,19 +275,20 @@ void Double_Until(int n, double **r, double **t, double start, double end)
 
 @
 @<Definition for |Double_Until|@>=
-	@<Prototype for |Double_Until|@>
+    @<Prototype for |Double_Until|@>
 {
-	if (end == HUGE_VAL) {
-		Double_Until_Infinite(n, r, t);
-		return;
-		}
+    if (end == HUGE_VAL) {
+        Double_Until_Infinite(n, r, t);
+        return;
+        }
 
    {
    @<Allocate memory for |a| and |b|@>@;
-	while (fabs(end-start) > 0.00001 && end > start) {
-		Basic_Add_Layers(n, r, t, r, r, t, t, r, t, a, b);
-		start *= 2;
-	}
+    while (fabs(end-start) > 0.00001 && end > start) {
+        Basic_Add_Layers(n, r, t, r, r, t, t, r, t, a, b);
+        start *= 2;
+    }
+
    @<Free Memory for |a| and |b|@>@;
    }
 }
@@ -305,7 +307,7 @@ void Double_Until_Infinite(int n, double **r, double **t)
 
 @
 @<Definition for |Double_Until_Infinite|@>=
-	@<Prototype for |Double_Until_Infinite|@>
+    @<Prototype for |Double_Until_Infinite|@>
 {
   double oldutu, UTU, UT1;
   
@@ -349,12 +351,12 @@ $$
 
 @<Prototype for |Between|@>=
 void Between(int n, 
-	double **R01, double **R10, double **T01, double **T10, 
-	double **R12, double **R21, double **T12, double **T21, 
-	double **Lup, double **Ldown)
+    double **R01, double **R10, double **T01, double **T10, 
+    double **R12, double **R21, double **T12, double **T21, 
+    double **Lup, double **Ldown)
 
 @ @<Definition for |Between|@>=
-	@<Prototype for |Between|@>
+    @<Prototype for |Between|@>
 {
   @<Allocate memory for |a| and |b|@>@;
   
@@ -400,7 +402,7 @@ and then do $C=C\cdot B$.  This allows us to avoid allocating a temporary matrix
 |A| may occupy the same memory as |C|, but |B| and |C| must be distinct.
 
 @<Definition for |Star_Multiply|@>=
-	static void Star_Multiply(int n, double **A, double **B, double **C)
+    static void Star_Multiply(int n, double **A, double **B, double **C)
 {
   Right_Diagonal_Multiply(n, A, twoaw, C);
   Matrix_Multiply(n, C, B, C);
@@ -410,23 +412,23 @@ and then do $C=C\cdot B$.  This allows us to avoid allocating a temporary matrix
 multiplication.  
 
 @<Definition for |Star_One_Minus|@>=
-	static void Star_One_Minus(int n, double **A)
+    static void Star_One_Minus(int n, double **A)
 {
   int i, j;
 
-	for (i=1; i<=n; i++) {
-		for (j=1; j<=n; j++) 
-			A[i][j] *= -1;
-		A[i][i] += 1.0/twoaw[i];
-	}
-	
+    for (i=1; i<=n; i++) {
+        for (j=1; j<=n; j++) 
+            A[i][j] *= -1;
+        A[i][i] += 1.0/twoaw[i];
+    }
+    
 }
 
 @ @<Allocate memory for |a| and |b|@>=
-	double **a, **b;
-	
-	a = dmatrix(1,n,1,n);
-  	b = dmatrix(1,n,1,n);
+    double **a, **b;
+    
+    a = dmatrix(1,n,1,n);
+    b = dmatrix(1,n,1,n);
 
 @
 @<Free Memory for |a| and |b|@>=
