@@ -186,6 +186,9 @@ several intermediate variables.
 {
   double mu_t,ratio, temp,temp1;
 
+  if (mu_i == 0.0)
+    return 1.0;
+
   if (n_i == n_t)
     return 0.0;
 
@@ -194,9 +197,6 @@ several intermediate variables.
     return (temp*temp);
 }
     
-  if (mu_i == 0.0)
-    return 1.0;
-
     mu_t=Cos_Snell(n_i,mu_i,n_t);
     if (mu_t==0.0)
         return 1.0;
