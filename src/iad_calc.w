@@ -996,12 +996,12 @@ The_Grid_Search = FIND_BsG;
 }
 
 @ @<Prototype for |Fill_Grid|@>=
-void Fill_Grid(struct measure_type m, struct invert_type r)
+void Fill_Grid(struct measure_type m, struct invert_type r, int force_new)
 
 @ @<Definition for |Fill_Grid|@>=
     @<Prototype for |Fill_Grid|@>
 { 
-    if (!Same_Calc_State(m,r)) {
+    if (force_new || !Same_Calc_State(m,r)) {
         switch (r.search) {
             case FIND_AB:
                 if (Debug(DEBUG_SEARCH)) fprintf(stderr,"filling AB Grid\n");

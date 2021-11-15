@@ -13,6 +13,8 @@ March 1995.  Incorporated the |quick_guess| algorithm for low albedos.
 #include "iad_util.h"
 #include "iad_calc.h"
 #include "iad_find.h"
+#include "iad_util.h"
+
 #define NUMBER_OF_GUESSES 10
 
 guess_type guess[NUMBER_OF_GUESSES];
@@ -116,7 +118,7 @@ made in the analagous code for |a| and |b|.
 	/* distance to last result */
 	abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 	
-	if (!Valid_Grid(m, r->search)) Fill_Grid(m,*r);	
+	if (!Valid_Grid(m, r->search)) Fill_Grid(m,*r,1);	
 	
 	/* distance to nearest grid point */
 	Near_Grid_Points(m.m_r,m.m_t,r->search, &i_best, &j_best);

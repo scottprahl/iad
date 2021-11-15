@@ -9,10 +9,10 @@
 VERSION      = 8.0
 SYS          = MacOSX
 
-CC           = /opt/local/bin/gcc-mp-4.9
+CC           = /usr/local/Cellar/gcc
 INSTALL_DIR  = /Users/prahl/Library/Mathematica/Applications/Optics
-MLINKDIR     = /Applications/Mathematica.app/SystemFiles/Links/MathLink/DeveloperKit
-CADDSDIR     = ${MLINKDIR}/CompilerAdditions
+CADDSDIR     = /Applications/Mathematica.app/Contents/SystemFiles/Links/MathLink/DeveloperKit/MacOSX-x86-64/CompilerAdditions
+
 INC_DIR      = ${CADDSDIR}
 LIB_DIR      = ${CADDSDIR}
 EXTRA_LIBS   = -lstdc++ -framework Foundation -liad 
@@ -27,7 +27,7 @@ ADtm.c : AD.tm
 	${MPREP} $? -o $@
 
 AD : ADtm.o
-	${CC} -I${INC_DIR} ADtm.o -L${LIB_DIR} -lMLi3 ${EXTRA_LIBS} -o $@
+	${CC} -I${INC_DIR} ADtm.o -L${LIB_DIR} -lMLi4 ${EXTRA_LIBS} -o $@
 
 install:
 	mkdir -p ${INSTALL_DIR}

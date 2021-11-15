@@ -584,7 +584,7 @@ no sphere parameters are included.
   struct measure_type m;
   struct invert_type r;
   *a = 0;
-  *b = 0;
+  *b = HUGE_VAL;
   *g = 0;
 
   Initialize_Measure(&m);
@@ -854,7 +854,7 @@ void Calculate_Minimum_MR(struct measure_type m,
     @<Prototype for |Calculate_Minimum_MR|@>
 {
     if (r.default_b == UNINITIALIZED)
-        r.slab.b = 9999;
+        r.slab.b = HUGE_VAL;
     else
         r.slab.b = r.default_b;
 
@@ -864,7 +864,7 @@ void Calculate_Minimum_MR(struct measure_type m,
         r.slab.a = r.default_a;
 
     if (r.default_g == UNINITIALIZED)
-        r.slab.g = 0.99;
+        r.slab.g = 0.0;
     else
         r.slab.g = r.default_g;
 

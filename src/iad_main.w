@@ -528,6 +528,8 @@ measurements.
 
     Inverse_RT (m, &r);
     
+    fprintf(stderr, "%8.5f %8.5f %8.5f", r.a, r.b, r.g);
+    
     if (r.error == IAD_NO_ERROR) {
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
@@ -1042,7 +1044,7 @@ exit(0);
 static void Calculate_Mua_Musp(struct measure_type m,
                  struct invert_type r, double *musp, double *mua)
 {
-    if (r.default_b == HUGE_VAL || r.b == HUGE_VAL) {
+    if (r.b == HUGE_VAL) {
         if (r.a == 0) {
             *musp = 0.0;
             *mua  = 1.0;
