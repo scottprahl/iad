@@ -82,8 +82,6 @@ that are appropriate for your experiment.
 
     r->found = FALSE;
 
-    @<Exit with bad input data@>@;
-
     if (r->search == FIND_AUTO)
         r->search = determine_search(m,*r);
     
@@ -96,6 +94,8 @@ that are appropriate for your experiment.
         r->default_a = 0;
         r->search = FIND_B;
     }
+
+    @<Exit with bad input data@>@;
 
     @<Find the optical properties@>@;
     if ( r->final_distance <= r->tolerance) r->found=TRUE;
@@ -867,6 +867,9 @@ void Calculate_Minimum_MR(struct measure_type m,
         r.slab.g = 0.0;
     else
         r.slab.g = r.default_g;
+
+    if (r.search == FIND_G)
+        r.slab.a = 0;
 
     r.a = r.slab.a;
     r.b = r.slab.b;

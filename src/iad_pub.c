@@ -28,17 +28,6 @@ Inverse_RT (struct measure_type m, struct invert_type *r)
 
   r->found = FALSE;
 
-
-  r->error = measure_OK (m, *r);
-
-  if (r->method.quad_pts < 4)
-    r->error = IAD_QUAD_PTS_NOT_VALID;
-
-  if (r->error != IAD_NO_ERROR)
-    return;
-
-
-
   if (r->search == FIND_AUTO)
     r->search = determine_search (m, *r);
 
@@ -53,6 +42,17 @@ Inverse_RT (struct measure_type m, struct invert_type *r)
       r->default_a = 0;
       r->search = FIND_B;
     }
+
+
+  r->error = measure_OK (m, *r);
+
+  if (r->method.quad_pts < 4)
+    r->error = IAD_QUAD_PTS_NOT_VALID;
+
+  if (r->error != IAD_NO_ERROR)
+    return;
+
+
 
 
   switch (r->search)
@@ -877,6 +877,9 @@ Calculate_Minimum_MR (struct measure_type m,
     r.slab.g = 0.0;
   else
     r.slab.g = r.default_g;
+
+  if (r.search == FIND_G)
+    r.slab.a = 0;
 
   r.a = r.slab.a;
   r.b = r.slab.b;
