@@ -1234,8 +1234,6 @@ main (int argc, char **argv)
 
 	Inverse_RT (m, &r);
 
-	fprintf (stderr, "%8.5f %8.5f %8.5f", r.a, r.b, r.g);
-
 	if (r.error == IAD_NO_ERROR)
 	  {
 	    calculate_coefficients (m, r, &LR, &LT, &mu_sp, &mu_a);
@@ -1596,8 +1594,6 @@ main (int argc, char **argv)
 
 
 	    Inverse_RT (m, &r);
-
-	    fprintf (stderr, "%8.5f %8.5f %8.5f", r.a, r.b, r.g);
 
 	    if (r.error == IAD_NO_ERROR)
 	      {
