@@ -150,7 +150,7 @@ iad_calc.o :  iad_calc.w ad_globl.o ad_frsnl.o ad_prime.o iad_type.h iad_util.o 
               nr_zbrent.o
 iad_pub.o  :  iad_pub.w ad_globl.o nr_util.o iad_type.h iad_find.o iad_io.o
 iad_util.o :  iad_util.w ad_globl.o nr_util.o ad_frsnl.o ad_bound.o iad_type.h iad_calc.h iad_pub.h
-iad_find.o :  iad_find.w ad_globl.o nr_util.o iad_type.h iad_util.o iad_calc.o
+iad_find.o :  iad_find.w iad_find.h ad_globl.o nr_util.o iad_type.h iad_util.o iad_calc.o
 iad_main.o :  iad_main.w ad_globl.o iad_type.h iad_pub.o iad_io.o mygetopt.o iad_calc.o
 iad_io.o   :  iad_io.w iad_type.h iad_pub.h 
 nr_amoeb.o :  iad_type.h 
