@@ -9,7 +9,7 @@
 VERSION      = 8.0
 SYS          = MacOSX
 
-CC           = /usr/local/Cellar/gcc
+CC           = gcc-11
 INSTALL_DIR  = /Users/prahl/Library/Mathematica/Applications/Optics
 CADDSDIR     = /Applications/Mathematica.app/Contents/SystemFiles/Links/MathLink/DeveloperKit/MacOSX-x86-64/CompilerAdditions
 
@@ -27,7 +27,8 @@ ADtm.c : AD.tm
 	${MPREP} $? -o $@
 
 AD : ADtm.o
-	${CC} -I${INC_DIR} ADtm.o -L${LIB_DIR} -lMLi4 ${EXTRA_LIBS} -o $@
+	${CC} -I${INC_DIR} ADtm.o -L${LIB_DIR} -L/usr/local/lib -lMLi4 ${EXTRA_LIBS} -o $@
+	mv AD AD.exe
 
 install:
 	mkdir -p ${INSTALL_DIR}
@@ -36,6 +37,6 @@ install:
 	cp AD ${INSTALL_DIR}/External
 
 clean:
-	rm -f ADtm.o AD.o ADtm.c AD
+	rm -f ADtm.o AD.o ADtm.c AD.exe
 	
 .PHONY : clean install lib
