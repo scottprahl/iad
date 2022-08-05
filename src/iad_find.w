@@ -354,9 +354,10 @@ is no sense even using it because the slab is not infinitely thick.
 	r->final_distance = 0.0;
 	Set_Calc_State(m,*r);
 
-	if (Rt > 0.99999) 
-		r->final_distance = Find_A_fn(a2acalc(1.0));		
-	else {
+	if (Rt > 0.99999) {
+		r->final_distance = Find_A_fn(a2acalc(1.0));
+		r->slab.a = 1.0;
+	} else {
 		double x, ax, bx, cx, fa, fb, fc;
 	
 		ax=a2acalc(0.3);

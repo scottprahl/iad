@@ -1116,15 +1116,15 @@ void print_optical_property_result(FILE *fp,
     if (mu_a > 200) mu_a = 199.9999;
     if (mu_sp > 1000) mu_sp = 999.9999;
     
-    fprintf(fp, "%9.5g\t%9.5g\t", m.m_r, LR);   
-    fprintf(fp, "%9.5g\t%9.5g\t", m.m_t, LT);
-    fprintf(fp, "%9.5g\t", mu_a);
-    fprintf(fp, "%9.5g\t", mu_sp);
-    fprintf(fp, "%9.5g\t", r.g);
+    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);   
+    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_t, LT);
+    fprintf(fp, "% 9.4f\t", mu_a);
+    fprintf(fp, "% 9.4f\t", mu_sp);
+    fprintf(fp, "% 9.4f\t", r.g);
     
 if (Debug(DEBUG_LOST_LIGHT)) {
-        fprintf(fp, "%9.5g\t%9.5g\t", m.ur1_lost, m.uru_lost);
-        fprintf(fp, "%9.5g\t%9.5g\t", m.ut1_lost, m.utu_lost);
+        fprintf(fp, "% 9.4f\t% 9.4f\t", m.ur1_lost, m.uru_lost);
+        fprintf(fp, "% 9.4f\t% 9.4f\t", m.ut1_lost, m.utu_lost);
         fprintf(fp, " %2d  \t", mc_iter);
         fprintf(fp, " %4d\t", r.iterations);
     }
