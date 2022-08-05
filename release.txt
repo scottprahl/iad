@@ -10,6 +10,12 @@
     make longtest        # visually check for failures
     make wintest
 
+# also more involved test on windows
+    wine cmd
+        cmd_prompt> cd test
+        cmd_prompt> valid.bat
+        cmd_prompt> exit
+
 # fix the version number in the Makefile
     sed -i -E 's/VERSION = 3-10-[0-9]/VERSION = 3-10-3/' Makefile
     make realclean
@@ -26,7 +32,8 @@
     git tag v3.10.3
     git push origin v3.10.3
 
-# edit release notes on github  https://github.com/scottprahl/iad/releases/
+# edit release notes on github  
+    open https://github.com/scottprahl/iad/releases/
 
 # Upload files to omlc.org
     sftp omlc.org /var/www/html/software/iad/iad-latest.zip <<< $'put iad-latest.zip'
