@@ -255,6 +255,12 @@ value of |ba| or $d \cdot \mu_a$ when the |Find_Bs_fn| is used.
 		fprintf(stderr,"\n");
 	}
 
+    if (m.m_t == 0) {
+        r->slab.b = HUGE_VAL;
+        U_Find_A(m, r);
+        return;
+    }
+
 	r->slab.a = 0;
 	r->slab.g = (r->default_g  == UNINITIALIZED) ? 0        : r->default_g;
 	r->slab.b = (r->default_ba == UNINITIALIZED) ? HUGE_VAL : r->default_ba; 
@@ -305,6 +311,12 @@ value of |bs| or $d \cdot \mu_s$ when the |Find_Ba_fn| is used.
 	r->slab.g = (r->default_g  == UNINITIALIZED) ? 0        : r->default_g;
 	r->slab.b = (r->default_bs == UNINITIALIZED) ? HUGE_VAL : r->default_bs; 
 	
+    if (m.m_t == 0) {
+        r->slab.b = HUGE_VAL;
+        U_Find_A(m, r);
+        return;
+    }
+
 	Set_Calc_State(m,*r);   /* store bs in RR.slab.b */
 	
 	ax = b2bcalc(0.1);      /* first try for ba */

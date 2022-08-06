@@ -854,7 +854,7 @@ void Calculate_Minimum_MR(struct measure_type m,
     @<Prototype for |Calculate_Minimum_MR|@>
 {
     if (r.default_b == UNINITIALIZED)
-        r.slab.b = HUGE_VAL;
+        r.slab.b = 1e-5;
     else
         r.slab.b = r.default_b;
 
@@ -876,6 +876,7 @@ void Calculate_Minimum_MR(struct measure_type m,
     r.g = r.slab.g;
     
     Calculate_MR_MT(m,r,0,mr,mt);
+    *mt = 0;
 }
 
 @ The minimum possible value of |MR| for a given |MT| will be when

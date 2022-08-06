@@ -1048,6 +1048,17 @@ static void Calculate_Mua_Musp(struct measure_type m,
             *mua  = 1.0;
             return;
         }
+        if (r.default_mus != UNINITIALIZED) {
+            *musp = r.default_mus * (1-r.g);
+            *mua  = r.default_mus/r.a - r.default_mus;
+            return;
+        }
+        if (r.default_mua != UNINITIALIZED) {
+            *musp = (r.default_mua/(1-r.a) - r.default_mua) * (1-r.g);
+            *mua  = r.default_mua;
+            return;
+        }
+            
         *musp = 1.0-r.g;
         *mua  = (1.0-r.a)/r.a;
         return;
