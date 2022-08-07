@@ -1043,7 +1043,7 @@ static void Calculate_Mua_Musp(struct measure_type m,
                  struct invert_type r, double *musp, double *mua)
 {
     if (r.b == HUGE_VAL) {
-        if (r.a == 0) {
+        if (r.a <= 1e-5) {
             *musp = 0.0;
             *mua  = 1.0;
             return;
@@ -1124,8 +1124,8 @@ void print_optical_property_result(FILE *fp,
     else 
         fprintf(fp, "%6d\t", line);
      
-    if (mu_a > 200) mu_a = 199.9999;
-    if (mu_sp > 1000) mu_sp = 999.9999;
+    if (mu_a >= 200) mu_a = 199.9999;
+    if (mu_sp >= 1000) mu_sp = 999.9999;
     
     fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);   
     fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_t, LT);
