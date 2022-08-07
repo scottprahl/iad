@@ -8,7 +8,7 @@ ECHO.
 ECHO 	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s"	        g
 
 ..\iad.exe -V 0 -r 0
-ECHO EXPECT	   0.0000	   0.0000	   0.0000	   0.0000        199.9999	   0.0000	   0.0000
+ECHO EXPECT	   0.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000	   0.0000
 ECHO.
 
 ..\iad.exe -V 0 -r 1

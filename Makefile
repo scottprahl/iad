@@ -278,7 +278,7 @@ shorttest:
 	@echo "********* Basic tests ***********"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0
-	@echo "EXPECT	   0.0000	   0.0000	   0.0000	   0.0000        199.9999	   0.0000	   0.0000"
+	@echo "EXPECT	   0.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000	   0.0000"
 	$(IAD_EXECUTABLE) -V 0 -r 1
 	@echo "EXPECT	   1.0000	   0.9975	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4
