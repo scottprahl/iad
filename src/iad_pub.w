@@ -854,7 +854,10 @@ void Calculate_Minimum_MR(struct measure_type m,
     @<Prototype for |Calculate_Minimum_MR|@>
 {
     if (r.default_b == UNINITIALIZED)
-        r.slab.b = 1e-5;
+        if (r.slab.n_slab > 1.0)
+            r.slab.b = HUGE_VAL;
+        else
+            r.slab.b = 1e-5;
     else
         r.slab.b = r.default_b;
 
