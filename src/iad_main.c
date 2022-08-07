@@ -314,6 +314,19 @@ Calculate_Mua_Musp (struct measure_type m,
 	  *mua = 1.0;
 	  return;
 	}
+      if (r.default_mus != UNINITIALIZED)
+	{
+	  *musp = r.default_mus * (1 - r.g);
+	  *mua = r.default_mus / r.a - r.default_mus;
+	  return;
+	}
+      if (r.default_mua != UNINITIALIZED)
+	{
+	  *musp = (r.default_mua / (1 - r.a) - r.default_mua) * (1 - r.g);
+	  *mua = r.default_mua;
+	  return;
+	}
+
       *musp = 1.0 - r.g;
       *mua = (1.0 - r.a) / r.a;
       return;
@@ -419,16 +432,16 @@ print_optical_property_result (FILE * fp,
   if (mu_sp > 1000)
     mu_sp = 999.9999;
 
-  fprintf (fp, "%0.3e\t%0.3e\t", m.m_r, LR);
-  fprintf (fp, "%0.3e\t%0.3e\t", m.m_t, LT);
-  fprintf (fp, "%0.3e\t", mu_a);
-  fprintf (fp, "%0.3e\t", mu_sp);
-  fprintf (fp, "%0.3e\t", r.g);
+  fprintf (fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);
+  fprintf (fp, "% 9.4f\t% 9.4f\t", m.m_t, LT);
+  fprintf (fp, "% 9.4f\t", mu_a);
+  fprintf (fp, "% 9.4f\t", mu_sp);
+  fprintf (fp, "% 9.4f\t", r.g);
 
   if (Debug (DEBUG_LOST_LIGHT))
     {
-      fprintf (fp, "%0.3e\t%0.3e\t", m.ur1_lost, m.uru_lost);
-      fprintf (fp, "%0.3e\t%0.3e\t", m.ut1_lost, m.utu_lost);
+      fprintf (fp, "% 9.4f\t% 9.4f\t", m.ur1_lost, m.uru_lost);
+      fprintf (fp, "% 9.4f\t% 9.4f\t", m.ut1_lost, m.utu_lost);
       fprintf (fp, " %2d  \t", mc_iter);
       fprintf (fp, " %4d\t", r.iterations);
     }

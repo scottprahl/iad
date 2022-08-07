@@ -864,7 +864,10 @@ Calculate_Minimum_MR (struct measure_type m,
 		      struct invert_type r, double *mr, double *mt)
 {
   if (r.default_b == UNINITIALIZED)
-    r.slab.b = HUGE_VAL;
+    if (r.slab.n_slab > 1.0)
+      r.slab.b = HUGE_VAL;
+    else
+      r.slab.b = 1e-5;
   else
     r.slab.b = r.default_b;
 
@@ -886,4 +889,5 @@ Calculate_Minimum_MR (struct measure_type m,
   r.g = r.slab.g;
 
   Calculate_MR_MT (m, r, 0, mr, mt);
+  *mt = 0;
 }

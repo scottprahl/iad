@@ -53,6 +53,13 @@ U_Find_Ba (struct measure_type m, struct invert_type *r)
   r->slab.g = (r->default_g == UNINITIALIZED) ? 0 : r->default_g;
   r->slab.b = (r->default_bs == UNINITIALIZED) ? HUGE_VAL : r->default_bs;
 
+  if (m.m_t == 0)
+    {
+      r->slab.b = HUGE_VAL;
+      U_Find_A (m, r);
+      return;
+    }
+
   Set_Calc_State (m, *r);
 
   ax = b2bcalc (0.1);
@@ -91,6 +98,13 @@ U_Find_Bs (struct measure_type m, struct invert_type *r)
       if (r->default_g != UNINITIALIZED)
 	fprintf (stderr, "  default_g = %8.5f", r->default_g);
       fprintf (stderr, "\n");
+    }
+
+  if (m.m_t == 0)
+    {
+      r->slab.b = HUGE_VAL;
+      U_Find_A (m, r);
+      return;
     }
 
   r->slab.a = 0;
@@ -146,7 +160,10 @@ U_Find_A (struct measure_type m, struct invert_type *r)
   Set_Calc_State (m, *r);
 
   if (Rt > 0.99999)
-    r->final_distance = Find_A_fn (a2acalc (1.0));
+    {
+      r->final_distance = Find_A_fn (a2acalc (1.0));
+      r->slab.a = 1.0;
+    }
   else
     {
       double x, ax, bx, cx, fa, fb, fc;

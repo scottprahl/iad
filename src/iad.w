@@ -1,5 +1,5 @@
 \def\title{iad}
-\def\iadversion{3-11-6}
+\def\iadversion{3-12-0}
 \def\iadyear{2020}
 
 % This program by Scott Prahl
