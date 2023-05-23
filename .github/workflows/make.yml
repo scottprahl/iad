@@ -12,9 +12,6 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install required tools
-      run: sudo apt update && sudo apt install -y texlive-full
-
     - name: Build
       run: make -j2
 
@@ -23,6 +20,9 @@ jobs:
 
     - name: Run long test (no automated verification)
       run: make longtest
+
+    - name: Install required doc tools
+      run: sudo apt update && sudo apt install -y texlive-full
 
     - name: Build docs
       run: make doc
