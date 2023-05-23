@@ -1,0 +1,35 @@
+name: Make
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download GitHub repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Install required tools
+      run: sudo apt update && sudo apt install -y texlive-full
+
+    - name: Build
+      run: make -j2
+
+    - name: Run short test (no automated verification)
+      run: make shorttest
+
+    - name: Run long test (no automated verification)
+      run: make longtest
+
+    - name: Build docs
+      run: make doc
+
+    - name: Upload generated docs artefacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: generated-docs
+          path: doc/*.pdf
+
