@@ -35,8 +35,7 @@ jobs:
     
     - name: Install required doc tools
       run:  |
-        sudo apt install -y texlive qpdf
-        sudo tlmgr install cweb
+        sudo apt install -y texlive texlive-binaries qpdf
 
     - name: Build docs
       run: make doc
