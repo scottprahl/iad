@@ -35,7 +35,8 @@ jobs:
     
     - name: Install required doc tools
       run:  |
-        sudo apt install -y texlive texlive-binaries qpdf
+        sudo apt install -y texlive qpdf
+        sudo mktexlsr
 
     - name: Build docs
       run: make doc
