@@ -23,7 +23,6 @@ jobs:
     - name: Run long test (no automated verification)
       run: make longtest
 
-jobs:
   build-docs:
     runs-on: ubuntu-latest
     steps:
