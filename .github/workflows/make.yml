@@ -35,6 +35,7 @@ jobs:
     
     - name: Install required doc tools
       run:  |
+        sudo apt update
         sudo apt install -y texlive qpdf
         sudo mktexlsr
 
