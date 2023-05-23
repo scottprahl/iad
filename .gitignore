@@ -18,6 +18,7 @@ src/lib_*
 
 # macOS cruft
 .DS_Store
+.#*
 
 # Ignore archives
 *.zip
