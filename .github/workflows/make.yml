@@ -8,6 +8,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
 
+    runs-on: ${{ matrix.os }}
+
     steps:
     - name: Download GitHub repository
       uses: actions/checkout@v3
