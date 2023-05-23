@@ -34,7 +34,9 @@ jobs:
         fetch-depth: 0
     
     - name: Install required doc tools
-      run:  sudo apt install -y texlive qpdf
+      run:  |
+        sudo apt install -y texlive qpdf
+        sudo tlmgr install cweb
 
     - name: Build docs
       run: make doc
