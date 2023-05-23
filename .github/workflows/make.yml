@@ -34,7 +34,7 @@ jobs:
         fetch-depth: 0
     
     - name: Install required doc tools
-      run: sudo apt update && sudo apt install -y texlive-full
+      run:  sudo apt install -y texlive qpdf
 
     - name: Build docs
       run: make doc
