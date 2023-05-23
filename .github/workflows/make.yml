@@ -35,8 +35,7 @@ jobs:
     
     - name: Install required doc tools
       run:  |
-        sudo apt install -y texlive-full qpdf
-        sudo mktexlsr
+        sudo apt install -y texlive texlive-extra-utils texlive-latex-extra qpdf
 
     - name: Build docs
       run: make doc
@@ -45,5 +44,8 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: generated-docs
-        path: doc/*.pdf
+        path: |
+          doc/ad_src.pdf
+          doc/iad_src.pdf
+          doc/manual.pdf
 
