@@ -4,7 +4,9 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
     - name: Download GitHub repository
@@ -13,7 +15,7 @@ jobs:
         fetch-depth: 0
 
     - name: Build
-      run: make -j2
+      run: make
 
     - name: Run short test (no automated verification)
       run: make shorttest
@@ -21,6 +23,15 @@ jobs:
     - name: Run long test (no automated verification)
       run: make longtest
 
+jobs:
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download GitHub repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
     - name: Install required doc tools
       run: sudo apt update && sudo apt install -y texlive-full
 
