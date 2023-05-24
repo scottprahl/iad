@@ -12,49 +12,49 @@ I create an empty file \.{iad\_main.h} to simplify the Makefile
 
 @(iad_main.c@>=
 
-@<Include files for |main|@>
+@<Include files for |main|@>@;
 
-@<print version function@>
-@<print usage function@>
-@<stringdup together function@>
-@<seconds elapsed function@>
-@<print error legend function@>
-@<print dot function@>
-@<calculate coefficients function@>
-@<parse string into array function@>
-@<print results header function@>
-@<Print results function@>
+@<print version function@>@;
+@<print usage function@>@;
+@<stringdup together function@>@;
+@<seconds elapsed function@>@;
+@<print error legend function@>@;
+@<print dot function@>@;
+@<calculate coefficients function@>@;
+@<parse string into array function@>@;
+@<print results header function@>@;
+@<Print results function@>@;
 
 int main (int argc, char **argv)
 {
-    @<Declare variables for |main|@>
+    @<Declare variables for |main|@>@;
 
-    @<Handle options@>
+    @<Handle options@>@;
 
     Initialize_Measure(&m);
-    @<Command-line changes to |m|@>
+    @<Command-line changes to |m|@>@;
 
     Initialize_Result(m, &r);
-    @<Command-line changes to |r|@>
+    @<Command-line changes to |r|@>@;
 
     if (cl_forward_calc != UNINITIALIZED) {
-        @<Calculate and Print the Forward Calculation@>
+        @<Calculate and Print the Forward Calculation@>@;
         return 0;
     }
 
-    @<prepare file for reading@>
+    @<prepare file for reading@>@;
 
     if (process_command_line) {
-        @<Count command-line measurements@>
-        @<Calculate and write optical properties@>
+        @<Count command-line measurements@>@;
+        @<Calculate and write optical properties@>@;
         return 0;
     }
 
     if (Read_Header (stdin, &m, &params) == 0) {
         start_time = clock();
         while (Read_Data_Line (stdin, &m, params) == 0) {
-            @<Command-line changes to |m|@>
-            @<Calculate and write optical properties@>
+            @<Command-line changes to |m|@>@;
+            @<Calculate and write optical properties@>@;
         }
     }
     if (cl_verbosity>0) fprintf(stderr,"\n\n");
@@ -1107,6 +1107,8 @@ fprintf(fp,"\n");
 the calculated values for the optical properties.  We do that here if we are
 debugging, otherwise we just print a number or something to keep the user from
 wondering what is going on.
+
+@s line x @q unreserve preprocessor identifier @>
 
 @<Print results function@>=
 void print_optical_property_result(FILE *fp,
