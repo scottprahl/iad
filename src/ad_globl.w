@@ -237,7 +237,7 @@ $$
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance. (If you want
 the total flux returning within a cone for uniform diffuse illumination then 
-use |URU_and UR1_Cone|.)  
+use |URU_and_UR1_Cone|.)
 
 @<Prototype for |URU_and_URx_Cone|@>=
 void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, double *URx)

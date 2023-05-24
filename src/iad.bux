@@ -3,5 +3,7 @@
 @$mnbrak "<nr\_mnbrk.h>" \zip@>
 @$amoeba "<nr\_amoeb.h>" \zip@>
 @$brent "<nr\_brent.h>" \zip@>
+@$zbrent "<nr\_zbrent.h>" \zip@>
 @$cshow "<console.h>" \zip@>
 @$THINK_C "compiler" \zip@>
+@$MC_Lost "<mc\_lost.h>" \zip@>

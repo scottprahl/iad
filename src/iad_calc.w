@@ -1602,7 +1602,7 @@ double *UR1, double *UT1, double *URU, double *UTU)
     s.slide_bottom = slab.n_bottom_slide;
     s.F0 = 1 / pi;
     s.depth = 0.0;
-    s.Exact_coll_flag = false;
+    s.Exact_coll_flag = FALSE;
     if (MM.illumination == collimated) {
         compute_R_and_T(&s, 1.0, &rp, &rs, &tp, &ts);
         *UR1 = rp + rs;

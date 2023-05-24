@@ -166,6 +166,8 @@ of the reflectance and transmittance is less than one.  Instead we use
 the transmittance to bound the values for the reflectance --- see the 
 routine |MinMax_MR_MT| below.
 
+@s error x
+
 @<Definition for |measure_OK|@>=
 @<Prototype for |measure_OK|@>
 {

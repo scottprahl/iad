@@ -29,14 +29,12 @@ but to simplify the Makefile, I create an empty \.{ad\_main.h}.
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 #include "ad_globl.h"
 #include "ad_prime.h"
 #include "ad_cone.h"
 #include "mygetopt.h"
 #include "version.h"
-
-extern char *optarg;
-extern int   optind;
 
 @<print version function@>@;
 @<print usage function@>@;

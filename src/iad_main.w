@@ -502,7 +502,7 @@ to calculate the optical thickness.
 @ Need to explicitly reset |r.search| each time through the loop,
 because it will get altered by the calculation process.  We want to be
 able to let different lines have different constraints.  In particular
-consider the file |newton.tst|.  In that file the first two rows contain
+consider the file \.{newton.tst}.  In that file the first two rows contain
 three real measurements and the last two have the collimated transmission
 explicitly set to zero --- in other words there are really only two 
 measurements.
@@ -1068,7 +1068,7 @@ static void Calculate_Mua_Musp(struct measure_type m,
     *mua   = (1-r.a)*r.b/m.slab_thickness;
 }
 
-@ This can only be called immediately after |Invert_RT|
+@ This can only be called immediately after |Inverse_RT|
 You have been warned!  Notice that |Calculate_Distance| 
 does not pass any slab properties.  
 

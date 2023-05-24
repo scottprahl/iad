@@ -358,7 +358,7 @@ Oh, yes.  The mysterious multiplication by a factor of |n_slab*n_slab| is requir
 to account for the $n^2$-law of radiance. 
 
 @<Prototype for |Sp_RT|@>=
-void Sp_RT(int n, struct AD_slab_type slab, double *ur1, double *ut1, double *uru, double *utu)
+void Sp_RT(int n, struct AD_slab_type slab, double *urx, double *utx, double *uru, double *utu)
 
 @ @<Definition for |Sp_RT|@>=
     @<Prototype for |Sp_RT|@>
@@ -380,7 +380,7 @@ void Sp_RT(int n, struct AD_slab_type slab, double *ur1, double *ut1, double *ur
     }
     
     Sp_mu_RT(slab.n_top_slide, slab.n_slab, slab.n_bottom_slide, slab.b_top_slide,
-             slab.b, slab.b_bottom_slide, slab.cos_angle, ur1, ut1);
+             slab.b, slab.b_bottom_slide, slab.cos_angle, urx, utx);
 
   *uru *= slab.n_slab * slab.n_slab;
   *utu *= slab.n_slab * slab.n_slab;
