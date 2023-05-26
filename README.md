@@ -3,6 +3,7 @@
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/scottprahl/iad?label=latest)
 [![MIT License](https://img.shields.io/badge/MIT-license-yellow.svg)](https://github.com/scottprahl/miepython/blob/master/LICENSE.txt)
 [![GitHub Actions](https://github.com/scottprahl/iad/actions/workflows/make.yml/badge.svg)](https://github.com/scottprahl/iad/actions/workflows/make.yml)
+[![DOI](https://zenodo.org/badge/102147394.svg)](https://zenodo.org/badge/latestdoi/102147394)
 
 by Scott Prahl
 
