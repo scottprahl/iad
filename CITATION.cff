@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: 'iad: Inverse Adding-Doubling, a program to determine optical properties'
+title: 'iad: Forward and Inverse Radiative Transport using the Adding-Doubling method'
 message: 'If you use this software, please cite it as below.'
 
 authors:
