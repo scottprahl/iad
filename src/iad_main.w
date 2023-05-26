@@ -2,7 +2,7 @@
 
 Here is a relatively robust command line utility that shows how
 the iad and ad subroutines might be called.  It suffers because
-it is written in CWEB and I used the macro expansion feature 
+it is written in \.{CWEB} and I used the macro expansion feature
 instead of creating separate functions.  Oh well.  
 
 I create an empty file \.{iad\_main.h} to simplify the Makefile
@@ -12,54 +12,54 @@ I create an empty file \.{iad\_main.h} to simplify the Makefile
 
 @(iad_main.c@>=
 
-@<Include files for |main|@>
+@<Include files for |main|@>@;
 
-@<print version function@>
-@<print usage function@>
-@<stringdup together function@>
-@<seconds elapsed function@>
-@<print error legend function@>
-@<print dot function@>
-@<calculate coefficients function@>
-@<parse string into array function@>
-@<print results header function@>
-@<Print results function@>
+@<print version function@>@;
+@<print usage function@>@;
+@<stringdup together function@>@;
+@<seconds elapsed function@>@;
+@<print error legend function@>@;
+@<print dot function@>@;
+@<calculate coefficients function@>@;
+@<parse string into array function@>@;
+@<print results header function@>@;
+@<Print results function@>@;
 
 int main (int argc, char **argv)
 {
-    @<Declare variables for |main|@>
+    @<Declare variables for |main|@>@;
 
-    @<Handle options@>
+    @<Handle options@>@;
 
     Initialize_Measure(&m);
-    @<Command-line changes to |m|@>
+    @<Command-line changes to |m|@>@;
 
     Initialize_Result(m, &r);
-    @<Command-line changes to |r|@>
+    @<Command-line changes to |r|@>@;
 
     if (cl_forward_calc != UNINITIALIZED) {
-        @<Calculate and Print the Forward Calculation@>
-        return 0;
+        @<Calculate and Print the Forward Calculation@>@;
+        return EXIT_SUCCESS;
     }
 
-    @<prepare file for reading@>
+    @<prepare file for reading@>@;
 
     if (process_command_line) {
-        @<Count command-line measurements@>
-        @<Calculate and write optical properties@>
-        return 0;
+        @<Count command-line measurements@>@;
+        @<Calculate and write optical properties@>@;
+        return EXIT_SUCCESS;
     }
 
     if (Read_Header (stdin, &m, &params) == 0) {
         start_time = clock();
         while (Read_Data_Line (stdin, &m, params) == 0) {
-            @<Command-line changes to |m|@>
-            @<Calculate and write optical properties@>
+            @<Command-line changes to |m|@>@;
+            @<Calculate and write optical properties@>@;
         }
     }
     if (cl_verbosity>0) fprintf(stderr,"\n\n");
     if (any_error && cl_verbosity>1) print_error_legend();
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 @ The first two defines are to stop Visual C++ from silly complaints
@@ -81,6 +81,7 @@ int main (int argc, char **argv)
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <ctype.h>
@@ -96,9 +97,6 @@ int main (int argc, char **argv)
 #include "version.h"
 #include "mc_lost.h"
 #include "ad_frsnl.h"
-
-extern char *optarg;
-extern int   optind;
 
 @ @<Declare variables for |main|@>=
   struct measure_type m;
@@ -195,7 +193,7 @@ extern int   optind;
 				cl_rc_fraction = strtod(optarg, NULL);
                 if (cl_rc_fraction<0.0 || cl_rc_fraction>1.0) {
                     fprintf(stderr, "required: 0 <= fraction of unscattered refl. in M_R <= 1\n");
-                    exit(0);
+                    exit(EXIT_SUCCESS);
                 }
                 break;
 
@@ -203,7 +201,7 @@ extern int   optind;
 				cl_tc_fraction = strtod(optarg, NULL);
                 if (cl_tc_fraction < 0.0 || cl_tc_fraction > 1.0) {
                     fprintf(stderr, "required: 0 <= fraction of unscattered trans. in M_T <= 1\n");
-                    exit(0);
+                    exit(EXIT_SUCCESS);
                 }
                 break;
 
@@ -242,7 +240,7 @@ extern int   optind;
                     fprintf(stderr, " -F 1.0              for mus =1.0\n");
                     fprintf(stderr, " -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
                     fprintf(stderr, " -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 
                 if (cc=='R' || cc == 'r') {
@@ -274,7 +272,7 @@ extern int   optind;
                     fprintf(stderr, "    'b' --- light always hits bottom slide first\n");
                     fprintf(stderr, "    'n' --- slide always closest to sphere\n");
                     fprintf(stderr, "    'f' --- slide always farthest from sphere\n");
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 break;
                     
@@ -310,11 +308,11 @@ extern int   optind;
                 cl_quadrature_points = (int) strtod(optarg, NULL);
                 if (cl_quadrature_points % 4 != 0) {
                     fprintf(stderr, "Number of quadrature points must be a multiple of 4\n");
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 if ((cl_cos_angle != UNINITIALIZED) && (cl_quadrature_points % 12 != 0)) {
                     fprintf(stderr, "Quadrature must be 12, 24, 36,... for oblique incidence\n");
-                    exit(1);
+                    exit(EXIT_FAILURE);
                 }
                 break;
 
@@ -462,7 +460,7 @@ to calculate the optical thickness.
     if (argc > 1) {
         fprintf(stderr, "Only a single file can be processed at a time\n");
         fprintf(stderr, "try 'apply iad file1 file2 ... fileN'\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     if (argc == 1 && strcmp(argv[0],"-")!=0) {  /* filename exists and != "-" */
@@ -480,7 +478,7 @@ to calculate the optical thickness.
             freopen(rt_name,"r",stdin)==NULL) {
             fprintf(stderr, "Could not open either '%s' or '%s'\n", 
                             argv[0], rt_name);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         if (g_out_name==NULL) 
@@ -494,7 +492,7 @@ to calculate the optical thickness.
     if (g_out_name!=NULL) {
         if (freopen(g_out_name,"w",stdout)==NULL) {
             fprintf(stderr, "Could not open file '%s' for output\n", g_out_name);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -502,7 +500,7 @@ to calculate the optical thickness.
 @ Need to explicitly reset |r.search| each time through the loop,
 because it will get altered by the calculation process.  We want to be
 able to let different lines have different constraints.  In particular
-consider the file |newton.tst|.  In that file the first two rows contain
+consider the file \.{newton.tst}.  In that file the first two rows contain
 three real measurements and the last two have the collimated transmission
 explicitly set to zero --- in other words there are really only two 
 measurements.
@@ -521,7 +519,7 @@ measurements.
     	fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
     	fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
     	fprintf(stderr, "diameter are worth obsessing over.\n");
-    	exit(0);
+    	exit(EXIT_SUCCESS);
     }
 
     @<Write Header @>@;
@@ -780,7 +778,7 @@ properties can be determined.
         if (cl_quadrature_points != 12 * (cl_quadrature_points / 12)) {
         	fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
         	fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
-        	exit(0);
+        	exit(EXIT_SUCCESS);
         }
 	}
 
@@ -941,7 +939,7 @@ static void print_version(void)
     fprintf(stderr, "This is free software; see the source for copying conditions.\n");
     fprintf(stderr, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
     fprintf(stderr, "FOR A PARTICULAR PURPOSE.\n");
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 @ @<print usage function@>=
@@ -1033,7 +1031,7 @@ fprintf(stderr, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degre
 fprintf(stderr, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
 fprintf(stderr, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
 fprintf(stderr, "Report bugs to <scott.prahl@@oit.edu>\n\n");
-exit(0);
+exit(EXIT_SUCCESS);
 }
 
 @ Just figure out the damn scattering and absorption
@@ -1068,7 +1066,7 @@ static void Calculate_Mua_Musp(struct measure_type m,
     *mua   = (1-r.a)*r.b/m.slab_thickness;
 }
 
-@ This can only be called immediately after |Invert_RT|
+@ This can only be called immediately after |Inverse_RT|
 You have been warned!  Notice that |Calculate_Distance| 
 does not pass any slab properties.  
 
@@ -1107,6 +1105,8 @@ fprintf(fp,"\n");
 the calculated values for the optical properties.  We do that here if we are
 debugging, otherwise we just print a number or something to keep the user from
 wondering what is going on.
+
+@s line x @q unreserve preprocessor identifier @>
 
 @<Print results function@>=
 void print_optical_property_result(FILE *fp,

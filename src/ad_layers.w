@@ -114,7 +114,7 @@ void RT_Layers_All(int n,
 	btemp = dmatrix(1, n, 1, n);
 
 @ Create the matrices needed for the top and bottom.  This needs to be done
-after a call to |RT_matrices()| so that quadrature angles are chosen.
+after a call to |RT_Matrices()| so that quadrature angles are chosen.
 
 @<Allocate and generate top and bottom boundaries@>=
 	R01 = dvector(1, n);

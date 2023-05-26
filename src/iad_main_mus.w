@@ -27,6 +27,8 @@ if (Read_Header (&m, &r) == TRUE) {
 			@<Calculate and write optical properties@>@;
 		}
 }
+return EXIT_SUCCESS;
+}
 
 @ @<Include files for |main|@>=
 #include <stdio.h>

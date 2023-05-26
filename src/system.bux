@@ -126,6 +126,7 @@
 @$strcmp "<string.h>" \zip@>
 @$strcpy "<string.h>" \zip@>
 @$strcspn "<string.h>" \zip@>
+@$strdup "<string.h>" \zip@>
 @$strlen "<string.h>" \zip@>
 @$strncat "<string.h>" \zip@>
 @$strncmp "<string.h>" \zip@>
@@ -142,4 +143,13 @@
 @$strtol "<string.h>" \zip@>
 @$strtoul "<string.h>" \zip@>
 @$strxfrm "<string.h>" \zip@>
+@$EXIT_FAILURE "<stdlib.h>" \zip@>
+@$EXIT_SUCCESS "<stdlib.h>" \zip@>
 @$exit "<stdlib.h>" \zip@>
+@$free "<stdlib.h>" \zip@>
+@$malloc "<stdlib.h>" \zip@>
+@$qsort "<stdlib.h>" \zip@>
+@$optarg "<unistd.h>" \zip@>
+@$optind "<unistd.h>" \zip@>
+@$isdigit "<ctype.h>" \zip@>
+@$isspace "<ctype.h>" \zip@>

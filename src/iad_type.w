@@ -113,6 +113,8 @@ in one spot.  No information regarding how the inversion
 procedure is supposed to be done is contained in this 
 structure, unlike in previous incarnations of this program.
 
+@s measure_type int
+
 @<Structs to export from IAD Types@>=
 typedef struct measure_type {
   double slab_index;
@@ -147,6 +149,8 @@ typedef struct measure_type {
 
 @ This describes how the inversion process should proceed
 and also contains the results of that inversion process.
+
+@s invert_type int
 
 @<Structs to export from IAD Types@>=
 typedef struct invert_type {

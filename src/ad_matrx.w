@@ -17,11 +17,11 @@ of size |n| by |n|.
 
 @(ad_matrx.c@>=
 
-	#include <stddef.h>
-	#include <math.h>
-	#include "ad_globl.h"
-	#include "ad_matrx.h"
-	#include "nr_util.h"
+#include <stddef.h>
+#include <math.h>
+#include "ad_globl.h"
+#include "ad_matrx.h"
+#include "nr_util.h"
 
 	@<Definition for |Copy_Matrix|@>@;
 	@<Definition for |One_Minus|@>@;

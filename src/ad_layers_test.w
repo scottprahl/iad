@@ -52,7 +52,7 @@ int N=32;
 	@<Tests with absorbing bounding layers@>@;
 	@<Tests with absorbing and clear layers@>@;
 	@<Tests with layers reversed@>@;
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 @ The first set of tests just call |RT_Layers| with a single slab

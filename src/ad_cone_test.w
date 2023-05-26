@@ -93,7 +93,7 @@ double mua,musp,mus,d;
 	@<Tests with absorption and scattering@>@;
 	@<Tests for Paulo@>@;
 	@<Tests that vary g@>@;
-	return 0;
+	return EXIT_SUCCESS;
 }
 
 @ The first set of tests just calls |RT_Cone| with no cone (normal irradiance)

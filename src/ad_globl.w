@@ -105,6 +105,9 @@ $b=(\mu_a+\mu_s) d$, and the average cosine of the phase function by |g|.
 The phase function of the slab is restricted to just isotropic and Henyey-Greenstein
 phase functions at the moment.
 
+@s AD_slab_type int
+@s AD_method_type int
+
 @<Types to export from AD Globals@>=
 
 typedef struct AD_slab_type {
@@ -157,7 +160,7 @@ void AD_error(char error_text[])
   fprintf(stderr,"Adding-Doubling error\n");
   fprintf(stderr,"%s\n",error_text);
   fprintf(stderr,"...now exiting to system...\n");
-  exit(1);
+  exit(EXIT_FAILURE);
 }
 
 @ @<Prototype for |Zero_Layer|@>=
@@ -237,7 +240,7 @@ $$
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance. (If you want
 the total flux returning within a cone for uniform diffuse illumination then 
-use |URU_and UR1_Cone|.)  
+use |URU_and_UR1_Cone|.)
 
 @<Prototype for |URU_and_URx_Cone|@>=
 void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, double *URx)

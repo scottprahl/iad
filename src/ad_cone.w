@@ -251,7 +251,7 @@ struct AD_slab_type slab;
 
 @ This routine calculates reflection and transmission
 for oblique incidence.  |URx| and |UTx| are the total light
-reflected and transmitted for light incident at at |cos_oblique_angle|. 
+reflected and transmitted for light incident at |cos_oblique_angle|.
 |URU| and |UTU| are the same thing for diffuse incident light.
 
 @<Prototype for |ez_RT_Oblique|@>=
