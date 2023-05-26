@@ -84,10 +84,10 @@ pointers |a| and |b| must be distinct from each other and distinct from the refl
 transmission matrices.)
 
 Note:  it should be possible to eliminate the need for the matrix
-|b| if |Inverse_Multiply| could be called with an argument list
-like |Inverse_Multiply(n,A,B,A)|.  A quick glance at the code suggests
+|b| if |Left_Inverse_Multiply| could be called with an argument list
+like |Left_Inverse_Multiply(n,A,B,A)|.  A quick glance at the code suggests
 that this would just force the allocation of the matrix into the 
-|Inverse_Multiply| routine and no net gain would result.
+|Left_Inverse_Multiply| routine and no net gain would result.
 
 @<Definition for |Basic_Add_Layers|@>=
 

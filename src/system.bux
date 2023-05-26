@@ -143,6 +143,8 @@
 @$strtol "<string.h>" \zip@>
 @$strtoul "<string.h>" \zip@>
 @$strxfrm "<string.h>" \zip@>
+@$EXIT_FAILURE "<stdlib.h>" \zip@>
+@$EXIT_SUCCESS "<stdlib.h>" \zip@>
 @$exit "<stdlib.h>" \zip@>
 @$free "<stdlib.h>" \zip@>
 @$malloc "<stdlib.h>" \zip@>

@@ -34,4 +34,6 @@
 @$SIGN "<nr\_util.h>" \zip@>
 @$zbrak "<nr\_zbrak.h>" \zip@>
 @$rtsafe "<nr\_rtsaf.h>" \zip@>
-
+@$my_getopt "mygetopt.h" \zip@>
+@$Version "version.h" \zip@>
+@$AD_GLOBAL_SOURCE "ad\_glob.w" \zip@>

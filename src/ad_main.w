@@ -147,7 +147,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", R1,T1,URU,UTU);
     }
 
-@ use the |mygetop| to process options.  We only handle help at the moment
+@ use the |my_getopt| to process options.  We only handle help at the moment
 
 @<Handle options@>=
 {
