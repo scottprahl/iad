@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: 'miepython: Pure python implementation of Mie scattering'
+title: 'iad: Inverse Adding-Doubling, a program to determine optical properties'
 message: 'If you use this software, please cite it as below.'
 
 authors:
