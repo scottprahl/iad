@@ -1,10 +1,8 @@
 # Inverse Adding-Doubling
-s
+
 [![GitHub Code](https://img.shields.io/badge/github-code-green.svg)](https://github.com/scottprahl/iad)
-
 [![MIT License](https://img.shields.io/badge/MIT-license-yellow.svg)](https://github.com/scottprahl/miepython/blob/master/LICENSE.txt)
-
-[![GitHub Actions](https://github.com/scottprahl/iad/actions/workflows/test.yml/badge.svg)](https://github.com/scottprahl/iad/actions/workflows/test.yml)
+[![GitHub Actions](https://github.com/scottprahl/iad/actions/workflows/make.yml/badge.svg)](https://github.com/scottprahl/iad/actions/workflows/make.yml)
 
 
 by Scott Prahl
