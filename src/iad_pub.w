@@ -174,8 +174,8 @@ routine |MinMax_MR_MT| below.
     double ru, tu;
 
     if (m.num_spheres != 2) {  
-        @<Check MT for zero or one spheres@>@;
-        @<Check MR for zero or one spheres@>@;
+        @<Check \.{MT} for zero or one spheres@>@;
+        @<Check \.{MR} for zero or one spheres@>@;
     } else {
         int error = MinMax_MR_MT(m,r);
         if (error != IAD_NO_ERROR) return error;
@@ -207,9 +207,9 @@ reflection is obtained by including all the specular reflectances from all the
 surfaces.
 
 If the default albedo has been specified as zero, then there is really
-no need to check |MR| because it is ignored.
+no need to check \.{MR} because it is ignored.
 
-@<Check MR for zero or one spheres@>=
+@<Check \.{MR} for zero or one spheres@>=
     {
         double mr,mt;
         Calculate_Minimum_MR(m,r,&mr,&mt);
@@ -239,7 +239,7 @@ for the transmittance using |Sp_mu_RT| are not actually limiting cases.
 This will require a bit of fixing, but for now that test is omitted
 if the number of spheres is more than zero.
 
-@<Check MT for zero or one spheres@>=
+@<Check \.{MT} for zero or one spheres@>=
 
     if (m.m_t < 0)
         return IAD_MT_TOO_SMALL;      
@@ -884,10 +884,10 @@ void Calculate_Minimum_MR(struct measure_type m,
     *mt = 0;
 }
 
-@ The minimum possible value of |MR| for a given |MT| will be when
+@ The minimum possible value of \.{MR} for a given \.{MT} will be when
 the albedo is zero and the maximum value will be when the albedo
 is one.  In the first case there will be no light loss and in the
-second we will assume that any light loss is neglible (to maximize |MR|).
+second we will assume that any light loss is neglible (to maximize \.{MR}).
 
 The second case is perhaps over-simplified.  Obviously for a fixed thickness
 as the albedo increases, the reflectance will increase.  So how does |U_Find_B()|

@@ -620,7 +620,7 @@ albedo).
 
 	@<Get the initial |a|, |b|, and |g|@>@;
 	@<Initialize the nodes of the |b| and |g| simplex@>@;
-	@<Evaluate the |bg| simplex at the nodes@>@;
+	@<Evaluate the \\{bg} simplex at the nodes@>@;
 	amoeba(p, y, 2, r->tolerance, Find_BG_fn, &r->iterations);
 	@<Choose the best node of the |b| and |g| simplex@>@;
 
@@ -673,7 +673,7 @@ are fixed.
 	}
 }
 
-@ @<Evaluate the |bg| simplex at the nodes@>=
+@ @<Evaluate the \\{bg} simplex at the nodes@>=
 
   for (i = 1; i <= 3; i++) {
       x[1] = p[i][1];
@@ -715,7 +715,7 @@ $b$.
 	Set_Calc_State(m, *r);
 	@<Get the initial |a|, |b|, and |g|@>@;
 	@<Initialize the nodes of the |ba| and |g| simplex@>@;
-	@<Evaluate the |BaG| simplex at the nodes@>@;
+	@<Evaluate the \\{BaG} simplex at the nodes@>@;
 	amoeba(p, y, 2, r->tolerance, Find_BaG_fn, &r->iterations);
 	@<Choose the best node of the |ba| and |g| simplex@>@;
 
@@ -739,7 +739,7 @@ $b$.
 	p[2][2] = p[1][2];
 	p[3][2] = g2gcalc(0.9*guess[0].g+0.05);
 
-@ @<Evaluate the |BaG| simplex at the nodes@>=
+@ @<Evaluate the \\{BaG} simplex at the nodes@>=
 
   for (i = 1; i <= 3; i++) {
       x[1] = p[i][1];
@@ -791,7 +791,7 @@ $b$.
 	Set_Calc_State(m, *r);
 	@<Get the initial |a|, |b|, and |g|@>@;
 	@<Initialize the nodes of the |bs| and |g| simplex@>@;
-	@<Evaluate the |BsG| simplex at the nodes@>@;
+	@<Evaluate the \\{BsG} simplex at the nodes@>@;
 	amoeba(p, y, 2, r->tolerance, Find_BsG_fn, &r->iterations);
 	@<Choose the best node of the |bs| and |g| simplex@>@;
 
@@ -811,7 +811,7 @@ $b$.
 	p[3][2] = g2gcalc(0.9*guess[0].g+0.05);
 
 
-@ @<Evaluate the |BsG| simplex at the nodes@>=
+@ @<Evaluate the \\{BsG} simplex at the nodes@>=
 
   for (i = 1; i <= 3; i++) {
       x[1] = p[i][1];

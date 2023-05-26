@@ -151,4 +151,5 @@
 @$qsort "<stdlib.h>" \zip@>
 @$optarg "<unistd.h>" \zip@>
 @$optind "<unistd.h>" \zip@>
+@$isdigit "<ctype.h>" \zip@>
 @$isspace "<ctype.h>" \zip@>

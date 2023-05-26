@@ -105,6 +105,9 @@ $b=(\mu_a+\mu_s) d$, and the average cosine of the phase function by |g|.
 The phase function of the slab is restricted to just isotropic and Henyey-Greenstein
 phase functions at the moment.
 
+@s AD_slab_type int
+@s AD_method_type int
+
 @<Types to export from AD Globals@>=
 
 typedef struct AD_slab_type {

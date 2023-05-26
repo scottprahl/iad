@@ -754,7 +754,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
         fprintf(stderr, "Filling AB grid\n");
         
     if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero |GG|@>@;
+    @<Zero \\{GG}@>@;
 
     Set_Calc_State(m,r);
         
@@ -855,7 +855,7 @@ double a;
         fprintf(stderr, "Filling AG grid\n");
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero |GG|@>@;
+    @<Zero \\{GG}@>@;
         
     Set_Calc_State(m,r);
     GG_b=r.slab.b;
@@ -872,7 +872,7 @@ The_Grid_Initialized=TRUE;
 The_Grid_Search = FIND_AG;
 }
 
-@   @<Zero |GG|@>=
+@   @<Zero \\{GG}@>=
 GG_a = 0.0;
 GG_b = 0.0;
 GG_g = 0.0;
@@ -896,7 +896,7 @@ void Fill_BG_Grid(struct measure_type m, struct invert_type r)
 int i,j;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero |GG|@>@;
+    @<Zero \\{GG}@>@;
     
     if (Debug(Debug(DEBUG_GRID))) 
         fprintf(stderr, "Filling BG grid\n");
@@ -933,7 +933,7 @@ int i,j;
 double bs, ba;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero |GG|@>@;
+    @<Zero \\{GG}@>@;
 
     if (Debug(Debug(DEBUG_GRID))) 
         fprintf(stderr, "Filling BaG grid\n");
@@ -972,7 +972,7 @@ int i,j;
 double bs, ba;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero |GG|@>@;
+    @<Zero \\{GG}@>@;
     
     Set_Calc_State(m,r);
     bs = 1.0/32.0;
@@ -1102,7 +1102,7 @@ double Calculate_Grid_Distance(int i, int j)
 }
 
 @ This is the routine that actually finds the distance.  I have factored
-this part out so that it can be used in the |Near_Grid_Point| routine.
+this part out so that it can be used in the |Near_Grid_Points| routine.
 
 |Rc| and |Tc| refer to the unscattered (collimated) reflection and transmission.  
 
@@ -1585,6 +1585,21 @@ void Max_Light_Loss(struct measure_type m, struct invert_type r,
 @ this is currently unused
 
 @<Unused diffusion fragment@>=
+typedef struct {
+  double f;
+  double aprime;
+  double bprime;
+  double gprime;
+  double boundary_method;
+  double n_top;
+  double n_bottom;
+  double slide_top;
+  double slide_bottom;
+  double F0;
+  double depth;
+  double Exact_coll_flag;
+} slabtype;
+@#
 static void DE_RT(int nfluxes, AD_slab_type slab, 
 double *UR1, double *UT1, double *URU, double *UTU)
 {
