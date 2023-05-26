@@ -47,7 +47,7 @@ int main (int argc, char **argv){
     
     if (argc == 1) {
         print_usage();
-        exit(0);
+        exit(EXIT_FAILURE);
     }
 
     @<Handle options@>@;
@@ -64,7 +64,7 @@ int main (int argc, char **argv){
         @<Put optical properties into |slab|@>@;
         @<Calculate and Print the Results@>@;
     }   
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 @ @<Declare variables for |main|@>=
@@ -226,14 +226,14 @@ of the bottom slide.  The slides are assumed to have no absorption.
     if (argc > 1) {
         fprintf(stderr, "Only a single file can be processed at a time\n");
         fprintf(stderr, "try 'apply ad file1 file2 ... fileN'\n");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
 
     if (argc == 1 && strcmp(argv[0],"-")!=0) {  /* filename exists and != "-" */
 
         if (freopen(argv[0],"r",stdin)==NULL) {
             fprintf(stderr, "Could not open file '%s'\n", argv[0]);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
 
         if (g_out_name==NULL)
@@ -247,7 +247,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
     if (g_out_name!=NULL) {
         if (freopen(g_out_name,"w",stdout)==NULL) {
             fprintf(stderr, "Could not open file <%s> for output", g_out_name);
-            exit(1);
+            exit(EXIT_FAILURE);
         }
     }
 
@@ -261,7 +261,7 @@ static void print_version(void)
     fprintf(stderr, "This is free software; see the source for copying conditions.\n");
     fprintf(stderr, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
     fprintf(stderr, "FOR A PARTICULAR PURPOSE.\n");
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 @ @<print usage function@>=
@@ -303,7 +303,7 @@ static void print_usage(void)
     fprintf(stderr, "    8) bbottomslide = optical depth of bottom slide (for IR)\n");
     fprintf(stderr, "    9) q = number of quadrature points\n\n");
     fprintf(stderr, "Report bugs to <scott.prahl@@oit.edu>\n\n");
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 @ returns a new string consisting of s+t

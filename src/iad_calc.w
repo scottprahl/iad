@@ -1333,7 +1333,7 @@ both.  The albedo stuff might be able to be take out.  We'll see.
   this file interact properly.  
   
 @<Print diagnostics@>=
-if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) ||
+if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || @|
     (Debug(DEBUG_GRID_CALC)  &&  CALCULATING_GRID)) {
     static int once = 0;
         

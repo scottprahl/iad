@@ -49,8 +49,8 @@ a boundary.
 @d BOTTOM_BOUNDARY 1
 
 @<Prototype for |Init_Boundary|@>=
-void Init_Boundary(struct AD_slab_type slab, int n, @/
-double *R01, double *R10, double *T01, double *T10, @/
+void Init_Boundary(struct AD_slab_type slab, int n, @|
+double *R01, double *R10, double *T01, double *T10, @|
                    char boundary)
 
 @ @<Definition for |Init_Boundary|@>=
@@ -81,7 +81,7 @@ double *R01, double *R10, double *T01, double *T10, @/
    case then the angle inside the medium must be figured out.
    
 @ @<Prototype for |Boundary_RT|@>=
-void Boundary_RT(double n_i, double n_g, double n_t, int n, double b, @/
+void Boundary_RT(double n_i, double n_g, double n_t, int n, double b, @|
                  double *R, double *T)
 
 @ @<Definition for |Boundary_RT|@>=
@@ -128,8 +128,8 @@ R_{20}=T_{12} (E-R_{10}R_{12})^{-1} R_{10} T_{21} + R_{21}
 $$
 
 @<Prototype for |A_Add_Slide|@>=
-static void A_Add_Slide(int n, double **R12, double **R21, double **T12, double **T21, @/
-double *R10, double *T01, double **R20, double **T02, @/
+static void A_Add_Slide(int n, double **R12, double **R21, double **T12, double **T21, @|
+double *R10, double *T01, double **R20, double **T02, @|
 double **atemp, double **btemp)
 
 @ @<Definition for |A_Add_Slide|@>=
@@ -164,9 +164,9 @@ R_{02}=T_{10} (E-R_{12}R_{10})^{-1} R_{12} T_{01} + R_{01}
 $$
 
 @<Prototype for |B_Add_Slide|@>=
-static void B_Add_Slide(int n, double **R12, double **T21, @/
-double *R01, double *R10, double *T01, double *T10, @/
-double **R02, double **T20, @/
+static void B_Add_Slide(int n, double **R12, double **T21, @|
+double *R01, double *R10, double *T01, double *T10, @|
+double **R02, double **T20, @|
 double **atemp, double **btemp)
 
 
@@ -202,9 +202,9 @@ $$\vbox{
 }$$
 
 @<Prototype for |Add_Top|@>=
-void Add_Top(int n, double *R01, double *R10, double *T01, double *T10, @/
-                       double **R12, double **R21, double **T12, double **T21, @/
-                       double **R02, double **R20, double **T02, double **T20, @/
+void Add_Top(int n, double *R01, double *R10, double *T01, double *T10, @|
+                       double **R12, double **R21, double **T12, double **T21, @|
+                       double **R02, double **R20, double **T02, double **T20, @|
                        double **atemp, double **btemp)
 
 @
@@ -227,9 +227,9 @@ $$\vbox{
 }$$
 
 @<Prototype for |Add_Bottom|@>=
-void Add_Bottom(int n, double **R01, double **R10, double **T01, double **T10, @/
-                          double *R12, double *R21, double *T12, double *T21, @/
-                          double **R02, double **R20, double **T02, double **T20, @/
+void Add_Bottom(int n, double **R01, double **R10, double **T01, double **T10, @|
+                          double *R12, double *R21, double *T12, double *T21, @|
+                          double **R02, double **R20, double **T02, double **T20, @|
                           double **atemp, double **btemp)
 
 @
@@ -294,9 +294,9 @@ reflection and transmission operators for an interface, since most matrix/matrix
 multiplications above become vector/matrix multiplications.
 
 @<Prototype for |Add_Slides|@>=
-void Add_Slides(int n, double *R01, double *R10, double *T01, double *T10, @/
-                          double **R, double **T, @/
-                          double **R_total, double **T_total, @/
+void Add_Slides(int n, double *R01, double *R10, double *T01, double *T10, @|
+                          double **R, double **T, @|
+                          double **R_total, double **T_total, @|
                           double **atemp, double **btemp)
                           
 @ 
