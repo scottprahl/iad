@@ -3,8 +3,7 @@
 [![GitHub Code](https://img.shields.io/badge/github-code-green.svg)](https://github.com/scottprahl/iad)
 [![MIT License](https://img.shields.io/badge/MIT-license-yellow.svg)](https://github.com/scottprahl/miepython/blob/master/LICENSE.txt)
 [![GitHub Actions](https://github.com/scottprahl/iad/actions/workflows/make.yml/badge.svg)](https://github.com/scottprahl/iad/actions/workflows/make.yml)
-[![version](https://img.shields.io/github/v/release/scottprahl/iad.git)](https://img.shields.io/github/v/tag/scottprahl/iad)
-
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/scottprahl/iad?label=version)
 
 by Scott Prahl
 
