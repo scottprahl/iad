@@ -67,7 +67,7 @@ ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o mygetopt.o version.o
 	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
 
 ad_doc: ad.w
-	cweave -bph ad
+	cweave -bph ad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex ad
 	qpdf ad.pdf --pages ad.pdf 121-122 ad.pdf 1-120 -- ad2.pdf
 	mv ad2.pdf ../doc/ad_src.pdf
@@ -87,7 +87,7 @@ ad_doc: ad.w
 #	rm -f src/ad_body.pdf src/ad_toc.pdf src/ad_index.pdf src/ad.pdf
 
 iad_doc: iad.w
-	cweave -bph iad
+	cweave -bph iad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex iad
 	qpdf iad.pdf --pages iad.pdf 134 iad.pdf 1-133 -- iad2.pdf
 	mv iad2.pdf ../doc/iad_src.pdf

@@ -15,7 +15,7 @@ This program [Prahl et al., *Applied Optics*, **32**, 559-568, 1993](https://oml
 
 Finally, integrating spheres do not always collect all the light that exits from the front or back surface of a sample.  Since this is impossible to account for the 1D adding-doubling technique, a Monte Carlo simulation is included in the inverse calculation.
 
-Details about using the program are documented in the accompanying [manual](https://github.com/scottprahl/iad/blob/master/doc/manual.pdf).
+Details about using the program are documented in the accompanying [manual](/doc/manual.pdf).
 
 ## INSTALLATION
 
@@ -24,7 +24,7 @@ In principle, in a unix environment you should be able to just type
     make install
 
 to create and install executable versions of the `ad` and `iad` programs.  See
-[INSTALL.md](https://github.com/scottprahl/iad/blob/master/INSTALL.md) for more details. Then run
+[INSTALL.md](/INSTALL.md) for more details. Then run
 
     iad test/basic-A.rxt
 

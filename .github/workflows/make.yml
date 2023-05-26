@@ -1,0 +1,51 @@
+name: Make
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Download GitHub repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+
+    - name: Build
+      run: make
+
+    - name: Run short test (no automated verification)
+      run: make shorttest
+
+    - name: Run long test (no automated verification)
+      run: make longtest
+
+  build-docs:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download GitHub repository
+      uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Install required doc tools
+      run:  |
+        sudo apt install -y texlive texlive-extra-utils texlive-latex-extra qpdf
+
+    - name: Build docs
+      run: make doc
+
+    - name: Upload generated docs artefacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: generated-docs
+        path: |
+          doc/ad_src.pdf
+          doc/iad_src.pdf
+          doc/manual.pdf
+

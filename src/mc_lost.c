@@ -25,7 +25,7 @@ unsigned long kiss_y=362436000;
 unsigned long kiss_z=521288629;
 unsigned long kiss_c=7654321;
  
-unsigned long kiss_rand()
+unsigned long kiss_rand(void)
 {
     unsigned long long t, a=698769069ULL;
     
