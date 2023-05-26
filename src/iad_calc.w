@@ -1,4 +1,4 @@
-@*1 IAD Calculation.
+@** IAD Calculation.
 
 \def\rdirect{r_s^{\hbox{\sevenrm{} direct}}}
 \def\tdirect{t_s^{\hbox{\sevenrm{} direct}}}
@@ -130,7 +130,7 @@ static boolean_type The_Grid_Search = -1;
     @<Prototype for |Max_Light_Loss|@>;
 
 
-@*2 Initialization.
+@*1 Initialization.
 
 The functions in this file assume that the local variables |MM| and |RR|
 have been initialized appropriately.  The variable |MM| contains all the 
@@ -141,7 +141,7 @@ as well as the number of quadrature points.
 history
 6/8/94 changed error output to |stderr|.
 
-@*2 Gain.
+@*1 Gain.
 
 Assume that a sphere is illuminated with diffuse light having a power
 $P$. 
@@ -384,7 +384,7 @@ double Two_Sphere_T(struct measure_type m,
     return x;
 }
 
-@*2 Grid Routines.
+@*1 Grid Routines.
 There is a long story associated with these routines.  I spent a lot of time 
 trying to find an empirical function to allow a guess at a starting value for
 the inversion routine.  Basically nothing worked very well.  There were 
@@ -1031,7 +1031,7 @@ void Fill_Grid(struct measure_type m, struct invert_type r, int force_new)
     Get_Calc_State(&MGRID, &RGRID);
 }
 
-@*2 Calculating R and T.
+@*1 Calculating R and T.
 
 
 |Calculate_Distance| returns the distance between the measured

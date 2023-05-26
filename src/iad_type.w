@@ -1,4 +1,4 @@
-@*1 IAD Types.
+@** IAD Types.
 This file has no routines.  It is responsible for creating
 the header file \.{iad\_type.h} and nothing else.
 Altered 3/3/95 to change the version number below.

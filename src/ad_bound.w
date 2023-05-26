@@ -1,4 +1,4 @@
-@*1 AD Boundary.
+@** AD Boundary.
 
 This section has routines associated with incorporating 
 boundary conditions into the adding-doubling algorithm.
@@ -34,7 +34,7 @@ boundary conditions into the adding-doubling algorithm.
     @<Prototype for |Add_Slides|@>;
     @<Prototype for |Sp_RT|@>;
 
-@*2 Boundary Initialization.
+@*1 Boundary Initialization.
 
 @ |Init_Boundary| creates reflection and transmission matrices to simulate
 a boundary.
@@ -104,7 +104,7 @@ void Boundary_RT(double n_i, double n_g, double n_t, int n, double b, @|
 
 }
 
-@*2 Boundary incorporation algorithms.
+@*1 Boundary incorporation algorithms.
 
 The next two routines |A_Add_Slide| and |B_Add_Slide| are modifications of
 the full addition algorithms for dissimilar layers.  They are optimized to 
@@ -188,7 +188,7 @@ double **atemp, double **btemp)
     R02[i][i] += R01[i]/twoaw[i]/twoaw[i];
 }
 
-@*2 Routines to incorporate slides.
+@*1 Routines to incorporate slides.
 
 @ |Add_Top| calculates the reflection and transmission matrices for a slab
 with a boundary placed on top of it.
@@ -240,7 +240,7 @@ void Add_Bottom(int n, double **R01, double **R10, double **T01, double **T10, @
   B_Add_Slide(n, R10, T01, R21, R12, T21, T12, R20, T02, atemp, btemp);
 }
 
-@*2 Including identical slides.
+@*1 Including identical slides.
 |Add_Slides| is optimized for a slab with equal boundaries on each side.
 |Add_Slides| calculates the reflection and transmission matrices for 
 a slab with the same boundary placed
@@ -333,7 +333,7 @@ void Add_Slides(int n, double *R01, double *R10, double *T01, double *T10, @|
   }
 }
 
-@*2 Specular R and T.
+@*1 Specular R and T.
 
 |Sp_RT| calculates the specular reflection and transmission for light incident
 on a slide-slab-slide sandwich.   The sample is characterized by the 

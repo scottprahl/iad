@@ -1,4 +1,4 @@
-@*1 AD Start.
+@** AD Start.
 This has the routines for forming the initial matrix to start off an
 adding-doubling calculation.  
 
@@ -33,7 +33,7 @@ Added printing of intermediate results for Martin Hammer.
 	@<Prototype for |Init_Layer|@>;
 	@<Prototype for |Quadrature|@>;
 
-@*2 Basic routines.
+@*1 Basic routines.
 
 This file contains the three procedures which must be called before any doubling 
 may take place.  They should be called in the following order: 
@@ -89,7 +89,7 @@ and one that infinitely thick.
 	return d;
 }
 
-@*2 Quadrature.
+@*1 Quadrature.
 
 @ This returns the quadrature angles using Radau quadrature over the 
 interval 0 to 1 if there is no critical angle for total internal reflection
@@ -305,7 +305,7 @@ quadrature so that 1 will be included).
 	@<print angles@>@;
 
 
-@*2 Initialization.
+@*1 Initialization.
 
 The basic idea behind diamond initialization is to rewrite the 
 time-independent, one-dimensional, az\-i\-muth\-al\-ly av\-er\-aged, 
@@ -349,7 +349,7 @@ $$
 L_{1/2}(\nu)={1\over2} [L(\tau^*_0,\nu)+L(\tau^*_1,\nu)]
 $$
 
-@*2 Infinitesmal Generator Initialization.
+@*1 Infinitesmal Generator Initialization.
 
 @ |Get_IGI_Layer| generates the starting matrix with the inifinitesimal generator method.
 The accuracy is $O(d)$ and assumes that the average irradiance upwards is
@@ -415,7 +415,7 @@ static void Get_IGI_Layer(struct AD_method_type method, double **h, double **R, 
 	}
 }
 
-@*2 Diamond Initialization.
+@*1 Diamond Initialization.
 
 It should be noted up front that the implementation contained herein is
 somewhat cryptic.  Much of the complexity comes from using the tricks
@@ -698,7 +698,7 @@ print a warning if the thickness is too small.
 	free_dmatrix(G,1,n,1,n);
 	free_dmatrix(C,1,n,1,n);
 
-@*2 Layer Initialization.
+@*1 Layer Initialization.
 
 @ |Init_Layer| returns reflection and transmission matrices for a thin layer.
 Space must previously been allocated for |R| and |T|.

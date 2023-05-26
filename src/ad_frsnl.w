@@ -1,4 +1,4 @@
-@*1 AD Fresnel.
+@** AD Fresnel.
 This is a part of the core suite of files for the adding-doubling
 program.  Not surprisingly, this program includes routines to
 calculate Fresnel reflection.  
@@ -31,7 +31,7 @@ calculate Fresnel reflection.
     @<Prototype for |Diffuse_Glass_R|@>;
     @<Prototype for |Glass|@>;
 
-@*2 The critical angle.
+@*1 The critical angle.
 
  |Cos_Critical_Angle| calculates the cosine of the critical angle.
 If there is no critical angle then 0.0 is returned (i.e., $\cos(\pi/2)$).
@@ -71,7 +71,7 @@ where $n=n_t/n_i$.
     }
 }
 
-@*2 Snell's Law.
+@*1 Snell's Law.
 
 |Cos_Snell| returns the cosine of the angle that the light propagates through 
 a medium given the cosine of the angle of incidence and the indices of refraction.  
@@ -128,7 +128,7 @@ I also pretest for the common but trivial case of normal incidence.
             return (sqrt(temp));
 }
 
-@*2 Fresnel Reflection.
+@*1 Fresnel Reflection.
 
 |Fresnel| calculates the specular reflection for light incident at
 an angle $\theta_i$ from the normal (having a cosine equal to $\mu_i$) 
@@ -208,7 +208,7 @@ several intermediate variables.
     return ( (temp1*temp1+temp*temp)/2);
 }
 
-@*2 Reflection from a glass slide.
+@*1 Reflection from a glass slide.
 
 |Glass| calculates the total specular reflection (i.e., including
 multiple internal reflections) based on                  
@@ -267,7 +267,7 @@ Note that $\mu_g$ gets calculated twice
         return temp;
 }
 
-@*2 Reflection from an absorbing slide.
+@*1 Reflection from an absorbing slide.
 
 |Absorbing_Glass_RT| calculates the total specular reflection and transmission
 (i.e., including
@@ -341,7 +341,7 @@ I also check to make sure that the exponent is not too small.
 }
 
 
-@*2 Unscattered refl and trans for a sample.
+@*1 Unscattered refl and trans for a sample.
 
 @ |Sp_mu_RT_Flip| finds the reflectance to incorporate flipping of the sample.  This
 is needed when the sample is flipped between measurements.  
@@ -449,7 +449,7 @@ in the numerator of the fraction used to calculate the reflection.
         *t = t_bottom*temp/ denom;
   }
 
-@*2 Total diffuse reflection.
+@*1 Total diffuse reflection.
 
 |R1| calculates the first moment of the Fresnel reflectance using the analytic 
  solution of Walsh.
@@ -506,7 +506,7 @@ $$
         return (1 - (1 - r) / m2);
 }
 
-@*2 Diffusion reflection from a glass slide.
+@*1 Diffusion reflection from a glass slide.
 
 |Diffuse_Glass_R| returns the total diffuse specular reflection 
 from the air-glass-tissue interface

@@ -179,7 +179,7 @@ Add_Slides (int n, double *R01, double *R10, double *T01, double *T10,
 
 
 void
-Sp_RT (int n, struct AD_slab_type slab, double *ur1, double *ut1, double *uru,
+Sp_RT (int n, struct AD_slab_type slab, double *urx, double *utx, double *uru,
        double *utu)
 {
   double mu_outside, r, t;
@@ -203,7 +203,7 @@ Sp_RT (int n, struct AD_slab_type slab, double *ur1, double *ut1, double *uru,
 
   Sp_mu_RT (slab.n_top_slide, slab.n_slab, slab.n_bottom_slide,
 	    slab.b_top_slide, slab.b, slab.b_bottom_slide, slab.cos_angle,
-	    ur1, ut1);
+	    urx, utx);
 
   *uru *= slab.n_slab * slab.n_slab;
   *utu *= slab.n_slab * slab.n_slab;

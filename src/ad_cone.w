@@ -1,4 +1,4 @@
-@*1 AD Cone.
+@** AD Cone.
 This file provides routines to obtain reflection and transmission values 
 returning within a cone assuming normal illumination.
 
@@ -28,7 +28,7 @@ returning within a cone assuming normal illumination.
     @<Prototype for |ez_RT_Cone|@>;
     @<Prototype for |ez_RT_Oblique|@>;
 
-@*2 RT Cone.
+@*1 RT Cone.
 Sometimes you just need to know the total reflection and transmission from a
 target within a specified cone of angles.  For example, you might want to test
 a Monte Carlo implementation of fiber illumination.  The way that this works is

@@ -1,4 +1,4 @@
-@*1 IAD Public.
+@** IAD Public.
 
 This contains the routine |Inverse_RT| that should generally be
 the basic entry point into this whole mess.  Call this routine with
@@ -61,7 +61,7 @@ header files as well.
     @<Prototype for |Spheres_Inverse_RT|@>;
     @<Prototype for |Spheres_Inverse_RT2|@>;
 
-@*2 Inverse RT.
+@*1 Inverse RT.
 |Inverse_RT| is the main function in this whole package.
 You pass the variable |m| containing
 your experimentally measured values to the function
@@ -147,7 +147,7 @@ switch (r->search){
 if (r->iterations==IAD_MAX_ITERATIONS)
     r->error=IAD_TOO_MANY_ITERATIONS;
 
-@*2 Validation.
+@*1 Validation.
 
 @ Now the question is --- just what is bad data?  Here's the prototype.
 
@@ -320,7 +320,7 @@ zero and |M_T|
     if (m.f_t < 0 || m.f_t > 1) 
         return IAD_F_NOT_VALID;
 
-@*2 Searching Method.  
+@*1 Searching Method.  
 
 The original idea was that this routine would automatically determine
 what optical parameters could be figured out from the input data.  This
@@ -564,7 +564,7 @@ values into this record as well.
     r->method.quad_pts=8;
     r->method.b_thinnest = 1.0/32.0;
 
-@*2 EZ Inverse RT.
+@*1 EZ Inverse RT.
 |ez_Inverse_RT| is a simple interface to the main function |Inverse_RT|
 in this package.  It eliminates the need for complicated data structures
 so that the command line interface (as well as those to Perl and Mathematica)

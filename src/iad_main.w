@@ -1,6 +1,6 @@
-@** Main Program.
+@** \.{iad} program.
 
-Here is a relatively robust command line utility that shows how
+Here is a relatively robust command-line utility that shows how
 the iad and ad subroutines might be called.  It suffers because
 it is written in \.{CWEB} and I used the macro expansion feature
 instead of creating separate functions.  Oh well.  

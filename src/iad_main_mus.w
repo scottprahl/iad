@@ -1,4 +1,4 @@
-@** Main Program.
+@** Simple command-line shell program.
 
 Here is a quick skeleton that I put together to show how the
 inverse adding-doubling code works.  I have only cursorily tested

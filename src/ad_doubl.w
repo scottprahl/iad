@@ -1,4 +1,4 @@
-@*1 AD Double.
+@** AD Double.
 This has the routines needed to add layers together in various combinations.
 
 \def\bfr{{\bf R}}
@@ -38,7 +38,7 @@ This has the routines needed to add layers together in various combinations.
     @<Prototype for |Double_Until_Infinite|@>;
     @<Prototype for |Between|@>;
 
-@*2 Basic Routine to Add Layers Without Sources.
+@*1 Basic Routine to Add Layers Without Sources.
 
 The basic equations for the adding-doubling method (neglecting sources) are
 $$
@@ -112,7 +112,7 @@ static void Basic_Add_Layers(int n,
   Matrix_Multiply(n, b, a, T02);
 }
 
-@*2 Basic Routine to Add Layers With Sources.
+@*1 Basic Routine to Add Layers With Sources.
 
 The adding-doubling equations including source terms $\bfJ$ are identical to 
 those given above for the reflection and transmission.  The only difference is
@@ -178,7 +178,7 @@ static void Basic_Add_Layers_With_Sources(int n,
   Matrix_Sum(n,J02,J12,J02);
 }
 
-@*2 Higher level routines.
+@*1 Higher level routines.
 
 @
 @<Prototype for |Add|@>=
@@ -323,7 +323,7 @@ void Double_Until_Infinite(int n, double **r, double **t)
 
 }
 
-@*2 Internal Radiance.
+@*1 Internal Radiance.
 
 |Between| finds the radiance between two slabs.
 This equation for the upward radiance at the interface between two layers 
@@ -372,7 +372,7 @@ void Between(int n,
   @<Free Memory for |a| and |b|@>@;
 }
 
-@*2 Utility routines.
+@*1 Utility routines.
 
 @ Star matrix multiplication $A \star B$ is defined to directly correspond to an 
 integration, i.e.

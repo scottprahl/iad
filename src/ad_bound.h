@@ -27,5 +27,5 @@ void Add_Slides (int n, double *R01, double *R10, double *T01, double *T10,
 		 double **R_total, double **T_total,
 		 double **atemp, double **btemp);
 
-void Sp_RT (int n, struct AD_slab_type slab, double *ur1, double *ut1,
+void Sp_RT (int n, struct AD_slab_type slab, double *urx, double *utx,
 	    double *uru, double *utu);

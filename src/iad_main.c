@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <ctype.h>
@@ -34,9 +35,6 @@
 #include "mc_lost.h"
 #include "ad_frsnl.h"
 
-extern char *optarg;
-extern int optind;
-
 
 
 
@@ -52,7 +50,7 @@ print_version (void)
   fprintf (stderr,
 	   "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
   fprintf (stderr, "FOR A PARTICULAR PURPOSE.\n");
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 
@@ -179,7 +177,7 @@ Assume M_T includes 80%% of unscattered transmittance\n");
 	   "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
   fprintf (stderr, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
   fprintf (stderr, "Report bugs to <scott.prahl@oit.edu>\n\n");
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 
@@ -556,7 +554,7 @@ main (int argc, char **argv)
 	    {
 	      fprintf (stderr,
 		       "required: 0 <= fraction of unscattered refl. in M_R <= 1\n");
-	      exit (0);
+	      exit (EXIT_SUCCESS);
 	    }
 	  break;
 
@@ -566,7 +564,7 @@ main (int argc, char **argv)
 	    {
 	      fprintf (stderr,
 		       "required: 0 <= fraction of unscattered trans. in M_T <= 1\n");
-	      exit (0);
+	      exit (EXIT_SUCCESS);
 	    }
 	  break;
 
@@ -612,7 +610,7 @@ main (int argc, char **argv)
 		       " -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
 	      fprintf (stderr,
 		       " -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
-	      exit (1);
+	      exit (EXIT_FAILURE);
 	    }
 
 	  if (cc == 'R' || cc == 'r')
@@ -650,7 +648,7 @@ main (int argc, char **argv)
 		       "    'n' --- slide always closest to sphere\n");
 	      fprintf (stderr,
 		       "    'f' --- slide always farthest from sphere\n");
-	      exit (1);
+	      exit (EXIT_FAILURE);
 	    }
 	  break;
 
@@ -689,14 +687,14 @@ main (int argc, char **argv)
 	    {
 	      fprintf (stderr,
 		       "Number of quadrature points must be a multiple of 4\n");
-	      exit (1);
+	      exit (EXIT_FAILURE);
 	    }
 	  if ((cl_cos_angle != UNINITIALIZED)
 	      && (cl_quadrature_points % 12 != 0))
 	    {
 	      fprintf (stderr,
 		       "Quadrature must be 12, 24, 36,... for oblique incidence\n");
-	      exit (1);
+	      exit (EXIT_FAILURE);
 	    }
 	  break;
 
@@ -783,7 +781,7 @@ main (int argc, char **argv)
 		   "If you use the -i option to specify an oblique incidence angle, then\n");
 	  fprintf (stderr,
 		   "the number of quadrature points must be a multiple of 12\n");
-	  exit (0);
+	  exit (EXIT_SUCCESS);
 	}
     }
 
@@ -1050,7 +1048,7 @@ main (int argc, char **argv)
       }
 
 
-      return 0;
+      return EXIT_SUCCESS;
     }
 
 
@@ -1058,7 +1056,7 @@ main (int argc, char **argv)
     {
       fprintf (stderr, "Only a single file can be processed at a time\n");
       fprintf (stderr, "try 'apply iad file1 file2 ... fileN'\n");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 
   if (argc == 1 && strcmp (argv[0], "-") != 0)
@@ -1078,7 +1076,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr, "Could not open either '%s' or '%s'\n",
 		   argv[0], rt_name);
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
 
       if (g_out_name == NULL)
@@ -1095,7 +1093,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr, "Could not open file '%s' for output\n",
 		   g_out_name);
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
     }
 
@@ -1215,7 +1213,7 @@ main (int argc, char **argv)
 	    fprintf (stderr,
 		     "with the knowledge that only the beam diameter and sample port\n");
 	    fprintf (stderr, "diameter are worth obsessing over.\n");
-	    exit (0);
+	    exit (EXIT_SUCCESS);
 	  }
 
 
@@ -1314,7 +1312,7 @@ main (int argc, char **argv)
       }
 
 
-      return 0;
+      return EXIT_SUCCESS;
     }
 
   if (Read_Header (stdin, &m, &params) == 0)
@@ -1336,7 +1334,7 @@ main (int argc, char **argv)
 			   "If you use the -i option to specify an oblique incidence angle, then\n");
 		  fprintf (stderr,
 			   "the number of quadrature points must be a multiple of 12\n");
-		  exit (0);
+		  exit (EXIT_SUCCESS);
 		}
 	    }
 
@@ -1576,7 +1574,7 @@ main (int argc, char **argv)
 		fprintf (stderr,
 			 "with the knowledge that only the beam diameter and sample port\n");
 		fprintf (stderr, "diameter are worth obsessing over.\n");
-		exit (0);
+		exit (EXIT_SUCCESS);
 	      }
 
 
@@ -1683,5 +1681,5 @@ main (int argc, char **argv)
     fprintf (stderr, "\n\n");
   if (any_error && cl_verbosity > 1)
     print_error_legend ();
-  return 0;
+  return EXIT_SUCCESS;
 }

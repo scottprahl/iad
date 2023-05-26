@@ -4,14 +4,12 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <unistd.h>
 #include "ad_globl.h"
 #include "ad_prime.h"
 #include "ad_cone.h"
 #include "mygetopt.h"
 #include "version.h"
-
-extern char *optarg;
-extern int optind;
 
 
 
@@ -26,7 +24,7 @@ print_version (void)
   fprintf (stderr,
 	   "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
   fprintf (stderr, "FOR A PARTICULAR PURPOSE.\n");
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 
@@ -85,7 +83,7 @@ print_usage (void)
 	   "    8) bbottomslide = optical depth of bottom slide (for IR)\n");
   fprintf (stderr, "    9) q = number of quadrature points\n\n");
   fprintf (stderr, "Report bugs to <scott.prahl@oit.edu>\n\n");
-  exit (0);
+  exit (EXIT_SUCCESS);
 }
 
 
@@ -213,7 +211,7 @@ main (int argc, char **argv)
   if (argc == 1)
     {
       print_usage ();
-      exit (0);
+      exit (EXIT_FAILURE);
     }
 
 
@@ -299,7 +297,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr, "Only a single file can be processed at a time\n");
 	  fprintf (stderr, "try 'apply ad file1 file2 ... fileN'\n");
-	  exit (1);
+	  exit (EXIT_FAILURE);
 	}
 
       if (argc == 1 && strcmp (argv[0], "-") != 0)
@@ -308,7 +306,7 @@ main (int argc, char **argv)
 	  if (freopen (argv[0], "r", stdin) == NULL)
 	    {
 	      fprintf (stderr, "Could not open file '%s'\n", argv[0]);
-	      exit (1);
+	      exit (EXIT_FAILURE);
 	    }
 
 	  if (g_out_name == NULL)
@@ -324,7 +322,7 @@ main (int argc, char **argv)
 	    {
 	      fprintf (stderr, "Could not open file <%s> for output",
 		       g_out_name);
-	      exit (1);
+	      exit (EXIT_FAILURE);
 	    }
 	}
 
@@ -425,5 +423,5 @@ main (int argc, char **argv)
 
 
     }
-  return 0;
+  return EXIT_SUCCESS;
 }

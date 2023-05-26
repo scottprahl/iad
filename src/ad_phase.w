@@ -1,4 +1,4 @@
-@*1 AD Phase Function.
+@** AD Phase Function.
 This section contains all the routines associated with generating
 the necessary matrices for Henyey-Greenstein phase functions.
 This is the place to put code to implement other phase functions.
@@ -19,7 +19,7 @@ This is the place to put code to implement other phase functions.
 @ @(ad_phase.h@>=
 	@<Prototype for |Get_Phi|@>;
 
-@*2 Redistribution function.
+@*1 Redistribution function.
 The single scattering phase function $p(\nu)$ for a tissue determines the
 amount of light scattered at an angle $\nu=\cos\theta$ from the direction of
 incidence.  The

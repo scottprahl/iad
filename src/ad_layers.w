@@ -1,4 +1,4 @@
-@*1 AD Layers.
+@** AD Layers.
 This file provides routines to obtain reflection and transmission values for
 normal illumination of several multiple scattering and absorbing layers.
 
@@ -21,7 +21,7 @@ normal illumination of several multiple scattering and absorbing layers.
 	@<Prototype for |RT_Layers|@>;
 	@<Prototype for |RT_Layers_All|@>;
 
-@*2 RT Layers.
+@*1 RT Layers.
 Sometimes you just need to know the total reflection and transmission from a
 target consisting of multiple layers.  This is the routine for you.  It adds
 a bunch of scattering and absorbing layers together which have the same index

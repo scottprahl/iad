@@ -1,4 +1,4 @@
-@*1 IAD Find.
+@** IAD Find.
 March 1995.  Incorporated the |quick_guess| algorithm for low albedos.
 @(iad_find.c@>=
 #include <math.h>
@@ -60,7 +60,7 @@ well.
 	@<Prototype for |U_Find_BaG|@>;
 	@<Prototype for |U_Find_BsG|@>;
 
-@*2 Fixed Anisotropy.
+@*1 Fixed Anisotropy.
 
 This is the most common case.
 
@@ -218,7 +218,7 @@ made in the analagous code for |a| and |b|.
 	free_dvector(y,1,3);
 	free_dmatrix(p,1,3,1,2);
 
-@*2 Fixed Absorption and Anisotropy.
+@*1 Fixed Absorption and Anisotropy.
 Typically, this routine is called when the absorption coefficient is
 known, the anisotropy is known, and the physical thickness of the sample
 is known.  This routine calculates the varies the scattering coefficient
@@ -280,7 +280,7 @@ value of |ba| or $d \cdot \mu_a$ when the |Find_Bs_fn| is used.
 	@<Put final values in result@>@;
 }
 
-@*2 Fixed Absorption and Scattering.
+@*1 Fixed Absorption and Scattering.
 Typically, this routine is called when the scattering coefficient is
 known, the anisotropy is known, and the physical thickness of the sample
 is known.  This routine calculates the varies the absorption coefficient
@@ -332,7 +332,7 @@ value of |bs| or $d \cdot \mu_s$ when the |Find_Ba_fn| is used.
 	@<Put final values in result@>@;
 }
 
-@*2 Fixed Optical Depth and Anisotropy.
+@*1 Fixed Optical Depth and Anisotropy.
 Typically, this routine is called when the optical thickness is assumed
 infinite.  However, it may also be called when the optical thickness is
 assumed to be fixed at a particular value.  Typically the only reasonable
@@ -383,7 +383,7 @@ is no sense even using it because the slab is not infinitely thick.
 	@<Put final values in result@>@;
 }
 
-@*2 Fixed Optical Depth and Albedo.
+@*1 Fixed Optical Depth and Albedo.
 
 @<Prototype for |U_Find_G|@>=
 	void U_Find_G(struct measure_type m, struct invert_type *r)
@@ -426,7 +426,7 @@ is no sense even using it because the slab is not infinitely thick.
 }
 
 
-@*2 Fixed Anisotropy and Albedo.
+@*1 Fixed Anisotropy and Albedo.
 This routine can be called in three different situations: (1) the albedo is
 zero, (2) the albedo is one, or (3) the albedo is fixed at a default value.
 I calculate the individual reflections and transmissions to establish
@@ -483,7 +483,7 @@ mess with it at the moment.
 }
 
 
-@*2 Fixed Optical Depth.
+@*1 Fixed Optical Depth.
 
 We can get here a couple of different ways.
 
@@ -595,7 +595,7 @@ simplex for later use if needed.
     }
 
 
-@*2 Fixed Albedo.
+@*1 Fixed Albedo.
 Here the optical depth and the anisotropy are varied (for a fixed
 albedo).
 
@@ -695,7 +695,7 @@ simplex for later use if needed.
 		}
     }
 
-@*2 Fixed Scattering.
+@*1 Fixed Scattering.
 Here I assume that a constant $b_s$,
 $$
 b_s = \mu_s d
@@ -762,7 +762,7 @@ simplex for later use if needed.
 		}
     }
 
-@*2 Fixed Absorption.
+@*1 Fixed Absorption.
 Here I assume that a constant $b_a$,
 $$
 b_a = \mu_a d

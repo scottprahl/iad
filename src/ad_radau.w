@@ -1,4 +1,4 @@
-@*1 AD Radau Quadrature.
+@** AD Radau Quadrature.
 
 This global variable is needed because the degree of the
 Legendre Polynomial must be known.  The routine |Radau| stores
@@ -31,7 +31,7 @@ the correct value in this.
 @ @(ad_radau.h@>=
 	@<Prototype for |Radau|@>;
 
-@*2 Introduction.
+@*1 Introduction.
 
 The adding-doubling method is based on numerical integration
 of functions using quadrature,
@@ -87,7 +87,7 @@ These roots are the required quadrature points for the integration range -1 to
 1.   The $n$th integration angle $\nu_n$ corresponds with $x_n=-1$ (normal
 incidence).
 
-@*2 Radau.
+@*1 Radau.
 |Radau| calculates the |n| quadrature points $x_i$ and weights $w_i$.
 
 @<Prototype for |Radau|@>=
@@ -422,7 +422,7 @@ double Pn, Pnm1;
 	return((Pn+Pnm1)/(1+x));
 }
 
-@*2 Radau Tables.
+@*1 Radau Tables.
 
 Here is a selection of commonly used number of quadrature points.
 

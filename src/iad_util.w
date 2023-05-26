@@ -1,4 +1,4 @@
-@*1 IAD Utilities.
+@** IAD Utilities.
 \def\sgn{\mathop{\rm sgn}\nolimits}
 
 March 1995.  Reincluded |quick_guess| code.
@@ -57,7 +57,7 @@ unsigned long g_util_debugging = 0;
 	@<Prototype for |Print_Measure_Type|@>;
 	
 
-@*2 Finding optical thickness.
+@*1 Finding optical thickness.
 
 This routine figures out what the optical thickness of a slab
 based on the index of refraction of the slab and the amount
@@ -193,7 +193,7 @@ double B;
     return (-slab.cos_angle*log(2 * Tc /(B+sqrt(B*B+ 4*Tc * Tc * r1 * r2))));
 }
 
-@*2 Estimating R and T.
+@*1 Estimating R and T.
 
 In several places, it is useful to know an {\it estimate\/} for the values of the
 reflection and transmission of the sample based on the measurements.  This
@@ -297,7 +297,7 @@ transmission from the total transmission.
         fprintf(stderr,"    est td = %.5f\n",*td);
     }
 
-@*2 Transforming properties.
+@*1 Transforming properties.
 Routines to convert optical properties to calculation space 
 and back.
 
@@ -537,7 +537,7 @@ void abgb2ag(double a1, double b1, double b2, double *a2, double *g2)
 		*g2 = (1 - b1 / b2) / (*a2);
 }
 
-@*2 Guessing an inverse.
+@*1 Guessing an inverse.
 
 This routine is not used anymore.
 
@@ -745,7 +745,7 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
   else if (*g >= 1)
     *g = 0.5;
 
-@*2 Some debugging stuff.
+@*1 Some debugging stuff.
 
 @ @<Prototype for |Set_Debugging|@>=
 	void Set_Debugging(unsigned long debug_level)

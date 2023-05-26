@@ -1,4 +1,4 @@
-@*1 IAD Input Output.
+@** IAD Input Output.
 
 The special define below is to get Visual C to suppress silly warnings.
 
@@ -26,7 +26,7 @@ The special define below is to get Visual C to suppress silly warnings.
 @<Prototype for |Write_Header|@>;
 @<Prototype for |Read_Data_Line|@>;
 
-@*2 Reading the file header.
+@*1 Reading the file header.
 
 @ @<Prototype for |Read_Header|@>=
 int Read_Header(FILE *fp, struct measure_type *m, int *params)
@@ -106,7 +106,7 @@ should do the trick.
 	m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
 }
 
-@*2 Reading just one line of a data file.
+@*1 Reading just one line of a data file.
 
 This reads a line of data based on the value of |params|.  
 
@@ -221,7 +221,7 @@ int check_magic(FILE *fp)
     return 0;
 }
 
-@*2 Formatting the header information.
+@*1 Formatting the header information.
 
 @<Prototype for |Write_Header|@>=
         void Write_Header(struct measure_type m, struct invert_type r, int params)

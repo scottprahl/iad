@@ -1,4 +1,4 @@
-@*1 AD Matrix.
+@** AD Matrix.
 
 This is a part of the core suite of files for the adding-doubling
 program.  Not surprisingly, this program includes routines to
@@ -57,7 +57,7 @@ available.
 	@<Prototype for |Left_Inverse_Multiply|@>;
 	@<Prototype for |Right_Inverse_Multiply|@>;
 
-@*2 Simple Matrix Routines.
+@*1 Simple Matrix Routines.
 
 @ |Copy_Matrix| replaces the matrix |B| by |A| 
 
@@ -183,7 +183,7 @@ void Matrix_Sum(int n, double **A, double **B, double **C)
 			C[i][j] = A[i][j] + B[i][j];
 }
 
-@*2 Matrix Multiplication.
+@*1 Matrix Multiplication.
 	This is the crux of this whole unit at present.  Most of the time in the 
 	adding-doubling algorithm is spent doing matrix multiplication and this
 	implementation has been optimized using pointers. 
@@ -343,7 +343,7 @@ void Matrix_Multiply(int n, double **A, double **B, double **C)
 	@<Free memory for |D|@>=
 	free_dvector(D,1,n);
 
-@*2 Matrix Decomposition.
+@*1 Matrix Decomposition.
 
 @ @<Prototype for |Decomp|@>=
 void Decomp(int n, double **A, double *condition, int *ipvt)
@@ -446,7 +446,7 @@ of the kth pivot row |ipvt(n) = (-1)|$^{\rm (number of interchanges)}$
 		}
 	}
 
-@*2 Solving systems of equations.
+@*1 Solving systems of equations.
 @
 @<Prototype for |Solve|@>=
 void Solve(int n, double **A, double *B, int *ipvt)

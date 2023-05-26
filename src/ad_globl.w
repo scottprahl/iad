@@ -1,4 +1,4 @@
-@*1 AD Global Variables.
+@** AD Global Variables.
 Global Routines and Variables.
 Changed version to reflect bug fix in the Fresnel routine section.
 
@@ -39,7 +39,7 @@ Revision May 1998 to improve |wrarray|.
 	@<Prototype for |wrmatrix|@>;
 	@<Prototype for |wrarray|@>;
 	
-@*2 Constants.
+@*1 Constants.
 
 This is Version 2.0.0 of the adding-doubling code.  (The inverse adding-doubling 
 code may have a different version number.)
@@ -92,7 +92,7 @@ after Martin Hammer who requested it.
 @d CONE      1
 @d OBLIQUE   0
 
-@*2 Types.
+@*1 Types.
 
 The fundamental structure for an adding-doubling calculation keeps all the
 details of the optical properties of the sample together.  The sample is
@@ -149,7 +149,7 @@ extern int Martin_Hammer;
 
 #endif
 
-@*2 Global routines.
+@*1 Global routines.
 My standard error handler
 @<Prototype for |AD_error|@>=
 void AD_error(char error_text[])

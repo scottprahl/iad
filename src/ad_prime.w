@@ -1,4 +1,4 @@
-@*1 AD Prime.
+@** AD Prime.
 This has the rather stupid name prime because I was at a loss for another.
 Currently this is poorly commented.  The fluence routine has not even been
 checked.  There may or may not be errors associated with the $n^2$-law 
@@ -37,7 +37,7 @@ in there.  It just needs to be checked.
     @<Prototype for |ez_RT|@>;
     @<Prototype for |ez_RT_unscattered|@>;
 
-@*2 R and T Matrix routines.
+@*1 R and T Matrix routines.
 This section contains the routine to calculate the reflection and transmission
 matrix for a scattering and absorbing slab.  Basically you just need to set the
 number of quadrature points |method->quad_pts| and the optical properties
@@ -83,7 +83,7 @@ double **R, double **T)
 }
 
 
-@*2 Total reflection and transmission.
+@*1 Total reflection and transmission.
 
 |RT| is the top level routine for accessing the adding-doubling algorithm.
 By passing the optical paramters characteristic of the slab, this routine will
@@ -252,7 +252,7 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
     free_dmatrix(R, 1, n, 1, n);
     free_dmatrix(T, 1, n, 1, n);
 
-@*2 Simple interfaces for Perl, Python, or Mathematica.
+@*1 Simple interfaces for Perl, Python, or Mathematica.
 
 |ez_RT| is a top level routine for accessing the adding-doubling algorithm.
 This routine was originally created so that I could make a Perl .xs module.  
@@ -286,7 +286,7 @@ struct AD_slab_type slab;
     RT(n, &slab, UR1, UT1, URU, UTU);
 }
 
-@*2 Unscattered reflection and transmission. 
+@*1 Unscattered reflection and transmission. 
                 
 |ez_RT_unscattered| is a top level routine for accessing the adding-doubling algorithm.
 This routine was created so that I could make a Perl module.  Since I did
@@ -321,7 +321,7 @@ struct AD_slab_type slab;
         Sp_RT(n, slab, UR1, UT1, URU, UTU);
 }       
 
-@*2 Including absorbing slides.
+@*1 Including absorbing slides.
 
 The idea is to create a function that includes absorption in the top
 and bottom slides.  This is done by creating two extra layers, finding
@@ -423,7 +423,7 @@ void RTabs(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *
     free_dmatrix(Rbottom, 1, n, 1, n);
     free_dmatrix(Tbottom, 1, n, 1, n);
 
-@*2 Flux and Fluence.
+@*1 Flux and Fluence.
 
 Calculates the flux and fluence at various depths between the
 optical depths |zmin| and |zmax| for a slab.  The number of values

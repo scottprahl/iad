@@ -1,4 +1,4 @@
-@*1 Main Program.
+@** Main Program.
 
 Here is a quick program that I put together on the 18th of July 1996 to calculate the change
 in reflection and transmission when a small change in the absorption
