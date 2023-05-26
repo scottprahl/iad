@@ -40,7 +40,7 @@ NR_OBJ	= src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnb
 
 MAIN = Makefile INSTALL.md README.md License
 
-DOCS =	doc/CHANGELOG        doc/ToDo.md	        doc/manual.tex      \
+DOCS =	doc/CHANGELOG.rst    doc/ToDo.md	        doc/manual.tex      \
 		doc/ad_src.pdf       doc/iad_src.pdf	       doc/manual.pdf      \
 		doc/ch3RTcorr.pdf    doc/ch3spheremeas.pdf     doc/ch3spheresR.pdf \
 		doc/ch3spheresT.pdf  doc/ch3Doublespheres.pdf  doc/colltrans.pdf   \

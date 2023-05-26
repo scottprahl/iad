@@ -24,13 +24,13 @@
 # now commit the new files
     git commit Makefile src/ad.w src/iad.w doc/ad_src.pdf doc/iad_src.pdf -m 'new version numbers'
 
-# update doc/CHANGELOG.txt  `git shortlog`
-    git commit -m 'update recent changes' CHANGELOG.txt
+# update doc/CHANGELOG.rst  `git log v3.12.0..HEAD --pretty=format:"%s"`
+    git commit -m 'update recent changes' CHANGELOG.rst
     git push
 
 # create release tag on github
-    git tag v3.10.3
-    git push origin v3.10.3
+    git tag v3.12.0
+    git push origin v3.12.0
 
 # edit release notes on github  
     open https://github.com/scottprahl/iad/releases/
