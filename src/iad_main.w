@@ -81,6 +81,7 @@ int main (int argc, char **argv)
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <ctype.h>
@@ -96,9 +97,6 @@ int main (int argc, char **argv)
 #include "version.h"
 #include "mc_lost.h"
 #include "ad_frsnl.h"
-
-extern char *optarg;
-extern int   optind;
 
 @ @<Declare variables for |main|@>=
   struct measure_type m;
