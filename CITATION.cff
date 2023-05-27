@@ -8,3 +8,21 @@ authors:
     orcid: 'https://orcid.org/0000-0003-1468-6851'
 doi: 10.5281/zenodo.102147394
 url: 'https://doi.org/10.5281/zenodo.102147394'
+
+preferred-citation:
+  type: article
+  authors:
+  - given-names: Scott
+    family-names: Prahl
+    orcid: 'https://orcid.org/0000-0003-1468-6851'
+  - given-names: Martin J. C.
+    family-names: van Gemert
+  - given-names: Ashley J.
+    family-names: Welch
+  doi: "https://opg.optica.org/ao/abstract.cfm?uri=ao-32-4-559"
+  journal: "Applied Optics"
+  start: 559
+  end: 568 
+  title: "Determining the optical properties of turbid media by using the adding-doubling method"
+  volume: 32
+  year: 1993
