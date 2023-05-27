@@ -1,7 +1,11 @@
 Changelog
 =========
 
-v3.12.0 (unreleased)
+v3.12.1 26 May 2023
+-------------------
+*   bump version to get zenodo links correct
+
+v3.12.0
 -------------------
 *   add continuous building (tvercat)
 *   improve cweave/ctwill processing (ascherer)
