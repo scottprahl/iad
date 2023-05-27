@@ -1,6 +1,6 @@
 cff-version: 1.2.0
-title: 'iad: Forward and Inverse Radiative Transport using the Adding-Doubling method'
-message: 'If you use this software, please cite it as below.'
+title: 'iad: C code for Forward and Inverse Radiative Transport using the Adding-Doubling method'
+message: 'Code is citable as below.  Article is  Prahl et al., Applied Optics, 32, 559-568, 1993.'
 
 authors:
   - given-names: Scott
@@ -8,21 +8,3 @@ authors:
     orcid: 'https://orcid.org/0000-0003-1468-6851'
 doi: 10.5281/zenodo.102147394
 url: 'https://doi.org/10.5281/zenodo.102147394'
-
-preferred-citation:
-  type: article
-  authors:
-  - given-names: Scott
-    family-names: Prahl
-    orcid: 'https://orcid.org/0000-0003-1468-6851'
-  - given-names: Martin J. C.
-    family-names: van Gemert
-  - given-names: Ashley J.
-    family-names: Welch
-  doi: "10.1364/AO.32.000559"
-  journal: "Applied Optics"
-  start: 559
-  end: 568 
-  title: "Determining the optical properties of turbid media by using the adding-doubling method"
-  volume: 32
-  year: 1993
