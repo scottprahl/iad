@@ -13,7 +13,7 @@
 
 
 int
-skip_white (FILE * fp)
+skip_white (FILE *fp)
 {
   int c = fgetc (fp);
 
@@ -40,7 +40,7 @@ skip_white (FILE * fp)
 
 
 int
-read_number (FILE * fp, double *x)
+read_number (FILE *fp, double *x)
 {
   if (skip_white (fp))
     return 1;
@@ -55,7 +55,7 @@ read_number (FILE * fp, double *x)
 
 
 int
-check_magic (FILE * fp)
+check_magic (FILE *fp)
 {
   char magic[] = "IAD1";
   int i, c;
@@ -82,7 +82,7 @@ check_magic (FILE * fp)
 
 
 int
-Read_Header (FILE * fp, struct measure_type *m, int *params)
+Read_Header (FILE *fp, struct measure_type *m, int *params)
 {
   double x;
   Initialize_Measure (m);
@@ -170,8 +170,10 @@ Read_Header (FILE * fp, struct measure_type *m, int *params)
 
 
 
+  fprintf (stderr, "here\n");
   if (read_number (fp, &x))
     return 1;
+  fprintf (stderr, "%d\n", (int) x);
   *params = (int) x;
   m->num_measures = (*params >= 3) ? 3 : *params;
 
@@ -393,7 +395,7 @@ Write_Header (struct measure_type m, struct invert_type r, int params)
 
 
 int
-Read_Data_Line (FILE * fp, struct measure_type *m, int params)
+Read_Data_Line (FILE *fp, struct measure_type *m, int params)
 {
   if (read_number (fp, &m->m_r))
     return 1;
@@ -402,6 +404,13 @@ Read_Data_Line (FILE * fp, struct measure_type *m, int params)
       m->lambda = m->m_r;
       if (read_number (fp, &m->m_r))
 	return 1;
+    }
+
+  if (params == -1)
+    {
+      m->m_t = m->m_r;
+      m->m_r = 0;
+      return 0;
     }
 
   if (params == 1)

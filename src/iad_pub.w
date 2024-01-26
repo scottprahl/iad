@@ -21,6 +21,7 @@ Note, it really doesn't help to change the method from
 #include "iad_find.h"
 #include "iad_pub.h"
 #include "iad_io.h"
+#include "stdlib.h"
 #include "mc_lost.h"
 
 @<Definition for |Inverse_RT|@>@;
@@ -371,7 +372,7 @@ optical properties to determine.
         independent--;
     }
         
-    if (independent == 1) {
+    if (independent == 1 || independent == -1) {
         @<One parameter search@>@;
     }
     

@@ -10,6 +10,7 @@
 #include "iad_find.h"
 #include "iad_pub.h"
 #include "iad_io.h"
+#include "stdlib.h"
 #include "mc_lost.h"
 
 
@@ -268,7 +269,7 @@ determine_search (struct measure_type m, struct invert_type r)
       independent--;
     }
 
-  if (independent == 1)
+  if (independent == 1 || independent == -1)
     {
 
       if (r.default_a != UNINITIALIZED)

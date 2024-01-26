@@ -603,7 +603,7 @@ Fill_BsG_Grid (struct measure_type m, struct invert_type r)
 
 
 void
-Grid_ABG (int i, int j, guess_type * guess)
+Grid_ABG (int i, int j, guess_type *guess)
 {
   if (0 <= i && i < GRID_SIZE && 0 <= j && j < GRID_SIZE)
     {
@@ -952,7 +952,7 @@ Calculate_Distance (double *M_R, double *M_T, double *deviation)
 
 
 void
-abg_distance (double a, double b, double g, guess_type * guess)
+abg_distance (double a, double b, double g, guess_type *guess)
 {
   double m_r, m_t, distance;
   struct measure_type old_mm;

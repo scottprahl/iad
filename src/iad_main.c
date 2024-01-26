@@ -43,7 +43,7 @@ static void
 print_version (void)
 {
   fprintf (stderr, "iad %s\n", Version);
-  fprintf (stderr, "Copyright 2020 Scott Prahl, scott.prahl@oit.edu\n");
+  fprintf (stderr, "Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu\n");
   fprintf (stderr, "          (see Applied Optics, 32:559-568, 1993)\n\n");
   fprintf (stderr,
 	   "This is free software; see the source for copying conditions.\n");
@@ -385,7 +385,7 @@ parse_string_into_array (char *s, double *a, int n)
 
 
 static void
-print_results_header (FILE * fp)
+print_results_header (FILE *fp)
 {
   fprintf (fp,
 	   "#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
@@ -412,7 +412,7 @@ print_results_header (FILE * fp)
 
 
 void
-print_optical_property_result (FILE * fp,
+print_optical_property_result (FILE *fp,
 			       struct measure_type m,
 			       struct invert_type r,
 			       double LR,
@@ -1318,6 +1318,7 @@ main (int argc, char **argv)
   if (Read_Header (stdin, &m, &params) == 0)
     {
       start_time = clock ();
+      fprintf (stderr, "%d\n", params);
       while (Read_Data_Line (stdin, &m, params) == 0)
 	{
 

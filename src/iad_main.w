@@ -52,6 +52,7 @@ int main (int argc, char **argv)
 
     if (Read_Header (stdin, &m, &params) == 0) {
         start_time = clock();
+        fprintf(stderr, "%d\n", params);
         while (Read_Data_Line (stdin, &m, params) == 0) {
             @<Command-line changes to |m|@>@;
             @<Calculate and write optical properties@>@;
@@ -934,7 +935,7 @@ properties can be determined.
 static void print_version(void)
 {
     fprintf(stderr, "iad %s\n",Version);
-    fprintf(stderr, "Copyright 2020 Scott Prahl, scott.prahl@@oit.edu\n");
+    fprintf(stderr, "Copyright 1993-2024 Scott Prahl, scott.prahl@@oit.edu\n");
     fprintf(stderr, "          (see Applied Optics, 32:559-568, 1993)\n\n");
     fprintf(stderr, "This is free software; see the source for copying conditions.\n");
     fprintf(stderr, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
