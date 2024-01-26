@@ -52,7 +52,6 @@ int main (int argc, char **argv)
 
     if (Read_Header (stdin, &m, &params) == 0) {
         start_time = clock();
-        fprintf(stderr, "%d\n", params);
         while (Read_Data_Line (stdin, &m, params) == 0) {
             @<Command-line changes to |m|@>@;
             @<Calculate and write optical properties@>@;

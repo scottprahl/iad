@@ -69,9 +69,7 @@ should do the trick.
 
     @<Read coefficients for transmission sphere@>@;
     
-    fprintf(stderr, "here\n");
     if (read_number(fp,&x))                            return 1;
-    fprintf(stderr, "%d\n", (int) x);
     *params = (int) x;
     m->num_measures = (*params >= 3) ? 3 : *params;
 
