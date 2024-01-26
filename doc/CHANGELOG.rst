@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v3.13.1 24 Jan 2024
+-------------------
+*   left debugging statements in
+
+v3.13.0 24 Jan 2024
+-------------------
+*   add -1 feature for parameters in .rxt files
+
 v3.12.1 26 May 2023
 -------------------
 *   bump version to get zenodo links correct
