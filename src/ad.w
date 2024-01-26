@@ -1,6 +1,6 @@
 \def\title{ad}
-\def\adversion{3-13-1}
-\def\adyear{2023}
+\def\adversion{3-13-2}
+\def\adyear{1993--2024}
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
 

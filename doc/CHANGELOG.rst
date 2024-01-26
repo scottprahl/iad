@@ -1,22 +1,27 @@
 Changelog
 =========
 
-v3.13.1 24 Jan 2024
+v3.13.2 (24 Jan 2024)
+-------------------
+*   fix port size normalization (@jgroehl)
+*   update copyright year
+
+v3.13.1 (24 Jan 2024)
 -------------------
 *   left debugging statements in
 
-v3.13.0 24 Jan 2024
+v3.13.0 (24 Jan 2024)
 -------------------
 *   add -1 feature for parameters in .rxt files
 
-v3.12.1 26 May 2023
+v3.12.1 (26 May 2023)
 -------------------
 *   bump version to get zenodo links correct
 
 v3.12.0
 -------------------
-*   add continuous building (tvercat)
-*   improve cweave/ctwill processing (ascherer)
+*   add continuous building (@tvercat)
+*   improve cweave/ctwill processing (@ascherer)
 *   add CITATION.cff to base level of repository
 *   add DOI for citation purposes
 *   added badges to README page (whee!)

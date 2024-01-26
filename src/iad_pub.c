@@ -461,7 +461,7 @@ Initialize_Measure (struct measure_type *m)
   double default_sample_d = 0.0 * 25.4;
   double default_detector_d = 0.1 * 25.4;
   double default_entrance_d = 0.5 * 25.4;
-  double sphere = default_sphere_d * default_sphere_d;
+  double sphere_area = M_PI * default_sphere_d * default_sphere_d;
 
   m->slab_index = 1.0;
   m->slab_top_slide_index = 1.0;
@@ -487,9 +487,11 @@ Initialize_Measure (struct measure_type *m)
   m->m_u = 0.0;
 
   m->d_sphere_r = default_sphere_d;
-  m->as_r = default_sample_d * default_sample_d / sphere;
-  m->ad_r = default_detector_d * default_detector_d / sphere;
-  m->ae_r = default_entrance_d * default_entrance_d / sphere;
+  m->as_r = (M_PI * default_sample_d * default_sample_d / 4.0) / sphere_area;
+  m->ad_r =
+    (M_PI * default_detector_d * default_detector_d / 4.0) / sphere_area;
+  m->ae_r =
+    (M_PI * default_entrance_d * default_entrance_d / 4.0) / sphere_area;
   m->aw_r = 1.0 - m->as_r - m->ad_r - m->ae_r;
   m->rd_r = 0.0;
   m->rw_r = 1.0;
@@ -603,13 +605,23 @@ Spheres_Inverse_RT (double *setup,
     r.default_g = setup[17];
     num_photons = (long) setup[18];
 
-    m.as_r = (d_sample_r / m.d_sphere_r) * (d_sample_r / m.d_sphere_r);
-    m.ae_r = (d_entrance_r / m.d_sphere_r) * (d_entrance_r / m.d_sphere_r);
-    m.ad_r = (d_detector_r / m.d_sphere_r) * (d_detector_r / m.d_sphere_r);
+    m.as_r =
+      (d_sample_r / m.d_sphere_r / 2.0) * (d_sample_r / m.d_sphere_r / 2.0);
+    m.ae_r =
+      (d_entrance_r / m.d_sphere_r / 2.0) * (d_entrance_r / m.d_sphere_r /
+					     2.0);
+    m.ad_r =
+      (d_detector_r / m.d_sphere_r / 2.0) * (d_detector_r / m.d_sphere_r /
+					     2.0);
     m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
-    m.as_t = (d_sample_t / m.d_sphere_t) * (d_sample_t / m.d_sphere_t);
-    m.ae_t = (d_entrance_t / m.d_sphere_t) * (d_entrance_t / m.d_sphere_t);
-    m.ad_t = (d_detector_t / m.d_sphere_t) * (d_detector_t / m.d_sphere_t);
+    m.as_t =
+      (d_sample_t / m.d_sphere_t / 2.0) * (d_sample_t / m.d_sphere_t / 2.0);
+    m.ae_t =
+      (d_entrance_t / m.d_sphere_t / 2.0) * (d_entrance_t / m.d_sphere_t /
+					     2.0);
+    m.ad_t =
+      (d_detector_t / m.d_sphere_t / 2.0) * (d_detector_t / m.d_sphere_t /
+					     2.0);
     m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
 
     m.slab_bottom_slide_index = m.slab_top_slide_index;
@@ -734,9 +746,14 @@ Spheres_Inverse_RT2 (double *sample,
     m.rw_r = sphere_r[4];
     m.rd_r = sphere_r[5];
 
-    m.as_r = (d_sample_r / m.d_sphere_r) * (d_sample_r / m.d_sphere_r);
-    m.ae_r = (d_entrance_r / m.d_sphere_r) * (d_entrance_r / m.d_sphere_r);
-    m.ad_r = (d_detector_r / m.d_sphere_r) * (d_detector_r / m.d_sphere_r);
+    m.as_r =
+      (d_sample_r / m.d_sphere_r / 2.0) * (d_sample_r / m.d_sphere_r / 2.0);
+    m.ae_r =
+      (d_entrance_r / m.d_sphere_r / 2.0) * (d_entrance_r / m.d_sphere_r /
+					     2.0);
+    m.ad_r =
+      (d_detector_r / m.d_sphere_r / 2.0) * (d_detector_r / m.d_sphere_r /
+					     2.0);
     m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
   }
 
@@ -752,9 +769,14 @@ Spheres_Inverse_RT2 (double *sample,
     m.rw_t = sphere_t[4];
     m.rd_t = sphere_t[5];
 
-    m.as_t = (d_sample_t / m.d_sphere_t) * (d_sample_t / m.d_sphere_t);
-    m.ae_t = (d_entrance_t / m.d_sphere_t) * (d_entrance_t / m.d_sphere_t);
-    m.ad_t = (d_detector_t / m.d_sphere_t) * (d_detector_t / m.d_sphere_t);
+    m.as_t =
+      (d_sample_t / m.d_sphere_t / 2.0) * (d_sample_t / m.d_sphere_t / 2.0);
+    m.ae_t =
+      (d_entrance_t / m.d_sphere_t / 2.0) * (d_entrance_t / m.d_sphere_t /
+					     2.0);
+    m.ad_t =
+      (d_detector_t / m.d_sphere_t / 2.0) * (d_detector_t / m.d_sphere_t /
+					     2.0);
     m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
   }
 

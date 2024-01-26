@@ -1,6 +1,6 @@
 \def\title{iad}
-\def\iadversion{3-13-1}
-\def\iadyear{2023}
+\def\iadversion{3-13-2}
+\def\iadyear{1993--2024}
 
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.

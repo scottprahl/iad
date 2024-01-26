@@ -85,9 +85,9 @@ should do the trick.
     if (read_number(fp,&d_detector_r))    return 1;
     if (read_number(fp,&m->rw_r))         return 1;
     
-    m->as_r = (d_sample_r   / m->d_sphere_r) * (d_sample_r   / m->d_sphere_r)/4.0;
-    m->ae_r = (d_entrance_r / m->d_sphere_r) * (d_entrance_r / m->d_sphere_r)/4.0;
-    m->ad_r = (d_detector_r / m->d_sphere_r) * (d_detector_r / m->d_sphere_r)/4.0;
+    m->as_r = (d_sample_r   / m->d_sphere_r / 2.0) * (d_sample_r   / m->d_sphere_r / 2.0);
+    m->ae_r = (d_entrance_r / m->d_sphere_r / 2.0) * (d_entrance_r / m->d_sphere_r / 2.0);
+    m->ad_r = (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r / m->d_sphere_r / 2.0);
     m->aw_r = 1.0 - m->as_r - m->ae_r - m->ad_r;
 }
 
@@ -100,9 +100,9 @@ should do the trick.
     if (read_number(fp,&d_detector_t)) return 1;
     if (read_number(fp,&m->rw_t))         return 1;
     
-    m->as_t = (d_sample_t   / m->d_sphere_t) * (d_sample_t   / m->d_sphere_t)/4.0;
-    m->ae_t = (d_entrance_t / m->d_sphere_t) * (d_entrance_t / m->d_sphere_t)/4.0;
-    m->ad_t = (d_detector_t / m->d_sphere_t) * (d_detector_t / m->d_sphere_t)/4.0;
+    m->as_t = (d_sample_t   / m->d_sphere_t / 2.0) * (d_sample_t   / m->d_sphere_t / 2.0);
+    m->ae_t = (d_entrance_t / m->d_sphere_t / 2.0) * (d_entrance_t / m->d_sphere_t / 2.0);
+    m->ad_t = (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t / m->d_sphere_t / 2.0);
     m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
 }
 
