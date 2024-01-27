@@ -358,6 +358,12 @@ void Between(int n,
 @ @<Definition for |Between|@>=
     @<Prototype for |Between|@>
 {
+ (void) R01;
+ (void) T10;
+ (void) R21;
+ (void) T12;
+ (void) T21;
+
   @<Allocate memory for |a| and |b|@>@;
   
   Star_Multiply(n, R10, R12, a);
