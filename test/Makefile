@@ -22,22 +22,25 @@ basic-D.txt       fairway-E.txt     kenlee-B.txt      royston3-E.txt    sample-C
 il-A.txt          kenlee-C.txt      royston9-A.txt    sample-D.txt      tio2_vis.txt \
 double.txt        il-B.txt          newton.txt        royston9-B.txt    sample-E.txt      \
 example2.txt      il-C.txt          royston2.txt      royston9-C.txt    sample-F.txt      \
-fairway-A.txt     ink-A.txt         royston3-A.txt    royston9-D.txt    sample-G.txt      vio-A.txt\
+     ink-A.txt         royston3-A.txt    royston9-D.txt    sample-G.txt      vio-A.txt\
 
-SPECIAL_OUT_FILES = ville1.txt basic-E.txt sevick-A.txt sevick-b.txt  uterus.txt
+SPECIAL_OUT_FILES = ville1.txt basic-E.txt sevick-A.txt sevick-B.txt  uterus.txt fairway-A.txt
 
 OPTIONS   =  -M0
 
-all: $(OUT_FILES)
+all: $(OUT_FILES) $(SPECIAL_OUT_FILES)
+
+fairway-A.txt: fairway-A.rxt
+	$(IAD_EXECUTABLE) -c 0 fairway-A.rxt
 
 uterus.txt: uterus.rxt
 	$(IAD_EXECUTABLE) -g 0.9 uterus.rxt
 	
-sevick-b.txt: sevick-b.rxt
-	$(IAD_EXECUTABLE) -g 0.9 sevick-b.rxt
+sevick-B.txt: sevick-B.rxt
+	$(IAD_EXECUTABLE) -g 0.9 -c0.9 sevick-B.rxt
 
 sevick-A.txt: sevick-A.rxt
-	$(IAD_EXECUTABLE) -g 0.9 sevick-A.rxt
+	$(IAD_EXECUTABLE) -g 0.9 -c 0.9 sevick-A.rxt
 
 ville1.txt: ville1.rxt
 	$(IAD_EXECUTABLE) -a 0 ville1.rxt
