@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-VERSION = 3-13-2
+VERSION = 3-14-0
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -198,12 +198,10 @@ windist: ad.exe iad.exe libiad.dll
 	cp iad-win-$(VERSION).zip iad-win-latest.zip
 
 ad: $(WSRC) $(NRSRC)
-	touch src/*.c src/*.h
 	cd src ; make ad
 	cp src/ad ad$(BINARY_EXTENSION)
 
 iad: $(WSRC) $(NRSRC)
-	touch src/*.c src/*.h
 	cd src ; make iad
 	cp src/iad iad$(BINARY_EXTENSION)
 
@@ -215,7 +213,7 @@ ad.exe: $(WSRC) $(NRSRC)
     
 iad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
-	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" iad
+	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL -Wno-implicit-fallthrough" iad
 	mv src/iad.exe iad.exe
 	cd src ; make clean
 
