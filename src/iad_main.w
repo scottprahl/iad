@@ -1220,11 +1220,18 @@ static int parse_string_into_array(char *s, double *a, int n)
         i++;        
 
         /* are we done ? */
-        if (i==n) return 0;
+        if (i==n) {
+            if (a[i-1] <= 0 || a[i-1] > 1) {
+                fprintf(stderr, "Sphere wall reflectivity (r_w=%g) must be a fraction less than one.\n", a[i-1]);
+                exit(EXIT_FAILURE);
+            }
+            return 0;
+        }
         
         /* move pointer just after last number */
         t=r+1;
     }
+    
     return 1;
 }
 
