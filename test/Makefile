@@ -18,20 +18,23 @@ OUT_FILES =  \
 basic-A.txt       fairway-B.txt     ink-B.txt         royston3-B.txt    royston_ink1.txt  vio-B.txt\
 basic-B.txt       fairway-C.txt     ink-C.txt         royston3-C.txt    sample-A.txt      x_bad_data.txt\
 basic-C.txt       fairway-D.txt     kenlee-A.txt      royston3-D.txt    sample-B.txt      terse-A.txt\
-basic-D.txt       fairway-E.txt     kenlee-B.txt      royston3-E.txt    sample-C.txt      terse-B.txt\
+basic-D.txt                         kenlee-B.txt      royston3-E.txt    sample-C.txt      terse-B.txt\
 il-A.txt          kenlee-C.txt      royston9-A.txt    sample-D.txt      tio2_vis.txt \
 double.txt        il-B.txt          newton.txt        royston9-B.txt    sample-E.txt      \
 example2.txt      il-C.txt          royston2.txt      royston9-C.txt    sample-F.txt      \
-     ink-A.txt         royston3-A.txt    royston9-D.txt    sample-G.txt      vio-A.txt\
+                  ink-A.txt         royston3-A.txt    royston9-D.txt    sample-G.txt      vio-A.txt\
 
-SPECIAL_OUT_FILES = ville1.txt basic-E.txt sevick-A.txt sevick-B.txt  uterus.txt fairway-A.txt
+SPECIAL_OUT_FILES = ville1.txt basic-E.txt sevick-A.txt sevick-B.txt  uterus.txt fairway-A.txt fairway-E.txt
 
-OPTIONS   =  -M0
+OPTIONS   =  
 
 all: $(OUT_FILES) $(SPECIAL_OUT_FILES)
 
 fairway-A.txt: fairway-A.rxt
 	$(IAD_EXECUTABLE) -c 0 fairway-A.rxt
+
+fairway-E.txt: fairway-E.rxt
+	$(IAD_EXECUTABLE) -c 0 -M 0 fairway-E.rxt
 
 uterus.txt: uterus.rxt
 	$(IAD_EXECUTABLE) -g 0.9 uterus.rxt
