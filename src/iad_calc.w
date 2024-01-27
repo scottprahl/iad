@@ -33,7 +33,7 @@
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
 #define GRID_SIZE 101
-#define T_TRUST_FACTOR 2
+#define T_TRUST_FACTOR 1
 
 static int CALCULATING_GRID = 1;
 static struct measure_type MM;
@@ -474,6 +474,7 @@ void Allocate_Grid(search_type s)
 @ @<Definition for |Allocate_Grid|@>=
     @<Prototype for |Allocate_Grid|@>
 { 
+    (void) s;
     The_Grid = dmatrix(0,GRID_SIZE*GRID_SIZE,1,7);
     if (The_Grid==NULL) AD_error("unable to allocate the grid matrix");
     The_Grid_Initialized = FALSE;
@@ -628,6 +629,9 @@ void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
     double smallest=10.0;
     struct measure_type old_mm;
     struct invert_type old_rr;
+    (void) r;
+    (void) t;
+    (void) s;
         
     Get_Calc_State(&old_mm, &old_rr);
 
@@ -1054,7 +1058,7 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
                 
     RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
     
-    if (Debug(DEBUG_EVERY_CALC)) 
+    if (0 && Debug(DEBUG_EVERY_CALC)) 
         fprintf(stderr, "ur1=%8.5f ut1=%8.5f (not M_R and M_T!)\n", ur1, ut1);
 
     Sp_mu_RT_Flip(MM.flip_sample, 
