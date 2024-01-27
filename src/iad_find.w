@@ -13,7 +13,6 @@ March 1995.  Incorporated the |quick_guess| algorithm for low albedos.
 #include "iad_util.h"
 #include "iad_calc.h"
 #include "iad_find.h"
-#include "iad_util.h"
 
 #define NUMBER_OF_GUESSES 10
 
