@@ -3,7 +3,7 @@
 Here is a relatively robust command-line utility that shows how
 the iad and ad subroutines might be called.  It suffers because
 it is written in \.{CWEB} and I used the macro expansion feature
-instead of creating separate functions.  Oh well.  
+instead of creating separate functions.  Oh well.
 
 I create an empty file \.{iad\_main.h} to simplify the Makefile
 @(iad_main.h@>=
@@ -104,15 +104,15 @@ int main (int argc, char **argv)
   char *g_out_name = NULL;
   char c;
 
-  long n_photons = 100000;  
+  long n_photons = 100000;
   int MC_iterations = 19;
   int any_error = 0;
   int process_command_line = 0;
   int params = 0;
-  
+
   int    cl_quadrature_points = UNINITIALIZED;
   int    cl_verbosity = 2;
-  
+
   double cl_forward_calc= UNINITIALIZED;
   double cl_default_a   = UNINITIALIZED;
   double cl_default_g   = UNINITIALIZED;
@@ -121,7 +121,7 @@ int main (int argc, char **argv)
   double cl_default_mus = UNINITIALIZED;
   double cl_tolerance   = UNINITIALIZED;
   double cl_slide_OD    = UNINITIALIZED;
-  
+
   double cl_cos_angle   = UNINITIALIZED;
   double cl_beam_d      = UNINITIALIZED;
   double cl_sample_d    = UNINITIALIZED;
@@ -141,10 +141,10 @@ int main (int argc, char **argv)
   double cl_mus0_pwr    = UNINITIALIZED;
   double cl_mus0_lambda = UNINITIALIZED;
 
-  double cl_UR1         = UNINITIALIZED;     
+  double cl_UR1         = UNINITIALIZED;
   double cl_UT1         = UNINITIALIZED;
   double cl_Tc          = UNINITIALIZED;
-  
+
   double cl_method      = UNINITIALIZED;
   double cl_num_spheres = UNINITIALIZED;
   double cl_sphere_one[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
@@ -153,7 +153,7 @@ int main (int argc, char **argv)
                              UNINITIALIZED, UNINITIALIZED };
 
   clock_t start_time=clock();
-  char command_line_options[] = 
+  char command_line_options[] =
              "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
 
 @ use the |my_getopt()| to process options.
@@ -162,7 +162,7 @@ int main (int argc, char **argv)
     while ((c = my_getopt(argc, argv, command_line_options)) != EOF) {
         int n;
         char cc;
-        
+
         switch (c) {
 
             case '1':
@@ -180,7 +180,7 @@ int main (int argc, char **argv)
             case 'A':
                 cl_default_mua = strtod(optarg, NULL);
                 break;
-                
+
             case 'b':
                 cl_default_b = strtod(optarg, NULL);
                 break;
@@ -189,8 +189,8 @@ int main (int argc, char **argv)
                 cl_beam_d = strtod(optarg, NULL);
                 break;
 
-			case 'c':
-				cl_rc_fraction = strtod(optarg, NULL);
+            case 'c':
+                cl_rc_fraction = strtod(optarg, NULL);
                 if (cl_rc_fraction<0.0 || cl_rc_fraction>1.0) {
                     fprintf(stderr, "required: 0 <= fraction of unscattered refl. in M_R <= 1\n");
                     exit(EXIT_SUCCESS);
@@ -198,7 +198,7 @@ int main (int argc, char **argv)
                 break;
 
             case 'C':
-				cl_tc_fraction = strtod(optarg, NULL);
+                cl_tc_fraction = strtod(optarg, NULL);
                 if (cl_tc_fraction < 0.0 || cl_tc_fraction > 1.0) {
                     fprintf(stderr, "required: 0 <= fraction of unscattered trans. in M_T <= 1\n");
                     exit(EXIT_SUCCESS);
@@ -226,15 +226,15 @@ int main (int argc, char **argv)
                 break;
 
             case 'F':
-            	/* initial digit means this is mus is constant */
-            	if (isdigit(optarg[0])) {
-                	cl_default_mus = strtod(optarg, NULL);
-                	break;
+                /* initial digit means this is mus is constant */
+                if (isdigit(optarg[0])) {
+                    cl_default_mus = strtod(optarg, NULL);
+                    break;
                 }
-                
+
                 /* should be a string like 'R 1000 1.2 -1.8' */
                 n=sscanf(optarg, "%c %lf %lf %lf",&cc, &cl_mus0_lambda, &cl_mus0, &cl_mus0_pwr);
-                
+
                 if (n!=4 || (cc != 'P' && cc != 'R')) {
                     fprintf(stderr, "Screwy argument for -F option.  Try something like\n");
                     fprintf(stderr, " -F 1.0              for mus =1.0\n");
@@ -242,17 +242,17 @@ int main (int argc, char **argv)
                     fprintf(stderr, " -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
                     exit(EXIT_FAILURE);
                 }
-                
+
                 if (cc=='R' || cc == 'r') {
-                	cl_musp0 = cl_mus0;
-                	cl_mus0 = UNINITIALIZED;
+                    cl_musp0 = cl_mus0;
+                    cl_mus0 = UNINITIALIZED;
                 }
                 break;
 
             case 'g':
                 cl_default_g = strtod(optarg, NULL);
                 break;
-                
+
             case 'G':
                 if (optarg[0]=='0')
                     cl_slides = NO_SLIDES;
@@ -275,10 +275,10 @@ int main (int argc, char **argv)
                     exit(EXIT_FAILURE);
                 }
                 break;
-                    
+
             case 'i':
                 cl_cos_angle = strtod(optarg, NULL);
-                if (cl_cos_angle<0 || cl_cos_angle>90) 
+                if (cl_cos_angle<0 || cl_cos_angle>90)
                     fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
                 else
                     cl_cos_angle = cos(cl_cos_angle*3.1415926535/180.0);
@@ -299,7 +299,7 @@ int main (int argc, char **argv)
             case 'o':
                 g_out_name = strdup(optarg);
                 break;
-    
+
             case 'p':
                 n_photons = (int) strtod(optarg, NULL);
                 break;
@@ -350,7 +350,7 @@ int main (int argc, char **argv)
             case 'v':
                 print_version();
                 break;
-                
+
             case 'V':
                 cl_verbosity = strtod(optarg, NULL);
                 break;
@@ -369,16 +369,16 @@ int main (int argc, char **argv)
                 break;
 
             default:
-            	fprintf(stderr, "unknown option '%c'\n", c);
-            	/* fall through */
-            	
+                fprintf(stderr, "unknown option '%c'\n", c);
+                /* fall through */
+
             case 'h':
             case '?':
                 print_usage();
                 break;
         }
     }
-    
+
     argc -= optind;
     argv += optind;
 
@@ -393,8 +393,8 @@ specified and the absorption is not, then the albedo is set to one.
 
 @<Calculate and Print the Forward Calculation@>=
     if (cl_default_a == UNINITIALIZED) {
-    
-        if (cl_default_mus == UNINITIALIZED) 
+
+        if (cl_default_mus == UNINITIALIZED)
             r.a = 0;
         else if (cl_default_mua == UNINITIALIZED)
             r.a = 1;
@@ -403,7 +403,7 @@ specified and the absorption is not, then the albedo is set to one.
 
     } else
         r.a = cl_default_a;
-        
+
 @ This is slightly more tricky because there are four things
 that can affect the optical thickness --- |cl_default_b|, the
 default mua, default mus and the thickness.  If the sample thickness
@@ -413,46 +413,46 @@ to calculate the optical thickness.
 
 @<Calculate and Print the Forward Calculation@>=
     if (cl_default_b == UNINITIALIZED) {
-    
-        if (cl_sample_d == UNINITIALIZED) 
+
+        if (cl_sample_d == UNINITIALIZED)
             r.b = HUGE_VAL;
-            
+
         else if (r.a == 0) {
-        	if (cl_default_mua == UNINITIALIZED)
-        		r.b = HUGE_VAL;
-        	else 
-        		r.b = cl_default_mua * cl_sample_d;
+            if (cl_default_mua == UNINITIALIZED)
+                r.b = HUGE_VAL;
+            else
+                r.b = cl_default_mua * cl_sample_d;
         } else {
-        	if (cl_default_mus == UNINITIALIZED)
-        		r.b = HUGE_VAL;
-        	else 
-        		r.b = cl_default_mus/r.a * cl_sample_d;
+            if (cl_default_mus == UNINITIALIZED)
+                r.b = HUGE_VAL;
+            else
+                r.b = cl_default_mus/r.a * cl_sample_d;
         }
-    } else 
+    } else
         r.b = cl_default_b;
 
 @ The easiest case, use the default value or set it to zero
 @<Calculate and Print the Forward Calculation@>=
-    if (cl_default_g == UNINITIALIZED) 
+    if (cl_default_g == UNINITIALIZED)
         r.g = 0;
     else
         r.g = cl_default_g;
-        
+
 @ @<Calculate and Print the Forward Calculation@>=
     r.slab.a = r.a;
     r.slab.b = r.b;
     r.slab.g = r.g;
 
-    { 
-		double mu_sp, mu_a, m_r, m_t;
-    	Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
-		Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
-		if (cl_verbosity>0) {
-			Write_Header (m, r, -1);
-			print_results_header(stdout);
-		}
-		print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0,0);
-	}
+    {
+        double mu_sp, mu_a, m_r, m_t;
+        Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
+        Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
+        if (cl_verbosity>0) {
+            Write_Header (m, r, -1);
+            print_results_header(stdout);
+        }
+        print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0,0);
+    }
 
 @ Make sure that the file is not named '-' and warn about too many files
 
@@ -468,27 +468,27 @@ to calculate the optical thickness.
         char *base_name, *rt_name;
         base_name = strdup(argv[0]);
         n = (int) (strlen(base_name) - strlen(".rxt"));
-        
-        if (n>0 && strstr(base_name+n,".rxt") != NULL) 
+
+        if (n>0 && strstr(base_name+n,".rxt") != NULL)
             base_name[n]='\0';
 
         rt_name = strdup_together(base_name,".rxt");
-        
+
         if (freopen(argv[0],"r",stdin)==NULL &&
             freopen(rt_name,"r",stdin)==NULL) {
-            fprintf(stderr, "Could not open either '%s' or '%s'\n", 
+            fprintf(stderr, "Could not open either '%s' or '%s'\n",
                             argv[0], rt_name);
             exit(EXIT_FAILURE);
         }
 
-        if (g_out_name==NULL) 
+        if (g_out_name==NULL)
             g_out_name=strdup_together(base_name,".txt");
-   
+
         free(rt_name);
         free(base_name);
         process_command_line = 0;
     }
-    
+
     if (g_out_name!=NULL) {
         if (freopen(g_out_name,"w",stdout)==NULL) {
             fprintf(stderr, "Could not open file '%s' for output\n", g_out_name);
@@ -502,7 +502,7 @@ because it will get altered by the calculation process.  We want to be
 able to let different lines have different constraints.  In particular
 consider the file \.{newton.tst}.  In that file the first two rows contain
 three real measurements and the last two have the collimated transmission
-explicitly set to zero --- in other words there are really only two 
+explicitly set to zero --- in other words there are really only two
 measurements.
 
 @<Calculate and write optical properties@>=
@@ -513,19 +513,19 @@ measurements.
     @<Command-line changes to |r|@>@;
 
     if (cl_method == COMPARISON && m.d_sphere_r != 0 && m.as_r == 0) {
-    	fprintf(stderr, "A dual-beam measurement is specified, but no port sizes.\n");
-    	fprintf(stderr, "You might forsake the -X option and use zero spheres (which gives\n");
-    	fprintf(stderr, "the same result except lost light is not taken into account).\n");
-    	fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
-    	fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
-    	fprintf(stderr, "diameter are worth obsessing over.\n");
-    	exit(EXIT_SUCCESS);
+        fprintf(stderr, "A dual-beam measurement is specified, but no port sizes.\n");
+        fprintf(stderr, "You might forsake the -X option and use zero spheres (which gives\n");
+        fprintf(stderr, "the same result except lost light is not taken into account).\n");
+        fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
+        fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
+        fprintf(stderr, "diameter are worth obsessing over.\n");
+        exit(EXIT_SUCCESS);
     }
 
     @<Write Header @>@;
 
     Inverse_RT (m, &r);
-    
+
     if (r.error == IAD_NO_ERROR) {
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
@@ -534,7 +534,7 @@ measurements.
     print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
 
 
-    if (Debug(DEBUG_LOST_LIGHT)) 
+    if (Debug(DEBUG_LOST_LIGHT))
         fprintf(stderr,"\n");
     else
         print_dot(start_time, r.error, mc_total, rt_total, 99, cl_verbosity, &any_error);
@@ -544,7 +544,7 @@ measurements.
     static int rt_total = 0;
     static int mc_total = 0;
     int mc_iter = 0;
-    
+
     double ur1=0;
     double ut1=0;
     double uru=0;
@@ -553,39 +553,39 @@ measurements.
     double mu_sp=0;
     double LR=0;
     double LT=0;
-    
+
     rt_total++;
 
-@ @<Command-line changes to |r|@>=  
-    
-    if (cl_quadrature_points != UNINITIALIZED)
-    	r.method.quad_pts = cl_quadrature_points;
-    else
-    	r.method.quad_pts = 8;
+@ @<Command-line changes to |r|@>=
 
-	if (cl_default_a != UNINITIALIZED) 
+    if (cl_quadrature_points != UNINITIALIZED)
+        r.method.quad_pts = cl_quadrature_points;
+    else
+        r.method.quad_pts = 8;
+
+    if (cl_default_a != UNINITIALIZED)
         r.default_a = cl_default_a;
-    
+
     if (cl_default_mua != UNINITIALIZED) {
         r.default_mua = cl_default_mua;
-        if (cl_sample_d != UNINITIALIZED) 
+        if (cl_sample_d != UNINITIALIZED)
             r.default_ba = cl_default_mua * cl_sample_d;
         else
             r.default_ba = cl_default_mua * m.slab_thickness;
     }
-    
+
     if (cl_default_b != UNINITIALIZED)
         r.default_b = cl_default_b;
-    
+
     if (cl_default_g != UNINITIALIZED)
         r.default_g = cl_default_g;
-    
+
     if (cl_tolerance != UNINITIALIZED) {
         r.tolerance = cl_tolerance;
         r.MC_tolerance = cl_tolerance;
     }
 
-    if (cl_musp0 != UNINITIALIZED) 
+    if (cl_musp0 != UNINITIALIZED)
         cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0/(1-r.default_g) : cl_musp0;
 
     if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
@@ -593,12 +593,12 @@ measurements.
 
     if (cl_default_mus != UNINITIALIZED) {
         r.default_mus = cl_default_mus;
-        if (cl_sample_d != UNINITIALIZED) 
+        if (cl_sample_d != UNINITIALIZED)
             r.default_bs = cl_default_mus * cl_sample_d;
         else
             r.default_bs = cl_default_mus * m.slab_thickness;
     }
-    
+
     if (cl_search != UNINITIALIZED)
         r.search = cl_search;
 
@@ -618,7 +618,7 @@ if (rt_total==1 && cl_verbosity>0) {
 
     print_results_header(stdout);
 }
-    
+
 @ Use Monte Carlo to figure out how much light leaks out.  We use
 the sphere corrected values as the starting values and only do try
 Monte Carlo when spheres are used, the albedo unknown or non-zero, and
@@ -630,34 +630,34 @@ otherwise the beam size and the port size are unknown.
 if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
     double mu_sp_last = mu_sp;
     double mu_a_last  = mu_a;
-    
+
     if (Debug(DEBUG_LOST_LIGHT)) {
         print_results_header(stderr);
         print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
     }
-    
+
     while (mc_iter < MC_iterations) {
 
-        MC_Lost(m, r, -1000, &ur1, &ut1, &uru, &utu, 
-                &m.ur1_lost,&m.ut1_lost,&m.uru_lost,&m.utu_lost);
+        MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
+                &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
         mc_total++;
         mc_iter++;
-        
+
         Inverse_RT (m, &r);
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
-        
+
         if (fabs(mu_a_last -mu_a )/(mu_a +0.0001) < r.MC_tolerance &&
             fabs(mu_sp_last-mu_sp)/(mu_sp+0.0001) < r.MC_tolerance) break;
 
         mu_a_last = mu_a;
         mu_sp_last = mu_sp;
-        
-        if (Debug(DEBUG_LOST_LIGHT)) 
+
+        if (Debug(DEBUG_LOST_LIGHT))
             print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
         else
             print_dot(start_time, r.error, mc_total, rt_total, mc_iter, cl_verbosity,&any_error);
-        
+
         if (r.error != IAD_NO_ERROR)
             break;
     }
@@ -677,11 +677,11 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
     s.n_bottom_slide = 1.0;
     s.b_top_slide = 0;
     s.b_bottom_slide = 0;
-    
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
 
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
 
     fprintf(stderr, "   UR1            UT1            URU              UTU\n");
@@ -691,17 +691,17 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
 
     s.b = 100.0;
     s.n_slab = 1.5;
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f   ", adur1, ur1, adut1, ut1);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f\n ", aduru, uru, adutu, utu);
 
     s.n_slab = 2.0;
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f   ", adur1, ur1, adut1, ut1);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f\n ", aduru, uru, adutu, utu);
@@ -709,9 +709,9 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
     s.n_slab = 1.5;
     s.n_top_slide = 1.5;
     s.n_bottom_slide = 1.5;
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f   ", adur1, ur1, adut1, ut1);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f\n ", aduru, uru, adutu, utu);
@@ -719,9 +719,9 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
     s.n_slab = 1.3;
     s.n_top_slide = 1.5;
     s.n_bottom_slide = 1.5;
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f   ", adur1, ur1, adut1, ut1);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f\n ", aduru, uru, adutu, utu);
@@ -731,25 +731,25 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
     s.n_slab = 1.0;
     s.n_top_slide = 1.0;
     s.n_bottom_slide = 1.0;
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f   ", adur1, ur1, adut1, ut1);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f\n ", aduru, uru, adutu, utu);
 
     s.g = 0.5;
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f   ", adur1, ur1, adut1, ut1);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f\n ", aduru, uru, adutu, utu);
 
     s.n_slab = 1.5;
-    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n", 
+    fprintf(stderr, "\na=%5.4f b=%5.4f g=%5.4f n=%5.4f ns=%5.4f\n",
            s.a, s.b, s.g, s.n_slab, s.n_top_slide);
-    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);   
+    MC_RT(    s,&ur1,  &ut1,  &uru,  &utu);
     RT   (32,&s,&adur1,&adut1,&aduru,&adutu);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f   ", adur1, ur1, adut1, ut1);
     fprintf(stderr, "%5.4f %5.4f   %5.4f %5.4f\n ", aduru, uru, adutu, utu);
@@ -757,7 +757,7 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
 @ @<old formatting@>=
 
     if (cl_verbosity > 0 && count % 100 == 0) fprintf(stderr,"\n");
-    if (cl_verbosity > 0) 
+    if (cl_verbosity > 0)
         printf (format2, m.m_r, m.m_t, m.m_u, r.a, r.b, r.g, r.final_distance);
     else
         printf("%9.5f\t%9.5f\t%9.5f\t%9.5f\n",r.a,r.b,r.g,r.final_distance);
@@ -766,23 +766,23 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
 @ Stuff the command line arguments that should be constant over the entire
 inversion process into the measurement record  and
 set up the result record to handle the arguments properly so that the optical
-properties can be determined.  
+properties can be determined.
 
 @<Command-line changes to |m|@>=
 
     if (cl_cos_angle != UNINITIALIZED) {
         m.slab_cos_angle = cl_cos_angle;
         if (cl_quadrature_points == UNINITIALIZED)
-        	cl_quadrature_points = 12;
+            cl_quadrature_points = 12;
 
         if (cl_quadrature_points != 12 * (cl_quadrature_points / 12)) {
-        	fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
-        	fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
-        	exit(EXIT_SUCCESS);
+            fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
+            fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
+            exit(EXIT_SUCCESS);
         }
-	}
+    }
 
-    if (cl_sample_n != UNINITIALIZED) 
+    if (cl_sample_n != UNINITIALIZED)
         m.slab_index = cl_sample_n;
 
     if (cl_slide_n != UNINITIALIZED) {
@@ -794,18 +794,18 @@ properties can be determined.
         m.slab_bottom_slide_b = cl_slide_OD;
         m.slab_top_slide_b    = cl_slide_OD;
     }
-    
-    if (cl_sample_d != UNINITIALIZED) 
+
+    if (cl_sample_d != UNINITIALIZED)
         m.slab_thickness = cl_sample_d;
 
-    if (cl_beam_d != UNINITIALIZED) 
+    if (cl_beam_d != UNINITIALIZED)
         m.d_beam = cl_beam_d;
 
     if (cl_slide_d != UNINITIALIZED) {
         m.slab_bottom_slide_thickness = cl_slide_d;
         m.slab_top_slide_thickness    = cl_slide_d;
     }
-    
+
     if (cl_slides == NO_SLIDES  ) {
         m.slab_bottom_slide_index     = 1.0;
         m.slab_bottom_slide_thickness = 0.0;
@@ -824,35 +824,35 @@ properties can be determined.
         m.slab_top_slide_index        = 1.0;
         m.slab_top_slide_thickness    = 0.0;
     }
-    
-    if (cl_slides == ONE_SLIDE_NEAR_SPHERE || 
+
+    if (cl_slides == ONE_SLIDE_NEAR_SPHERE ||
         cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
-    	m.flip_sample = 1;
+        m.flip_sample = 1;
     else
-    	m.flip_sample = 0;
-    
+        m.flip_sample = 0;
+
     if (cl_method != UNINITIALIZED)
-    	m.method = (int) cl_method;
-    	
-	if (cl_rstd_t != UNINITIALIZED) 
+        m.method = (int) cl_method;
+
+    if (cl_rstd_t != UNINITIALIZED)
         m.rstd_t = cl_rstd_t;
 
-	if (cl_rstd_r != UNINITIALIZED) 
+    if (cl_rstd_r != UNINITIALIZED)
         m.rstd_r = cl_rstd_r;
 
     if (cl_sphere_one[4] != UNINITIALIZED) {
         double d_sample_r, d_entrance_r, d_detector_r;
-        
+
         m.d_sphere_r     = cl_sphere_one[0];
         d_sample_r       = cl_sphere_one[1];
         d_entrance_r     = cl_sphere_one[2];
         d_detector_r     = cl_sphere_one[3];
         m.rw_r           = cl_sphere_one[4];
-        
+
         m.as_r = (d_sample_r   / m.d_sphere_r / 2) * (d_sample_r   / m.d_sphere_r / 2);
         m.ae_r = (d_entrance_r / m.d_sphere_r / 2) * (d_entrance_r / m.d_sphere_r / 2);
         m.ad_r = (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r / 2);
-               
+
         m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
 
         m.d_sphere_t = m.d_sphere_r;
@@ -861,20 +861,20 @@ properties can be determined.
         m.ad_t       = m.ad_r;
         m.aw_t       = m.aw_r;
         m.rw_t       = m.rw_r;
-        
+
         if (cl_num_spheres == UNINITIALIZED)
             m.num_spheres = 1;
     }
-    
+
     if (cl_sphere_two[4] != UNINITIALIZED) {
         double d_sample_t, d_entrance_t, d_detector_t;
-        
+
         m.d_sphere_t     = cl_sphere_two[0];
         d_sample_t       = cl_sphere_two[1];
         d_entrance_t     = cl_sphere_two[2];
         d_detector_t     = cl_sphere_two[3];
         m.rw_t           = cl_sphere_two[4];
-        
+
         m.as_t = (d_sample_t   / m.d_sphere_t / 2) * (d_sample_t   / m.d_sphere_t / 2);
         m.ae_t = (d_entrance_t / m.d_sphere_t / 2) * (d_entrance_t / m.d_sphere_t / 2);
         m.ad_t = (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t / 2);
@@ -886,23 +886,23 @@ properties can be determined.
 
     if (cl_num_spheres != UNINITIALIZED) {
         m.num_spheres = (int) cl_num_spheres;
-        if (m.num_spheres > 0 && m.method == UNKNOWN) 
-        	m.method = SUBSTITUTION;
-	}
+        if (m.num_spheres > 0 && m.method == UNKNOWN)
+            m.method = SUBSTITUTION;
+    }
 
     if (cl_rc_fraction != UNINITIALIZED)
         m.fraction_of_rc_in_mr = cl_rc_fraction;
 
     if (cl_tc_fraction != UNINITIALIZED)
         m.fraction_of_tc_in_mt = cl_tc_fraction;
- 
-    if (cl_UR1 != UNINITIALIZED) 
+
+    if (cl_UR1 != UNINITIALIZED)
         m.m_r = cl_UR1;
 
-    if (cl_UT1 != UNINITIALIZED) 
+    if (cl_UT1 != UNINITIALIZED)
         m.m_t = cl_UT1;
 
-    if (cl_Tc != UNINITIALIZED) 
+    if (cl_Tc != UNINITIALIZED)
         m.m_u = cl_Tc;
 
     if (cl_default_fr != UNINITIALIZED)
@@ -911,24 +911,24 @@ properties can be determined.
 @ put the values for command line reflection and transmission into the measurement record.
 
 @<Count command-line measurements@>=
-    
+
     m.num_measures=3;
     if (m.m_t == 0) m.num_measures--;
     if (m.m_u == 0) m.num_measures--;
     params = m.num_measures;
-    
+
     if (m.num_measures==3) {
         /* need to fill slab entries to calculate the optical thickness */
         struct AD_slab_type s;
-        s.n_slab=m.slab_index;        
-        s.n_top_slide=m.slab_top_slide_index; 
-        s.n_bottom_slide=m.slab_bottom_slide_index; 
+        s.n_slab=m.slab_index;
+        s.n_top_slide=m.slab_top_slide_index;
+        s.n_bottom_slide=m.slab_bottom_slide_index;
         s.b_top_slide=m.slab_top_slide_b;
         s.b_bottom_slide=m.slab_bottom_slide_b;
         s.cos_angle=m.slab_cos_angle;
         cl_default_b = What_Is_B(s, m.m_u);
      }
-     
+
 @ @<print version function@>=
 
 static void print_version(void)
@@ -1056,7 +1056,7 @@ static void Calculate_Mua_Musp(struct measure_type m,
             *mua  = r.default_mua;
             return;
         }
-            
+
         *musp = 1.0-r.g;
         *mua  = (1.0-r.a)/r.a;
         return;
@@ -1067,8 +1067,8 @@ static void Calculate_Mua_Musp(struct measure_type m,
 }
 
 @ This can only be called immediately after |Inverse_RT|
-You have been warned!  Notice that |Calculate_Distance| 
-does not pass any slab properties.  
+You have been warned!  Notice that |Calculate_Distance|
+does not pass any slab properties.
 
 @<calculate coefficients function@>=
 static void calculate_coefficients(struct measure_type m,
@@ -1087,17 +1087,17 @@ static void print_results_header(FILE *fp)
 {
 fprintf(fp,"#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
 if (Debug(DEBUG_LOST_LIGHT))
-	fprintf(fp,"\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
+    fprintf(fp,"\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
 fprintf(fp,"\n");
 
 fprintf(fp,"##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
 if (Debug(DEBUG_LOST_LIGHT))
-	fprintf(fp,"\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
+    fprintf(fp,"\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
 fprintf(fp,"\n");
 
 fprintf(fp,"# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
 if (Debug(DEBUG_LOST_LIGHT))
-	fprintf(fp,"\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
+    fprintf(fp,"\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
 fprintf(fp,"\n");
 }
 
@@ -1110,7 +1110,7 @@ wondering what is going on.
 
 @<Print results function@>=
 void print_optical_property_result(FILE *fp,
-                           struct measure_type m, 
+                           struct measure_type m,
                            struct invert_type r,
                            double LR,
                            double LT,
@@ -1118,31 +1118,31 @@ void print_optical_property_result(FILE *fp,
                            double mu_sp,
                            int mc_iter,
                            int line)
-{   
+{
     if (m.lambda != 0)
         fprintf(fp, "%6.1f\t", m.lambda);
-    else 
+    else
         fprintf(fp, "%6d\t", line);
-     
+
     if (mu_a >= 200) mu_a = 199.9999;
     if (mu_sp >= 1000) mu_sp = 999.9999;
-    
-    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);   
+
+    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);
     fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_t, LT);
     fprintf(fp, "% 9.4f\t", mu_a);
     fprintf(fp, "% 9.4f\t", mu_sp);
     fprintf(fp, "% 9.4f\t", r.g);
-    
+
 if (Debug(DEBUG_LOST_LIGHT)) {
         fprintf(fp, "% 9.4f\t% 9.4f\t", m.ur1_lost, m.uru_lost);
         fprintf(fp, "% 9.4f\t% 9.4f\t", m.ut1_lost, m.utu_lost);
         fprintf(fp, " %2d  \t", mc_iter);
         fprintf(fp, " %4d\t", r.iterations);
     }
-    
+
     fprintf(fp, "# %c \n",what_char(r.error));
     fflush(fp);
-} 
+}
 
 @ @<print error legend function@>=
 static void print_error_legend(void)
@@ -1166,15 +1166,15 @@ static void print_error_legend(void)
 static char *  strdup_together(char *s, char *t)
 {
     char * both;
-    
+
     if (s==NULL) {
         if (t==NULL) return NULL;
         return strdup(t);
     }
-    
+
     if (t==NULL)
         return strdup(s);
-        
+
     both = malloc(strlen(s) + strlen(t) + 1);
     if (both == NULL)
         fprintf(stderr, "Could not allocate memory for both strings.\n");
@@ -1188,7 +1188,7 @@ static char *  strdup_together(char *s, char *t)
 @<seconds elapsed function@>=
 
 static double seconds_elapsed(clock_t start_time)
-{   
+{
     clock_t finish_time = clock();
     return (double)(finish_time-start_time)/CLOCKS_PER_SEC;
 }
@@ -1202,22 +1202,22 @@ Returns 0 upon successfully filling |n| entries, returns
 @<parse string into array function@>=
 
 static int parse_string_into_array(char *s, double *a, int n)
-{   
+{
     char *t, *last, *r;
     int i=0;
-    t = s;  
+    t = s;
     last = s + strlen(s);
-       
+
     while(t<last) {
 
         /* a space should mark the end of number */
         r = t;
         while (*r != ' ' && *r != '\0') r++;
         *r = '\0';
-        
+
         /* parse the number and save it */
-        if (sscanf(t, "%lf", &(a[i]) )==0) return 1;        
-        i++;        
+        if (sscanf(t, "%lf", &(a[i]) )==0) return 1;
+        i++;
 
         /* are we done ? */
         if (i==n) {
@@ -1227,11 +1227,11 @@ static int parse_string_into_array(char *s, double *a, int n)
             }
             return 0;
         }
-        
+
         /* move pointer just after last number */
         t=r+1;
     }
-    
+
     return 1;
 }
 
@@ -1255,9 +1255,9 @@ static void print_dot(clock_t start_time, int err, int count, int points,
                        int final, int verbosity, int *any_error)
 {
     static int counter = 0;
-
+    (void) count;
     counter++;
-    
+
     if (err != IAD_NO_ERROR) *any_error = err;
 
     if (verbosity == 0) return;
@@ -1265,18 +1265,17 @@ static void print_dot(clock_t start_time, int err, int count, int points,
     if (final == 99)
         fprintf(stderr, "%c", what_char(err));
     else {
-    	counter--;
+        counter--;
         fprintf(stderr, "%1d\b", final % 10);
     }
 
     if (final == 99) {
-		if (counter % 50 == 0) {
-			double rate = (seconds_elapsed(start_time) / points);
-			fprintf(stderr, "  %3d done (%5.2f s/pt)\n", points,rate); 
-		} else if (counter % 10 == 0)
-			fprintf(stderr," ");
+        if (counter % 50 == 0) {
+            double rate = (seconds_elapsed(start_time) / points);
+            fprintf(stderr, "  %3d done (%5.2f s/pt)\n", points,rate);
+        } else if (counter % 10 == 0)
+            fprintf(stderr," ");
     }
 
     fflush(stderr);
 }
-
