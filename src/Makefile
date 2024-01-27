@@ -13,7 +13,7 @@ SHARED_LIB_OPT = -lm -shared
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
 				  -compatibility_version 2.0 -current_version 2.0.0 \
 
-CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC -fsigned-char
+CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC -fsigned-char -Wextra -Werror
 
 IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o 
 
