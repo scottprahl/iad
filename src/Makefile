@@ -133,85 +133,41 @@ layer_test: $(AD_OBJ) $(NR_OBJ) mygetopt.o version.o ad_layers.o ad_layers_test.
 	$(CC) -c -o version.o version.c 	
 	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
 
+# ctangle rule to make .c and .h files
+%.c %.h: %.w
+	ctangle -bhp $<
+
 # non-trivial dependencies
 lib_ad.h   :  ad
 lib_iad.h  :  iad
 
-ad_globl.o :  ad_frsnl.o	
-ad_bound.o :  ad_globl.o ad_matrx.o ad_frsnl.o	 
-ad_doubl.o :  ad_globl.o nr_util.o	ad_matrx.o
-ad_start.o :  ad_globl.o nr_util.o	ad_frsnl.o nr_gaulg.o ad_radau.o ad_phase.o \
-				  ad_frsnl.o ad_matrx.o ad_phase.o
-ad_cone.o  :  ad_cone.w ad_globl.o nr_util.o ad_bound.o ad_doubl.o ad_start.o
-ad_prime.o :  ad_prime.w ad_cone.o
-ad_main.o  :  ad_main.w ad_globl.o ad_prime.o mygetopt.o mc_lost.o
+ad_globl.o :  ad_globl.c ad_globl.h ad_frsnl.h
+ad_bound.o :  ad_bound.c ad_bound.h ad_globl.h ad_matrx.h ad_frsnl.h nr_util.h
+ad_doubl.o :  ad_doubl.c ad_doubl.h ad_globl.h ad_matrx.h nr_util.h
+ad_start.o :  ad_start.c ad_start.h ad_globl.h ad_frsnl.h ad_radau.h ad_phase.h \
+              ad_matrx.h nr_util.h nr_gaulg.h
+ad_cone.o  :  ad_cone.c ad_cone.h ad_globl.h ad_bound.h ad_matrx.h ad_doubl.h \
+              ad_start.h nr_util.h
+ad_prime.o :  ad_prime.c ad_prime.h ad_globl.h ad_bound.h ad_start.h ad_doubl.h \
+              ad_matrx.h ad_cone.h
+ad_main.o  :  ad_main.c ad_globl.h ad_prime.h ad_cone.h mygetopt.h version.h
+ad_layers.o:  ad_layers.c ad_layers.h nr_util.h ad_globl.h ad_bound.h ad_doubl.h \
+              ad_prime.h ad_matrx.h
 
-iad_calc.o :  iad_calc.w ad_globl.o ad_frsnl.o ad_prime.o iad_type.h iad_util.o \
-              nr_zbrent.o
-iad_pub.o  :  iad_pub.w ad_globl.o nr_util.o iad_type.h iad_find.o iad_io.o
-iad_util.o :  iad_util.w ad_globl.o nr_util.o ad_frsnl.o ad_bound.o iad_type.h iad_calc.h iad_pub.h
-iad_find.o :  iad_find.w iad_find.h ad_globl.o nr_util.o iad_type.h iad_util.o iad_calc.o
-iad_main.o :  iad_main.w ad_globl.o iad_type.h iad_pub.o iad_io.o mygetopt.o iad_calc.o
-iad_io.o   :  iad_io.w iad_type.h iad_pub.h 
+iad_calc.o :  iad_calc.c iad_calc.h ad_globl.h ad_frsnl.h ad_prime.h iad_type.h \
+              iad_util.h nr_util.h nr_zbrent.h
+iad_pub.o  :  iad_pub.c iad_pub.h ad_globl.h ad_frsnl.h iad_type.h iad_util.h iad_calc.h \
+              iad_find.h iad_io.h nr_util.h mc_lost.h
+iad_util.o :  iad_util.c iad_util.h ad_globl.h ad_frsnl.h ad_bound.h iad_type.h \
+              iad_calc.h iad_pub.h nr_util.h
+iad_find.o :  iad_find.c iad_find.h ad_globl.h iad_type.h iad_util.h iad_calc.h \
+              nr_mnbrk.h nr_brent.h nr_amoeb.h nr_util.h
+iad_main.o :  iad_main.c ad_globl.h ad_frsnl.h ad_prime.h iad_type.h iad_pub.h iad_io.h \
+              iad_calc.h iad_util.h mygetopt.h mc_lost.h
+iad_io.o   :  iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
+
 nr_amoeb.o :  iad_type.h 
-ad_layers.o: nr_util.o ad_globl.o ad_bound.o ad_doubl.o ad_prime.o ad_matrx.o ad_prime.o
-
-ad_bound.c ad_bound.h : ad_bound.w
-	ctangle -bhp $<
-
-ad_cone.c ad_cone.h: ad_cone.w
-	ctangle -bhp $<
-
-ad_doubl.c ad_doubl.h: ad_doubl.w
-	ctangle -bhp $<
-
-ad_frsnl.c ad_frsnl.h: ad_frsnl.w
-	ctangle -bhp $<
-
-ad_globl.c ad_globl.h: ad_globl.w
-	ctangle -bhp $<
-
-ad_layers.c ad_layers.h: ad_layers.w
-	ctangle -bhp $<
-
-ad_main.c ad_main.h: ad_main.w
-	ctangle -bhp $<
-
-ad_matrx.c ad_matrx.h: ad_matrx.w
-	ctangle -bhp $<
-
-ad_prime.c ad_prime.h: ad_prime.w
-	ctangle -bhp $<
-
-ad_radau.c ad_radau.h: ad_radau.w
-	ctangle -bhp $<
-
-ad_start.c ad_start.h: ad_start.w
-	ctangle -bhp $<
-
-iad_calc.c iad_calc.h: iad_calc.w
-	ctangle -bhp $<
-
-iad_find.c iad_find.h: iad_find.w
-	ctangle -bhp $<
-
-iad_io.c iad_io.h: iad_io.w
-	ctangle -bhp $<
-
-iad_main.c iad_main.h: iad_main.w
-	ctangle -bhp $<
-
-iad_pub.c iad_pub.h: iad_pub.w
-	ctangle -bhp $<
-
-iad_type.h : iad_type.w
-	ctangle -bhp $<
-	rm iad_type.c
-
-iad_util.c iad_util.h: iad_util.w
-	ctangle -bhp $<
-
-mc_lost.c : iad_type.h
+mc_lost.o  : iad_type.h
 
 version.o : 
 	./version.pl 
