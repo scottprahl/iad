@@ -11,28 +11,25 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - name: Download GitHub repository
-      uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
-
-    - name: Download CWEB source and extract source
+    - name: Download, build, and install ctangle
       run: |
         mkdir cweb
         wget https://github.com/ascherer/cweb/releases/download/cweb-4.11/cweb-4.11.tar.gz
         tar xvfz cweb-4.11.tar.gz -C cweb
-    
-    - name: Compile and Install CWEB
-      run: |
         cd cweb
         make
         cp ctangle /usr/local/bin/ctangle
         chmod 755 /usr/local/bin/ctangle
         cd ..
-    
+   
+    - name: Download GitHub repository and build iad
+      uses: actions/checkout@v3
+      run: |
+        fetch-depth: 0
+        make
+
     - name: Run short test (no automated verification)
       run: |
-        make
         make veryshorttest
 
   build-docs:
