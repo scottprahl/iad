@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <assert.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -11,7 +12,6 @@
 #include "iad_type.h"
 
 #define MIN_WEIGHT 0.001
-#define PI         3.1415926535
 
 /* The KISS generator, (Keep It Simple Stupid), is
    designed to combine the two multiply-with-carry
@@ -24,20 +24,20 @@ unsigned long kiss_x=123456789;
 unsigned long kiss_y=362436000;
 unsigned long kiss_z=521288629;
 unsigned long kiss_c=7654321;
- 
+
 unsigned long kiss_rand(void)
 {
     unsigned long long t, a=698769069ULL;
-    
+
     kiss_x  = 69069*kiss_x+12345;
-    kiss_y ^= ( kiss_y << 13 ); 
-    kiss_y ^= ( kiss_y >> 17 ); 
+    kiss_y ^= ( kiss_y << 13 );
+    kiss_y ^= ( kiss_y >> 17 );
     kiss_y ^= ( kiss_y <<  5 );
-    t       = a*kiss_z+kiss_c; 
+    t       = a*kiss_z+kiss_c;
     kiss_c  = (t>>32);
     kiss_z  = t;
     return  kiss_x+kiss_y+kiss_z;
-} 
+}
 
 /* use Knuth's algorithms to set initial values */
 void kiss_rand_seed(unsigned long seed)
@@ -53,13 +53,13 @@ void kiss_rand_seed(unsigned long seed)
    We are interested in subtle changes between successive
    photon paths.  The best way to track these changes is to
    use the same set of random numbers for each photon path.
-   new_photon_seed() will use the next random number in a 
+   new_photon_seed() will use the next random number in a
    sequence.
    We have another random number generator that produces a
-   sequence of random numbers for each photon.  This means 
+   sequence of random numbers for each photon.  This means
    that photon 1001 will reset the KISS generator to the same
    starting number.
-   
+
 */
 unsigned long photon_seed = 12345678;
 
@@ -77,26 +77,26 @@ static inline void next_photon_seed (void)
     kiss_rand();
 }
 
-/* more or less portable random number initialization 
+/* more or less portable random number initialization
    call this with a non-zero seed to start the sequence from a fixed value
    otherwise pass seed=0 so that the program starts with a random number
-   
+
    auto-initialization fails if called faster than once per second.  Since
-   this may happen for successive MC_Radial() calls, the random number sequence 
+   this may happen for successive MC_Radial() calls, the random number sequence
    IS NOT restarted.  The idea is that one seed determines the entire subsequent
    sequence of events.
 */
-   
+
 void my_randomize(unsigned long seed)
 {
     static int initialized = 0;
-    
+
     if (!initialized) {
         initialized = 1;
-        
+
         if (seed==0) /* time in seconds from start of Unix epoch */
             seed = (unsigned long) time(NULL);
-        
+
         photon_seed = seed;
     }
 }
@@ -107,13 +107,13 @@ static double rand_zero_one(void)
 {
     unsigned long x;
     double xi;
-    
+
     do {
         x = kiss_rand();
     } while (x==0);
-    
-    xi = ((double)x)/((double) kiss_rand_max); 
-    
+
+    xi = ((double)x)/((double) kiss_rand_max);
+
     return xi;
 }
 
@@ -129,28 +129,28 @@ static double sqr(double x)
     return x*x;
 }
 
-/* Fresnel Reflectance 
+/* Fresnel Reflectance
    incident    medium has index n_i and angle nu_i on
    transmitted medium has index n_t and angle nu_t
 */
 static double fresnel(double n_i,double n_t,double nu_i)
 {
     double nu_t,ratio,temp,temp1;
-    
+
     /* matched boundaries? */
     if (n_i == n_t) return 0.0;
-    
+
     /* normal illumination? */
     nu_i = fabs(nu_i);
     if (nu_i == 1.0) return sqr((n_i-n_t)/(n_i+n_t));
-    
+
     /* total internal reflection? */
     ratio = n_i/n_t;
     temp = 1.0-ratio*ratio*(1.0-nu_i*nu_i);
     if (temp < 0) return 1.0;
-    
+
     /* Now calculate Fresnel reflection */
-    nu_t = sqrt(temp);  
+    nu_t = sqrt(temp);
     temp = ratio*nu_t;
     temp1= (nu_i-temp)/(nu_i+temp);
     temp = ratio*nu_i;
@@ -162,7 +162,7 @@ double cos_critical_angle(double n_i, double n_t)
 {
     if (n_t >= n_i)
         return 0.0;
-    else 
+    else
         return sqrt(1.0 - sqr(n_t/n_i));
 }
 
@@ -170,7 +170,7 @@ double cos_critical_angle(double n_i, double n_t)
 void refract(double n_i, double n_t, double *u, double *v, double *w)
 {
     double nu, c;
-    
+
 #ifndef NDEBUG
     double wold;
     wold = *w;
@@ -178,8 +178,8 @@ void refract(double n_i, double n_t, double *u, double *v, double *w)
 
     if (n_i == n_t) return;
     c    = n_i/n_t;
-    nu   = *w * c; 
-    
+    nu   = *w * c;
+
     assert(n_i<n_t || fabs(*w) > cos_critical_angle(n_i,n_t));
     *u *= c;
     *v *= c;
@@ -187,13 +187,13 @@ void refract(double n_i, double n_t, double *u, double *v, double *w)
         *w  = -sqrt(1.0 - c * c  + nu * nu);
     else
         *w  =  sqrt(1.0 - c * c  + nu * nu);
-    
+
     /* Snell's law valid */
     assert(fabs(n_i*sin(acos(wold))-n_t*sin(acos(*w)))<1e-8);
-    
+
     /* same direction */
     assert(*w*wold>0);
-    
+
     /* still a unit vector */
     assert(fabs(sqr(*u)+sqr(*v)+sqr(*w)-1.0)<1e-8);
 }
@@ -203,9 +203,9 @@ void scatter(double g, double *u, double *v, double *w)
 {
     double t1, t2, t3, mu, uu, vv, ww;
 
-    do { 
-        t1 = rand_one_one(); 
-        t2 = rand_one_one(); 
+    do {
+        t1 = rand_one_one();
+        t2 = rand_one_one();
         t3 = t1*t1+t2*t2;
     } while (t3>1);
 
@@ -221,7 +221,7 @@ void scatter(double g, double *u, double *v, double *w)
             *w = t2 * t3;
         }
         return;
-    } 
+    }
 
     mu = (1-g*g)/(1-g+2.0*g*rand_zero_one());
     mu = (1 + g*g-mu*mu)/2.0/g;
@@ -230,7 +230,7 @@ void scatter(double g, double *u, double *v, double *w)
     vv = *v;
     ww = *w;
 
-    if ( fabs(ww) < 0.9 ) {  
+    if ( fabs(ww) < 0.9 ) {
         *u = mu * uu + sqrt((1-mu*mu)/(1-ww*ww)/t3) * (t1*uu*ww-t2*vv);
         *v = mu * vv + sqrt((1-mu*mu)/(1-ww*ww)/t3) * (t1*vv*ww+t2*uu);
         *w = mu * ww - sqrt((1-mu*mu)*(1-ww*ww)/t3) * t1;
@@ -244,19 +244,19 @@ void scatter(double g, double *u, double *v, double *w)
 /* set photon launch point*/
 static void launch_point(double *x, double *y, double *z, double beam_radius)
 {
-    *x = 0; 
-    *y = 0; 
-    *z = 0; 
+    *x = 0;
+    *y = 0;
+    *z = 0;
 
     if (beam_radius > 0) {  /* uniform distribution over a disk */
         double a, b;
         do {
-            a  = rand_one_one(); 
+            a  = rand_one_one();
             b  = rand_one_one();
         } while (a*a+b*b>1);
-        
+
         *x = a * beam_radius;
-        *y = b * beam_radius; 
+        *y = b * beam_radius;
     }
 }
 
@@ -272,7 +272,7 @@ static void launch_direction(double *u, double *v, double *w, int collimated, do
         *v = 0;
         *w = mu;
     }
-    
+
 }
 
 static void roulette(double *weight, double *residual_weight)
@@ -307,55 +307,55 @@ static void move_in_slide(double *x, double *y, double u, double v, double *w, d
                           double d_slide, double mua_slide, double n1, double n2, double n3)
 {
     double i_x, i_y, i_z, d_bounce, r1, r2, absorbed_light_per_bounce;
-    
+
     r1 = fresnel(n1, n2, *w);
 
     /* Does the ray makes it into the slide?  The test is <=
        to ensure that when r1==1, the ray is *always* reflected */
-    if (rand_zero_one() <= r1)  { 
-        *w = -(*w); 
+    if (rand_zero_one() <= r1)  {
+        *w = -(*w);
         return;
     }
-    
+
     /* direction cosines in the slide */
     i_x = u;
     i_y = v;
     i_z = *w;
     refract(n1, n2, &i_x, &i_y, &i_z);
-    
+
     r2 = fresnel(n2, n3, i_z);
     d_bounce = fabs(d_slide/i_z);
-    absorbed_light_per_bounce = exp(-mua_slide*d_bounce);
+    absorbed_light_per_bounce = 1-exp(-mua_slide*d_bounce);
 
     /* photon is in slide and bounces in the slide until it exits */
-    while (1) {     
-        *x += d_bounce * i_x;
-        *y += d_bounce * i_y;
-        *weight *= 1-absorbed_light_per_bounce;
-        
-        if (rand_zero_one() > r2) 
-            return;
-        
+    while (1) {
         *x += d_bounce * i_x;
         *y += d_bounce * i_y;
         *weight *= 1-absorbed_light_per_bounce;
 
-        if (rand_zero_one() > r1) { 
-            *w = -(*w); 
+        if (rand_zero_one() > r2)
+            return;
+
+        *x += d_bounce * i_x;
+        *y += d_bounce * i_y;
+        *weight *= 1-absorbed_light_per_bounce;
+
+        if (rand_zero_one() > r1) {
+            *w = -(*w);
             return;
         }
-    }   
+    }
  }
 
 static double milliseconds(clock_t start_time)
-{   
+{
     double t;
     clock_t finish_time = clock();
     t = 1000*(double)(finish_time-start_time)/CLOCKS_PER_SEC;
-    return t;    
+    return t;
 }
 
-static void MC_Radial(long photons, double a, double b, double g, double n_sample, 
+static void MC_Radial(long photons, double a, double b, double g, double n_sample,
                       double n_slide, int collimated, double cos_incidence,
                       double d_sample, double d_slide, double mua_slide, double d_port, double d_beam,
                       double *r_total, double *t_total, double *r_lost, double *t_lost)
@@ -372,11 +372,11 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
     clock_t start_time=0;
 #ifndef NDEBUG
 	double ww;
-#endif        
+#endif
     /* high resolution clock ... may be zero at start of process */
-    start_time = clock();   
-        
-    if (collimated) 
+    start_time = clock();
+
+    if (collimated)
         r_beam = d_beam / 2.0;
     else
         r_beam = d_port / 2.0;
@@ -387,40 +387,41 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
         total_photons = 1000000;
         total_time = labs(photons);
     }
-        
+
     *r_lost = 0;
     *t_lost = 0;
     *r_total = 0;
     *t_total = 0;
     total_weight = 0.0;
-        
+
     for (i = 1; i <= total_photons; i++) {
         next_photon_seed();
         launch_point(&x,&y,&z,r_beam);
         launch_direction(&u,&v,&w,collimated,cos_incidence);
-        weight = w;
+        weight = 1;
         total_weight += weight;
-        
+
         move_in_slide(&x, &y, u, v, &w, &weight, d_slide, mua_slide, 1.0, n_slide, n_sample);
-        
-        if ( w < 0) {
+
+        if (w < 0) {
             *r_total += weight;
-            if (x*x + y*y > r_port_squared) *r_lost += weight;
+            if (x*x + y*y > r_port_squared)
+                *r_lost += weight;
             continue;
-        } 
-        
+        }
+
 #ifndef NDEBUG
         ww = w;
 #endif
         refract(1.0, n_sample, &u, &v, &w);
         assert(fabs(sin(acos(ww)) - n_sample*sin(acos(w)))<1e-8 || ww == -w);
         assert(fabs(u*u+v*v+w*w-1.0) < 1e-8);
-                     
+
         while (weight>0) {
-            
+
             move_in_sample(mu_t,&x,&y,&z,u,v,w);
-            
-            while (z < 0 || z > d_sample) {             
+
+            while (z < 0 || z > d_sample) {
                 /* move back to top or bottom of sample */
                 if (z < 0) {
                     extra = z/w;
@@ -428,49 +429,48 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
                 } else {
                     extra = (z-d_sample)/w;
                     z  = d_sample;
-                } 
+                }
                 x -= u * extra;
                 y -= v * extra;
-                    
+
                 /* w changes sign upon reflection back into sample */
                 move_in_slide(&x, &y, u, v, &w, &weight, d_slide, mua_slide, n_sample, n_slide, 1.0);
 
                 /* use direction w to determine if photon is transmitted out of sample */
-                if (z == 0) { 
-                    
+                if (z == 0) {
+
                     if (w < 0) {  /* still moving up */
                         *r_total += weight;
                         if (x*x + y*y > r_port_squared) *r_lost += weight;
                         weight = 0;
                         break;
-                    } 
-                    
-                } else { 
-                
+                    }
+
+                } else {
+
                     if (w > 0) { /* still moving down */
                         *t_total += weight;
                         if (x*x + y*y > r_port_squared) *t_lost += weight;
                         weight = 0;
                         break;
-                    } 
+                    }
                 }
-                
+
                 /* move the remaining amount back into sample */
                 x += u * extra;
                 y += v * extra;
                 z += w * extra;
             }
-            
+
             weight *= a;
             roulette(&weight, &residual_weight);
             scatter(g, &u, &v, &w);
         }
-        
+
         if (total_time && total_time < milliseconds(start_time))
             break;
-        
+
     }
-    
     *r_lost  /= (total_weight + residual_weight);
     *t_lost  /= (total_weight + residual_weight);
     *r_total /= (total_weight + residual_weight);
@@ -478,33 +478,38 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
 }
 
 void MC_Lost(struct measure_type m, struct invert_type r,  long n_photons,
-             double *ur1,      double *ut1,      double *uru,      double *utu, 
+             double *ur1,      double *ut1,      double *uru,      double *utu,
              double *ur1_lost, double *ut1_lost, double *uru_lost, double *utu_lost)
 {
     int collimated = 1;
     int diffuse = 0;
 
+    double mua_slide;
     double n_sample = m.slab_index;
     double n_slide  = m.slab_top_slide_index;
     double d_sample = m.slab_thickness;
     double d_slide  = m.slab_top_slide_thickness;
-    double mua_slide= m.slab_top_slide_b/d_slide;
     double d_port   = sqrt(m.as_r)*2*m.d_sphere_r;
     double d_beam   = m.d_beam;
     double mu       = m.slab_cos_angle;
-    
+
     /* no slide if thickness is zero or the index is 1.0 */
     if (d_slide == 0.0) n_slide = 1.0;
     if (n_slide == 1.0) d_slide = 0.0;
-    
+
+    if (d_slide==0)
+        mua_slide = 0;
+    else
+        mua_slide = m.slab_top_slide_b/d_slide;
+
     set_photon_seed(12345);
     MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, collimated, mu, d_sample, d_slide, mua_slide, d_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
-    
+
     *uru_lost = 0;
     *utu_lost = 0;
-    if (m.method==SUBSTITUTION) 
+    if (m.method==SUBSTITUTION)
     	MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, diffuse,    mu, d_sample, d_slide, mua_slide, d_port, d_beam, uru, utu, uru_lost, utu_lost);
-    
+
     if (*ur1_lost<0) *ur1_lost = 0;
     if (*ut1_lost<0) *ut1_lost = 0;
     if (*uru_lost<0) *uru_lost = 0;
@@ -522,11 +527,11 @@ void MC_RT(struct AD_slab_type s, long n_photons, double *UR1, double *UT1, doub
     double d_slide  = 0.0;
     double mu       = s.cos_angle;
     double mua_slide= 0.0;
-    
+
     set_photon_seed(12345);
     MC_Radial(n_photons/2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, collimated, mu, d_sample, d_slide, mua_slide, d_port, d_beam, UR1, UT1, &ur1_lost, &ut1_lost);
     MC_Radial(n_photons/2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, diffuse,    mu, d_sample, d_slide, mua_slide, d_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
-    
+
 }
 
 /*
@@ -550,7 +555,7 @@ static void print_usage(void)
     exit(0);
 }
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
     char c;
     double ur1_lost, ut1_lost, uru_lost, utu_lost;
@@ -594,7 +599,7 @@ int main(int argc, char** argv)
             case 's':
                 n_top_slide = strtod(optarg, NULL);
                 break;
-                
+
             default:
             case 'h':
             case '?':
@@ -602,7 +607,7 @@ int main(int argc, char** argv)
                 break;
         }
     }
-    
+
     MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, collimated, d_sample, d_slide, d_port, d_beam, &ur1, &ut1, &ur1_lost, &ut1_lost);
     MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, diffuse,    d_sample, d_slide, d_port, d_beam, &uru, &utu, &uru_lost, &utu_lost);
 

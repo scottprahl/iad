@@ -166,7 +166,8 @@ submatrix (double **a, long oldrl, long oldrh, long oldcl, long oldch,
 {
   long i, j, nrow = oldrh - oldrl + 1, ncol = oldcl - newcl;
   double **m;
-
+  (void) oldch;  // explicit cast to avoid unused error
+  
   /* allocate array of pointers to rows */
   m = (double **) malloc ((size_t) ((nrow + NR_END) * sizeof (double *)));
   if (!m)
@@ -253,6 +254,7 @@ void
 free_vector (double *v, long nl, long nh)
 /* free a double vector allocated with vector() */
 {
+  (void) nh;  // explicit cast to avoid unused error
   free ((FREE_ARG) (v + nl - NR_END));
 }
 
@@ -260,6 +262,7 @@ void
 free_ivector (int *v, long nl, long nh)
 /* free an int vector allocated with ivector() */
 {
+  (void) nh;  // explicit cast to avoid unused error
   free ((FREE_ARG) (v + nl - NR_END));
 }
 
@@ -267,6 +270,7 @@ void
 free_cvector (unsigned char *v, long nl, long nh)
 /* free an unsigned char vector allocated with cvector() */
 {
+  (void) nh;  // explicit cast to avoid unused error
   free ((FREE_ARG) (v + nl - NR_END));
 }
 
@@ -274,6 +278,7 @@ void
 free_lvector (unsigned long *v, long nl, long nh)
 /* free an unsigned long vector allocated with lvector() */
 {
+  (void) nh;  // explicit cast to avoid unused error
   free ((FREE_ARG) (v + nl - NR_END));
 }
 
@@ -281,6 +286,7 @@ void
 free_dvector (double *v, long nl, long nh)
 /* free a double vector allocated with dvector() */
 {
+  (void) nh;  // explicit cast to avoid unused error
   free ((FREE_ARG) (v + nl - NR_END));
 }
 
@@ -288,6 +294,8 @@ void
 free_matrix (double **m, long nrl, long nrh, long ncl, long nch)
 /* free a double matrix allocated by matrix() */
 {
+  (void) nrh;  // explicit cast to avoid unused error
+  (void) nch;  // explicit cast to avoid unused error
   free ((FREE_ARG) (m[nrl] + ncl - NR_END));
   free ((FREE_ARG) (m + nrl - NR_END));
 }
@@ -296,6 +304,8 @@ void
 free_dmatrix (double **m, long nrl, long nrh, long ncl, long nch)
 /* free a double matrix allocated by dmatrix() */
 {
+  (void) nrh;  // explicit cast to avoid unused error
+  (void) nch;  // explicit cast to avoid unused error
   free ((FREE_ARG) (m[nrl] + ncl - NR_END));
   free ((FREE_ARG) (m + nrl - NR_END));
 }
@@ -304,6 +314,8 @@ void
 free_imatrix (int **m, long nrl, long nrh, long ncl, long nch)
 /* free an int matrix allocated by imatrix() */
 {
+  (void) nrh;  // explicit cast to avoid unused error
+  (void) nch;  // explicit cast to avoid unused error
   free ((FREE_ARG) (m[nrl] + ncl - NR_END));
   free ((FREE_ARG) (m + nrl - NR_END));
 }
@@ -312,6 +324,9 @@ void
 free_submatrix (double **b, long nrl, long nrh, long ncl, long nch)
 /* free a submatrix allocated by submatrix() */
 {
+  (void) nrh;  // explicit cast to avoid unused error
+  (void) nch;  // explicit cast to avoid unused error
+  (void) ncl;  // explicit cast to avoid unused error
   free ((FREE_ARG) (b + nrl - NR_END));
 }
 
@@ -319,6 +334,9 @@ void
 free_convert_matrix (double **b, long nrl, long nrh, long ncl, long nch)
 /* free a matrix allocated by convert_matrix() */
 {
+  (void) nrh;  // explicit cast to avoid unused error
+  (void) nch;  // explicit cast to avoid unused error
+  (void) ncl;  // explicit cast to avoid unused error
   free ((FREE_ARG) (b + nrl - NR_END));
 }
 
@@ -327,6 +345,9 @@ free_f3tensor (double ***t, long nrl, long nrh, long ncl, long nch,
 	       long ndl, long ndh)
 /* free a double f3tensor allocated by f3tensor() */
 {
+  (void) nrh;  // explicit cast to avoid unused error
+  (void) nch;  // explicit cast to avoid unused error
+  (void) ndh;  // explicit cast to avoid unused error
   free ((FREE_ARG) (t[nrl][ncl] + ndl - NR_END));
   free ((FREE_ARG) (t[nrl] + ncl - NR_END));
   free ((FREE_ARG) (t + nrl - NR_END));

@@ -268,7 +268,7 @@ print_dot (clock_t start_time, int err, int count, int points,
 	   int final, int verbosity, int *any_error)
 {
   static int counter = 0;
-
+  (void) count;
   counter++;
 
   if (err != IAD_NO_ERROR)
@@ -298,7 +298,6 @@ print_dot (clock_t start_time, int err, int count, int points,
 
   fflush (stderr);
 }
-
 
 static void
 Calculate_Mua_Musp (struct measure_type m,
@@ -374,11 +373,21 @@ parse_string_into_array (char *s, double *a, int n)
 
 
       if (i == n)
-	return 0;
+	{
+	  if (a[i - 1] <= 0 || a[i - 1] > 1)
+	    {
+	      fprintf (stderr,
+		       "Sphere wall reflectivity (r_w=%g) must be a fraction less than one.\n",
+		       a[i - 1]);
+	      exit (EXIT_FAILURE);
+	    }
+	  return 0;
+	}
 
 
       t = r + 1;
     }
+
   return 1;
 }
 
@@ -1266,7 +1275,7 @@ main (int argc, char **argv)
 		while (mc_iter < MC_iterations)
 		  {
 
-		    MC_Lost (m, r, -1000, &ur1, &ut1, &uru, &utu,
+		    MC_Lost (m, r, n_photons, &ur1, &ut1, &uru, &utu,
 			     &m.ur1_lost, &m.ut1_lost, &m.uru_lost,
 			     &m.utu_lost);
 
@@ -1628,7 +1637,7 @@ main (int argc, char **argv)
 		    while (mc_iter < MC_iterations)
 		      {
 
-			MC_Lost (m, r, -1000, &ur1, &ut1, &uru, &utu,
+			MC_Lost (m, r, n_photons, &ur1, &ut1, &uru, &utu,
 				 &m.ur1_lost, &m.ut1_lost, &m.uru_lost,
 				 &m.utu_lost);
 

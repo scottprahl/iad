@@ -255,6 +255,12 @@ Between (int n,
 	 double **R12, double **R21, double **T12, double **T21,
 	 double **Lup, double **Ldown)
 {
+  (void) R01;
+  (void) T10;
+  (void) R21;
+  (void) T12;
+  (void) T21;
+
 
   double **a, **b;
 
