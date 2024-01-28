@@ -13,9 +13,9 @@ jobs:
     steps:
     - name: Download, build, and install ctangle
       run: |
+        mkdir cweb
         wget https://github.com/ascherer/cweb/releases/download/cweb-4.11/cweb-4.11.tar.gz
         tar xvfz cweb-4.11.tar.gz -C cweb
-        mkdir cweb
         cd cweb
         make
         cp ctangle /usr/local/bin/ctangle
