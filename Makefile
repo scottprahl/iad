@@ -213,7 +213,7 @@ ad.exe: $(WSRC) $(NRSRC)
     
 iad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
-	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL -Wno-implicit-fallthrough" iad
+	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" iad
 	mv src/iad.exe iad.exe
 	cd src ; make clean
 
