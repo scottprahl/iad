@@ -16,18 +16,15 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Download CWEB source
+    - name: Download CWEB source and extract source
       run: |
-        wget https://mirrors.ctan.org/web/c_cpp/cweb.zip
-    
-    - name: Extract CWEB source
-      run: |
-        unzip cweb.zip -d cweb
+        mkdir cweb
+        wget https://github.com/ascherer/cweb/releases/download/cweb-4.11/cweb-4.11.tar.gz
+        tar xvfz cweb-4.11.tar.gz -C cweb
     
     - name: Compile and Install CWEB
       run: |
-        cd cweb/cweb
-        make
+        cd cweb
         make install
     
     - name: Run short test (no automated verification)
