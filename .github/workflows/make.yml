@@ -25,7 +25,9 @@ jobs:
     - name: Compile and Install CWEB
       run: |
         cd cweb
-        make install
+        make
+        cp ctangle /usr/local/bin/ctangle
+        chmod 755 /usr/local/bin/ctangle
     
     - name: Run short test (no automated verification)
       run: make veryshorttest
