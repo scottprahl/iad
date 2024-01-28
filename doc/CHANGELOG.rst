@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v3.14.0 (25 Jan 2024)
+-------------------
+*   fix handling of slides (@anishabahl)
+*   fix github build
+*   improve Makefile
+*   warn on bad sphere wall reflectivity
+
 v3.13.2 (24 Jan 2024)
 -------------------
 *   fix port size normalization (@jgroehl)
