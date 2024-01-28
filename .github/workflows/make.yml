@@ -28,9 +28,12 @@ jobs:
         make
         cp ctangle /usr/local/bin/ctangle
         chmod 755 /usr/local/bin/ctangle
+        cd ..
     
     - name: Run short test (no automated verification)
-      run: make veryshorttest
+      run: |
+        make
+        make veryshorttest
 
   build-docs:
     runs-on: ubuntu-latest
