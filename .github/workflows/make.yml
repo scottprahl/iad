@@ -17,7 +17,7 @@ jobs:
         fetch-depth: 0
 
     - name: Install CWEB
-      run: sudo apt-get update && sudo apt-get install -y cwebx
+      run: sudo apt-get install -y cwebx
 
     - name: Build
       run: make
