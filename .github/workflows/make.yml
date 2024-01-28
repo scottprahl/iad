@@ -16,20 +16,17 @@ jobs:
         mkdir cweb
         wget https://github.com/ascherer/cweb/releases/download/cweb-4.11/cweb-4.11.tar.gz
         tar xvfz cweb-4.11.tar.gz -C cweb
-        cd cweb
-        make
-        cp ctangle /usr/local/bin/ctangle
+        cd cweb && make
+        cp cweb/ctangle /usr/local/bin/ctangle
         chmod 755 /usr/local/bin/ctangle
-        cd ..
    
-    - name: Download GitHub repository and build iad
+    - name: Download iad repository
       uses: actions/checkout@v3
-      run: |
         fetch-depth: 0
-        make
 
-    - name: Run short test (no automated verification)
+    - name: Build and run short test (no automated verification)
       run: |
+        make
         make veryshorttest
 
   build-docs:
