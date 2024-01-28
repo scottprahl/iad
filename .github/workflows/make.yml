@@ -31,7 +31,7 @@ jobs:
     
     - name: Compile and Install CWEB
       run: |
-        cd cweb
+        cd cweb/cweb
         make
         sudo make install
     
