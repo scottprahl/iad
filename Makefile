@@ -272,6 +272,16 @@ realclean:
 tidy:
 	cd src ; make tidy
 
+veryshorttest:
+	@echo "********* Basic tests ***********"
+	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
+	$(IAD_EXECUTABLE) -V 0 -r 0
+	@echo "EXPECT	   0.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000	   0.0000"
+	$(IAD_EXECUTABLE) -V 0 -r 1
+	@echo "EXPECT	   1.0000	   0.9975	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000"
+	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 0'
+	@echo "EXPECT	   0.2000	   0.2000	   0.0100	   0.0100	   1.8796	   4.1017	   0.0000"
+
 shorttest:
 	@echo "********* Basic tests ***********"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
