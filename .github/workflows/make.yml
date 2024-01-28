@@ -16,9 +16,25 @@ jobs:
       with:
         fetch-depth: 0
 
-    - name: Install CWEB
-      run: sudo apt-get update && sudo apt-get install -y cweb
-
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential unzip
+    
+    - name: Download CWEB source
+      run: |
+        wget https://mirrors.ctan.org/web/c_cpp/cweb.zip
+    
+    - name: Extract CWEB source
+      run: |
+        unzip cweb.zip -d cweb
+    
+    - name: Compile and Install CWEB
+      run: |
+        cd cweb
+        make
+        sudo make install
+    
     - name: Build
       run: make
 
