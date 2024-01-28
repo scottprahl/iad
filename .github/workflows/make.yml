@@ -13,12 +13,14 @@ jobs:
     steps:
     - name: Download, build, and install ctangle
       run: |
-        mkdir cweb
         wget https://github.com/ascherer/cweb/releases/download/cweb-4.11/cweb-4.11.tar.gz
         tar xvfz cweb-4.11.tar.gz -C cweb
-        cd cweb && make
-        cp cweb/ctangle /usr/local/bin/ctangle
+        mkdir cweb
+        cd cweb
+        make
+        cp ctangle /usr/local/bin/ctangle
         chmod 755 /usr/local/bin/ctangle
+        cd ..
    
     - name: Download iad repository
       uses: actions/checkout@v3
