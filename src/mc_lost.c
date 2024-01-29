@@ -1,5 +1,4 @@
 #include <assert.h>
-#include <assert.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -296,9 +295,9 @@ static void move_in_sample(double mu_t, double *x, double *y, double *z, double 
     *z += step * w;
 }
 
-/*On entry p is on one boundary of the slide and the direction is
-  into the slide on entry.  On exit, x and y will be the location
-  at exit, but z is not touched.  The direction w should be correct.
+/*On entry the photon is on one boundary of the slide and the direction is
+  into the slide.  On exit, x and y will be the location that the photon
+  leaves the slide and the direction w should be correct.
   The value of z does not need to be updated because if the ray exits
   then it does not matter.  If the ray doesn't exit, then it is reflected
   back into the medium and should have the same value as when it entered
@@ -310,9 +309,8 @@ static void move_in_slide(double *x, double *y, double u, double v, double *w, d
 
     r1 = fresnel(n1, n2, *w);
 
-    /* Does the ray makes it into the slide?  The test is <=
-       to ensure that when r1==1, the ray is *always* reflected */
     if (rand_zero_one() <= r1)  {
+        /* specularly reflected photon */
         *w = -(*w);
         return;
     }
@@ -371,7 +369,7 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
     double total_time=0;
     clock_t start_time=0;
 #ifndef NDEBUG
-	double ww;
+    double ww;
 #endif
     /* high resolution clock ... may be zero at start of process */
     start_time = clock();
@@ -401,27 +399,34 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
         weight = 1;
         total_weight += weight;
 
+        /* first interaction from air to slide to sample */
         move_in_slide(&x, &y, u, v, &w, &weight, d_slide, mua_slide, 1.0, n_slide, n_sample);
 
         if (w < 0) {
+            /* specularly reflected from surface */
             *r_total += weight;
             if (x*x + y*y > r_port_squared)
                 *r_lost += weight;
+            weight = 0;
             continue;
         }
 
 #ifndef NDEBUG
         ww = w;
 #endif
+        /* enter the sample */
         refract(1.0, n_sample, &u, &v, &w);
-        assert(fabs(sin(acos(ww)) - n_sample*sin(acos(w)))<1e-8 || ww == -w);
-        assert(fabs(u*u+v*v+w*w-1.0) < 1e-8);
 
         while (weight>0) {
+            assert(fabs(sin(acos(ww)) - n_sample*sin(acos(w)))<1e-8 || ww == -w);
+            assert(fabs(u*u+v*v+w*w-1.0) < 1e-8);
 
-            move_in_sample(mu_t,&x,&y,&z,u,v,w);
+            /* move to next scattering or absorption event */
+            move_in_sample(mu_t, &x, &y, &z, u, v, w);
 
+            /* deal with photon that may exit the sample */
             while (z < 0 || z > d_sample) {
+
                 /* move back to top or bottom of sample */
                 if (z < 0) {
                     extra = z/w;
@@ -433,15 +438,16 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
                 x -= u * extra;
                 y -= v * extra;
 
-                /* w changes sign upon reflection back into sample */
+                /* w will change sign upon reflection back into sample */
                 move_in_slide(&x, &y, u, v, &w, &weight, d_slide, mua_slide, n_sample, n_slide, 1.0);
 
-                /* use direction w to determine if photon is transmitted out of sample */
+                /* use direction w to determine if photon is transmitted or reflected */
                 if (z == 0) {
 
                     if (w < 0) {  /* still moving up */
                         *r_total += weight;
-                        if (x*x + y*y > r_port_squared) *r_lost += weight;
+                        if (x*x + y*y > r_port_squared) 
+                            *r_lost += weight;
                         weight = 0;
                         break;
                     }
@@ -450,7 +456,8 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
 
                     if (w > 0) { /* still moving down */
                         *t_total += weight;
-                        if (x*x + y*y > r_port_squared) *t_lost += weight;
+                        if (x*x + y*y > r_port_squared) 
+                            *t_lost += weight;
                         weight = 0;
                         break;
                     }
@@ -469,8 +476,8 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
 
         if (total_time && total_time < milliseconds(start_time))
             break;
-
     }
+
     *r_lost  /= (total_weight + residual_weight);
     *t_lost  /= (total_weight + residual_weight);
     *r_total /= (total_weight + residual_weight);
@@ -508,7 +515,7 @@ void MC_Lost(struct measure_type m, struct invert_type r,  long n_photons,
     *uru_lost = 0;
     *utu_lost = 0;
     if (m.method==SUBSTITUTION)
-    	MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, diffuse,    mu, d_sample, d_slide, mua_slide, d_port, d_beam, uru, utu, uru_lost, utu_lost);
+        MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, diffuse, mu, d_sample, d_slide, mua_slide, d_port, d_beam, uru, utu, uru_lost, utu_lost);
 
     if (*ur1_lost<0) *ur1_lost = 0;
     if (*ut1_lost<0) *ut1_lost = 0;
