@@ -303,7 +303,7 @@ static void move_in_sample(double mu_t, double *x, double *y, double *z, double 
   back into the medium and should have the same value as when it entered
  */
 static void move_in_slide(double *x, double *y, double u, double v, double *w, double *weight,
-                          double d_slide, double mua_slide, double n1, double n2, double n3)
+                          double t_slide, double mua_slide, double n1, double n2, double n3)
 {
     double i_x, i_y, i_z, d_bounce, r1, r2, absorbed_light_per_bounce;
 
@@ -322,7 +322,7 @@ static void move_in_slide(double *x, double *y, double u, double v, double *w, d
     refract(n1, n2, &i_x, &i_y, &i_z);
 
     r2 = fresnel(n2, n3, i_z);
-    d_bounce = fabs(d_slide/i_z);
+    d_bounce = fabs(t_slide/i_z);
     absorbed_light_per_bounce = 1-exp(-mua_slide*d_bounce);
 
     /* photon is in slide and bounces in the slide until it exits */
@@ -355,7 +355,7 @@ static double milliseconds(clock_t start_time)
 
 static void MC_Radial(long photons, double a, double b, double g, double n_sample,
                       double n_slide, int collimated, double cos_incidence,
-                      double d_sample, double d_slide, double mua_slide, double d_port, double d_beam,
+                      double t_sample, double t_slide, double mua_slide, double d_port, double d_beam,
                       double *r_total, double *t_total, double *r_lost, double *t_lost)
 {
 
@@ -363,7 +363,7 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
     long i,total_photons;
     double residual_weight = 0.0;
     double r_beam;
-    double mu_t = b / d_sample;
+    double mu_t = b / t_sample;
     double r_port_squared = d_port * d_port / 4.0;
     double total_weight,extra;
     double total_time=0;
@@ -400,7 +400,7 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
         total_weight += weight;
 
         /* first interaction from air to slide to sample */
-        move_in_slide(&x, &y, u, v, &w, &weight, d_slide, mua_slide, 1.0, n_slide, n_sample);
+        move_in_slide(&x, &y, u, v, &w, &weight, t_slide, mua_slide, 1.0, n_slide, n_sample);
 
         if (w < 0) {
             /* specularly reflected from surface */
@@ -425,21 +425,21 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
             move_in_sample(mu_t, &x, &y, &z, u, v, w);
 
             /* deal with photon that may exit the sample */
-            while (z < 0 || z > d_sample) {
+            while (z < 0 || z > t_sample) {
 
                 /* move back to top or bottom of sample */
                 if (z < 0) {
                     extra = z/w;
                     z  = 0.0;
                 } else {
-                    extra = (z-d_sample)/w;
-                    z  = d_sample;
+                    extra = (z-t_sample)/w;
+                    z  = t_sample;
                 }
                 x -= u * extra;
                 y -= v * extra;
 
                 /* w will change sign upon reflection back into sample */
-                move_in_slide(&x, &y, u, v, &w, &weight, d_slide, mua_slide, n_sample, n_slide, 1.0);
+                move_in_slide(&x, &y, u, v, &w, &weight, t_slide, mua_slide, n_sample, n_slide, 1.0);
 
                 /* use direction w to determine if photon is transmitted or reflected */
                 if (z == 0) {
@@ -484,38 +484,40 @@ static void MC_Radial(long photons, double a, double b, double g, double n_sampl
     *t_total /= (total_weight + residual_weight);
 }
 
+/* This assumes that the sample port diameter for the reflection and transmission
+   measurements are the same. */
 void MC_Lost(struct measure_type m, struct invert_type r,  long n_photons,
              double *ur1,      double *ut1,      double *uru,      double *utu,
              double *ur1_lost, double *ut1_lost, double *uru_lost, double *utu_lost)
 {
+    double mua_slide;
     int collimated = 1;
     int diffuse = 0;
 
-    double mua_slide;
     double n_sample = m.slab_index;
     double n_slide  = m.slab_top_slide_index;
-    double d_sample = m.slab_thickness;
-    double d_slide  = m.slab_top_slide_thickness;
-    double d_port   = sqrt(m.as_r)*2*m.d_sphere_r;
+    double t_sample = m.slab_thickness;
+    double t_slide  = m.slab_top_slide_thickness;
+    double d_port   = sqrt(m.as_r)*2*m.d_sphere_r; /* sample port diameter */
     double d_beam   = m.d_beam;
     double mu       = m.slab_cos_angle;
 
     /* no slide if thickness is zero or the index is 1.0 */
-    if (d_slide == 0.0) n_slide = 1.0;
-    if (n_slide == 1.0) d_slide = 0.0;
+    if (t_slide == 0.0) n_slide = 1.0;
+    if (n_slide == 1.0) t_slide = 0.0;
 
-    if (d_slide==0)
+    if (t_slide == 0)
         mua_slide = 0;
     else
-        mua_slide = m.slab_top_slide_b/d_slide;
+        mua_slide = m.slab_top_slide_b / t_slide;
 
     set_photon_seed(12345);
-    MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, collimated, mu, d_sample, d_slide, mua_slide, d_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
+    MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, collimated, mu, t_sample, t_slide, mua_slide, d_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
 
     *uru_lost = 0;
     *utu_lost = 0;
     if (m.method==SUBSTITUTION)
-        MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, diffuse, mu, d_sample, d_slide, mua_slide, d_port, d_beam, uru, utu, uru_lost, utu_lost);
+        MC_Radial(n_photons/2, r.a, r.b, r.g, n_sample, n_slide, diffuse, mu, t_sample, t_slide, mua_slide, d_port, d_beam, uru, utu, uru_lost, utu_lost);
 
     if (*ur1_lost<0) *ur1_lost = 0;
     if (*ut1_lost<0) *ut1_lost = 0;
@@ -528,16 +530,16 @@ void MC_RT(struct AD_slab_type s, long n_photons, double *UR1, double *UT1, doub
     double ur1_lost, ut1_lost, uru_lost, utu_lost;
     int collimated = 1;
     int diffuse = 0;
-    double d_sample = 1.0;
+    double t_sample = 1.0;
     double d_port   = 1000;
     double d_beam   = 0.0;
-    double d_slide  = 0.0;
+    double t_slide  = 0.0;
     double mu       = s.cos_angle;
     double mua_slide= 0.0;
 
     set_photon_seed(12345);
-    MC_Radial(n_photons/2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, collimated, mu, d_sample, d_slide, mua_slide, d_port, d_beam, UR1, UT1, &ur1_lost, &ut1_lost);
-    MC_Radial(n_photons/2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, diffuse,    mu, d_sample, d_slide, mua_slide, d_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
+    MC_Radial(n_photons/2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, collimated, mu, t_sample, t_slide, mua_slide, d_port, d_beam, UR1, UT1, &ur1_lost, &ut1_lost);
+    MC_Radial(n_photons/2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, diffuse,    mu, t_sample, t_slide, mua_slide, d_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
 
 }
 
@@ -569,10 +571,10 @@ int main(int argc, char** argv)
     double ur1, ut1, uru, utu;
     int collimated = 1;
     int diffuse = 0;
-    double d_sample = 1.0;
+    double t_sample = 1.0;
     double d_port   = 10.0;
     double d_beam   = 5.0;
-    double d_slide  = 1.0;
+    double t_slide  = 1.0;
     double a = 0.5;
     double b = 2;
     double g = 0.0;
@@ -615,8 +617,8 @@ int main(int argc, char** argv)
         }
     }
 
-    MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, collimated, d_sample, d_slide, d_port, d_beam, &ur1, &ut1, &ur1_lost, &ut1_lost);
-    MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, diffuse,    d_sample, d_slide, d_port, d_beam, &uru, &utu, &uru_lost, &utu_lost);
+    MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, collimated, t_sample, t_slide, d_port, d_beam, &ur1, &ut1, &ur1_lost, &ut1_lost);
+    MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, diffuse,    t_sample, t_slide, d_port, d_beam, &uru, &utu, &uru_lost, &utu_lost);
 
     printf("   UR1    \t   UT1    \t   URU    \t   UTU\n");
     printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", ur1, ut1, uru, utu);
