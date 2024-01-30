@@ -356,7 +356,10 @@ int check_magic(FILE *fp)
             break;
 
         case 1:
-            printf("# Single sphere corrections were used");
+            if (m.method == COMPARISON)
+                printf("# No sphere corrections were needed");
+            else
+                printf("# Single sphere corrections were used");
             break;
 
         case 2:
@@ -364,7 +367,7 @@ int check_magic(FILE *fp)
             break;
         }
         
-        printf(" with light incident at %d degrees from the normal", 
+        printf(" and light was incident at %d degrees from the normal", 
                    (int) (acos(m.slab_cos_angle)*57.2958));
         printf(".\n");
         
