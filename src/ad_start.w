@@ -710,23 +710,28 @@ Space must previously been allocated for |R| and |T|.
 	@<Prototype for |Init_Layer|@>@;
 
 {
-	double **h;
+	static double **h = NULL;
+	static double current_g = 10.0;
 	int n;
 
-	n=method.quad_pts;
+	n = method.quad_pts;
 
 	if (slab.b <= 0) {
 		Zero_Layer(n, R, T);
 		return;
 	}
 
-	h = dmatrix(-n, n, -n, n);
-	Get_Phi(n, slab.phase_function, method.g_calc, h);
+	/* allocate space for redistribution function */
+	if (h == NULL)
+	    h = dmatrix(-n, n, -n, n);
 
+    if (current_g != method.g_calc) {
+	    current_g = method.g_calc;
+	    Get_Phi(n, slab.phase_function, method.g_calc, h);
+	}
+    
 	if (method.b_thinnest < 1e-4 || method.b_thinnest < 0.09 * angle[1])
 		Get_IGI_Layer(method, h, R, T);
 	else
 		Get_Diamond_Layer(method, h, R, T);
-
-	free_dmatrix(h, -n, n, -n, n);
 }
