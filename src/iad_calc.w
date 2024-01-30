@@ -421,9 +421,9 @@ void Set_Calc_State(struct measure_type m, struct invert_type r)
 {
     memcpy(&MM, &m, sizeof(struct measure_type));
     memcpy(&RR, &r, sizeof(struct invert_type));
-    if ( Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) {
-        fprintf(stderr,"UR1 loss=%g, UT1 loss=%g  ", m.ur1_lost, m.ut1_lost);
-        fprintf(stderr,"URU loss=%g, UTU loss=%g\n", m.uru_lost, m.utu_lost);
+    if (Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) {
+        fprintf(stderr,"MC Loss (UR1=%7.5f, UT1=%7.5f, ", m.ur1_lost, m.ut1_lost);
+        fprintf(stderr,"URU=%7.5f, UTU=%7.5f)\n", m.uru_lost, m.utu_lost);
     }
 }
 
@@ -1052,8 +1052,10 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
 {
     double Rc, Tc, ur1, ut1, uru, utu;
 
-    if (RR.slab.b <= 1e-6 ) RR.slab.b = 1e-6;
-    if (Debug(DEBUG_EVERY_CALC)) 
+    if (RR.slab.b <= 1e-6 ) 
+        RR.slab.b = 1e-6;
+
+    if (0 && Debug(DEBUG_EVERY_CALC)) 
         fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
                 
     RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
@@ -1141,7 +1143,6 @@ void Calculate_Distance_With_Corrections(
             break;
 
         case 1:
-        case -2:
             if (MM.method == COMPARISON)
                 @<Calc |M_R| and |M_T| for dual beam sphere@>@;
             else
@@ -1151,6 +1152,9 @@ void Calculate_Distance_With_Corrections(
         case 2:
             @<Calc |M_R| and |M_T| for two spheres@>@;
             break;
+        
+        default:
+            fprintf(stderr, "Bad number of spheres = %d\n", MM.num_spheres);
     }
 
     @<Calculate the deviation@>@;
@@ -1166,8 +1170,10 @@ the light is collimated, and therefore the reflection and
 transmission is only modified for collimated irradiance.
 
 @<Calc |M_R| and |M_T| for no spheres@>=
+{
     *M_R = R_direct;
     *M_T = T_direct;
+}
         
 @ The direct incident power is $(1-f) P$. The reflected power will 
 be $(1-f)\rdirect P$.  Since baffles ensure that the light cannot
@@ -1339,18 +1345,18 @@ both.  The albedo stuff might be able to be take out.  We'll see.
 @<Print diagnostics@>=
 if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || @|
     (Debug(DEBUG_GRID_CALC)  &&  CALCULATING_GRID)) {
-    static int once = 0;
-        
-    if (once==0) {
-            fprintf(stderr, "%10s %10s %10s |%10s %10s |%10s %10s |%10s\n",
+    static int once;
+    
+    if (once != MM.lambda) {
+            fprintf(stderr, "%10s %10s %10s | %7s %7s | %7s %7s |%8s\n        ",
                     "a", "b", "g", "m_r", "fit", "m_t", "fit", "delta");
-            once = 1;
+            once = MM.lambda;
         }
     
     fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
-    fprintf(stderr, "%10.5f %10.5f |", MM.m_r, *M_R);
-    fprintf(stderr, "%10.5f %10.5f |", MM.m_t, *M_T);
-    fprintf(stderr, "%10.5f \n", *dev);
+    fprintf(stderr, " %7.5f %7.5f |", MM.m_r, *M_R);
+    fprintf(stderr, " %7.5f %7.5f |", MM.m_t, *M_T);
+    fprintf(stderr, "%8.5f \n", *dev);
 }
 
 @ @<Prototype for |Find_AG_fn|@>=
