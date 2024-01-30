@@ -18,35 +18,35 @@ Added printing of intermediate results for Martin Hammer.
 #include "nr_gaulg.h"
 #include "nr_util.h"
 
-	@<Definition for |Get_Start_Depth|@>@;
-	@<Definition for |Quadrature|@>@;
-	@<Definition for |Choose_Method|@>@;
-	@<Definition for |Choose_Cone_Method|@>@;
-	@<Definition for |Get_IGI_Layer|@>@;
-	@<Definition for |Get_Diamond_Layer|@>@;
-	@<Definition for |Init_Layer|@>@;
+    @<Definition for |Get_Start_Depth|@>@;
+    @<Definition for |Quadrature|@>@;
+    @<Definition for |Choose_Method|@>@;
+    @<Definition for |Choose_Cone_Method|@>@;
+    @<Definition for |Get_IGI_Layer|@>@;
+    @<Definition for |Get_Diamond_Layer|@>@;
+    @<Definition for |Init_Layer|@>@;
 
 @ @(ad_start.h@>=
-	@<Prototype for |Get_Start_Depth|@>;
-	@<Prototype for |Choose_Method|@>;
-	@<Prototype for |Choose_Cone_Method|@>;
-	@<Prototype for |Init_Layer|@>;
-	@<Prototype for |Quadrature|@>;
+    @<Prototype for |Get_Start_Depth|@>;
+    @<Prototype for |Choose_Method|@>;
+    @<Prototype for |Choose_Cone_Method|@>;
+    @<Prototype for |Init_Layer|@>;
+    @<Prototype for |Quadrature|@>;
 
 @*1 Basic routines.
 
 This file contains the three procedures which must be called before any doubling 
 may take place.  They should be called in the following order: 
 
-	|Choose_Method|			---  to fill the method record 
+    |Choose_Method|         ---  to fill the method record 
 
-	|Quadrature|				---  to calculate the quad angles and weights 
+    |Quadrature|                ---  to calculate the quad angles and weights 
 
-	code to initialize |angle|, |weight|, and |twoaw|
-	
-	|Init_Layer|					---  to calculate the thin layer |R| and |T| 
+    code to initialize |angle|, |weight|, and |twoaw|
+    
+    |Init_Layer|                    ---  to calculate the thin layer |R| and |T| 
 
-	|Double_Until| --- to obtain |R| and |T| for the desired thickness 
+    |Double_Until| --- to obtain |R| and |T| for the desired thickness 
 
 
 @  |Get_Start_Depth| selects the best minimum starting thickness 
@@ -72,21 +72,21 @@ less than $\mu$.  Also we make checks for a layer with zero thickness
 and one that infinitely thick.
 
 @<Prototype for |Get_Start_Depth|@>=
-	double Get_Start_Depth(double mu, double d)
+    double Get_Start_Depth(double mu, double d)
 
 @ @<Definition for |Get_Start_Depth|@>=
-	@<Prototype for |Get_Start_Depth|@>
+    @<Prototype for |Get_Start_Depth|@>
 
 {
-	if (d <= 0) 
-		return 0.0;
+    if (d <= 0) 
+        return 0.0;
 
-	if (d == HUGE_VAL)
-		return (mu / 2.0);
+    if (d == HUGE_VAL)
+        return (mu / 2.0);
 
-	while (d > mu) d /= 2;
-	
-	return d;
+    while (d > mu) d /= 2;
+    
+    return d;
 }
 
 @*1 Quadrature.
@@ -98,33 +98,33 @@ Radau quadrature points are chosen from 0 to $\mu_c$ and Radau
 quadrature points over the interval $\mu_c$ to 1.
 
 @<Prototype for |Quadrature|@>=
-	 void Quadrature(int n, double n_slab, double *x, double *w)
+     void Quadrature(int n, double n_slab, double *x, double *w)
 
 @ @<Definition for |Quadrature|@>=
-	@<Prototype for |Quadrature|@>
+    @<Prototype for |Quadrature|@>
 {
-	int i, nby2;
-	double *x1, *w1;
-	double mu_c;
+    int i, nby2;
+    double *x1, *w1;
+    double mu_c;
 
-	if (n_slab == 1) {
-		Radau(0.0, 1.0, x, w, n);
+    if (n_slab == 1) {
+        Radau(0.0, 1.0, x, w, n);
         return;
-	}
+    }
 
-	mu_c = Cos_Critical_Angle(n_slab,1.0);
-	nby2 = n / 2;
-	gauleg(0.0, mu_c, x, w, nby2);
+    mu_c = Cos_Critical_Angle(n_slab,1.0);
+    nby2 = n / 2;
+    gauleg(0.0, mu_c, x, w, nby2);
 
-	x1 = dvector(1,nby2);
-	w1 = dvector(1,nby2);
-	Radau(mu_c, 1.0, x1, w1, nby2);
-	for (i = 1; i <= nby2; i++) {
-		x[nby2 + i] = x1[i];
-		w[nby2 + i] = w1[i];
-	}
-	free_dvector(x1,1,nby2);
-	free_dvector(w1,1,nby2);
+    x1 = dvector(1,nby2);
+    w1 = dvector(1,nby2);
+    Radau(mu_c, 1.0, x1, w1, nby2);
+    for (i = 1; i <= nby2; i++) {
+        x[nby2 + i] = x1[i];
+        w[nby2 + i] = w1[i];
+    }
+    free_dvector(x1,1,nby2);
+    free_dvector(w1,1,nby2);
 }
 
 @ |Choose_Method| fills the method structure with correct values for
@@ -144,32 +144,32 @@ to
 
 
 @<Prototype for |Choose_Method|@>=
-	void Choose_Method(struct AD_slab_type * slab, struct AD_method_type *method)
+    void Choose_Method(struct AD_slab_type * slab, struct AD_method_type *method)
 
 @ @<Definition for |Choose_Method|@>=
-	@<Prototype for |Choose_Method|@>
+    @<Prototype for |Choose_Method|@>
 
 {
-	double af;
-	int i, n;
+    double af;
+    int i, n;
 
-	if (0<slab->cos_angle && slab->cos_angle < 1) {
-		Choose_Cone_Method(slab,method);
-		return;
-	}
-	
-	n = method->quad_pts;
-	af = pow(slab->g, n)*slab->a;
-	method->a_calc = (slab->a - af) / (1 - af);
-	method->b_calc = (1 - af) * slab->b;
-	method->g_calc = slab->g;
-	
-	Quadrature(n, slab->n_slab, angle, weight);
+    if (0<slab->cos_angle && slab->cos_angle < 1) {
+        Choose_Cone_Method(slab,method);
+        return;
+    }
+    
+    n = method->quad_pts;
+    af = pow(slab->g, n)*slab->a;
+    method->a_calc = (slab->a - af) / (1 - af);
+    method->b_calc = (1 - af) * slab->b;
+    method->g_calc = slab->g;
+    
+    Quadrature(n, slab->n_slab, angle, weight);
 
-	for (i = 1; i <=n; i++)
-		twoaw[i] = 2 * angle[i] * weight[i];
+    for (i = 1; i <=n; i++)
+        twoaw[i] = 2 * angle[i] * weight[i];
 
-	method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
+    method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
 }
 
 @ |Choose_Cone_Method| adds the ability to specify a specific quadrature angle
@@ -179,85 +179,85 @@ mimicks the usual |Choose_Method| above, and in fact explicitly uses it for
 a couple of special cases.  
 
 @<Prototype for |Choose_Cone_Method|@>=
-	void Choose_Cone_Method(struct AD_slab_type *slab, 
-							struct AD_method_type *method)
+    void Choose_Cone_Method(struct AD_slab_type *slab, 
+                            struct AD_method_type *method)
 
 @ @<Definition for |Choose_Cone_Method|@>=
-	@<Prototype for |Choose_Cone_Method|@>
+    @<Prototype for |Choose_Cone_Method|@>
 
 {
-	double af, *angle1, *weight1, cos_crit_angle,mu;
-	int i, n, nby2, nby3;
+    double af, *angle1, *weight1, cos_crit_angle,mu;
+    int i, n, nby2, nby3;
 
-	n = method->quad_pts;
-	af = pow(slab->g, n)*slab->a;
-	method->a_calc = (slab->a - af) / (1 - af);
-	method->b_calc = (1 - af) * slab->b;
-	method->g_calc = slab->g;
+    n = method->quad_pts;
+    af = pow(slab->g, n)*slab->a;
+    method->a_calc = (slab->a - af) / (1 - af);
+    method->b_calc = (1 - af) * slab->b;
+    method->g_calc = slab->g;
 
-	@<Special case when cosine is zero@>@;
-	@<Special case when no index of refraction change@>@;
-	@<Gaussian quadrature from 0 to the critical angle@>@;
-	@<Radau quadrature from the critical angle to the cone angle@>@;
-	@<Radau quadrature from the cone angle to 1@>@;
+    @<Special case when cosine is zero@>@;
+    @<Special case when no index of refraction change@>@;
+    @<Gaussian quadrature from 0 to the critical angle@>@;
+    @<Radau quadrature from the critical angle to the cone angle@>@;
+    @<Radau quadrature from the cone angle to 1@>@;
 }
 
 @ @<print angles@>=
 
 @ @<debug print angles@>=
-	{
-		printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
-		   			acos(slab->cos_angle)*180.0/3.14159,slab->cos_angle);
-		double sum=0;
-		for (i = 1; i <=n; i++) {
-			sum += twoaw[i];
-			printf("%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
-			   i, acos(angle[i])/3.1415926*180.0, angle[i], weight[i],twoaw[i]);
-		}
-		printf("twoaw sum = %8.4f\n",sum);
-	}
+    {
+        printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
+                acos(slab->cos_angle)*180.0/3.14159,slab->cos_angle);
+        double sum=0;
+        for (i = 1; i <=n; i++) {
+            sum += twoaw[i];
+            printf("%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
+               i, acos(angle[i])/3.1415926*180.0, angle[i], weight[i],twoaw[i]);
+        }
+        printf("twoaw sum = %8.4f\n",sum);
+    }
 
 @ When the cone angle is zero or ninety degrees then we can just use the
 standard method for choosing the quadrature points.
 
 @<Special case when cosine is zero@>=
-	if (slab->cos_angle == 0 || slab->cos_angle == 1) {
-		Choose_Method(slab, method);
-		@<print angles@>@;
-		return;
-	}
-	
+    if (slab->cos_angle == 0 || slab->cos_angle == 1) {
+        Choose_Method(slab, method);
+        @<print angles@>@;
+        return;
+    }
+    
 @ When there is no index of refraction change, there is no critical angle
 to worry about.  Since we want the cone angle to be included as one of our
 angles, we use Radau quadrature.  That way both the cone angle and 
 perpendicular angles are included.
 
 @<Special case when no index of refraction change@>=
-	if (slab->n_slab == 1 && slab->n_top_slide == 1 && slab->n_bottom_slide == 1) {
-		nby2 = n / 2;
-		Radau(0.0, slab->cos_angle, angle, weight, nby2);
-	
-		angle1 = dvector(1, nby2);
-		weight1 = dvector(1, nby2);
-		Radau(slab->cos_angle, 1.0, angle1, weight1, nby2);
-		
-		for (i = 1; i <= nby2; i++) {
-			angle[nby2 + i] = angle1[i];
-			weight[nby2 + i] = weight1[i];
-		}
-		free_dvector(angle1,1,nby2);
-		free_dvector(weight1,1,nby2);
-	
-		for (i = 1; i <=n; i++)
-			twoaw[i] = 2 * angle[i] * weight[i];
-	
-		method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
-		
-		@<print angles@>@;
+    if (slab->n_slab == 1 && slab->n_top_slide == 1 && slab->n_bottom_slide == 1) {
+        nby2 = n / 2;
+        Radau(0.0, slab->cos_angle, angle, weight, nby2);
+    
+        angle1 = dvector(1, nby2);
+        weight1 = dvector(1, nby2);
+        Radau(slab->cos_angle, 1.0, angle1, weight1, nby2);
+        
+        for (i = 1; i <= nby2; i++) {
+            angle[nby2 + i] = angle1[i];
+            weight[nby2 + i] = weight1[i];
+        }
+        free_dvector(angle1,1,nby2);
+        free_dvector(weight1,1,nby2);
+    
+        for (i = 1; i <=n; i++)
+            twoaw[i] = 2 * angle[i] * weight[i];
+    
+        method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
+        
+        @<print angles@>@;
 
-		return;
-	}
-	
+        return;
+    }
+    
 @ Now we need to include three angles, the critical angle, the cone
 angle, and perpendicular.  Now the important angles are the ones in
 the slab.  So we calculate the cosine of the critical angle in the 
@@ -273,36 +273,36 @@ included) and finally from the cone angle to 1 (again using Radau
 quadrature so that 1 will be included).
 
 @<Gaussian quadrature from 0 to the critical angle@>=
-	cos_crit_angle = Cos_Critical_Angle(slab->n_slab,1.0);
-	nby3 = n / 3;
-	gauleg(0.0, cos_crit_angle, angle, weight, nby3);
+    cos_crit_angle = Cos_Critical_Angle(slab->n_slab,1.0);
+    nby3 = n / 3;
+    gauleg(0.0, cos_crit_angle, angle, weight, nby3);
 
 @ @<Radau quadrature from the critical angle to the cone angle@>=
 
     mu = sqrt(slab->n_slab*slab->n_slab-1+slab->cos_angle*slab->cos_angle)/slab->n_slab;
-	angle1 = dvector(1,nby3);
-	weight1 = dvector(1,nby3);
-	Radau(cos_crit_angle, mu, angle1, weight1, nby3);
-	for (i = 1; i <= nby3; i++) {
-		angle[nby3 + i] = angle1[i];
-		weight[nby3 + i] = weight1[i];
-	}
+    angle1 = dvector(1,nby3);
+    weight1 = dvector(1,nby3);
+    Radau(cos_crit_angle, mu, angle1, weight1, nby3);
+    for (i = 1; i <= nby3; i++) {
+        angle[nby3 + i] = angle1[i];
+        weight[nby3 + i] = weight1[i];
+    }
 
 @ @<Radau quadrature from the cone angle to 1@>=
-	Radau(mu, 1.0, angle1, weight1, nby3);
-	for (i = 1; i <= nby3; i++) {
-		angle[nby3 * 2 + i] = angle1[i];
-		weight[nby3 * 2 + i] = weight1[i];
-	}
-	free_dvector(angle1,1,nby3);
-	free_dvector(weight1,1,nby3);
+    Radau(mu, 1.0, angle1, weight1, nby3);
+    for (i = 1; i <= nby3; i++) {
+        angle[nby3 * 2 + i] = angle1[i];
+        weight[nby3 * 2 + i] = weight1[i];
+    }
+    free_dvector(angle1,1,nby3);
+    free_dvector(weight1,1,nby3);
 
-	for (i = 1; i <=n; i++)
-		twoaw[i] = 2 * angle[i] * weight[i];
+    for (i = 1; i <=n; i++)
+        twoaw[i] = 2 * angle[i] * weight[i];
 
-	method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
+    method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
 
-	@<print angles@>@;
+    @<print angles@>@;
 
 
 @*1 Initialization.
@@ -397,22 +397,22 @@ $$
 @<Definition for |Get_IGI_Layer|@>=
 static void Get_IGI_Layer(struct AD_method_type method, double **h, double **R, double **T)
 {
-	int i, j, n;
-	double a, c, d, temp;
+    int i, j, n;
+    double a, c, d, temp;
 
-	a = method.a_calc;
-	d = method.b_thinnest;
-	n = method.quad_pts;
+    a = method.a_calc;
+    d = method.b_thinnest;
+    n = method.quad_pts;
 
-	for (j = 1; j <= n; j++) {
-		temp = a * d / 4 / angle[j];
-		for (i = 1; i <= n; i++) {
-			c = temp/angle[i];
-			R[i][j] = c*h[i][-j];
-			T[i][j] = c*h[i][j];
-		}
-		T[j][j] += (1-d/angle[j])/twoaw[j];
-	}
+    for (j = 1; j <= n; j++) {
+        temp = a * d / 4 / angle[j];
+        for (i = 1; i <= n; i++) {
+            c = temp/angle[i];
+            R[i][j] = c*h[i][-j];
+            T[i][j] = c*h[i][j];
+        }
+        T[j][j] += (1-d/angle[j])/twoaw[j];
+    }
 }
 
 @*1 Diamond Initialization.
@@ -442,13 +442,13 @@ $$
 @<Definition for |Get_Diamond_Layer|@>=
 static void Get_Diamond_Layer(struct AD_method_type method, double **h, double **R, double **T)
 {
-	@<Local variables and initialization@>@;
-	@<Find |r| and |t|@>@;
-	@<Find |C=r/(1+t)|@>@;
-	@<Find |G=0.5(1+t-C r)|@>@;
+    @<Local variables and initialization@>@;
+    @<Find |r| and |t|@>@;
+    @<Find |C=r/(1+t)|@>@;
+    @<Find |G=0.5(1+t-C r)|@>@;
     @<print |r|, |t|, and |g| for Martin Hammer@>@;
-	@<Calculate |R| and |T|@>@;
-	@<Free up memory@>@;	
+    @<Calculate |R| and |T|@>@;
+    @<Free up memory@>@;    
 }
 
 
@@ -475,15 +475,15 @@ final values for |R| and |T| are formed.
 
 @<Find |r| and |t|@>=
 
-	for (j = 1; j <= n; j++) {
-		temp = a * d * weight[j]/4;
-		for (i = 1; i <= n; i++) {
-			c = temp/angle[i];
-			R[i][j] = c*h[i][-j];
-			T[i][j] = -c*h[i][j];
-		}
-		T[j][j] += d/(2*angle[j]);
-	}
+    for (j = 1; j <= n; j++) {
+        temp = a * d * weight[j]/4;
+        for (i = 1; i <= n; i++) {
+            c = temp/angle[i];
+            R[i][j] = c*h[i][-j];
+            T[i][j] = -c*h[i][j];
+        }
+        T[j][j] += d/(2*angle[j]);
+    }
 
 
 @  Wiscombe points out (in Appendix A), that the matrix inversions can be avoided
@@ -508,13 +508,13 @@ the required multiplications and voil\'a! It  worked.)
 
 @<Find |C=r/(1+t)|@>=
 
-	for (i = 1; i <= n; i++) {
-		for (j = 1; j <= n; j++) 
-			A[i][j] = T[i][j];
-		A[i][i] += 1.0;
-	}
+    for (i = 1; i <= n; i++) {
+        for (j = 1; j <= n; j++) 
+            A[i][j] = T[i][j];
+        A[i][i] += 1.0;
+    }
 
-	Left_Inverse_Multiply(n, A, R, C);
+    Left_Inverse_Multiply(n, A, R, C);
 
 @ Here the matrix 
 $$
@@ -523,12 +523,12 @@ $$
 is formed.  
 
 @<Find |G=0.5(1+t-C r)|@>=
-	Matrix_Multiply(n, C, R, G);	
-	for (i = 1; i <= n; i++) {
-		for (j = 1; j <= n; j++) 
-			G[i][j] = (T[i][j] - G[i][j])/2;
-		G[i][i] += 0.5;
-		}
+    Matrix_Multiply(n, C, R, G);    
+    for (i = 1; i <= n; i++) {
+        for (j = 1; j <= n; j++) 
+            G[i][j] = (T[i][j] - G[i][j])/2;
+        G[i][i] += 0.5;
+        }
 
 @ To print intermediate results for Chapter 4 of AJ's book, 
 then it is necessary to print things from within |Get_Diamond_Layer|.
@@ -544,32 +544,32 @@ and when the variable |Martin_Hammer!=0|.
 double **Ginv, **G2;
 
 if (Martin_Hammer!=0) {
-	printf("A from equation 5.55\n");
-	wrmatrix(n,T);
-	
-	printf("B from equation 5.55\n");
-	wrmatrix(n,R);
-	
-	Ginv=dmatrix(1,n,1,n);
-	G2=dmatrix(1,n,1,n);
-	
-	for (i = 1; i <= n; i++) {		
-		for (j = 1; j <= n; j++) {		
-			G2[i][j] = G[i][j]*2.0;
-		}
-	}
-		
-	Matrix_Inverse(n,G2,Ginv);
-	
-	printf("Inverse of G from equation 5.56\n");
-	wrmatrix(n,G2);
+    printf("A from equation 5.55\n");
+    wrmatrix(n,T);
+    
+    printf("B from equation 5.55\n");
+    wrmatrix(n,R);
+    
+    Ginv=dmatrix(1,n,1,n);
+    G2=dmatrix(1,n,1,n);
+    
+    for (i = 1; i <= n; i++) {      
+        for (j = 1; j <= n; j++) {      
+            G2[i][j] = G[i][j]*2.0;
+        }
+    }
+        
+    Matrix_Inverse(n,G2,Ginv);
+    
+    printf("Inverse of G from equation 5.56\n");
+    wrmatrix(n,G2);
 
-	printf("G from equation 5.56\n");
-	wrmatrix(n,Ginv);
+    printf("G from equation 5.56\n");
+    wrmatrix(n,Ginv);
 
-	free_matrix(Ginv,1,n,1,n);
-	free_matrix(G2,1,n,1,n);
-	}
+    free_matrix(Ginv,1,n,1,n);
+    free_matrix(G2,1,n,1,n);
+    }
 }
 #endif
 
@@ -585,16 +585,16 @@ We do the little shuffle and only find the LU decomposition of
 |G| once and use it to find both |R| and |T+1|.
 
 @<Calculate |R| and |T|@>=
-	Transpose_Matrix(n, G);
-	Decomp(n, G, &condition, ipvt);
+    Transpose_Matrix(n, G);
+    Decomp(n, G, &condition, ipvt);
 
-	if (condition==1e32)
-		AD_error("Singular Matrix ... failed in diamond_init\n");
-		
-	for (i = 1; i <= n; i++) {		
-		@<Solve for row of |R|@>@;
-		@<Solve for row of |T|@>@;
-	}
+    if (condition==1e32)
+        AD_error("Singular Matrix ... failed in diamond_init\n");
+        
+    for (i = 1; i <= n; i++) {      
+        @<Solve for row of |R|@>@;
+        @<Solve for row of |T|@>@;
+    }
 
 #ifdef MARTIN_HAMMER
 {
@@ -602,35 +602,35 @@ double **T2, **Ginv;
 
 if (Martin_Hammer==5) {
 
-	T2=dmatrix(1,n,1,n);
-	Ginv=dmatrix(1,n,1,n);
-	
-	Copy_Matrix(n,T,T2);
-	
-	for (i = 1; i <= n; i++) {		
-		T2[i][i] += 1/twoaw[i];
-	}
+    T2=dmatrix(1,n,1,n);
+    Ginv=dmatrix(1,n,1,n);
+    
+    Copy_Matrix(n,T,T2);
+    
+    for (i = 1; i <= n; i++) {      
+        T2[i][i] += 1/twoaw[i];
+    }
 
-	for (i = 1; i <= n; i++) {		
-		for (j = 1; j <= n; j++) {		
-			T2[i][j] *= twoaw[j]*0.5;
-		}
-	}
+    for (i = 1; i <= n; i++) {      
+        for (j = 1; j <= n; j++) {      
+            T2[i][j] *= twoaw[j]*0.5;
+        }
+    }
 
-	printf("G=(T-1)/2 from equation 5.55\n");
-	wrmatrix(n,T2);
+    printf("G=(T-1)/2 from equation 5.55\n");
+    wrmatrix(n,T2);
 
-	Matrix_Inverse(n,T2,Ginv);
-	
-	printf("1/G\n");
-	wrmatrix(n,Ginv);
-	
-	free_matrix(T2,1,n,1,n);
-	free_matrix(Ginv,1,n,1,n);
-	}
+    Matrix_Inverse(n,T2,Ginv);
+    
+    printf("1/G\n");
+    wrmatrix(n,Ginv);
+    
+    free_matrix(T2,1,n,1,n);
+    free_matrix(Ginv,1,n,1,n);
+    }
 }
 #endif
-	       
+           
 @ We use the decomposed form of |G| to find |R|.  Since |G| is
 now the LU decomposition of $G^T$, we must pass rows of the
 |C| to |Solve| and get rows back.  Note the finess with
@@ -643,11 +643,11 @@ put these values back in |R| and divide by $1/(2\mu_j w_j)$
 so that |R| will be symmetric and have the proper form.
 
 @<Solve for row of |R|@>=
-		for (j = 1; j <= n; j++)	
-			work[j] = C[j][i]*twoaw[j]/twoaw[i];		
-		Solve(n, G, work, ipvt);
-		for (j = 1; j <= n; j++)	
-			R[i][j] = work[j]/twoaw[j];
+        for (j = 1; j <= n; j++)    
+            work[j] = C[j][i]*twoaw[j]/twoaw[i];        
+        Solve(n, G, work, ipvt);
+        for (j = 1; j <= n; j++)    
+            R[i][j] = work[j]/twoaw[j];
 
 @ We again use the decomposed form of |G| to find |T|.  This is much
 simpler since we only need to pass rows of the identity matrix
@@ -657,46 +657,46 @@ so that |T| is properly formed.  Oh yes, we can't forget to subtract
 the identity matrix!
 
 @<Solve for row of |T|@>=
-		for (j = 1; j <= n; j++)	
-			work[j] = 0;		
-		work[i] = 1.0;
-		Solve(n, G, work, ipvt);
-		for (j = 1; j <= n; j++)	
-			T[i][j] = work[j]/twoaw[j];
-		T[i][i] -= 1.0/twoaw[i];			/* Subtract Identity Matrix */
+        for (j = 1; j <= n; j++)    
+            work[j] = 0;        
+        work[i] = 1.0;
+        Solve(n, G, work, ipvt);
+        for (j = 1; j <= n; j++)    
+            T[i][j] = work[j]/twoaw[j];
+        T[i][i] -= 1.0/twoaw[i];            /* Subtract Identity Matrix */
 
 @ Pretty standard stuff here.  Allocate memory and 
 print a warning if the thickness is too small.
 
 @<Local variables and initialization@>=
 
-	int i, j, n;
-	double **A, **G, **C;
-	double a, c, d, temp;
-	double *work;
-	double condition;
-	int	*ipvt;
-	
-	d = method.b_thinnest;
-	a = method.a_calc;
-	n = method.quad_pts;
+    int i, j, n;
+    double **A, **G, **C;
+    double a, c, d, temp;
+    double *work;
+    double condition;
+    int *ipvt;
+    
+    d = method.b_thinnest;
+    a = method.a_calc;
+    n = method.quad_pts;
 
-	A=dmatrix(1,n,1,n);
-	G=dmatrix(1,n,1,n);
-	C=dmatrix(1,n,1,n);
-	work = dvector(1, n);
-	ipvt = ivector(1, n);
+    A=dmatrix(1,n,1,n);
+    G=dmatrix(1,n,1,n);
+    C=dmatrix(1,n,1,n);
+    work = dvector(1, n);
+    ipvt = ivector(1, n);
 
-	if (d < 1e-4)
-		AD_error("**** Roundoff error is a problem--Use IGI method\n");
+    if (d < 1e-4)
+        AD_error("**** Roundoff error is a problem--Use IGI method\n");
 
 @
-@<Free up memory@>=	
-	free_dvector(work,1,n);
-	free_ivector(ipvt,1,n);
-	free_dmatrix(A,1,n,1,n);
-	free_dmatrix(G,1,n,1,n);
-	free_dmatrix(C,1,n,1,n);
+@<Free up memory@>= 
+    free_dvector(work,1,n);
+    free_ivector(ipvt,1,n);
+    free_dmatrix(A,1,n,1,n);
+    free_dmatrix(G,1,n,1,n);
+    free_dmatrix(C,1,n,1,n);
 
 @*1 Layer Initialization.
 
@@ -704,34 +704,34 @@ print a warning if the thickness is too small.
 Space must previously been allocated for |R| and |T|.
 
 @<Prototype for |Init_Layer|@>=
-	void Init_Layer(struct AD_slab_type slab, struct AD_method_type method, double **R, double **T)
+    void Init_Layer(struct AD_slab_type slab, struct AD_method_type method, double **R, double **T)
 
 @ @<Definition for |Init_Layer|@>=
-	@<Prototype for |Init_Layer|@>@;
+    @<Prototype for |Init_Layer|@>@;
 
 {
-	static double **h = NULL;
-	static double current_g = 10.0;
-	int n;
+    static double **h = NULL;
+    static double current_g = 10.0;
+    int n;
 
-	n = method.quad_pts;
+    n = method.quad_pts;
 
-	if (slab.b <= 0) {
-		Zero_Layer(n, R, T);
-		return;
-	}
+    if (slab.b <= 0) {
+        Zero_Layer(n, R, T);
+        return;
+    }
 
-	/* allocate space for redistribution function */
-	if (h == NULL)
-	    h = dmatrix(-n, n, -n, n);
+    /* allocate space for redistribution function */
+    if (h == NULL)
+        h = dmatrix(-n, n, -n, n);
 
     if (current_g != method.g_calc) {
-	    current_g = method.g_calc;
-	    Get_Phi(n, slab.phase_function, method.g_calc, h);
-	}
+        current_g = method.g_calc;
+        Get_Phi(n, slab.phase_function, method.g_calc, h);
+    }
     
-	if (method.b_thinnest < 1e-4 || method.b_thinnest < 0.09 * angle[1])
-		Get_IGI_Layer(method, h, R, T);
-	else
-		Get_Diamond_Layer(method, h, R, T);
+    if (method.b_thinnest < 1e-4 || method.b_thinnest < 0.09 * angle[1])
+        Get_IGI_Layer(method, h, R, T);
+    else
+        Get_Diamond_Layer(method, h, R, T);
 }
