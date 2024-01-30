@@ -69,13 +69,15 @@ U_Find_Ba (struct measure_type m, struct invert_type *r)
 
   r->slab.a = (r->slab.b) / (bcalc2b (ba) + r->slab.b);
   r->slab.b = bcalc2b (ba) + r->slab.b;
-  Set_Calc_State (m, *r);
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -120,13 +122,15 @@ U_Find_Bs (struct measure_type m, struct invert_type *r)
 
   r->slab.a = bcalc2b (bs) / (bcalc2b (bs) + r->slab.b);
   r->slab.b = bcalc2b (bs) + r->slab.b;
-  Set_Calc_State (m, *r);
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -176,10 +180,13 @@ U_Find_A (struct measure_type m, struct invert_type *r)
     }
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -228,10 +235,13 @@ U_Find_B (struct measure_type m, struct invert_type *r)
 
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 
@@ -283,10 +293,13 @@ U_Find_G (struct measure_type m, struct invert_type *r)
     }
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -352,7 +365,9 @@ U_Find_AG (struct measure_type m, struct invert_type *r)
     if (Debug (DEBUG_BEST_GUESS))
       {
 	int k;
-	fprintf (stderr, "after\n");
+	fprintf (stderr, "Best Grid Guesses\n");
+	fprintf (stderr,
+		 "  k      albedo          b          g    distance\n");
 	for (k = 0; k <= 6; k++)
 	  {
 	    fprintf (stderr, "%3d  ", k);
@@ -383,7 +398,9 @@ U_Find_AG (struct measure_type m, struct invert_type *r)
 
     for (kk = 1; kk < 7; kk++)
       {
-	if (guess[0].g != guess[kk].g && guess[k].g != guess[kk].g)
+	if (kk == k)
+	  continue;
+	if (guess[0].g != guess[kk].g || guess[k].g != guess[kk].g)
 	  break;
       }
     p[3][1] = a2acalc (guess[kk].a);
@@ -444,10 +461,13 @@ U_Find_AG (struct measure_type m, struct invert_type *r)
 
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -507,7 +527,9 @@ U_Find_AB (struct measure_type m, struct invert_type *r)
     if (Debug (DEBUG_BEST_GUESS))
       {
 	int k;
-	fprintf (stderr, "after\n");
+	fprintf (stderr, "Best Grid Guesses\n");
+	fprintf (stderr,
+		 "  k      albedo          b          g    distance\n");
 	for (k = 0; k <= 6; k++)
 	  {
 	    fprintf (stderr, "%3d  ", k);
@@ -538,29 +560,34 @@ U_Find_AB (struct measure_type m, struct invert_type *r)
 
     for (kk = 1; kk < 7; kk++)
       {
-	if (guess[0].b != guess[kk].b && guess[k].b != guess[kk].b)
+	if (k == kk)
+	  continue;
+	if (guess[0].b != guess[kk].b || guess[k].b != guess[kk].b)
 	  break;
       }
+
     p[3][1] = a2acalc (guess[kk].a);
     p[3][2] = b2bcalc (guess[kk].b);
 
     if (Debug (DEBUG_BEST_GUESS))
       {
-	fprintf (stderr, "guess 1");
+	fprintf (stderr,
+		 "------------------------------------------------\n");
+	fprintf (stderr, " <1> ");
 	fprintf (stderr, "%10.5f ", guess[0].a);
 	fprintf (stderr, "%10.5f ", guess[0].b);
 	fprintf (stderr, "%10.5f ", guess[0].g);
 	fprintf (stderr, "%10.5f\n", guess[0].distance);
-	fprintf (stderr, "guess 2");
+	fprintf (stderr, " <2> ");
 	fprintf (stderr, "%10.5f ", guess[k].a);
 	fprintf (stderr, "%10.5f ", guess[k].b);
 	fprintf (stderr, "%10.5f ", guess[k].g);
 	fprintf (stderr, "%10.5f\n", guess[k].distance);
-	fprintf (stderr, "guess 3");
+	fprintf (stderr, " <3> ");
 	fprintf (stderr, "%10.5f ", guess[kk].a);
 	fprintf (stderr, "%10.5f ", guess[kk].b);
 	fprintf (stderr, "%10.5f ", guess[kk].g);
-	fprintf (stderr, "%10.5f\n", guess[kk].distance);
+	fprintf (stderr, "%10.5f\n\n", guess[kk].distance);
       }
   }
 
@@ -597,10 +624,13 @@ U_Find_AB (struct measure_type m, struct invert_type *r)
 
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -660,7 +690,9 @@ U_Find_BG (struct measure_type m, struct invert_type *r)
     if (Debug (DEBUG_BEST_GUESS))
       {
 	int k;
-	fprintf (stderr, "after\n");
+	fprintf (stderr, "Best Grid Guesses\n");
+	fprintf (stderr,
+		 "  k      albedo          b          g    distance\n");
 	for (k = 0; k <= 6; k++)
 	  {
 	    fprintf (stderr, "%3d  ", k);
@@ -691,7 +723,9 @@ U_Find_BG (struct measure_type m, struct invert_type *r)
 
     for (kk = 1; kk < 7; kk++)
       {
-	if (guess[0].g != guess[kk].g && guess[k].g != guess[kk].g)
+	if (kk == k)
+	  continue;
+	if (guess[0].g != guess[kk].g || guess[k].g != guess[kk].g)
 	  break;
       }
     p[3][1] = b2bcalc (guess[kk].b);
@@ -750,10 +784,13 @@ U_Find_BG (struct measure_type m, struct invert_type *r)
 
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -801,7 +838,9 @@ U_Find_BaG (struct measure_type m, struct invert_type *r)
     if (Debug (DEBUG_BEST_GUESS))
       {
 	int k;
-	fprintf (stderr, "after\n");
+	fprintf (stderr, "Best Grid Guesses\n");
+	fprintf (stderr,
+		 "  k      albedo          b          g    distance\n");
 	for (k = 0; k <= 6; k++)
 	  {
 	    fprintf (stderr, "%3d  ", k);
@@ -867,10 +906,13 @@ U_Find_BaG (struct measure_type m, struct invert_type *r)
 
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }
@@ -928,7 +970,9 @@ U_Find_BsG (struct measure_type m, struct invert_type *r)
     if (Debug (DEBUG_BEST_GUESS))
       {
 	int k;
-	fprintf (stderr, "after\n");
+	fprintf (stderr, "Best Grid Guesses\n");
+	fprintf (stderr,
+		 "  k      albedo          b          g    distance\n");
 	for (k = 0; k <= 6; k++)
 	  {
 	    fprintf (stderr, "%3d  ", k);
@@ -985,10 +1029,13 @@ U_Find_BsG (struct measure_type m, struct invert_type *r)
 
 
 
+  if (Debug (DEBUG_ITERATIONS))
+    fprintf (stderr, "amoeba iterations = %d\n", r->iterations);
   r->a = r->slab.a;
   r->b = r->slab.b;
   r->g = r->slab.g;
   r->found = (r->tolerance <= r->final_distance);
+  Set_Calc_State (m, *r);
 
 
 }

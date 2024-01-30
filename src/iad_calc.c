@@ -49,8 +49,9 @@ Set_Calc_State (struct measure_type m, struct invert_type r)
   memcpy (&RR, &r, sizeof (struct invert_type));
   if (Debug (DEBUG_ITERATIONS) && !CALCULATING_GRID)
     {
-      fprintf (stderr, "UR1 loss=%g, UT1 loss=%g  ", m.ur1_lost, m.ut1_lost);
-      fprintf (stderr, "URU loss=%g, UTU loss=%g\n", m.uru_lost, m.utu_lost);
+      fprintf (stderr, "MC Loss (UR1=%7.5f, UT1=%7.5f, ", m.ur1_lost,
+	       m.ut1_lost);
+      fprintf (stderr, "URU=%7.5f, UTU=%7.5f)\n", m.uru_lost, m.utu_lost);
     }
 }
 
@@ -755,14 +756,15 @@ Calculate_Distance_With_Corrections (double UR1, double UT1,
     {
     case 0:
 
-      *M_R = R_direct;
-      *M_T = T_direct;
+      {
+	*M_R = R_direct;
+	*M_T = T_direct;
+      }
 
 
       break;
 
     case 1:
-    case -2:
       if (MM.method == COMPARISON)
 
 	{
@@ -813,6 +815,9 @@ Calculate_Distance_With_Corrections (double UR1, double UT1,
 
 
       break;
+
+    default:
+      fprintf (stderr, "Bad number of spheres = %d\n", MM.num_spheres);
     }
 
 
@@ -867,20 +872,21 @@ Calculate_Distance_With_Corrections (double UR1, double UT1,
   if ((Debug (DEBUG_ITERATIONS) && !CALCULATING_GRID) ||
       (Debug (DEBUG_GRID_CALC) && CALCULATING_GRID))
     {
-      static int once = 0;
+      static int once;
 
-      if (once == 0)
+      if (once != MM.lambda)
 	{
-	  fprintf (stderr, "%10s %10s %10s |%10s %10s |%10s %10s |%10s\n",
-		   "a", "b", "g", "m_r", "fit", "m_t", "fit", "delta");
-	  once = 1;
+	  fprintf (stderr,
+		   "%10s %10s %10s | %7s %7s | %7s %7s |%8s\n        ", "a",
+		   "b", "g", "m_r", "fit", "m_t", "fit", "delta");
+	  once = MM.lambda;
 	}
 
       fprintf (stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b,
 	       RR.slab.g);
-      fprintf (stderr, "%10.5f %10.5f |", MM.m_r, *M_R);
-      fprintf (stderr, "%10.5f %10.5f |", MM.m_t, *M_T);
-      fprintf (stderr, "%10.5f \n", *dev);
+      fprintf (stderr, " %7.5f %7.5f |", MM.m_r, *M_R);
+      fprintf (stderr, " %7.5f %7.5f |", MM.m_t, *M_T);
+      fprintf (stderr, "%8.5f \n", *dev);
     }
 
 
@@ -929,7 +935,8 @@ Calculate_Distance (double *M_R, double *M_T, double *deviation)
 
   if (RR.slab.b <= 1e-6)
     RR.slab.b = 1e-6;
-  if (Debug (DEBUG_EVERY_CALC))
+
+  if (0 && Debug (DEBUG_EVERY_CALC))
     fprintf (stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b,
 	     RR.slab.g);
 
