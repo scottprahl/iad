@@ -509,6 +509,13 @@ measurements.
 {
     @<Local Variables for Calculation@>@;
 
+    if (Debug(DEBUG_ANY)) {
+        fprintf(stderr, "\n-------------------NEXT DATA POINT---------------------\n");
+        if (m.lambda != 0)
+            fprintf(stderr, "lambda=%6.1f ", m.lambda);
+        fprintf(stderr, "MR=%8.5f MT=%8.5f\n\n", m.m_r, m.m_t);
+    }
+    
     Initialize_Result(m, &r);
     @<Command-line changes to |r|@>@;
 
@@ -518,7 +525,14 @@ measurements.
         fprintf(stderr, "the same result except lost light is not taken into account).\n");
         fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
         fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
-        fprintf(stderr, "diameter are worth obsessing over.\n");
+        fprintf(stderr, "diameter will be used to estimate lost light from the edges.\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    if (cl_method == COMPARISON && m.num_spheres == 2) {
+        fprintf(stderr, "A dual-beam measurement is specified, but a two sphere experiment\n");
+        fprintf(stderr, "is specified. Since this seems impossible, I will make it\n");
+        fprintf(stderr, "impossible for you unless you specify 0 or 1 sphere.\n");
         exit(EXIT_SUCCESS);
     }
 
