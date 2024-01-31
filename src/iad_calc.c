@@ -368,7 +368,7 @@ Fill_AB_Grid (struct measure_type m, struct invert_type r)
   double min_b = -8;
   double max_b = +8;
 
-  if (Debug (Debug (DEBUG_GRID)))
+  if (Debug (DEBUG_GRID))
     fprintf (stderr, "Filling AB grid\n");
 
   if (The_Grid == NULL)
@@ -425,7 +425,7 @@ Fill_AG_Grid (struct measure_type m, struct invert_type r)
   int i, j;
   double a;
 
-  if (Debug (Debug (DEBUG_GRID)))
+  if (Debug (DEBUG_GRID))
     fprintf (stderr, "Filling AG grid\n");
 
   if (The_Grid == NULL)
@@ -490,7 +490,7 @@ Fill_BG_Grid (struct measure_type m, struct invert_type r)
 
 
 
-  if (Debug (Debug (DEBUG_GRID)))
+  if (Debug (DEBUG_GRID))
     fprintf (stderr, "Filling BG grid\n");
 
   Set_Calc_State (m, r);
@@ -533,7 +533,7 @@ Fill_BaG_Grid (struct measure_type m, struct invert_type r)
 
 
 
-  if (Debug (Debug (DEBUG_GRID)))
+  if (Debug (DEBUG_GRID))
     fprintf (stderr, "Filling BaG grid\n");
 
   Set_Calc_State (m, r);
