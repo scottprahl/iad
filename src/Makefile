@@ -2,8 +2,7 @@ all : ad iad
 
 INDENT = indent
 
-INDENT_OPT = -bad -bap -c33 -ci1 -d1 -di20 -i4 -l78 -nbc -nfc1 -psl
-INDENT_OPT =
+INDENT_OPT = --no-tabs -bad -bap -c33 -ci1 -d1 -di20 -i4 -l78 -nbc -nfc1 -psl -npro
 
 ASSERT = -DNDEBUG
 #ASSERT =
