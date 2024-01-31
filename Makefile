@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-VERSION = 3-14-1
+VERSION = 3-14-2
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -207,19 +207,19 @@ iad: $(WSRC) $(NRSRC)
 
 ad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
-	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" ad
+	cd src ; make CC="x86_64-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" ad
 	mv src/ad.exe ad.exe
 	cd src ; make clean
     
 iad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
-	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" iad
+	cd src ; make CC="x86_64-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" iad
 	mv src/iad.exe iad.exe
 	cd src ; make clean
 
 libiad.dll: $(WSRC) $(NRSRC)
 	cd src ; make clean
-	cd src ; make CC="i686-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" libiad.dll
+	cd src ; make CC="x86_64-w64-mingw32-gcc -DBUILDING_EXAMPLE_DLL" libiad.dll
 	mv src/libiad.dll .
 	cd src ; make clean
 
