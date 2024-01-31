@@ -754,7 +754,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     double min_b = -8;  /* exp(-10) is smallest thickness */
     double max_b = +8;   /* exp(+8) is greatest thickness */
 
-    if (Debug(Debug(DEBUG_GRID))) 
+    if (Debug(DEBUG_GRID))
         fprintf(stderr, "Filling AB grid\n");
         
     if (The_Grid==NULL) Allocate_Grid(r.search);
@@ -855,7 +855,7 @@ void Fill_AG_Grid(struct measure_type m, struct invert_type r)
 int i,j;
 double a;
 
-    if (Debug(Debug(DEBUG_GRID)))
+    if (Debug(DEBUG_GRID))
         fprintf(stderr, "Filling AG grid\n");
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
@@ -902,7 +902,7 @@ int i,j;
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
     
-    if (Debug(Debug(DEBUG_GRID))) 
+    if (Debug(DEBUG_GRID))
         fprintf(stderr, "Filling BG grid\n");
 
     Set_Calc_State(m,r);
@@ -939,7 +939,7 @@ double bs, ba;
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
 
-    if (Debug(Debug(DEBUG_GRID))) 
+    if (Debug(DEBUG_GRID))
         fprintf(stderr, "Filling BaG grid\n");
 
     Set_Calc_State(m,r);
