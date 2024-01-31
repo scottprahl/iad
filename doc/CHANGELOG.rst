@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v3.14.2 (31 Jan 2024)
+v3.14.3 (31 Jan 2024)
 -------------------
 *   produce 64-bit windows executable
 *   32-bit triggered false positive virus detection
