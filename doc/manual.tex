@@ -41,7 +41,7 @@ Inverse Adding-Doubling}
 	            Wilsonville, OR 97225,
 	            (503) 821-1344 (office),
 	            email: scott.prahl@oit.edu
-	            http://omlc.org}	
+	            https://omlc.org}	
 }
 \date{March 2011}	
 
@@ -316,15 +316,19 @@ from the very beginning.  Dave also provided the incentive to allow
 light absorption by slides on each side of the sample in the calculation.%
 \footnote{This functionality is still present in the \iadprog{} but
 is not one of the parameters in the usual \iadprog{} input files.  Recovering
-this feature just requires writing a few lines of code to explicitly specify
-the light absorption by the glass slides.}
+this feature requires using the \texttt{-E} command-line option.}
 
 In the intervening ten years or so, I would correspond with users and add
 features or fix bugs as needed.  In 2005, I looked at the code base and realized that I had added
 stuff (multiple-layers, conical irradiation, and a \textit{Mathematica} interface) and that 
-compiling the code was a huge hassle.  I reorganized the code
+compiling the code was a huge hassle.%
+\footnote{Alas, the \textit{Mathematica} interface has died of bit rot.  I refused to buy new 
+versions of \textit{Mathematica} to get access to the latest interfaces.} 
+I reorganized the code
 base and cleaned up the build process.  Then I discovered that this document was
-severely out of date.  I ignored the urge to update it.
+severely out of date.  I ignored the urge to update it.%
+\footnote{It is now 2023 and I am
+doing another pass through this document.}
 
 \subsubsection*{Trouble!}
 
@@ -363,7 +367,7 @@ Now \iadprog{} has had code to account for the integrating sphere effect since
 the early 1990's.  These
 corrections tended to be small and were easy to ignore.  Moreover,
 the nomenclature we used was horribly obtuse \textit{and} the derivation in the published
-papers contained errors~\cite{pickering93a}.  This made it more or less impossible
+papers contained minor errors~\cite{pickering93a}.  This made it more or less impossible
 to use the integrating sphere correction factors unless one read the source
 code very carefully.  Consequently, no one (including myself or my students)
 used it.  
@@ -524,8 +528,8 @@ Test the executable by running
 \end{verbatim}
 which should respond with something like
 \begin{verbatim}
-iad 3-11-1 (28 Mar 2019)
-Copyright 2019 Scott Prahl, scott.prahl@oit.edu
+iad 3-14-0 (27 Jan 2024)
+Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu
           (see Applied Optics, 32:559-568, 1993)
 
 This is free software; see the source for copying conditions.
@@ -546,7 +550,8 @@ the \texttt{cmd.exe} prompt.
 \subsubsection{Compiling}
 
 This code has been compiled and tested on a variety of unix computers (MacOS X PPC, MacOS X Intel,
-Red Hat Linux x86, and SUSE Linux x86).  
+Red Hat Linux x86, and SUSE Linux x86) and microprocessors (PPC, x86, and Arm (Raspberry Pi and
+Apple M-Series).
 If you just want to compile the code you just need a compiler and a \texttt{make} program.
 To compile an executable,  unzip the compressed file, navigate to the top level directory in the distribution and type
 \begin{verbatim}
@@ -563,9 +568,13 @@ from the originals you'll need \texttt{perl}, \pdflatex{}, \texttt{cweb} and \te
 \end{verbatim}
 should respond with something like
 \begin{verbatim}
-iad 3-9-11 (10 Jul 2014)
-Copyright 2014 Scott Prahl, scott.prahl@oit.edu
+iad 3-14-0 (27 Jan 2024)
+Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu
           (see Applied Optics, 32:559-568, 1993)
+
+This is free software; see the source for copying conditions.
+There is no warranty; not even for MERCHANTABILITY or FITNESS.
+FOR A PARTICULAR PURPOSE.
 \end{verbatim}
 
 Once the code has been compiled, \iadprog{} can be tested by
@@ -887,8 +896,8 @@ will want to calculate $M_R$
 $$
 M_R = r_{\mathit{std}} (R_s - R_0)
 $$
-where $R_0$ is a measurement obtained with nothing in the port and is present
-to make a first order correction for light that misses the sample and hits the
+where $R_0$ is a measurement obtained with nothing in the sample reflection port and is present
+to correct for light that misses the sample and hits the
 sphere wall first.  The value for  $M_T$ is similar
 $$
 M_T = t_{\mathit{std}} (T_s - T_0)

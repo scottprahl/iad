@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v3.14.1 (30 Jan 2024)
+-------------------
+*   no longer toss correct solution in some cases
+*   only calculate redistribution matrix when needed
+*   improve debug comments
+*   start stripping tabs from cweb files
+
 v3.14.0 (25 Jan 2024)
 -------------------
 *   fix handling of slides (@anishabahl)
