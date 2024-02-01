@@ -150,6 +150,8 @@ iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
 
 nr_amoeb.o :  iad_type.h 
 mc_lost.o  :  iad_type.h
+mc_lost_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h
+
 
 version.o : 
 	./version.pl 
