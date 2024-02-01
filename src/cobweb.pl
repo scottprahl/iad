@@ -1,5 +1,8 @@
 #!/usr/bin/perl -pi.bak -w
 
-s!/\*.*\n!!;
-s!#line.*\n!!;
-
+BEGIN{undef $/;}
+s!/\*.*\n!!mg;
+s!#line.*\n!!mg;
+s!\n\n+!\n\n!sg;
+s!\n+;!;!sg;
+s!^\n+!!s;
