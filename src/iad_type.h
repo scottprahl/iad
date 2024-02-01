@@ -1,4 +1,3 @@
-
 #undef FALSE
 #undef TRUE
 
@@ -79,72 +78,63 @@
 #define COMPARISON 1
 #define SUBSTITUTION 2 \
 
+typedef struct measure_type {
+    double slab_index;
+    double slab_thickness;
 
+    double slab_top_slide_index;
+    double slab_top_slide_b;
+    double slab_top_slide_thickness;
 
+    double slab_bottom_slide_index;
+    double slab_bottom_slide_b;
+    double slab_bottom_slide_thickness;
+    double slab_cos_angle;
 
+    int num_spheres;
+    int num_measures;
+    int method;
+    int flip_sample;
 
-typedef struct measure_type
-{
-  double slab_index;
-  double slab_thickness;
+    double d_beam;
+    double fraction_of_rc_in_mr;
+    double fraction_of_tc_in_mt;
 
-  double slab_top_slide_index;
-  double slab_top_slide_b;
-  double slab_top_slide_thickness;
+    double m_r, m_t, m_u;
 
-  double slab_bottom_slide_index;
-  double slab_bottom_slide_b;
-  double slab_bottom_slide_thickness;
-  double slab_cos_angle;
-
-  int num_spheres;
-  int num_measures;
-  int method;
-  int flip_sample;
-
-  double d_beam;
-  double fraction_of_rc_in_mr;
-  double fraction_of_tc_in_mt;
-
-  double m_r, m_t, m_u;
-
-  double lambda;
-  double as_r, ad_r, ae_r, aw_r, rd_r, rw_r, rstd_r, f_r;
-  double as_t, ad_t, ae_t, aw_t, rd_t, rw_t, rstd_t, f_t;
-  double ur1_lost, uru_lost, ut1_lost, utu_lost;
-  double d_sphere_r, d_sphere_t;
+    double lambda;
+    double as_r, ad_r, ae_r, aw_r, rd_r, rw_r, rstd_r, f_r;
+    double as_t, ad_t, ae_t, aw_t, rd_t, rw_t, rstd_t, f_t;
+    double ur1_lost, uru_lost, ut1_lost, utu_lost;
+    double d_sphere_r, d_sphere_t;
 } IAD_measure_type;
 
+typedef struct invert_type {
+    double a;
+    double b;
+    double g;
 
-typedef struct invert_type
-{
-  double a;
-  double b;
-  double g;
+    int found;
+    int search;
+    int metric;
+    double tolerance;
+    double MC_tolerance;
+    double final_distance;
+    int iterations;
+    int error;
 
-  int found;
-  int search;
-  int metric;
-  double tolerance;
-  double MC_tolerance;
-  double final_distance;
-  int iterations;
-  int error;
+    struct AD_slab_type slab;
+    struct AD_method_type method;
 
-  struct AD_slab_type slab;
-  struct AD_method_type method;
-
-  double default_a;
-  double default_b;
-  double default_g;
-  double default_ba;
-  double default_bs;
-  double default_mua;
-  double default_mus;
+    double default_a;
+    double default_b;
+    double default_g;
+    double default_ba;
+    double default_bs;
+    double default_mua;
+    double default_mus;
 
 } IAD_invert_type;
-
-
 
 typedef int search_type;
 
@@ -152,12 +142,11 @@ typedef int boolean_type;
 
 typedef int illumination_type;
 
-typedef struct guess_t
-{
-  double distance;
-  double a;
-  double b;
-  double g;
+typedef struct guess_t {
+    double distance;
+    double a;
+    double b;
+    double g;
 } guess_type;
 
 extern double FRACTION;

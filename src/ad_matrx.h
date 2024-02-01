@@ -1,27 +1,25 @@
+void Copy_Matrix(int n, double **A, double **B);
 
+void One_Minus(int n, double **A);
 
-void Copy_Matrix (int n, double **A, double **B);
+void Transpose_Matrix(int n, double **a);
 
-void One_Minus (int n, double **A);
+void Diagonal_To_Matrix(int n, double *Diag, double **Mat);
 
-void Transpose_Matrix (int n, double **a);
+void Right_Diagonal_Multiply(int n, double **A, double *B, double **C);
 
-void Diagonal_To_Matrix (int n, double *Diag, double **Mat);
+void Left_Diagonal_Multiply(int n, double *A, double **B, double **C);
 
-void Right_Diagonal_Multiply (int n, double **A, double *B, double **C);
+void Matrix_Multiply(int n, double **A, double **B, double **C);
 
-void Left_Diagonal_Multiply (int n, double *A, double **B, double **C);
+void Matrix_Sum(int n, double **A, double **B, double **C);
 
-void Matrix_Multiply (int n, double **A, double **B, double **C);
+void Solve(int n, double **A, double *B, int *ipvt);
 
-void Matrix_Sum (int n, double **A, double **B, double **C);
+void Decomp(int n, double **A, double *condition, int *ipvt);
 
-void Solve (int n, double **A, double *B, int *ipvt);
+void Matrix_Inverse(int n, double **A, double **Ainv);
 
-void Decomp (int n, double **A, double *condition, int *ipvt);
+void Left_Inverse_Multiply(int n, double **D, double **C, double **A);
 
-void Matrix_Inverse (int n, double **A, double **Ainv);
-
-void Left_Inverse_Multiply (int n, double **D, double **C, double **A);
-
-void Right_Inverse_Multiply (int n, double **D, double **C, double **A);
+void Right_Inverse_Multiply(int n, double **D, double **C, double **A);
