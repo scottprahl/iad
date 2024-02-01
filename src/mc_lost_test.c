@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <math.h>
 
 #include "ad_globl.h"
 #include "ad_prime.h"
@@ -13,13 +14,15 @@ static void print_usage(void)
     fprintf(stderr, "lost finds the reflection and transmission from optical properties\n\n");
     fprintf(stderr, "Usage:  lost [options] input\n\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -h     display help\n");
     fprintf(stderr, "  -a #   albedo (0-1)\n");
     fprintf(stderr, "  -b #   optical thickness (>0)\n");
     fprintf(stderr, "  -g #   scattering anisotropy (-1 to 1)\n");
+    fprintf(stderr, "  -h     display help\n");
+    fprintf(stderr, "  -i #   light is incident at this angle in degrees\n");
     fprintf(stderr, "  -n #   specify index of refraction of slab\n");
-    fprintf(stderr, "  -s #   specify index of refraction of slide\n");
-    fprintf(stderr, "  -N #   number of photons\n");
+    fprintf(stderr, "  -N #   specify index of refraction of slide\n");
+    fprintf(stderr, "  -p #   number of photons\n");
+    fprintf(stderr, "  -v     display help\n");
     fprintf(stderr, "Examples:\n");
     fprintf(stderr, "  lost -m data                     data.rt in machine readable format\n");
     fprintf(stderr, "  ad data -o out.txt             out.txt is the \n");
@@ -30,7 +33,7 @@ static void print_usage(void)
 int main(int argc, char** argv)
 {
     char c;
-    double UR1, UT1, URU, UTU;
+    double UR1, UT1, URU, UTU, x;
     double ur1_lost, ut1_lost, uru_lost, utu_lost;
     double ur1, ut1, uru, utu;
     int collimated = 1;
@@ -46,18 +49,10 @@ int main(int argc, char** argv)
     double n_slide = 1.0;
     double mu0 = 1;
     double mua_slide = 0;
-    int n_photons = 1024*1024;
+    long n_photons = 1024*1024;
 
-    while ((c = getopt(argc, argv, "h?va:b:g:n:N:s:q:")) != -1) {
+    while ((c = getopt(argc, argv, "hva:b:g:i:n:N:p:")) != -1) {
         switch (c) {
-
-            case 'n':
-                n_slab = strtod(optarg, NULL);
-                break;
-
-            case 'N':
-                n_photons = (int) strtod(optarg, NULL);
-                break;
 
             case 'a':
                 a = strtod(optarg, NULL);
@@ -71,12 +66,30 @@ int main(int argc, char** argv)
                 g = strtod(optarg, NULL);
                 break;
 
-            case 's':
+            case 'i':
+                x = strtod(optarg, NULL);
+                if (x<0 || x>90) {
+                    fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
+                    return 1;
+                } else
+                    mu0 = cos(x*M_PI/180.0);
+                break;
+
+            case 'n':
+                n_slab = strtod(optarg, NULL);
+                break;
+
+            case 'N':
                 n_slide = strtod(optarg, NULL);
+                break;
+
+            case 'p':
+                n_photons = (long) strtod(optarg, NULL);
                 break;
 
             default:
             case 'h':
+            case 'v':
                 print_usage();
                 break;
         }

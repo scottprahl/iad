@@ -153,7 +153,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
     char c;
     double x;
     
-    while ((c = getopt(argc, argv, "h?vma:b:g:i:n:o:q:s:t:")) != -1) {
+    while ((c = getopt(argc, argv, "hvma:b:g:i:n:o:q:s:t:")) != -1) {
         switch (c) {
 
             case 'i':
@@ -161,7 +161,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
                 if (x<0 || x>90) 
                     fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
                 else
-                    g_incident_cosine = cos(x*3.1415926535/180.0);
+                    g_incident_cosine = cos(x*M_PI/180.0);
                 break;
 
             case 'o':
@@ -207,7 +207,6 @@ of the bottom slide.  The slides are assumed to have no absorption.
                 
             default:
             case 'h':
-            case '?':
                 print_usage();
                 break;
         }

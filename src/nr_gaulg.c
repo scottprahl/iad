@@ -1,7 +1,6 @@
 #include <math.h>
 #include "nr_gaulg.h"
 #define EPS 3.0e-11
-#define Pi              3.14159265358979323
 
 void 
 gauleg (double x1, double x2, double x[], double w[], int n)
@@ -14,7 +13,7 @@ gauleg (double x1, double x2, double x[], double w[], int n)
   xl = 0.5 * (x2 - x1);
   for (i = 1; i <= m; i++)
     {
-      z = cos (Pi * (i - 0.25) / (n + 0.5));
+      z = cos (M_PI * (i - 0.25) / (n + 0.5));
       do
 	{
 	  p1 = 1.0;

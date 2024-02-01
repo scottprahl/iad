@@ -207,12 +207,12 @@ a couple of special cases.
 @ @<debug print angles@>=
     {
         printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
-                acos(slab->cos_angle)*180.0/3.14159,slab->cos_angle);
+                acos(slab->cos_angle)*180.0/M_PI,slab->cos_angle);
         double sum=0;
         for (i = 1; i <=n; i++) {
             sum += twoaw[i];
             printf("%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
-               i, acos(angle[i])/3.1415926*180.0, angle[i], weight[i],twoaw[i]);
+               i, acos(angle[i])/M_PI*180.0, angle[i], weight[i],twoaw[i]);
         }
         printf("twoaw sum = %8.4f\n",sum);
     }

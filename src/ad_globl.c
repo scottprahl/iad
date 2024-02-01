@@ -71,7 +71,7 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU,
 {
     int i, j, cone_index;
     double mu_slab, urx, delta, closest_delta;
-    double degrees = 180.0 / 3.1415926535;
+    double degrees = 180.0 / M_PI;
 
     mu_slab = sqrt(n_slab * n_slab - 1 + mu * mu) / n_slab;
 

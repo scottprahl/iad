@@ -189,7 +189,7 @@ int main(int argc, char **argv)
         char c;
         double x;
 
-        while ((c = getopt(argc, argv, "h?vma:b:g:i:n:o:q:s:t:")) != -1) {
+        while ((c = getopt(argc, argv, "hvma:b:g:i:n:o:q:s:t:")) != -1) {
             switch (c) {
 
             case 'i':
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
                     fprintf(stderr,
                         "Incident angle must be between 0 and 90 degrees\n");
                 else
-                    g_incident_cosine = cos(x * 3.1415926535 / 180.0);
+                    g_incident_cosine = cos(x * M_PI / 180.0);
                 break;
 
             case 'o':
@@ -244,7 +244,6 @@ int main(int argc, char **argv)
 
             default:
             case 'h':
-            case '?':
                 print_usage();
                 break;
             }

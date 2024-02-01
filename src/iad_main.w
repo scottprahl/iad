@@ -153,7 +153,7 @@ int main (int argc, char **argv)
 
   clock_t start_time=clock();
   char command_line_options[] =
-             "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
 
 @ use the |getopt()| to process options.
 
@@ -280,7 +280,7 @@ int main (int argc, char **argv)
                 if (cl_cos_angle<0 || cl_cos_angle>90)
                     fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
                 else
-                    cl_cos_angle = cos(cl_cos_angle*3.1415926535/180.0);
+                    cl_cos_angle = cos(cl_cos_angle*M_PI/180.0);
                 break;
 
             case 'M':

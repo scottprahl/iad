@@ -30,7 +30,7 @@ static void PrintTestResults(int test, int cas, struct AD_slab_type *slab,
             double bUR1, double bUT1, double bURU, double bUTU)
 {
 	printf("\nTest:%d.%d\n", test, cas);
-	printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180/3.1415926);
+	printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
 	printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
 	printf("Albedo               %10.5f\n", slab->a);
 	printf("Optical Depth        %10.5f\n", slab->b);
@@ -54,7 +54,7 @@ static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
 	double denom = 1-slab->cos_angle*slab->cos_angle;
 	
 	printf("\nTest:%d.%d\n", test, cas);
-	printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180/3.1415926);
+	printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
 	printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
 	printf("Albedo               %10.5f\n", slab->a);
 	printf("Optical Depth        %10.5f\n", slab->b);
@@ -330,7 +330,7 @@ slab.b = 100.0;
 slab.g = 0.9;
 slab.phase_function = HENYEY_GREENSTEIN;
 
-slab.cos_angle = cos(20*3.1415926/180);
+slab.cos_angle = cos(20.0*M_PI/180.0);
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(5,1,&slab,0.0,0.0,0.0,0.0,bUR1,bUT1,bURU,bUTU);
 
