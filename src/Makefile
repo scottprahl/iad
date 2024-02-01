@@ -25,13 +25,13 @@ NR_OBJ	= nr_amoeb.o  nr_amotr.o nr_brent.o nr_gaulg.o nr_mnbrk.o nr_rtsaf.o\
 
 ad: $(AD_OBJ) $(NR_OBJ) ad_main.o mygetopt.o version.o
 	./version.pl 
-	$(CC) -c -o version.o version.c 	
-	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
+	$(CC) -c -o version.o version.c 
+	$(CC) -o $@ $^ -lm
 
 iad: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o mygetopt.o version.o
 	./version.pl 
 	$(CC) -c -o version.o version.c 
-	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
+	$(CC) -o $@ $^ -lm
 
 libiad.a : $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 	$(AR) cr libiad.a $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o
@@ -46,11 +46,7 @@ libiad.dylib: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 libiad.dll: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 	$(CC) -shared -o libiad.dll $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o
 
-libiad.h : ad_prime.w iad_pub.w ad_cone.w ad_layers.w
-	cd src ; ctangle -bhp ad_prime
-	cd src ; ctangle -bhp iad_pub
-	cd src ; ctangle -bhp ad_cone
-	cd src ; ctangle -bhp ad_layers
+libiad.h : ad iad ad_cone_ez.h ad_layers.h
 	cat lib_ad.h lib_iad.h ad_cone_ez.h ad_layers.h > libiad.tmp
 	./cobweb.pl < libiad.tmp > libiad.tmp2
 	$(INDENT) $(INDENT_OPT) < libiad.tmp2 > libiad.h
@@ -58,12 +54,12 @@ libiad.h : ad_prime.w iad_pub.w ad_cone.w ad_layers.w
 
 ad_cone_test: $(AD_OBJ) $(NR_OBJ) ad_cone_test.o mygetopt.o version.o
 	./version.pl 
-	$(CC) -c -o version.o version.c 	
+	$(CC) -c -o version.o version.c 
 	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
 
 ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o mygetopt.o version.o
 	./version.pl 
-	$(CC) -c -o version.o version.c 	
+	$(CC) -c -o version.o version.c 
 	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
 
 ad_doc: ad.w
@@ -104,11 +100,70 @@ iad_doc: iad.w
 #	texexec --pdfselect --paper=letter --selection=106	  --result src/iad_toc.pdf	 src/iad.pdf
 #	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=doc/iad_src.pdf src/iad_toc.pdf src/iad_body.pdf src/iad_index.pdf &> /dev/null 
 #	rm -f src/iad_body.pdf src/iad_toc.pdf src/iad_index.pdf src/iad.pdf
-	
+
 CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/iad_calc.c   src/iad_io.c	  \
 		src/iad_type.c		src/iad_main.c		 src/ad_doubl.c	  src/iad_util.c  src/ad_radau.c   src/iad_pub.c \
 		src/ad_prime.c		src/iad_find.c		 src/ad_phase.c	  src/ad_main.c	  src/ad_bound.c   src/ad_cone.c \
 		src/ad_layers.c		src/version.c		 
+
+ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o mygetopt.o version.o
+
+layer_test: $(AD_OBJ) $(NR_OBJ) mygetopt.o version.o ad_layers.o ad_layers_test.o
+	ctangle -bhp ad_layers.w
+	$(CC) -c -o ad_layers.o ad_layers.c 
+	ctangle -bhp ad_layers_test.w
+	$(CC) -c -o ad_layers_test.o ad_layers_test.c 
+	./version.pl 
+	$(CC) -c -o version.o version.c 
+	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
+
+# ctangle rule to make .c and .h files
+%.c %.h: %.w
+	ctangle -bhp $<
+
+# non-trivial dependencies
+ad_globl.o : ad_globl.c ad_globl.h ad_frsnl.h
+ad_bound.o : ad_bound.c ad_bound.h ad_globl.h ad_matrx.h ad_frsnl.h nr_util.h
+ad_doubl.o : ad_doubl.c ad_doubl.h ad_globl.h ad_matrx.h nr_util.h
+ad_start.o : ad_start.c ad_start.h ad_globl.h ad_frsnl.h ad_radau.h ad_phase.h \
+             ad_matrx.h nr_util.h nr_gaulg.h
+ad_cone.o  : ad_cone.c ad_cone.h ad_globl.h ad_bound.h ad_matrx.h ad_doubl.h \
+             ad_start.h nr_util.h
+ad_prime.o : ad_prime.c ad_prime.h ad_globl.h ad_bound.h ad_start.h ad_doubl.h \
+             ad_matrx.h ad_cone.h
+ad_main.o  : ad_main.c ad_globl.h ad_prime.h ad_cone.h mygetopt.h version.h
+ad_layers.o: ad_layers.c ad_layers.h nr_util.h ad_globl.h ad_bound.h ad_doubl.h \
+             ad_prime.h ad_matrx.h
+
+iad_calc.o : iad_calc.c iad_calc.h ad_globl.h ad_frsnl.h ad_prime.h iad_type.h \
+             iad_util.h nr_util.h nr_zbrent.h
+iad_pub.o  : iad_pub.c iad_pub.h ad_globl.h ad_frsnl.h iad_type.h iad_util.h iad_calc.h \
+             iad_find.h iad_io.h nr_util.h mc_lost.h
+iad_util.o : iad_util.c iad_util.h ad_globl.h ad_frsnl.h ad_bound.h iad_type.h \
+             iad_calc.h iad_pub.h nr_util.h
+iad_find.o : iad_find.c iad_find.h ad_globl.h iad_type.h iad_util.h iad_calc.h \
+             nr_mnbrk.h nr_brent.h nr_amoeb.h nr_util.h
+iad_main.o : iad_main.c ad_globl.h ad_frsnl.h ad_prime.h iad_type.h iad_pub.h iad_io.h \
+             iad_calc.h iad_util.h mygetopt.h mc_lost.h
+iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
+
+nr_amoeb.o :  iad_type.h 
+mc_lost.o  :  iad_type.h
+
+version.o : 
+	./version.pl 
+	$(CC) -c -o version.o version.c 
+
+clean:
+	rm -f $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o 
+	rm -f mygetopt.o version.o ad_main.o ad_cone_test.o ad_oblique_test.o
+
+realclean:
+	make clean
+	rm -f ad*.h ad*.c iad*.h iad*.c libiad.h
+	rm -f libiad.* lib_ad* lib_iad*
+	rm -f ad.idx ad.log ad.scn ad.tex ad.toc ad.pdf
+	rm -f iad.idx iad.log iad.scn iad.tex iad.toc iad.pdf
 
 tidy:
 	apply ctangle *.w
@@ -122,68 +177,6 @@ tidy:
 	gindent $(INDENT_OPT) ad*.c iad*.c ad*.h iad*.h
 	rm *~
 
-ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o mygetopt.o version.o
-
-layer_test: $(AD_OBJ) $(NR_OBJ) mygetopt.o version.o ad_layers.o ad_layers_test.o	
-	ctangle -bhp ad_layers.w
-	$(CC) -c -o ad_layers.o ad_layers.c 
-	ctangle -bhp ad_layers_test.w
-	$(CC) -c -o ad_layers_test.o ad_layers_test.c 
-	./version.pl 
-	$(CC) -c -o version.o version.c 	
-	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
-
-# ctangle rule to make .c and .h files
-%.c %.h: %.w
-	ctangle -bhp $<
-
-# non-trivial dependencies
-lib_ad.h   :  ad
-lib_iad.h  :  iad
-
-ad_globl.o :  ad_globl.c ad_globl.h ad_frsnl.h
-ad_bound.o :  ad_bound.c ad_bound.h ad_globl.h ad_matrx.h ad_frsnl.h nr_util.h
-ad_doubl.o :  ad_doubl.c ad_doubl.h ad_globl.h ad_matrx.h nr_util.h
-ad_start.o :  ad_start.c ad_start.h ad_globl.h ad_frsnl.h ad_radau.h ad_phase.h \
-              ad_matrx.h nr_util.h nr_gaulg.h
-ad_cone.o  :  ad_cone.c ad_cone.h ad_globl.h ad_bound.h ad_matrx.h ad_doubl.h \
-              ad_start.h nr_util.h
-ad_prime.o :  ad_prime.c ad_prime.h ad_globl.h ad_bound.h ad_start.h ad_doubl.h \
-              ad_matrx.h ad_cone.h
-ad_main.o  :  ad_main.c ad_globl.h ad_prime.h ad_cone.h mygetopt.h version.h
-ad_layers.o:  ad_layers.c ad_layers.h nr_util.h ad_globl.h ad_bound.h ad_doubl.h \
-              ad_prime.h ad_matrx.h
-
-iad_calc.o :  iad_calc.c iad_calc.h ad_globl.h ad_frsnl.h ad_prime.h iad_type.h \
-              iad_util.h nr_util.h nr_zbrent.h
-iad_pub.o  :  iad_pub.c iad_pub.h ad_globl.h ad_frsnl.h iad_type.h iad_util.h iad_calc.h \
-              iad_find.h iad_io.h nr_util.h mc_lost.h
-iad_util.o :  iad_util.c iad_util.h ad_globl.h ad_frsnl.h ad_bound.h iad_type.h \
-              iad_calc.h iad_pub.h nr_util.h
-iad_find.o :  iad_find.c iad_find.h ad_globl.h iad_type.h iad_util.h iad_calc.h \
-              nr_mnbrk.h nr_brent.h nr_amoeb.h nr_util.h
-iad_main.o :  iad_main.c ad_globl.h ad_frsnl.h ad_prime.h iad_type.h iad_pub.h iad_io.h \
-              iad_calc.h iad_util.h mygetopt.h mc_lost.h
-iad_io.o   :  iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
-
-nr_amoeb.o :  iad_type.h 
-mc_lost.o  : iad_type.h
-
-version.o : 
-	./version.pl 
-	$(CC) -c -o version.o version.c 
-
-clean:
-	rm -f $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o 
-	rm -f mygetopt.o version.o ad_main.o ad_cone_test.o ad_oblique_test.o
-	
-realclean:
-	make clean
-	rm -f ad*.h ad*.c iad*.h iad*.c libiad.h
-	rm -f libiad.* lib_ad* lib_iad*
-	rm -f ad.idx ad.log ad.scn ad.tex ad.toc ad.pdf
-	rm -f iad.idx iad.log iad.scn iad.tex iad.toc iad.pdf
-	
-.PHONEY : clean realclean lib
+.PHONEY : clean realclean lib tidy
 
 .PRECIOUS: %.c %.h
