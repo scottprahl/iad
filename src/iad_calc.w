@@ -561,24 +561,24 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
 @<Tests for invalid grid@>=
     if (m.slab_index              != MGRID.slab_index) {
         if (Debug(DEBUG_GRID)) 
-            fprintf(stderr,"GRID: Fill slab refractive index changed\n");
+            fprintf(stderr,"GRID: Fill because slab refractive index changed\n");
         return(FALSE);
     }
     if (m.slab_cos_angle          != MGRID.slab_cos_angle) {
         if (Debug(DEBUG_GRID)) 
-            fprintf(stderr,"GRID: Fill incident light changed\n");
+            fprintf(stderr,"GRID: Fill because light angle changed\n");
         return(FALSE);
     }
 
     if (m.slab_top_slide_index    != MGRID.slab_top_slide_index) {
         if (Debug(DEBUG_GRID)) 
-            fprintf(stderr,"GRID: Fill top slide refractive index changed\n");
+            fprintf(stderr,"GRID: Fill because top slide index changed\n");
         return(FALSE);
     }
 
     if (m.slab_bottom_slide_index != MGRID.slab_bottom_slide_index) {
         if (Debug(DEBUG_GRID)) 
-            fprintf(stderr,"GRID: Fill bottom slide refractive index changed\n");
+            fprintf(stderr,"GRID: Fill because bottom slide index changed\n");
         return(FALSE);
     }
 
