@@ -353,10 +353,10 @@ static double milliseconds(clock_t start_time)
     return t;
 }
 
-static void MC_Radial(long photons, double a, double b, double g, double n_sample,
-                      double n_slide, int collimated, double cos_incidence,
-                      double t_sample, double t_slide, double mua_slide, double d_port, double d_beam,
-                      double *r_total, double *t_total, double *r_lost, double *t_lost)
+void MC_Radial(long photons, double a, double b, double g, double n_sample,
+               double n_slide, int collimated, double cos_incidence,
+               double t_sample, double t_slide, double mua_slide, double d_port, double d_beam,
+               double *r_total, double *t_total, double *r_lost, double *t_lost)
 {
 
     double x, y, z, u, v, w, weight;
@@ -542,88 +542,3 @@ void MC_RT(struct AD_slab_type s, long n_photons, double *UR1, double *UT1, doub
     MC_Radial(n_photons/2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, diffuse,    mu, t_sample, t_slide, mua_slide, d_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
 
 }
-
-/*
-static void print_usage(void)
-{
-    fprintf(stderr, "lost1 \n\n");
-    fprintf(stderr, "lost finds the reflection and transmission from optical properties\n\n");
-    fprintf(stderr, "Usage:  lost [options] input\n\n");
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -h               display help\n");
-    fprintf(stderr, "  -a #             albedo (0-1)\n");
-    fprintf(stderr, "  -b #             optical thickness (>0)\n");
-    fprintf(stderr, "  -g #             scattering anisotropy (-1 to 1)\n");
-    fprintf(stderr, "  -n #             specify index of refraction of slab\n");
-    fprintf(stderr, "  -s #             specify index of refraction of slide\n");
-    fprintf(stderr, "  -N #             number of photons\n");
-    fprintf(stderr, "Examples:\n");
-    fprintf(stderr, "  lost -m data                     data.rt in machine readable format\n");
-    fprintf(stderr, "  ad data -o out.txt             out.txt is the \n");
-    fprintf(stderr, "  lost -a 0.3                    a=0.3, b=2.0, g=0.0, n=1.0\n");
-    exit(0);
-}
-
-int main(int argc, char** argv)
-{
-    char c;
-    double ur1_lost, ut1_lost, uru_lost, utu_lost;
-    double ur1, ut1, uru, utu;
-    int collimated = 1;
-    int diffuse = 0;
-    double t_sample = 1.0;
-    double d_port   = 10.0;
-    double d_beam   = 5.0;
-    double t_slide  = 1.0;
-    double a = 0.5;
-    double b = 2;
-    double g = 0.0;
-    double n_slab = 1.0;
-    double n_top_slide = 1.0;
-    int n_photons = 1024*1024;
-
-    while ((c = getopt(argc, argv, "h?va:b:g:n:s:q:")) != EOF) {
-        switch (c) {
-
-            case 'n':
-                n_slab = strtod(optarg, NULL);
-                break;
-
-            case 'N':
-                n_photons = (int) strtod(optarg, NULL);
-                break;
-
-            case 'a':
-                a = strtod(optarg, NULL);
-                break;
-
-            case 'b':
-                b = strtod(optarg, NULL);
-                break;
-
-            case 'g':
-                g = strtod(optarg, NULL);
-                break;
-
-            case 's':
-                n_top_slide = strtod(optarg, NULL);
-                break;
-
-            default:
-            case 'h':
-            case '?':
-                print_usage();
-                break;
-        }
-    }
-
-    MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, collimated, t_sample, t_slide, d_port, d_beam, &ur1, &ut1, &ur1_lost, &ut1_lost);
-    MC_Radial(n_photons, a, b, g, n_slab, n_top_slide, diffuse,    t_sample, t_slide, d_port, d_beam, &uru, &utu, &uru_lost, &utu_lost);
-
-    printf("   UR1    \t   UT1    \t   URU    \t   UTU\n");
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", ur1, ut1, uru, utu);
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", ur1_lost, ut1_lost, uru_lost, utu_lost);
-    return 0;
-}
-
-*/

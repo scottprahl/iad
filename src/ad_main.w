@@ -33,7 +33,6 @@ but to simplify the Makefile, I create an empty \.{ad\_main.h}.
 #include "ad_globl.h"
 #include "ad_prime.h"
 #include "ad_cone.h"
-#include "mygetopt.h"
 #include "version.h"
 
 @<print version function@>@;
@@ -147,14 +146,14 @@ of the bottom slide.  The slides are assumed to have no absorption.
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", R1,T1,URU,UTU);
     }
 
-@ use the |my_getopt| to process options.  We only handle help at the moment
+@ use the |getopt| to process options.
 
 @<Handle options@>=
 {
     char c;
     double x;
     
-    while ((c = my_getopt(argc, argv, "h?vma:b:g:i:n:o:q:s:t:")) != EOF) {
+    while ((c = getopt(argc, argv, "h?vma:b:g:i:n:o:q:s:t:")) != -1) {
         switch (c) {
 
             case 'i':

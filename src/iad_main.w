@@ -93,7 +93,6 @@ int main (int argc, char **argv)
 #include "iad_io.h"
 #include "iad_calc.h"
 #include "iad_util.h"
-#include "mygetopt.h"
 #include "version.h"
 #include "mc_lost.h"
 #include "ad_frsnl.h"
@@ -156,10 +155,10 @@ int main (int argc, char **argv)
   char command_line_options[] =
              "?1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
 
-@ use the |my_getopt()| to process options.
+@ use the |getopt()| to process options.
 
 @<Handle options@>=
-    while ((c = my_getopt(argc, argv, command_line_options)) != EOF) {
+    while ((c = getopt(argc, argv, command_line_options)) != EOF) {
         int n;
         char cc;
 

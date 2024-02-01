@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v3.14.4 (1 Feb 2024)
+-------------------
+*   dramatically improve the look of generated .c and .h files
+*   remove bit-rotted Mathematica support
+*   Makefile cleanup
+
 v3.14.3 (31 Jan 2024)
 -------------------
 *   produce 64-bit windows executable

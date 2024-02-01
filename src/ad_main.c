@@ -8,7 +8,6 @@
 #include "ad_globl.h"
 #include "ad_prime.h"
 #include "ad_cone.h"
-#include "mygetopt.h"
 #include "version.h"
 
 static void print_version(void)
@@ -190,7 +189,7 @@ int main(int argc, char **argv)
         char c;
         double x;
 
-        while ((c = my_getopt(argc, argv, "h?vma:b:g:i:n:o:q:s:t:")) != EOF) {
+        while ((c = getopt(argc, argv, "h?vma:b:g:i:n:o:q:s:t:")) != -1) {
             switch (c) {
 
             case 'i':
