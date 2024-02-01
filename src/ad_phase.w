@@ -17,7 +17,7 @@ This is the place to put code to implement other phase functions.
 @<Definition for |Get_Phi|@>@;
 
 @ @(ad_phase.h@>=
-	@<Prototype for |Get_Phi|@>;
+    @<Prototype for |Get_Phi|@>;
 
 @*1 Redistribution function.
 The single scattering phase function $p(\nu)$ for a tissue determines the
@@ -61,7 +61,7 @@ For Henyey-Greenstein scattering, the redistribution function can be expressed
 in terms of the complete elliptic integral of the second kind $E(x)$ 
 $$
 h(\nu_i,\nu_j) = {2\over\pi}{1-g^2\over (\alpha-\gamma)\sqrt{\alpha+\gamma} }
-				  \,E\left(\sqrt{2\gamma\over\alpha+\gamma}\,\right)
+                  \,E\left(\sqrt{2\gamma\over\alpha+\gamma}\,\right)
 $$
 where $g$ is the average cosine of the Henyey-Greenstein phase function and
 $$
@@ -94,7 +94,7 @@ $$
 where 
 $$
 \chi_k^*={\chi_k-g^M\over 1-g^M}
-	\qandq
+    \qandq
 \chi_k = {1\over2}\int_0^1 p(\nu) P_k(\nu) \,d\nu
 $$
 When the $\delta$--$M$ method substitutes $p^*(\nu)\rightarrow p(\nu)$, 
@@ -127,17 +127,17 @@ for isotropic and Henyey-Greenstein phase functions.
 void Get_Phi(int n, int phase_function, double g, double **h)
 
 @ @<Definition for |Get_Phi|@>=
-	@<Prototype for |Get_Phi|@>
+    @<Prototype for |Get_Phi|@>
 {
-	@<Local variables for |Get_Phi|@>@;
-	@<Test for bad calling parameters@>@;
-	@<Initialize the phase function matrix@>@;
-	@<We're done if phase function is isotropic@>@;
-	@<Calculate the quadrature coefficients@>@;
-	@<Create Legendre Polynomial matrix@>@;
-	@<Calculate the coefficients@>@;
-	@<Add the symmetric part of the matrix@>@;
-	@<Free |p| and |chi|@>@;
+    @<Local variables for |Get_Phi|@>@;
+    @<Test for bad calling parameters@>@;
+    @<Initialize the phase function matrix@>@;
+    @<We're done if phase function is isotropic@>@;
+    @<Calculate the quadrature coefficients@>@;
+    @<Create Legendre Polynomial matrix@>@;
+    @<Calculate the coefficients@>@;
+    @<Add the symmetric part of the matrix@>@;
+    @<Free |p| and |chi|@>@;
 }
 
 @ @<Local variables for |Get_Phi|@>=
@@ -148,20 +148,20 @@ void Get_Phi(int n, int phase_function, double g, double **h)
 
 @ @<Test for bad calling parameters@>=
     if (g!=0 && phase_function != HENYEY_GREENSTEIN)
-	AD_error("Only the Henyey-Greenstein phase function has been implemented\n");
+    AD_error("Only the Henyey-Greenstein phase function has been implemented\n");
 
     if (fabs(g) >= 1)
-	AD_error("Get_Phi was called with a bad g_calc value");
+    AD_error("Get_Phi was called with a bad g_calc value");
 
 @ @<Initialize the phase function matrix@>=
     for (i = -n; i <= n; i++)
-	for (j = -n; j <= n; j++)
-	    h[i][j] = 1;
+        for (j = -n; j <= n; j++)
+            h[i][j] = 1;
 
     /* zero the zero column and zero row */
     for (i = -n; i <= n; i++) {
-	h[i][0] = 0.0;
-	h[0][i] = 0.0;
+        h[i][0] = 0.0;
+        h[0][i] = 0.0;
     }
 
 @ @<We're done if phase function is isotropic@>=
@@ -174,13 +174,13 @@ $$
 This will slighly simplify things later on
 
 @<Calculate the quadrature coefficients@>=
-	chi = dvector(1, n);
-	g2M = pow(g, n);
-	gk = 1.0;
-	for (k = 1; k < n; k++) {
-	    gk *= g;
-	    chi[k] = (2 * k + 1) * (gk - g2M) / (1 - g2M);
-	}
+    chi = dvector(1, n);
+    g2M = pow(g, n);
+    gk = 1.0;
+    for (k = 1; k < n; k++) {
+        gk *= g;
+        chi[k] = (2 * k + 1) * (gk - g2M) / (1 - g2M);
+    }
 
 @ Allocate the matrix for the Legendre values 
 this is {\it much\/} more efficient than calculating them
@@ -198,13 +198,13 @@ A simple way is just to put all of the necessary values
 in a two-dimensional array and define |p[i][j]==|$\,P_i(\mu_j)$.
 
 @<Create Legendre Polynomial matrix@>=
-	@<Allocate the polynomial matrix@>@;
-	@<Fill in all the unique values@>@;
-	@<Fill in the symmetric values@>@;
+    @<Allocate the polynomial matrix@>@;
+    @<Fill in all the unique values@>@;
+    @<Fill in the symmetric values@>@;
 
 @ It is not at all clear that zeroing is needed.
 @<Allocate the polynomial matrix@>=
-	p = dmatrix(0, n, -n, n);
+    p = dmatrix(0, n, -n, n);
 
 @ Here I use the recurrence relation
 $$
@@ -214,13 +214,13 @@ $$
 positive angles.
 
 @<Fill in all the unique values@>=
-	for (j = 1; j <= n; j++) {
-	    p[0][j] = 1;
-	    x = angle[j];
-	    p[1][j] = x;
-	    for (k = 1; k < n; k++)
-		p[k + 1][j] = ((2 * k + 1) * x * p[k][j] - k * p[k - 1][j]) / (k + 1);
-	}
+    for (j = 1; j <= n; j++) {
+        p[0][j] = 1;
+        x = angle[j];
+        p[1][j] = x;
+        for (k = 1; k < n; k++)
+        p[k + 1][j] = ((2 * k + 1) * x * p[k][j] - k * p[k - 1][j]) / (k + 1);
+    }
 
 @ I make use of the fact that
 $$
@@ -235,12 +235,12 @@ not be a problem.  If the matrix is not then you have
 problems.
 
 @<Fill in the symmetric values@>=
-	for (j = 1; j <= n; j++)
-	    for (k = 1; k < n; k++) {
-		p[k][-j] = -p[k][j];
-		k++;
-		p[k][-j] = p[k][j];
-	    }
+    for (j = 1; j <= n; j++)
+        for (k = 1; k < n; k++) {
+            p[k][-j] = -p[k][j];
+            k++;
+            p[k][-j] = p[k][j];
+        }
 
 @ Just a straightforward calculation of
 $$
@@ -255,14 +255,14 @@ entries.  We only need to calculate those.  Oh yeah, recall that
 |chi[k]| includes the factor |2k+1| for speed.
 
 @<Calculate the coefficients@>=
-	for (i = 1; i <= n; i++) {
-	    for (j = i; j <= n; j++) {
-		for (k = 1; k < n; k++) {
-		    h[i][j] += chi[k] * p[k][i] * p[k][j];
-		    h[-i][j] += chi[k] * p[k][-i] * p[k][j];
-			}
-	    }
-	}
+    for (i = 1; i <= n; i++) {
+        for (j = i; j <= n; j++) {
+            for (k = 1; k < n; k++) {
+                h[i][j] += chi[k] * p[k][i] * p[k][j];
+                h[-i][j] += chi[k] * p[k][-i] * p[k][j];
+            }
+        }
+    }
 
 @ Several symmetries in the redistribution matrix are used.
 to fill in some entries that begin with a negative angle
@@ -287,19 +287,19 @@ to think about it.  This works and should take advantage of
 all the symmetries present.
 
 @<Add the symmetric part of the matrix@>=
-	for(i=n;i>=2;i--)
-		for (j=1; j<i; j++) {
-			h[-i][j] = h[-j][i];
-			h[-i][-j] = h[j][i];
-			}
+    for(i=n;i>=2;i--)
+        for (j=1; j<i; j++) {
+            h[-i][j] = h[-j][i];
+            h[-i][-j] = h[j][i];
+        }
 
-	for(i=1;i<=n;i++)
-		h[-i][-i]=h[i][i];
-		
-	for (i = -n; i <= n; i++)
-	    for (j = i + 1; j <= n; j++)
-		h[j][i] = h[i][j];
+    for(i=1;i<=n;i++)
+        h[-i][-i]=h[i][i];
+        
+    for (i = -n; i <= n; i++)
+        for (j = i + 1; j <= n; j++)
+            h[j][i] = h[i][j];
 
 @ @<Free |p| and |chi|@>=
-	free_dmatrix(p, 0, n, -n, n);
-	free_dvector(chi, 1, n);
+    free_dmatrix(p, 0, n, -n, n);
+    free_dvector(chi, 1, n);
