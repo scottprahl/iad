@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-VERSION = 3-14-4
+export VERSION = 3-14-4
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -109,7 +109,7 @@ unixdist:
 	make docs
 	make clean
 	make
-	cd src ; make tidy
+	make tidy
 	mkdir -p    iad-$(VERSION)
 	mkdir -p    iad-$(VERSION)/doc
 	mkdir -p    iad-$(VERSION)/test
@@ -128,7 +128,7 @@ unixdist:
 
 windist: ad.exe iad.exe libiad.dll
 	make docs
-	cd src ; make tidy
+	make tidy
 	mkdir -p      iad-win-$(VERSION)
 	mkdir -p      iad-win-$(VERSION)/doc
 	mkdir -p      iad-win-$(VERSION)/test
