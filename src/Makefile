@@ -1,9 +1,7 @@
 all : ad iad
 
 INDENT = indent
-
-INDENT_OPT = --no-tabs -bad -bap -c33 -ci1 -d1 -di20 -i4 -l78 -nbc -nfc1 -psl -npro
-INDENT_OPT =
+INDENT_OPT = -br -brs -nbs -ci4 -cli0 -bli0 -l79 -ncdb -nce -nlp -npcs -npsl -i4 -nut
 
 ASSERT = -DNDEBUG
 #ASSERT =
@@ -168,12 +166,12 @@ realclean:
 tidy:
 	apply ctangle *.w
 	./version.pl
+	rm -f iad_main.h ad_main.h
+	rm -f iad_type.c
 	apply ./cobweb.pl ad*.c ad*.h iad*.c iad*.h
 	rm -f iad.c iad_main_mus.c
 	rm -f ad_boil.c
 	rm -f *.bak *.BAK
-	rm -f iad_type.c
-	rm -f iad_main.h
 	gindent $(INDENT_OPT) ad*.c iad*.c ad*.h iad*.h
 	rm *~
 
