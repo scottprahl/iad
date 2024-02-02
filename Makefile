@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-export VERSION = 3-14-4
+export VERSION = 3-14-5
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -13,9 +13,9 @@ LIB_INSTALL=$(DESTDIR)/lib
 INC_INSTALL=$(DESTDIR)/include
 
 #Library extension
-LIB_EXT = .dylib		# macOS shared lib
-#LIB_EXT = .so			# linux shared lib
-#LIB_EXT = .a			# static lib
+LIB_EXT = .dylib      # macOS shared lib
+#LIB_EXT = .so        # linux shared lib
+#LIB_EXT = .a         # static lib
 
 # default executable name
 IAD_EXECUTABLE = ./iad

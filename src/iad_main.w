@@ -355,10 +355,6 @@ int main (int argc, char **argv)
 
             case 'p':
                 n_photons = (long) my_strtod(optarg);
-                if (n_photons < 0) {
-                    fprintf(stderr, "bad number of photons slab index -n '%ld'\n", n_photons);
-                    exit(EXIT_FAILURE);
-                }
                 break;
 
             case 'q':
