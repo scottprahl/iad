@@ -1,6 +1,12 @@
 Changelog
 =========
 
+v3.14.5 (2 Feb 2024)
+--------------------
+*   add bounds checking for command line parameters
+*   use exit(EXIT_SUCCESSS) and exit(EXIT_FAILURE) everywhere
+*   detab more files
+
 v3.14.4 (1 Feb 2024)
 --------------------
 *   fix lost diffuse light code
