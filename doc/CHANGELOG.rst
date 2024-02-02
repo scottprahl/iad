@@ -11,10 +11,11 @@ v3.14.4 (1 Feb 2024)
 *   use POSIX getopt
 *   use M_PI instead of number
 *   add test code for lost light estimation
+*   fix oblique test code
 
 v3.14.3 (31 Jan 2024)
 --------------------
-*   produce 64-bit windows executable
+*   produce 64-bit windows executable since
 *   32-bit triggered false positive virus detection
 
 v3.14.1 (30 Jan 2024)
