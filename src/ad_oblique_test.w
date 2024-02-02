@@ -11,6 +11,7 @@ code.
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "nr_util.h"
 #include "ad_globl.h"
 #include "ad_prime.h"
@@ -88,7 +89,7 @@ int N=48;
 
     @<Tests with normal incidence@>@; 
     @<Tests with absorption and isotropic scattering@>@;
-    return 0;
+    exit(EXIT_SUCCESS);
 }
 
 @ The first set of tests just calls |RT_Cone| with no cone (normal irradiance)
