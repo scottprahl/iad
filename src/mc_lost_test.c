@@ -24,9 +24,7 @@ static void print_usage(void)
     fprintf(stderr, "  -p #   number of photons\n");
     fprintf(stderr, "  -v     display help\n");
     fprintf(stderr, "Examples:\n");
-    fprintf(stderr, "  lost -m data                     data.rt in machine readable format\n");
-    fprintf(stderr, "  ad data -o out.txt             out.txt is the \n");
-    fprintf(stderr, "  lost -a 0.3                    a=0.3, b=2.0, g=0.0, n=1.0\n");
+    fprintf(stderr, "  mc_lost -a 0.3 -b 2.0 -g 0.8 -n 1.4 -N 1.5 -p 1000000\n");
     exit(0);
 }
 
@@ -42,11 +40,11 @@ int main(int argc, char** argv)
     double d_port   = 10.0;
     double d_beam   = 5.0;
     double t_slide  = 1.0;
-    double a = 0.5;
-    double b = 2;
-    double g = 0.0;
-    double n_slab = 1.0;
-    double n_slide = 1.0;
+    double a = 0.9;
+    double b = 1;
+    double g = 0.8;
+    double n_slab = 1.4;
+    double n_slide = 1.5;
     double mu0 = 1;
     double mua_slide = 0;
     long n_photons = 1024*1024;
@@ -72,7 +70,7 @@ int main(int argc, char** argv)
                     fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
                     return 1;
                 } else
-                    mu0 = cos(x*M_PI/180.0);
+                    mu0 = cos(x * M_PI / 180.0);
                 break;
 
             case 'n':
@@ -99,11 +97,12 @@ int main(int argc, char** argv)
     MC_Radial(n_photons, a, b, g, n_slab, n_slide, diffuse,    mu0, t_sample, t_slide, mua_slide, d_port, d_beam, &uru, &utu, &uru_lost, &utu_lost);
 
     printf("   UR1    \t   UT1    \t   URU    \t   UTU\n");
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", ur1, ut1, uru, utu);
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", ur1_lost, ut1_lost, uru_lost, utu_lost);
+    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Calc\n", ur1, ut1, uru, utu);
 
     ez_RT(16, n_slab, n_slide, n_slide, a, b, g, &UR1, &UT1, &URU, &UTU);
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", UR1, UT1, URU, UTU);
+    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc\n", UR1, UT1, URU, UTU);
+    printf("-----------------------------------------------------------------------\n");
+    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Loss\n", ur1_lost, ut1_lost, uru_lost, utu_lost);
 
     return 0;
 }

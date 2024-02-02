@@ -176,8 +176,8 @@ void refract(double n_i, double n_t, double *u, double *v, double *w)
 #endif
 
     if (n_i == n_t) return;
-    c    = n_i/n_t;
-    nu   = *w * c;
+    c = n_i/n_t;
+    nu = (*w) * c;
 
     assert(n_i<n_t || fabs(*w) > cos_critical_angle(n_i,n_t));
     *u *= c;
@@ -261,11 +261,12 @@ static void launch_point(double *x, double *y, double *z, double beam_radius)
 
 static void launch_direction(double *u, double *v, double *w, int collimated, double mu)
 {
+    double phi;
     if (!collimated) {
-        do
-            scatter(0.0,u,v,w);
-        while (*w == 0);
-        *w = fabs(*w);
+        *w = sqrt(rand_zero_one());
+        phi = 2.0 * M_PI * rand_zero_one(); 
+        *u = cos(phi) * sqrt(1 - (*w) * (*w));
+        *v = sin(phi) * sqrt(1 - (*w) * (*w));
     } else {
         *u = sqrt(1-mu*mu);
         *v = 0;
@@ -365,7 +366,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     double r_beam;
     double mu_t = b / t_sample;
     double r_port_squared = d_port * d_port / 4.0;
-    double total_weight,extra;
+    double total_weight,distance_remaining;
     double total_time=0;
     clock_t start_time=0;
 #ifndef NDEBUG
@@ -414,37 +415,48 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 #ifndef NDEBUG
         ww = w;
 #endif
+        assert(w > 0);
+        assert(z == 0);
+        assert(weight == 1);
+        
         /* enter the sample */
         refract(1.0, n_sample, &u, &v, &w);
 
+        assert(fabs(u*u+v*v+w*w-1.0) < 1e-8);
         while (weight>0) {
-            assert(fabs(sin(acos(ww)) - n_sample*sin(acos(w)))<1e-8 || ww == -w);
-            assert(fabs(u*u+v*v+w*w-1.0) < 1e-8);
 
             /* move to next scattering or absorption event */
             move_in_sample(mu_t, &x, &y, &z, u, v, w);
+
+            assert(weight <=1 );
 
             /* deal with photon that may exit the sample */
             while (z < 0 || z > t_sample) {
 
                 /* move back to top or bottom of sample */
                 if (z < 0) {
-                    extra = z/w;
+                    distance_remaining = z/w;
                     z  = 0.0;
                 } else {
-                    extra = (z-t_sample)/w;
+                    distance_remaining = (z-t_sample)/w;
                     z  = t_sample;
                 }
-                x -= u * extra;
-                y -= v * extra;
+                assert(distance_remaining >= 0);
+                
+                /* move x,y coordinates back to intersection with boundary */
+                x -= u * distance_remaining;
+                y -= v * distance_remaining;
+
+                assert(z == 0 || z == t_sample);
 
                 /* w will change sign upon reflection back into sample */
                 move_in_slide(&x, &y, u, v, &w, &weight, t_slide, mua_slide, n_sample, n_slide, 1.0);
 
-                /* use direction w to determine if photon is transmitted or reflected */
+           /* use direction w to determine if photon is transmitted or reflected */
                 if (z == 0) {
 
-                    if (w < 0) {  /* still moving up */
+                    if (w < 0) {  /* at top surface and moving up */
+                        assert(z == 0);
                         *r_total += weight;
                         if (x*x + y*y > r_port_squared) 
                             *r_lost += weight;
@@ -454,7 +466,8 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
                 } else {
 
-                    if (w > 0) { /* still moving down */
+                    if (w > 0) { /* at bottom and moving down */
+                        assert(z == t_sample);
                         *t_total += weight;
                         if (x*x + y*y > r_port_squared) 
                             *t_lost += weight;
@@ -463,12 +476,13 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
                     }
                 }
 
-                /* move the remaining amount back into sample */
-                x += u * extra;
-                y += v * extra;
-                z += w * extra;
+                /* move the distance_remaining amount back into sample */
+                x += u * distance_remaining;
+                y += v * distance_remaining;
+                z += w * distance_remaining;
             }
 
+            assert(z >= 0 && z <= t_sample);
             weight *= a;
             roulette(&weight, &residual_weight);
             scatter(g, &u, &v, &w);
