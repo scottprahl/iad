@@ -17,6 +17,7 @@ I create an empty file \.{iad\_main.h} to simplify the Makefile
 @<print version function@>@;
 @<print usage function@>@;
 @<stringdup together function@>@;
+@<mystrtod function@>@;
 @<seconds elapsed function@>@;
 @<print error legend function@>@;
 @<print dot function@>@;
@@ -39,7 +40,7 @@ int main (int argc, char **argv)
 
     if (cl_forward_calc != UNINITIALIZED) {
         @<Calculate and Print the Forward Calculation@>@;
-        return EXIT_SUCCESS;
+        exit(EXIT_SUCCESS);
     }
 
     @<prepare file for reading@>@;
@@ -47,7 +48,7 @@ int main (int argc, char **argv)
     if (process_command_line) {
         @<Count command-line measurements@>@;
         @<Calculate and write optical properties@>@;
-        return EXIT_SUCCESS;
+        exit(EXIT_SUCCESS);
     }
 
     if (Read_Header (stdin, &m, &params) == 0) {
@@ -59,7 +60,7 @@ int main (int argc, char **argv)
     }
     if (cl_verbosity>0) fprintf(stderr,"\n\n");
     if (any_error && cl_verbosity>1) print_error_legend();
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
 
 @ The first two defines are to stop Visual C++ from silly complaints
@@ -85,6 +86,7 @@ int main (int argc, char **argv)
 #include <time.h>
 #include <math.h>
 #include <ctype.h>
+#include <errno.h>
 
 #include "ad_globl.h"
 #include "ad_prime.h"
@@ -101,7 +103,7 @@ int main (int argc, char **argv)
   struct measure_type m;
   struct invert_type r;
   char *g_out_name = NULL;
-  char c;
+  int c;
 
   long n_photons = 100000;
   int MC_iterations = 19;
@@ -145,7 +147,7 @@ int main (int argc, char **argv)
   double cl_Tc          = UNINITIALIZED;
 
   double cl_method      = UNINITIALIZED;
-  double cl_num_spheres = UNINITIALIZED;
+  int    cl_num_spheres = UNINITIALIZED;
   double cl_sphere_one[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
                              UNINITIALIZED, UNINITIALIZED };
   double cl_sphere_two[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
@@ -173,23 +175,39 @@ int main (int argc, char **argv)
                 break;
 
             case 'a':
-                cl_default_a = strtod(optarg, NULL);
+                cl_default_a = my_strtod(optarg);
+                if (cl_default_a<0 || cl_default_a>1) {
+                    fprintf(stderr, "bad command line albedo -a '%g'\n", cl_default_a);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'A':
-                cl_default_mua = strtod(optarg, NULL);
+                cl_default_mua = my_strtod(optarg);
+                if (cl_default_mua < 0) {
+                    fprintf(stderr, "bad command line absorption -A '%g'\n", cl_default_mua);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'b':
-                cl_default_b = strtod(optarg, NULL);
+                cl_default_b = my_strtod(optarg);
+                if (cl_default_b < 0) {
+                    fprintf(stderr, "bad command line optical thickness -b '%g'\n", cl_default_b);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'B':
-                cl_beam_d = strtod(optarg, NULL);
+                cl_beam_d = my_strtod(optarg);
+                if (cl_beam_d < 0) {
+                    fprintf(stderr, "bad command line beam diameter -B '%g'\n", cl_beam_d);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'c':
-                cl_rc_fraction = strtod(optarg, NULL);
+                cl_rc_fraction = my_strtod(optarg);
                 if (cl_rc_fraction<0.0 || cl_rc_fraction>1.0) {
                     fprintf(stderr, "required: 0 <= fraction of unscattered refl. in M_R <= 1\n");
                     exit(EXIT_SUCCESS);
@@ -197,7 +215,7 @@ int main (int argc, char **argv)
                 break;
 
             case 'C':
-                cl_tc_fraction = strtod(optarg, NULL);
+                cl_tc_fraction = my_strtod(optarg);
                 if (cl_tc_fraction < 0.0 || cl_tc_fraction > 1.0) {
                     fprintf(stderr, "required: 0 <= fraction of unscattered trans. in M_T <= 1\n");
                     exit(EXIT_SUCCESS);
@@ -205,29 +223,49 @@ int main (int argc, char **argv)
                 break;
 
             case 'd':
-                cl_sample_d = strtod(optarg, NULL);
+                cl_sample_d = my_strtod(optarg);
+                if (cl_sample_d < 0) {
+                    fprintf(stderr, "bad command line sample thickness -d '%g'\n", cl_sample_d);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'D':
-                cl_slide_d = strtod(optarg, NULL);
+                cl_slide_d = my_strtod(optarg);
+                if (cl_slide_d < 0) {
+                    fprintf(stderr, "bad command line slide thickness -D '%g'\n", cl_slide_d);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'e':
-                cl_tolerance = strtod(optarg, NULL);
+                cl_tolerance = my_strtod(optarg);
+                if (cl_tolerance < 0) {
+                    fprintf(stderr, "bad command error tolerance -e '%g'\n", cl_tolerance);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'E':
-                cl_slide_OD = strtod(optarg, NULL);
+                cl_slide_OD = my_strtod(optarg);
+                if (cl_slide_OD < 0) {
+                    fprintf(stderr, "bad command line slide optical depth -E '%g'\n", cl_slide_OD);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'f':
-                cl_default_fr = strtod(optarg, NULL);
+                cl_default_fr = my_strtod(optarg);
+                if (cl_default_fr < 0.0 || cl_default_fr > 1.0) {
+                    fprintf(stderr, "bad -f value. 0 <= fraction light hitting wall first <= 1\n");
+                    exit(EXIT_SUCCESS);
+                }
                 break;
 
             case 'F':
                 /* initial digit means this is mus is constant */
                 if (isdigit(optarg[0])) {
-                    cl_default_mus = strtod(optarg, NULL);
+                    cl_default_mus = my_strtod(optarg);
                     break;
                 }
 
@@ -249,7 +287,11 @@ int main (int argc, char **argv)
                 break;
 
             case 'g':
-                cl_default_g = strtod(optarg, NULL);
+                cl_default_g = my_strtod(optarg);
+                if (cl_default_g < -1 || cl_default_g > 1) {
+                    fprintf(stderr, "bad command line anisotropy -g '%g'\n", cl_default_g);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'G':
@@ -276,7 +318,7 @@ int main (int argc, char **argv)
                 break;
 
             case 'i':
-                cl_cos_angle = strtod(optarg, NULL);
+                cl_cos_angle = my_strtod(optarg);
                 if (cl_cos_angle<0 || cl_cos_angle>90)
                     fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
                 else
@@ -284,15 +326,27 @@ int main (int argc, char **argv)
                 break;
 
             case 'M':
-                MC_iterations = (int) strtod(optarg, NULL);
+                MC_iterations = (int) my_strtod(optarg);
+                if (MC_iterations < 0 || MC_iterations > 50) {
+                    fprintf(stderr, "bad number of MC iterations '%d'\n", MC_iterations);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'n':
-                cl_sample_n = strtod(optarg, NULL);
+                cl_sample_n = my_strtod(optarg);
+                if (cl_sample_n < 0.1 || cl_sample_n > 10) {
+                    fprintf(stderr, "bad command slab index -n '%g'\n", cl_sample_n);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'N':
-                cl_slide_n = strtod(optarg, NULL);
+                cl_slide_n = my_strtod(optarg);
+                if (cl_slide_n < 0.1 || cl_slide_n > 10) {
+                    fprintf(stderr, "bad command slide index -N '%g'\n", cl_slide_n);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'o':
@@ -300,11 +354,15 @@ int main (int argc, char **argv)
                 break;
 
             case 'p':
-                n_photons = (int) strtod(optarg, NULL);
+                n_photons = (long) my_strtod(optarg);
+                if (n_photons < 0) {
+                    fprintf(stderr, "bad number of photons slab index -n '%ld'\n", n_photons);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'q':
-                cl_quadrature_points = (int) strtod(optarg, NULL);
+                cl_quadrature_points = (int) my_strtod(optarg);
                 if (cl_quadrature_points % 4 != 0) {
                     fprintf(stderr, "Number of quadrature points must be a multiple of 4\n");
                     exit(EXIT_FAILURE);
@@ -316,46 +374,71 @@ int main (int argc, char **argv)
                 break;
 
             case 'r':
-                cl_UR1 = strtod(optarg, NULL);
+                cl_UR1 = my_strtod(optarg);
                 process_command_line = 1;
+                if (cl_UR1 < 0 || cl_UR1 > 1) {
+                    fprintf(stderr, "bad UR1 value -r '%g'\n", cl_UR1);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'R':
-                cl_rstd_r = strtod(optarg, NULL);
+                cl_rstd_r = my_strtod(optarg);
+                if (cl_rstd_r < 0 || cl_rstd_r > 1) {
+                    fprintf(stderr, "bad Rstd value -R '%g'\n", cl_rstd_r);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 's':
-                cl_search = (int) strtod(optarg, NULL);
+                cl_search = (int) my_strtod(optarg);
                 break;
 
             case 'S':
-                cl_num_spheres = (int) strtod(optarg, NULL);
+                cl_num_spheres = (int) my_strtod(optarg);
+                if (cl_num_spheres != 0 && cl_num_spheres != 1 && cl_num_spheres !=2) {
+                    fprintf(stderr, "Sphere number must be 0, 1, or 2: -S '%d'\n", cl_num_spheres);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 't':
-                cl_UT1 = strtod(optarg, NULL);
+                cl_UT1 = my_strtod(optarg);
+                if (cl_UT1 < 0 || cl_UT1 > 1) {
+                    fprintf(stderr, "bad UT1 value -t '%g'\n", cl_UT1);
+                    exit(EXIT_FAILURE);
+                }
                 process_command_line=1;
                 break;
 
             case 'T':
-                cl_rstd_t = strtod(optarg, NULL);
+                cl_rstd_t = my_strtod(optarg);
+                if (cl_rstd_t < 0 || cl_rstd_t > 1) {
+                    fprintf(stderr, "bad trans std value -T '%g'\n", cl_rstd_t);
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'u':
-                cl_Tc = strtod(optarg, NULL);
+                cl_Tc = my_strtod(optarg);
+                if (cl_Tc < 0 || cl_Tc > 1) {
+                    fprintf(stderr, "bad unscattered trans value -u '%g'\n", cl_Tc);
+                    exit(EXIT_FAILURE);
+                }
                 process_command_line=1;
                 break;
 
             case 'v':
-                print_version();
+                print_version(cl_verbosity);
+                exit(EXIT_SUCCESS);
                 break;
 
             case 'V':
-                cl_verbosity = strtod(optarg, NULL);
+                cl_verbosity = my_strtod(optarg);
                 break;
 
             case 'x':
-                Set_Debugging( (int) strtod(optarg, NULL));
+                Set_Debugging( (int) my_strtod(optarg));
                 break;
 
             case 'X':
@@ -372,9 +455,8 @@ int main (int argc, char **argv)
                 /* fall through */
 
             case 'h':
-            case '?':
                 print_usage();
-                break;
+                exit(EXIT_SUCCESS);
         }
     }
 
@@ -944,107 +1026,109 @@ properties can be determined.
 
 @ @<print version function@>=
 
-static void print_version(void)
+static void print_version(int verbosity)
 {
-    fprintf(stderr, "iad %s\n",Version);
-    fprintf(stderr, "Copyright 1993-2024 Scott Prahl, scott.prahl@@oit.edu\n");
-    fprintf(stderr, "          (see Applied Optics, 32:559-568, 1993)\n\n");
-    fprintf(stderr, "This is free software; see the source for copying conditions.\n");
-    fprintf(stderr, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
-    fprintf(stderr, "FOR A PARTICULAR PURPOSE.\n");
-    exit(EXIT_SUCCESS);
+    if (verbosity == 0) {
+        fprintf(stdout, "%s", VersionShort);
+    } else {
+        fprintf(stdout, "iad %s\n",Version);
+        fprintf(stdout, "Copyright 1993-2024 Scott Prahl, scott.prahl@@oit.edu\n");
+        fprintf(stdout, "          (see Applied Optics, 32:559-568, 1993)\n\n");
+        fprintf(stdout, "This is free software; see the source for copying conditions.\n");
+        fprintf(stdout, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
+        fprintf(stdout, "FOR A PARTICULAR PURPOSE.\n");
+    }
 }
 
 @ @<print usage function@>=
 static void print_usage(void)
 {
-fprintf(stderr, "iad %s\n\n",Version);
-fprintf(stderr, "iad finds optical properties from measurements\n\n");
-fprintf(stderr, "Usage:  iad [options] input\n\n");
-fprintf(stderr, "Options:\n");
-fprintf(stderr, "  -1 '# # # # #'   reflection sphere parameters \n");
-fprintf(stderr, "  -2 '# # # # #'   transmission sphere parameters \n");
-fprintf(stderr, "     'sphere d, sample d, entrance d, detector d, wall r'\n");
-fprintf(stderr, "  -a #             use this albedo \n");
-fprintf(stderr, "  -A #             use this absorption coefficient \n");
-fprintf(stderr, "  -b #             use this optical thickness \n");
-fprintf(stderr, "  -B #             beam diameter \n");
-fprintf(stderr, "  -c #             fraction of unscattered refl in MR\n");
-fprintf(stderr, "  -C #             fraction of unscattered trans in MT\n");
-fprintf(stderr, "  -d #             thickness of sample \n");
-fprintf(stderr, "  -D #             thickness of slide \n");
-fprintf(stderr, "  -e #             error tolerance (default 0.0001) \n");
-fprintf(stderr, "  -E #             optical depth (=mua*D) for slides\n");
-fprintf(stderr, "  -f #             allow a fraction 0.0-1.0 of light to hit sphere wall first\n");
-fprintf(stderr, "  -F #             use this scattering coefficient \n");
-fprintf(stderr, "  -F 'P lambda0 mus0 gamma'   mus=mus0*(lambda/lambda0)^gamma\n");
-fprintf(stderr, "  -F 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma\n");
-fprintf(stderr, "  -g #             scattering anisotropy (default 0) \n");
-fprintf(stderr, "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
-fprintf(stderr, "                   '0' or '2'                --- number of slides\n");
-fprintf(stderr, "                   't' (top) or 'b' (bottom) \
+fprintf(stdout, "iad %s\n\n",Version);
+fprintf(stdout, "iad finds optical properties from measurements\n\n");
+fprintf(stdout, "Usage:  iad [options] input\n\n");
+fprintf(stdout, "Options:\n");
+fprintf(stdout, "  -1 '# # # # #'   reflection sphere parameters \n");
+fprintf(stdout, "  -2 '# # # # #'   transmission sphere parameters \n");
+fprintf(stdout, "     'sphere d, sample d, entrance d, detector d, wall r'\n");
+fprintf(stdout, "  -a #             use this albedo \n");
+fprintf(stdout, "  -A #             use this absorption coefficient \n");
+fprintf(stdout, "  -b #             use this optical thickness \n");
+fprintf(stdout, "  -B #             beam diameter \n");
+fprintf(stdout, "  -c #             fraction of unscattered refl in MR\n");
+fprintf(stdout, "  -C #             fraction of unscattered trans in MT\n");
+fprintf(stdout, "  -d #             thickness of sample \n");
+fprintf(stdout, "  -D #             thickness of slide \n");
+fprintf(stdout, "  -e #             error tolerance (default 0.0001) \n");
+fprintf(stdout, "  -E #             optical depth (=mua*D) for slides\n");
+fprintf(stdout, "  -f #             allow a fraction 0.0-1.0 of light to hit sphere wall first\n");
+fprintf(stdout, "  -F #             use this scattering coefficient \n");
+fprintf(stdout, "  -F 'P lambda0 mus0 gamma'   mus=mus0*(lambda/lambda0)^gamma\n");
+fprintf(stdout, "  -F 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma\n");
+fprintf(stdout, "  -g #             scattering anisotropy (default 0) \n");
+fprintf(stdout, "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
+fprintf(stdout, "                   '0' or '2'                --- number of slides\n");
+fprintf(stdout, "                   't' (top) or 'b' (bottom) \
 --- one slide that is hit by light first\n");
-fprintf(stderr, "                   'n' (near) or 'f' (far)   \
+fprintf(stdout, "                   'n' (near) or 'f' (far)   \
 --- one slide position relative to sphere\n");
-fprintf(stderr, "  -h               display help\n");
-fprintf(stderr, "  -i #             light is incident at this angle in degrees\n");
-fprintf(stderr, "  -M #             number of Monte Carlo iterations\n");
-fprintf(stderr, "  -n #             specify index of refraction of slab\n");
-fprintf(stderr, "  -N #             specify index of refraction of slides\n");
-fprintf(stderr, "  -o filename      explicitly specify filename for output\n");
-fprintf(stderr, "  -p #             # of Monte Carlo photons (default 100000)\n");
-fprintf(stderr, "                   a negative number is max MC time in milliseconds\n");
-fprintf(stderr, "  -q #             number of quadrature points (default=8)\n");
-fprintf(stderr, "  -r #             total reflection measurement\n");
-fprintf(stderr, "  -R #             actual reflectance for 100%% measurement \n");
-fprintf(stderr, "  -S #             number of spheres used\n");
-fprintf(stderr, "  -t #             total transmission measurement\n");
-fprintf(stderr, "  -T #             actual transmission for 100%% measurement \n");
-fprintf(stderr, "  -u #             unscattered transmission measurement\n");
-fprintf(stderr, "  -v               version information\n");
-fprintf(stderr, "  -V 0             verbosity low --- no output to stderr\n");
-fprintf(stderr, "  -V 1             verbosity moderate \n");
-fprintf(stderr, "  -V 2             verbosity high\n");
-fprintf(stderr, "  -x #             set debugging level\n");
-fprintf(stderr, "  -X               dual beam configuration\n");
-fprintf(stderr, "  -z               do forward calculation\n");
-fprintf(stderr, "Examples:\n");
-fprintf(stderr, "  iad file.rxt              Results will be put in file.txt\n");
-fprintf(stderr, "  iad file                  Same as above\n");
-fprintf(stderr, "  iad -c 0.9 file.rxt       \
+fprintf(stdout, "  -h               display help\n");
+fprintf(stdout, "  -i #             light is incident at this angle in degrees\n");
+fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
+fprintf(stdout, "  -n #             specify index of refraction of slab\n");
+fprintf(stdout, "  -N #             specify index of refraction of slides\n");
+fprintf(stdout, "  -o filename      explicitly specify filename for output\n");
+fprintf(stdout, "  -p #             # of Monte Carlo photons (default 100000)\n");
+fprintf(stdout, "                   a negative number is max MC time in milliseconds\n");
+fprintf(stdout, "  -q #             number of quadrature points (default=8)\n");
+fprintf(stdout, "  -r #             total reflection measurement\n");
+fprintf(stdout, "  -R #             actual reflectance for 100%% measurement \n");
+fprintf(stdout, "  -S #             number of spheres used\n");
+fprintf(stdout, "  -t #             total transmission measurement\n");
+fprintf(stdout, "  -T #             actual transmission for 100%% measurement \n");
+fprintf(stdout, "  -u #             unscattered transmission measurement\n");
+fprintf(stdout, "  -v               version information\n");
+fprintf(stdout, "  -V 0             verbosity low --- no output to stdout\n");
+fprintf(stdout, "  -V 1             verbosity moderate \n");
+fprintf(stdout, "  -V 2             verbosity high\n");
+fprintf(stdout, "  -x #             set debugging level\n");
+fprintf(stdout, "  -X               dual beam configuration\n");
+fprintf(stdout, "  -z               do forward calculation\n");
+fprintf(stdout, "Examples:\n");
+fprintf(stdout, "  iad file.rxt              Results will be put in file.txt\n");
+fprintf(stdout, "  iad file                  Same as above\n");
+fprintf(stdout, "  iad -c 0.9 file.rxt       \
 Assume M_R includes 90%% of unscattered reflectance\n");
-fprintf(stderr, "  iad -C 0.8 file.rxt       \
+fprintf(stdout, "  iad -C 0.8 file.rxt       \
 Assume M_T includes 80%% of unscattered transmittance\n");
-fprintf(stderr, "  iad -e 0.0001 file.rxt    Better convergence to R & T values\n");
-fprintf(stderr, "  iad -f 1.0 file.rxt       All light hits reflectance sphere wall first\n");
-fprintf(stderr, "  iad -o out file.rxt       Calculated values in out\n");
-fprintf(stderr, "  iad -r 0.3                R_total=0.3, b=inf, find albedo\n");
-fprintf(stderr, "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b,g\n");
-fprintf(stderr, "  iad -r 0.3 -t 0.4 -n 1.5  R_total=0.3, T_total=0.4, n=1.5, find a,b\n");
-fprintf(stderr, "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b\n");
-fprintf(stderr, "  iad -p 1000 file.rxt      Only 1000 photons\n");
-fprintf(stderr, "  iad -p -100 file.rxt      Allow only 100ms per iteration\n");
-fprintf(stderr, "  iad -q 4 file.rxt         Four quadrature points\n");
-fprintf(stderr, "  iad -M 0 file.rxt         No MC    (iad)\n");
-fprintf(stderr, "  iad -M 1 file.rxt         MC once  (iad -> MC -> iad)\n");
-fprintf(stderr, "  iad -M 2 file.rxt         MC twice (iad -> MC -> iad -> MC -> iad)\n");
-fprintf(stderr, "  iad -M 0 -q 4 file.rxt    Fast and crude conversion\n");
-fprintf(stderr, "  iad -G t file.rxt         One top slide with properties from file.rxt\n");
-fprintf(stderr, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
-fprintf(stderr, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
-fprintf(stderr, "  iad -x   2 file.rxt       DEBUG_GRID\n");
-fprintf(stderr, "  iad -x   4 file.rxt       DEBUG_ITERATIONS\n");
-fprintf(stderr, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
-fprintf(stderr, "  iad -x  16 file.rxt       DEBUG_SPHERE_EFFECTS\n");
-fprintf(stderr, "  iad -x  32 file.rxt       DEBUG_BEST_GUESS\n");
-fprintf(stderr, "  iad -x  64 file.rxt       DEBUG_EVERY_CALC\n");
-fprintf(stderr, "  iad -x 128 file.rxt       DEBUG_SEARCH\n");
-fprintf(stderr, "  iad -x 255 file.rxt       All debugging output\n");
-fprintf(stderr, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
-fprintf(stderr, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
-fprintf(stderr, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
-fprintf(stderr, "Report bugs to <scott.prahl@@oit.edu>\n\n");
-exit(EXIT_SUCCESS);
+fprintf(stdout, "  iad -e 0.0001 file.rxt    Better convergence to R & T values\n");
+fprintf(stdout, "  iad -f 1.0 file.rxt       All light hits reflectance sphere wall first\n");
+fprintf(stdout, "  iad -o out file.rxt       Calculated values in out\n");
+fprintf(stdout, "  iad -r 0.3                R_total=0.3, b=inf, find albedo\n");
+fprintf(stdout, "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b,g\n");
+fprintf(stdout, "  iad -r 0.3 -t 0.4 -n 1.5  R_total=0.3, T_total=0.4, n=1.5, find a,b\n");
+fprintf(stdout, "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b\n");
+fprintf(stdout, "  iad -p 1000 file.rxt      Only 1000 photons\n");
+fprintf(stdout, "  iad -p -100 file.rxt      Allow only 100ms per iteration\n");
+fprintf(stdout, "  iad -q 4 file.rxt         Four quadrature points\n");
+fprintf(stdout, "  iad -M 0 file.rxt         No MC    (iad)\n");
+fprintf(stdout, "  iad -M 1 file.rxt         MC once  (iad -> MC -> iad)\n");
+fprintf(stdout, "  iad -M 2 file.rxt         MC twice (iad -> MC -> iad -> MC -> iad)\n");
+fprintf(stdout, "  iad -M 0 -q 4 file.rxt    Fast and crude conversion\n");
+fprintf(stdout, "  iad -G t file.rxt         One top slide with properties from file.rxt\n");
+fprintf(stdout, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
+fprintf(stdout, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
+fprintf(stdout, "  iad -x   2 file.rxt       DEBUG_GRID\n");
+fprintf(stdout, "  iad -x   4 file.rxt       DEBUG_ITERATIONS\n");
+fprintf(stdout, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
+fprintf(stdout, "  iad -x  16 file.rxt       DEBUG_SPHERE_EFFECTS\n");
+fprintf(stdout, "  iad -x  32 file.rxt       DEBUG_BEST_GUESS\n");
+fprintf(stdout, "  iad -x  64 file.rxt       DEBUG_EVERY_CALC\n");
+fprintf(stdout, "  iad -x 128 file.rxt       DEBUG_SEARCH\n");
+fprintf(stdout, "  iad -x 255 file.rxt       All debugging output\n");
+fprintf(stdout, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
+fprintf(stdout, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
+fprintf(stdout, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
+fprintf(stdout, "Report bugs to <scott.prahl@@oit.edu>\n\n");
 }
 
 @ Just figure out the damn scattering and absorption
@@ -1195,6 +1279,37 @@ static char *  strdup_together(char *s, char *t)
     strcpy(both, s);
     strcat(both, t);
     return both;
+}
+
+@ catch parsing errors in strtod
+@<mystrtod function@>=
+
+static double my_strtod(const char *str) 
+{
+    char* endptr;
+    errno = 0;
+
+    double val = strtod(str, &endptr);
+
+    if (endptr == str) { 
+        // No digits were found
+        fprintf(stderr, "Error: No conversion could be performed for `%s`.\n", str);
+        exit(EXIT_FAILURE);
+    }
+    
+    if (*endptr != '\0') {
+        // String contains extra characters after the number
+        printf("Partial conversion: converted value = %f, remaining string = %s\n", val, endptr);
+        exit(EXIT_FAILURE);
+    } 
+    
+    if (errno == ERANGE) {
+        // The converted value is out of range of representable values by a double
+        printf("Error: The value is out of range of double.\n");
+        exit(EXIT_FAILURE);
+    }
+    
+    return val;
 }
 
 @ assume that start time has already been set
