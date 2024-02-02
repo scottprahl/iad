@@ -27,7 +27,6 @@
 
 # edit release notes on github  
     open https://github.com/scottprahl/iad/releases/
-
-# Upload files to omlc.org
     sftp omlc.org /var/www/html/software/iad/iad-latest.zip <<< $'put iad-latest.zip'
     sftp omlc.org /var/www/html/software/iad/iad-win-latest.zip <<< $'put iad-win-latest.zip'
+    open .
