@@ -28,7 +28,7 @@ static void print_usage(void)
     fprintf(stderr, "Examples:\n");
     fprintf(stderr,
         "  mc_lost -a 0.3 -b 2.0 -g 0.8 -n 1.4 -N 1.5 -p 1000000\n");
-    exit(0);
+    exit(EXIT_SUCCESS);
 }
 
 int main(int argc, char **argv)
