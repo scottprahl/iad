@@ -6,7 +6,6 @@ INDENT_OPT = -br -brs -nbs -ci4 -cli0 -bli0 -l79 -ncdb -nce -nlp -npcs -npsl -i4
 ASSERT = -DNDEBUG
 #ASSERT =
 
-LOCAL_LIBRARIES = -lm
 SHARED_LIB_OPT = -lm -shared 
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
 				  -compatibility_version 2.0 -current_version 2.0.0 \
@@ -49,16 +48,6 @@ libiad.h : ad iad ad_cone_ez.h ad_layers.h
 	./cobweb.pl < libiad.tmp > libiad.tmp2
 	$(INDENT) $(INDENT_OPT) < libiad.tmp2 > libiad.h
 	rm -f libiad.tmp lib_ad.h lib_iad.h libiad.tmp2
-
-ad_cone_test: $(AD_OBJ) $(NR_OBJ) ad_cone_test.o version.o
-	./version.pl 
-	$(CC) -c -o version.o version.c 
-	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
-
-ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
-	./version.pl 
-	$(CC) -c -o version.o version.c 
-	$(CC) -o $@ $^ $(LOCAL_LIBRARIES)
 
 ad_doc: ad.w
 	cweave -bph ad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
@@ -104,13 +93,21 @@ CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/ia
 		src/ad_prime.c		src/iad_find.c		 src/ad_phase.c	  src/ad_main.c	  src/ad_bound.c   src/ad_cone.c \
 		src/ad_layers.c		src/version.c		 
 
-ad_oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
-
 layer_test: $(AD_OBJ) $(NR_OBJ) version.o ad_layers.o ad_layers_test.o
 	ctangle -bhp ad_layers.w
 	$(CC) -c -o ad_layers.o ad_layers.c 
 	ctangle -bhp ad_layers_test.w
 	$(CC) -c -o ad_layers_test.o ad_layers_test.c 
+	./version.pl 
+	$(CC) -c -o version.o version.c 
+	$(CC) -o $@ $^ -lm
+
+cone_test: $(AD_OBJ) $(NR_OBJ) ad_cone_test.o version.o
+	./version.pl 
+	$(CC) -c -o version.o version.c 
+	$(CC) -o $@ $^ -lm
+
+oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
 	./version.pl 
 	$(CC) -c -o version.o version.c 
 	$(CC) -o $@ $^ -lm
@@ -150,7 +147,7 @@ iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
 
 nr_amoeb.o :  iad_type.h 
 mc_lost.o  :  iad_type.h
-mc_lost_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h
+mc_lost_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 
 
 version.o : 
