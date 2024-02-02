@@ -18,7 +18,7 @@ my ($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayO
 
 open IN, $makefile or die "could not open <$makefile>";
 while (<IN>){
-	last if m/VERSION\s*=/;
+    last if m/VERSION\s*=/;
 }
 if (/=\s*([-0-9]+d?)/) {$version=$1};
 close IN;
@@ -27,10 +27,10 @@ open OUT, ">$header" or die "could not open <$header> for output";
 
 my $time = '';
 if ($version =~ /d/) {
-	($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime();
-	$time = sprintf "%02d:%02d on ", $hour, $minute;
+    ($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime();
+    $time = sprintf "%02d:%02d on ", $hour, $minute;
 } else {
-	($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime((stat $datefile)[9]);
+    ($second, $minute, $hour, $dayOfMonth, $month, $yearOffset, $dayOfWeek, $dayOfYear, $daylightSavings) = localtime((stat $datefile)[9]);
 }
 $year = 1900 + $yearOffset;
 $time .= "$dayOfMonth $months[$month] $year";
@@ -41,8 +41,9 @@ print OUT "         The version number obtained from       <$makefile>\n";
 if ($version =~ /d/) {
     print OUT "         The date is the last compile time.\n";
 } else {
-	print OUT "         The date is the last change to         <$datefile>\n";
+    print OUT "         The date is the last change to         <$datefile>\n";
 }
 print OUT "*/\n";
 print OUT "char *Version = \"$version ($time)\";\n";
+print OUT "char *VersionShort = \"$version\";\n";
 close OUT;
