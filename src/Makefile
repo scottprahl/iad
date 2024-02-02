@@ -6,28 +6,28 @@ INDENT_OPT = -br -brs -nbs -ci4 -cli0 -bli0 -l79 -ncdb -nce -nlp -npcs -npsl -i4
 ASSERT = -DNDEBUG
 #ASSERT =
 
-SHARED_LIB_OPT = -lm -shared 
+SHARED_LIB_OPT = -lm -shared
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
 				  -compatibility_version 2.0 -current_version 2.0.0 \
 
 CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC -fsigned-char
 
-IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o 
+IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o
 
 AD_OBJ	= nr_zbrak.o  ad_bound.o ad_doubl.o ad_frsnl.o ad_globl.o ad_matrx.o \
 		  ad_phase.o  ad_prime.o ad_radau.o ad_start.o ad_cone.o  ad_layers.o
-		  
+
 NR_OBJ	= nr_amoeb.o  nr_amotr.o nr_brent.o nr_gaulg.o  nr_mnbrk.o     nr_rtsaf.o \
 		  nr_util.o	  mc_lost.o  nr_hj.o    nr_zbrent.o
 
 ad: $(AD_OBJ) $(NR_OBJ) ad_main.o version.o
-	./version.pl 
-	$(CC) -c -o version.o version.c 
+	./version.pl
+	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
 iad: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o version.o
-	./version.pl 
-	$(CC) -c -o version.o version.c 
+	./version.pl
+	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
 libiad.a : $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
@@ -54,7 +54,7 @@ ad_doc: ad.w
 	pdftex ad
 	qpdf ad.pdf --pages ad.pdf 129-130 ad.pdf 1-128 -- ad2.pdf
 	mv ad2.pdf ../doc/ad_src.pdf
-	rm ad.pdf 
+	rm ad.pdf
 
 #	cd src ; ctwill -bhp ad.w
 #	cd src ; ctwill -bhp ad.w
@@ -66,7 +66,7 @@ ad_doc: ad.w
 #	pdftex -output-directory src src/ad.tex
 #	texexec --pdfselect --paper=letter --selection=113:123 --result src/ad_index.pdf src/ad.pdf
 #	texexec --pdfselect --paper=letter --selection=124:125 --result src/ad_toc.pdf	 src/ad.pdf
-#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=doc/ad_src.pdf src/ad_toc.pdf src/ad_body.pdf src/ad_index.pdf &> /dev/null 
+#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=doc/ad_src.pdf src/ad_toc.pdf src/ad_body.pdf src/ad_index.pdf &> /dev/null
 #	rm -f src/ad_body.pdf src/ad_toc.pdf src/ad_index.pdf src/ad.pdf
 
 iad_doc: iad.w
@@ -74,7 +74,7 @@ iad_doc: iad.w
 	pdftex iad
 	qpdf iad.pdf --pages iad.pdf 142 iad.pdf 1-141 -- iad2.pdf
 	mv iad2.pdf ../doc/iad_src.pdf
-	rm iad.pdf 
+	rm iad.pdf
 #	cd src ; ctwill -bhp iad.w
 #	cd src ; ctwill -bhp iad.w
 #	cd src ; tex iad.tex
@@ -85,31 +85,31 @@ iad_doc: iad.w
 #	pdftex	-output-directory src src/iad.tex
 #	texexec --pdfselect --paper=letter --selection=96:100 --result src/iad_index.pdf src/iad.pdf
 #	texexec --pdfselect --paper=letter --selection=106	  --result src/iad_toc.pdf	 src/iad.pdf
-#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=doc/iad_src.pdf src/iad_toc.pdf src/iad_body.pdf src/iad_index.pdf &> /dev/null 
+#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=doc/iad_src.pdf src/iad_toc.pdf src/iad_body.pdf src/iad_index.pdf &> /dev/null
 #	rm -f src/iad_body.pdf src/iad_toc.pdf src/iad_index.pdf src/iad.pdf
 
 CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/iad_calc.c   src/iad_io.c	  \
 		src/iad_type.c		src/iad_main.c		 src/ad_doubl.c	  src/iad_util.c  src/ad_radau.c   src/iad_pub.c \
 		src/ad_prime.c		src/iad_find.c		 src/ad_phase.c	  src/ad_main.c	  src/ad_bound.c   src/ad_cone.c \
-		src/ad_layers.c		src/version.c		 
+		src/ad_layers.c		src/version.c
 
 layer_test: $(AD_OBJ) $(NR_OBJ) version.o ad_layers.o ad_layers_test.o
 	ctangle -bhp ad_layers.w
-	$(CC) -c -o ad_layers.o ad_layers.c 
+	$(CC) -c -o ad_layers.o ad_layers.c
 	ctangle -bhp ad_layers_test.w
-	$(CC) -c -o ad_layers_test.o ad_layers_test.c 
-	./version.pl 
-	$(CC) -c -o version.o version.c 
+	$(CC) -c -o ad_layers_test.o ad_layers_test.c
+	./version.pl
+	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
 cone_test: $(AD_OBJ) $(NR_OBJ) ad_cone_test.o version.o
-	./version.pl 
-	$(CC) -c -o version.o version.c 
+	./version.pl
+	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
 oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
-	./version.pl 
-	$(CC) -c -o version.o version.c 
+	./version.pl
+	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
 mc_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_test.o
@@ -145,20 +145,20 @@ iad_main.o : iad_main.c ad_globl.h ad_frsnl.h ad_prime.h iad_type.h iad_pub.h ia
              iad_calc.h iad_util.h mc_lost.h
 iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
 
-nr_amoeb.o :  iad_type.h 
+nr_amoeb.o :  iad_type.h
 mc_lost.o  :  iad_type.h
 mc_lost_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 
-
-version.o : 
-	./version.pl 
-	$(CC) -c -o version.o version.c 
+version.o :
+	./version.pl
+	$(CC) -c -o version.o version.c
 
 clean:
-	rm -f $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o 
+	rm -f $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o
 	rm -f version.o ad_main.o ad_cone_test.o ad_oblique_test.o
-	rm -f mc_lost_test.o
-
+	rm -f mc_lost_test.o ad_layers_test.o
+	rm -f cone_test layer_test mc_test oblique_test
+	rm -f ad iad
 
 realclean:
 	make clean
