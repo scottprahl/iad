@@ -2,45 +2,50 @@ Changelog
 =========
 
 v3.14.4 (1 Feb 2024)
--------------------
+--------------------
+*   fix lost diffuse light code
 *   dramatically improve the look of generated .c and .h files
-*   remove bit-rotted Mathematica support
+*   remove Mathematica support
 *   Makefile cleanup
+*   add test for lost light calculation
+*   use POSIX getopt
+*   use M_PI instead of number
+*   add test code for lost light estimation
 
 v3.14.3 (31 Jan 2024)
--------------------
+--------------------
 *   produce 64-bit windows executable
 *   32-bit triggered false positive virus detection
 
 v3.14.1 (30 Jan 2024)
--------------------
+--------------------
 *   no longer toss correct solution in some cases
 *   only calculate redistribution matrix when needed
 *   improve debug comments
 *   start stripping tabs from cweb files
 
 v3.14.0 (25 Jan 2024)
--------------------
+--------------------
 *   fix handling of slides (@anishabahl)
 *   fix github build
 *   improve Makefile
 *   warn on bad sphere wall reflectivity
 
 v3.13.2 (24 Jan 2024)
--------------------
+--------------------
 *   fix port size normalization (@jgroehl)
 *   update copyright year
 
 v3.13.1 (24 Jan 2024)
--------------------
+--------------------
 *   left debugging statements in
 
 v3.13.0 (24 Jan 2024)
--------------------
+--------------------
 *   add -1 feature for parameters in .rxt files
 
 v3.12.1 (26 May 2023)
--------------------
+---------------------
 *   bump version to get zenodo links correct
 
 v3.12.0
