@@ -1,6 +1,6 @@
 @** AD Cone Test.
 This file provides tests |RT_Cone|.  There is no way to completely
-verify this code, but many tests of self-consistency are possible.  
+verify this code, but many tests of self-consistency are possible.
 That is what this code does and it should turn up any mistakes in the
 implementation.  This data will ultimately be used to verify a layered
 Monte Carlo implementation and consequently that will be the ultimate
@@ -11,6 +11,7 @@ code.
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "nr_util.h"
 #include "ad_globl.h"
 #include "ad_prime.h"
@@ -22,27 +23,27 @@ code.
 @<Definition for |PrintTestResults|@>@;
 @<Definition for |PrintUnityResults|@>@;
 @<Definition for |RT_Cone_Main|@>@;
-	
+
 @ A simple utility routine to print the results nicely.
 @<Definition for |PrintTestResults|@>=
 static void PrintTestResults(int test, int cas, struct AD_slab_type *slab,
             double aUR1, double aUT1, double aURU, double aUTU,
             double bUR1, double bUT1, double bURU, double bUTU)
 {
-	printf("\nTest:%d.%d\n", test, cas);
-	printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
-	printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
-	printf("Albedo               %10.5f\n", slab->a);
-	printf("Optical Depth        %10.5f\n", slab->b);
-	printf("Anisotropy           %10.5f\n", slab->g);
-	printf("Index for slab       %10.5f\n", slab->n_slab);
-	printf("Index for top slide  %10.5f\n", slab->n_top_slide);
-	printf("Index for bot slide  %10.5f\n", slab->n_bottom_slide);
-	printf("            truth        cone\n");
-	printf("UR1     %10.5f    %10.5f\n", aUR1, bUR1);
-	printf("UT1     %10.5f    %10.5f\n", aUT1, bUT1);
-	printf("URU     %10.5f    %10.5f\n", aURU, bURU);
-	printf("UTU     %10.5f    %10.5f\n", aUTU, bUTU);
+    printf("\nTest:%d.%d\n", test, cas);
+    printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
+    printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
+    printf("Albedo               %10.5f\n", slab->a);
+    printf("Optical Depth        %10.5f\n", slab->b);
+    printf("Anisotropy           %10.5f\n", slab->g);
+    printf("Index for slab       %10.5f\n", slab->n_slab);
+    printf("Index for top slide  %10.5f\n", slab->n_top_slide);
+    printf("Index for bot slide  %10.5f\n", slab->n_bottom_slide);
+    printf("            truth        cone\n");
+    printf("UR1     %10.5f    %10.5f\n", aUR1, bUR1);
+    printf("UT1     %10.5f    %10.5f\n", aUT1, bUT1);
+    printf("URU     %10.5f    %10.5f\n", aURU, bURU);
+    printf("UTU     %10.5f    %10.5f\n", aUTU, bUTU);
 }
 
 @ A simple utility routine to print the results nicely.
@@ -51,31 +52,31 @@ static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
             double aUR1, double aUT1, double aURU, double aUTU,
             double bUR1, double bUT1, double bURU, double bUTU)
 {
-	double denom = 1-slab->cos_angle*slab->cos_angle;
-	
-	printf("\nTest:%d.%d\n", test, cas);
-	printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
-	printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
-	printf("Albedo               %10.5f\n", slab->a);
-	printf("Optical Depth        %10.5f\n", slab->b);
-	printf("Anisotropy           %10.5f\n", slab->g);
-	printf("Index for slab       %10.5f\n", slab->n_slab);
-	printf("Index for top slide  %10.5f\n", slab->n_top_slide);
-	printf("Index for bot slide  %10.5f\n", slab->n_bottom_slide);
-	printf("            truth        cone\n");
-	printf("UR1               %10.5f\n", aUR1);
-	printf("UT1               %10.5f\n", aUT1);
-	printf("UR1+UT1                  %10.5f\n", aUR1+aUT1);
-	printf("URU               %10.5f\n", aURU);
-	printf("UTU               %10.5f\n", aUTU);
-	printf("URU+UTU                  %10.5f\n", aURU+aUTU);
+    double denom = 1-slab->cos_angle*slab->cos_angle;
+
+    printf("\nTest:%d.%d\n", test, cas);
+    printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
+    printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
+    printf("Albedo               %10.5f\n", slab->a);
+    printf("Optical Depth        %10.5f\n", slab->b);
+    printf("Anisotropy           %10.5f\n", slab->g);
+    printf("Index for slab       %10.5f\n", slab->n_slab);
+    printf("Index for top slide  %10.5f\n", slab->n_top_slide);
+    printf("Index for bot slide  %10.5f\n", slab->n_bottom_slide);
+    printf("            truth        cone\n");
+    printf("UR1               %10.5f\n", aUR1);
+    printf("UT1               %10.5f\n", aUT1);
+    printf("UR1+UT1                  %10.5f\n", aUR1+aUT1);
+    printf("URU               %10.5f\n", aURU);
+    printf("UTU               %10.5f\n", aUTU);
+    printf("URU+UTU                  %10.5f\n", aURU+aUTU);
     printf("rc + rd/(1-mu^2) = %10.5f\n", bUR1 - (bUR1-aUR1)/denom);
     printf("tc + td/(1-mu^2) = %10.5f\n", bUT1 - (bUT1-aUT1)/denom);
-    printf("           total = %10.5f\n", bUR1 - (bUR1-aUR1)/denom + 
+    printf("           total = %10.5f\n", bUR1 - (bUR1-aUR1)/denom +
                                       bUT1 - (bUT1-aUT1)/denom);
     printf("rc + rd/(1-mu^2) = %10.5f\n", bURU - (bURU-aURU)/denom);
     printf("tc + td/(1-mu^2) = %10.5f\n", bUTU - (bUTU-aUTU)/denom);
-    printf("           total = %10.5f\n", bURU - (bURU-aURU)/denom + 
+    printf("           total = %10.5f\n", bURU - (bURU-aURU)/denom +
                                       bUTU - (bUTU-aUTU)/denom);
 }
 
@@ -87,13 +88,13 @@ struct AD_slab_type slab;
 int N=24;
 double mua,musp,mus,d;
 
-	@<Tests with full cone@>@; 
-	@<Tests with no scattering@>@; 
-	@<Tests with no absorption@>@;
-	@<Tests with absorption and scattering@>@;
-	@<Tests for Paulo@>@;
-	@<Tests that vary g@>@;
-	return -1;
+    @<Tests with full cone@>@;
+    @<Tests with no scattering@>@;
+    @<Tests with no absorption@>@;
+    @<Tests with absorption and scattering@>@;
+    @<Tests for Paulo@>@;
+    @<Tests that vary g@>@;
+    exit(EXIT_FAILURE);
 }
 
 @ The first set of tests just calls |RT_Cone| with no cone (normal irradiance)
@@ -163,7 +164,7 @@ RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,6,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 @ Now for the first time I let the cosine of the cone angle be something
-other than zero or one.  Now figuring out the proper values for the 
+other than zero or one.  Now figuring out the proper values for the
 reflection and transmission for an absorbing only medium requires a
 little bit of math.
 
@@ -171,11 +172,11 @@ Let us assume uniform illumination on an absorbing only slab.  Furthermore,
 assume that the index of refraction of the slab is the same as its
 environment.  In this case, the transmission through the sample is
 given by
- 
+
 For diffuse irradiance at the surface, the transmitted light is
 $$
 T = 2\int_{0}^{\pi\over2} \exp\left[-{\mu_a z\over\cos\theta}\right]
-				 \, \sin\theta\cos\theta d\theta
+                 \, \sin\theta\cos\theta d\theta
 $$
 or
 $$
@@ -187,17 +188,17 @@ transmission is
 $$
 T = 2\int_\nu^1 \exp\left[-{\mu_a d\over\nu'}\right]\nu\, d\nu'
 $$
-or 
+or
 $$
 T = (\nu'-\mu_a d)\nu'\exp(-\mu_a d/\nu') + (\mu_a d)^2 \Ei(-\mu_a d/\nu')\right|_{\nu'=\nu}^1
 $$
-one might also be interested that when $d=0$ then 
+one might also be interested that when $d=0$ then
 $$
 T= 1 - \nu^2
 $$
 
 @<Tests with no scattering@>=
-	
+
 slab.n_slab = 1.0;
 slab.n_top_slide = 1.0;
 slab.n_bottom_slide = 1.0;
