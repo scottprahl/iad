@@ -1,6 +1,6 @@
 @** AD Layers Test.
 This file provides tests |RT_Layers|.  There is no way to completely
-verify this code, but many tests of self-consistency are possible.  
+verify this code, but many tests of self-consistency are possible.
 That is what this code does and it should turn up any mistakes in the
 implementation.  This data will ultimately be used to verify a layered
 Monte Carlo implementation and consequently that will be the ultimate
@@ -20,19 +20,19 @@ code.
 
 @<Definition for |PrintTestResults|@>@;
 @<Definition for |RT_Layers_Main|@>@;
-	
+
 @ A simple utility routine to print the results nicely.
 @<Definition for |PrintTestResults|@>=
 static void PrintTestResults(int test, int cas,
             double aUR1, double aUT1, double aURU, double aUTU,
             double bUR1, double bUT1, double bURU, double bUTU)
 {
-	printf("\nTest:%d.%d\n", test, cas);
-	printf("            truth        layers\n");
-	printf("UR1     %10.5f    %10.5f\n", aUR1, bUR1);
-	printf("UT1     %10.5f    %10.5f\n", aUT1, bUT1);
-	printf("URU     %10.5f    %10.5f\n", aURU, bURU);
-	printf("UTU     %10.5f    %10.5f\n", aUTU, bUTU);
+    printf("\nTest:%d.%d\n", test, cas);
+    printf("            truth        layers\n");
+    printf("UR1     %10.5f    %10.5f\n", aUR1, bUR1);
+    printf("UT1     %10.5f    %10.5f\n", aUT1, bUT1);
+    printf("URU     %10.5f    %10.5f\n", aURU, bURU);
+    printf("UTU     %10.5f    %10.5f\n", aUTU, bUTU);
 }
 
 @ @<Definition for |RT_Layers_Main|@>=
@@ -46,13 +46,13 @@ int i;
 struct AD_slab_type slab;
 int N=32;
 
-	@<Tests with a single layers@>@;
-	@<Tests with similar layers@>@;
-	@<Tests with clear layers@>@;
-	@<Tests with absorbing bounding layers@>@;
-	@<Tests with absorbing and clear layers@>@;
-	@<Tests with layers reversed@>@;
-	return EXIT_SUCCESS;
+    @<Tests with a single layers@>@;
+    @<Tests with similar layers@>@;
+    @<Tests with clear layers@>@;
+    @<Tests with absorbing bounding layers@>@;
+    @<Tests with absorbing and clear layers@>@;
+    @<Tests with layers reversed@>@;
+    exit(EXIT_SUCCESS);
 }
 
 @ The first set of tests just call |RT_Layers| with a single slab
@@ -121,10 +121,10 @@ ez_RT(N, 1.4, 1.5, 1.6, a[0], b[0], g[0], &aUR1, &aUT1, &aURU, &aUTU);
 RT_Layers(N, 1.4, 1.5, 1.6, 1, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,8,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
-@ The next set of tests just divide a slab with thickness $b$ into $m$ 
+@ The next set of tests just divide a slab with thickness $b$ into $m$
 individual slabs with thickness $\Delta b = b/m$.  By comparing the
 results of |RT_Layers| with the result for a simple homogeneous slab
-we can hope to catch obvious bugs.  This is done for  2 and 5 
+we can hope to catch obvious bugs.  This is done for  2 and 5
 individual layers.  We then let the slab have an index of refraction
 greater than 1.0 and try again.  Then we add two identical slides,
 then two non-equal slides.
@@ -132,9 +132,9 @@ then two non-equal slides.
 @<Tests with similar layers@>=
 
 for (i=0; i<2; i++) {
-	a[i]=0.5;
-	b[i]=0.05;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.05;
+    g[i]=0.875;
 }
 ez_RT(N, 1.0, 1.0, 1.0, a[0], 2*b[0], g[0], &aUR1, &aUT1, &aURU, &aUTU);
 RT_Layers(N, 1.0, 1.0, 1.0, 2, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
@@ -153,9 +153,9 @@ RT_Layers(N, 1.4, 1.5, 1.6, 2, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(2,4,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 for (i=0; i<5; i++) {
-	a[i]=0.5;
-	b[i]=0.02;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.02;
+    g[i]=0.875;
 }
 ez_RT(N, 1.0, 1.0, 1.0, a[0], 5*b[0], g[0], &aUR1, &aUT1, &aURU, &aUTU);
 RT_Layers(N, 1.0, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
@@ -174,15 +174,15 @@ RT_Layers(N, 1.4, 1.5, 1.6, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(2,8,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 @ This set of tests with incorporate perfectly clear layers included
-at various depths within the slab.  The clear layers should not 
+at various depths within the slab.  The clear layers should not
 affect the result.
 
 @<Tests with clear layers@>=
 
 for (i=0; i<5; i++) {
-	a[i]=0.5;
-	b[i]=0.02;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.02;
+    g[i]=0.875;
 }
 
 b[0]=0.0;
@@ -195,9 +195,9 @@ RT_Layers(N, 1.4, 1.5, 1.6, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(3,2,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 for (i=0; i<5; i++) {
-	a[i]=0.5;
-	b[i]=0.02;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.02;
+    g[i]=0.875;
 }
 
 b[4]=0.0;
@@ -210,9 +210,9 @@ RT_Layers(N, 1.4, 1.5, 1.6, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(3,4,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 for (i=0; i<5; i++) {
-	a[i]=0.5;
-	b[i]=0.02;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.02;
+    g[i]=0.875;
 }
 
 b[3]=0.0;
@@ -225,9 +225,9 @@ RT_Layers(N, 1.4, 1.5, 1.6, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(3,6,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 for (i=0; i<5; i++) {
-	a[i]=0.5;
-	b[i]=0.02;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.02;
+    g[i]=0.875;
 }
 
 b[2]=0.0;
@@ -298,14 +298,14 @@ slab.cos_angle = 1.0;
 
 /* set up abs/scat/clear/scat/clear/scat/abs */
 for (i=0; i<7; i++) {
-	a[i]=0.5;
-	b[i]=0.02;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.02;
+    g[i]=0.875;
 }
 
-a[0]=0.0;	/* top layer only absorbs */
-b[2]=0.0;	/* third layer is clear   */
-b[4]=0.0;	/* fifth layer is clear   */
+a[0]=0.0;   /* top layer only absorbs */
+b[2]=0.0;   /* third layer is clear   */
+b[4]=0.0;   /* fifth layer is clear   */
 a[6]=0.0;   /* seventh layer is abs   */
 
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
@@ -326,9 +326,9 @@ first case is compared with the upward light in the second case.
 
 @<Tests with layers reversed@>=
 for (i=0; i<5; i++) {
-	a[i]=0.5;
-	b[i]=0.1;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.1;
+    g[i]=0.875;
 }
 
 a[0]=0.1;
@@ -342,9 +342,9 @@ RT_Layers_All(N, 1.4, 1.4, 1.4, 5, a, b, g, \
 &aUR1, &aUT1, &aURU, &aUTU, &bUR1, &bUT1, &bURU, &bUTU);
 
 for (i=0; i<5; i++) {
-	a[i]=0.5;
-	b[i]=0.1;
-	g[i]=0.875;
+    a[i]=0.5;
+    b[i]=0.1;
+    g[i]=0.875;
 }
 a[0]=0.99;
 b[0]=3;
@@ -364,9 +364,9 @@ Carlo code.
 @<Tests for Yinchu@>=
 
 for (i=0; i<5; i++) {
-	a[i]=0.95;
-	b[i]=0.5;
-	g[i]=0.875;
+    a[i]=0.95;
+    b[i]=0.5;
+    g[i]=0.875;
 }
 a[0]=0.1;
 
@@ -377,9 +377,9 @@ RT_Layers(64, 1.4, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(7,2,bUR1,bUT1,bURU,bUTU,0,0,0,0);
 
 for (i=0; i<5; i++) {
-	a[i]=0.95;
-	b[i]=0.5;
-	g[i]=0.875;
+    a[i]=0.95;
+    b[i]=0.5;
+    g[i]=0.875;
 }
 a[1]=0.1;
 
