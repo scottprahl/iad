@@ -52,7 +52,7 @@ libiad.h : ad iad ad_cone_ez.h ad_layers.h
 ad_doc: ad.w
 	cweave -bph ad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex ad
-	qpdf ad.pdf --pages ad.pdf 129-130 ad.pdf 1-128 -- ad2.pdf
+	qpdf ad.pdf --pages ad.pdf 130-131 ad.pdf 1-129 -- ad2.pdf
 	mv ad2.pdf ../doc/ad_src.pdf
 	rm ad.pdf
 
@@ -72,7 +72,7 @@ ad_doc: ad.w
 iad_doc: iad.w
 	cweave -bph iad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex iad
-	qpdf iad.pdf --pages iad.pdf 143 iad.pdf 1-142 -- iad2.pdf
+	qpdf iad.pdf --pages iad.pdf 145 iad.pdf 1-144 -- iad2.pdf
 	mv iad2.pdf ../doc/iad_src.pdf
 	rm iad.pdf
 #	cd src ; ctwill -bhp iad.w
