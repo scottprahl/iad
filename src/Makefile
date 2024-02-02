@@ -72,7 +72,7 @@ ad_doc: ad.w
 iad_doc: iad.w
 	cweave -bph iad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex iad
-	qpdf iad.pdf --pages iad.pdf 142 iad.pdf 1-141 -- iad2.pdf
+	qpdf iad.pdf --pages iad.pdf 143 iad.pdf 1-142 -- iad2.pdf
 	mv iad2.pdf ../doc/iad_src.pdf
 	rm iad.pdf
 #	cd src ; ctwill -bhp iad.w
