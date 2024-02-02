@@ -22,27 +22,27 @@ code.
 @<Definition for |PrintTestResults|@>@;
 @<Definition for |PrintUnityResults|@>@;
 @<Definition for |RT_Oblique_Main|@>@;
-	
+    
 @ A simple utility routine to print the results nicely.
 @<Definition for |PrintTestResults|@>=
 static void PrintTestResults(int test, int cas, struct AD_slab_type *slab,
             double aUR1, double aUT1, double aURU, double aUTU,
             double bUR1, double bUT1, double bURU, double bUTU)
 {
-	printf("\nTest:%d.%d\n", test, cas);
-	printf("Oblique angle           %10.5f\n", acos(slab.cos_angle)*180.0/M_PI);
-	printf("Cosine of oblique angle %10.5f\n", slab.cos_angle);
-	printf("Albedo                  %10.5f\n", slab->a);
-	printf("Optical Depth           %10.5f\n", slab->b);
-	printf("Anisotropy              %10.5f\n", slab->g);
-	printf("Index for slab          %10.5f\n", slab->n_slab);
-	printf("Index for top slide     %10.5f\n", slab->n_top_slide);
-	printf("Index for bot slide     %10.5f\n", slab->n_bottom_slide);
-	printf("            truth        cone\n");
-	printf("UR1     %10.5f    %10.5f\n", aUR1, bUR1);
-	printf("UT1     %10.5f    %10.5f\n", aUT1, bUT1);
-	printf("URU     %10.5f    %10.5f\n", aURU, bURU);
-	printf("UTU     %10.5f    %10.5f\n", aUTU, bUTU);
+    printf("\nTest:%d.%d\n", test, cas);
+    printf("Oblique angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
+    printf("Cosine of oblique angle %10.5f\n", slab->cos_angle);
+    printf("Albedo                  %10.5f\n", slab->a);
+    printf("Optical Depth           %10.5f\n", slab->b);
+    printf("Anisotropy              %10.5f\n", slab->g);
+    printf("Index for slab          %10.5f\n", slab->n_slab);
+    printf("Index for top slide     %10.5f\n", slab->n_top_slide);
+    printf("Index for bot slide     %10.5f\n", slab->n_bottom_slide);
+    printf("            truth        cone\n");
+    printf("UR1     %10.5f    %10.5f\n", aUR1, bUR1);
+    printf("UT1     %10.5f    %10.5f\n", aUT1, bUT1);
+    printf("URU     %10.5f    %10.5f\n", aURU, bURU);
+    printf("UTU     %10.5f    %10.5f\n", aUTU, bUTU);
 }
 
 @ A simple utility routine to print the results nicely.
@@ -51,24 +51,24 @@ static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
             double aUR1, double aUT1, double aURU, double aUTU,
             double bUR1, double bUT1, double bURU, double bUTU)
 {
-	double denom = 1-slab.cos_angle*slab.cos_angle;
-	
-	printf("\nTest:%d.%d\n", test, cas);
-	printf("Cone angle           %10.5f\n", acos(slab.cos_angle)*180.0/M_PI);
-	printf("Cosine of cone angle %10.5f\n", slab.cos_angle);
-	printf("Albedo               %10.5f\n", slab->a);
-	printf("Optical Depth        %10.5f\n", slab->b);
-	printf("Anisotropy           %10.5f\n", slab->g);
-	printf("Index for slab       %10.5f\n", slab->n_slab);
-	printf("Index for top slide  %10.5f\n", slab->n_top_slide);
-	printf("Index for bot slide  %10.5f\n", slab->n_bottom_slide);
-	printf("            truth        cone\n");
-	printf("UR1               %10.5f\n", aUR1);
-	printf("UT1               %10.5f\n", aUT1);
-	printf("UR1+UT1                  %10.5f\n", aUR1+aUT1);
-	printf("URU               %10.5f\n", aURU);
-	printf("UTU               %10.5f\n", aUTU);
-	printf("URU+UTU                  %10.5f\n", aURU+aUTU);
+    double denom = 1 - (slab->cos_angle) * (slab->cos_angle);
+    
+    printf("\nTest:%d.%d\n", test, cas);
+    printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
+    printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
+    printf("Albedo               %10.5f\n", slab->a);
+    printf("Optical Depth        %10.5f\n", slab->b);
+    printf("Anisotropy           %10.5f\n", slab->g);
+    printf("Index for slab       %10.5f\n", slab->n_slab);
+    printf("Index for top slide  %10.5f\n", slab->n_top_slide);
+    printf("Index for bot slide  %10.5f\n", slab->n_bottom_slide);
+    printf("            truth        cone\n");
+    printf("UR1               %10.5f\n", aUR1);
+    printf("UT1               %10.5f\n", aUT1);
+    printf("UR1+UT1                  %10.5f\n", aUR1+aUT1);
+    printf("URU               %10.5f\n", aURU);
+    printf("UTU               %10.5f\n", aUTU);
+    printf("URU+UTU                  %10.5f\n", aURU+aUTU);
     printf("rc + rd/(1-mu^2) = %10.5f\n", bUR1 - (bUR1-aUR1)/denom);
     printf("tc + td/(1-mu^2) = %10.5f\n", bUT1 - (bUT1-aUT1)/denom);
     printf("           total = %10.5f\n", bUR1 - (bUR1-aUR1)/denom + 
@@ -86,9 +86,9 @@ double aUR1, aURU, aUT1, aUTU, bUR1, bURU, bUT1, bUTU;
 struct AD_slab_type slab;
 int N=48;
 
-	@<Tests with normal incidence@>@; 
-	@<Tests with absorption and isotropic scattering@>@;
-	return EXIT_SUCCESS;
+    @<Tests with normal incidence@>@; 
+    @<Tests with absorption and isotropic scattering@>@;
+    return 0;
 }
 
 @ The first set of tests just calls |RT_Cone| with no cone (normal irradiance)
@@ -96,7 +96,7 @@ or with a full cone (diffuse irradiance).  We begin simple and progressively
 turn on more and more functionality.
 
 @<Tests with normal incidence@>=
-	
+    
 slab.n_slab = 1.0;
 slab.n_top_slide = 1.0;
 slab.n_bottom_slide = 1.0;
@@ -110,14 +110,14 @@ slab.phase_function = HENYEY_GREENSTEIN;
 
 slab.cos_angle = 1;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 slab.a=0.5;
 slab.b=0.5;
 slab.g=0.875;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 slab.a=0.0;
@@ -125,7 +125,7 @@ slab.b=0.1;
 slab.g=0.875;
 slab.n_slab = 1.4;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,3,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 slab.a=0.5;
@@ -133,17 +133,17 @@ slab.b=0.5;
 slab.g=0.875;
 slab.n_slab = 1.4;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,4,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 slab.n_top_slide = 1.5;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,5,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 slab.n_bottom_slide = 1.6;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(1,6,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 @ Now for the first time I let the cosine of the cone angle be something
@@ -159,7 +159,7 @@ given by
 For diffuse irradiance at the surface, the transmitted light is
 $$
 T = 2\int_{0}^{\pi\over2} \exp\left[-{\mu_a z\over\cos\theta}\right]
-				 \, \sin\theta\cos\theta d\theta
+                 \, \sin\theta\cos\theta d\theta
 $$
 or
 $$
@@ -181,7 +181,7 @@ T= 1 - \nu^2
 $$
 
 @<Tests with no scattering@>=
-	
+    
 slab.n_slab = 1.0;
 slab.n_top_slide = 1.0;
 slab.n_bottom_slide = 1.0;
@@ -291,7 +291,7 @@ slab.g = 0.00;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
 aUR1=0.48652;
 aUT1=0.49163;
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(4,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 printf("*****************************************************************\n");
@@ -301,7 +301,7 @@ slab.g = 0.5;
 RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
 aUR1=0.61996;
 aUT1=0.30605;
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(4,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
 
 @ Finally, the motivation for all these tests.  We want Paulo to have
@@ -321,9 +321,9 @@ slab.g = 0.9;
 slab.phase_function = HENYEY_GREENSTEIN;
 
 slab.cos_angle = cos(20.0*M_PI/180.0);
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(5,1,&slab,slab.cos_angle, 1.0,1.0,1.0,1.0,bUR1,bUT1,bURU,bUTU);
 
 slab.n_slab = 1.4;
-RT_Cone(N, &slab, slab.cos_angle, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
+RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(5,2,&slab,slab.cos_angle, 1.0,1.0,1.0,1.0,bUR1,bUT1,bURU,bUTU);
