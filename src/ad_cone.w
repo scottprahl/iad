@@ -182,11 +182,17 @@ total amount of light reflected back for light incident only at the cone angle.
         Transpose_Matrix(n,T03);
         URU_and_UR1_Cone(n, slab->n_slab, slab->cos_angle, T03, UTU, UT1);
     } else {
+        {
+        double unused;
         if (use_cone!=OBLIQUE) 
     		fprintf(stderr,"Unknown type for use_cone.  Assuming oblique incidence.\n");
         URU_and_URx_Cone(n, slab->n_slab, slab->cos_angle, R03, URU, UR1);
+        URU_and_UR1(n, slab->n_slab, R03, URU, &unused);
         Transpose_Matrix(n,T03);
         URU_and_URx_Cone(n, slab->n_slab, slab->cos_angle, T03, UTU, UT1);
+        URU_and_UR1(n, slab->n_slab, T03, UTU, &unused);
+        }
+        
     } 
 
 @ @<|RT_Cone| Free memory@>=
