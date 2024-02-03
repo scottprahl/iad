@@ -1,7 +1,7 @@
 @** AD Prime.
 This has the rather stupid name prime because I was at a loss for another.
 Currently this is poorly commented.  The fluence routine has not even been
-checked.  There may or may not be errors associated with the $n^2$-law 
+checked.  There may or may not be errors associated with the $n^2$-law
 in there.  It just needs to be checked.
 
 @(ad_prime.c@>=
@@ -45,7 +45,7 @@ number of quadrature points |method->quad_pts| and the optical properties
 Call this routine and get back matrices filled with cool numbers.
 
 @<Prototype for |RT_Matrices|@>=
-void RT_Matrices(int n, struct AD_slab_type * slab, struct AD_method_type * method, 
+void RT_Matrices(int n, struct AD_slab_type * slab, struct AD_method_type * method,
 double **R, double **T)
 
 @ @<Definition for |RT_Matrices|@>=
@@ -74,11 +74,11 @@ double **R, double **T)
     n = method->quad_pts;
     Init_Layer(*slab, *method, R, T);
 
-    if (slab->b == HUGE_VAL) 
+    if (slab->b == HUGE_VAL)
         d = 1.0; /* Ignored ... just set it something. */
     else
         d = method->b_thinnest * slab->b / method->b_calc;
-    
+
     Double_Until(n, R, T, d, slab->b);
 }
 
@@ -96,7 +96,7 @@ slides are all one, then no boundaries need to be included.  If the top and bott
 are identical, then some simplifications can be made and some time saved as a consequence.
 If the top and bottom slides are different, then the full red carpet treatment is required.
 
-Since the calculation time increases for each of these cases we test 
+Since the calculation time increases for each of these cases we test
 for matched boundaries first.  If the boundaries are matched then don't bother
 with boundaries for the top and bottom.  Just calculate the integrated reflection
 and transmission.   Similarly, if the top and bottom slides are similar, then quickly
@@ -110,13 +110,13 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
 {
     @<Declare variables for |RT|@>@;
 
-	if (slab->cos_angle != 1.0) {
-		RT_Cone(n,slab,OBLIQUE,UR1,UT1,URU,UTU);
-		return;
-	}
-	
+    if (slab->cos_angle != 1.0) {
+        RT_Cone(n,slab,OBLIQUE,UR1,UT1,URU,UTU);
+        return;
+    }
+
     @<Validate input parameters@>@;
-    
+
     @<Allocate and calculate R and T for homogeneous slab@>@;
 
     if (slab->b == 0) {
@@ -163,8 +163,8 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
     if (slab->a<0  || slab->a>1) return;
     if (slab->g<-1 || slab->g>1) return;
     if (slab->b<0) return;
-    
-@ Find the R and T for a homogeneous slab without boundaries 
+
+@ Find the R and T for a homogeneous slab without boundaries
 @<Allocate and calculate R and T for homogeneous slab@>=
     R = dmatrix(1, n, 1, n);
     T = dmatrix(1, n, 1, n);
@@ -173,7 +173,7 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
 @ @<Do slab with no boundaries@>=
     URU_and_UR1(n, slab->n_slab, R, URU, UR1);
     URU_and_UR1(n, slab->n_slab, T, UTU, UT1);
- 
+
 @ @<Allocate and generate top boundary@>=
     R01 = dvector(1, n);
     R10 = dvector(1, n);
@@ -193,7 +193,7 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
     free_dmatrix(btemp, 1, n, 1, n);
     free_dmatrix(R2, 1, n, 1, n);
     free_dmatrix(T2, 1, n, 1, n);
-    
+
 @ @<Free top boundary@>=
     free_dvector(R01, 1, n);
     free_dvector(R10, 1, n);
@@ -255,14 +255,14 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
 @*1 Simple interfaces for Perl, Python, or Mathematica.
 
 |ez_RT| is a top level routine for accessing the adding-doubling algorithm.
-This routine was originally created so that I could make a Perl .xs module.  
-Since I did not know how to mess around with passing structures, I changed 
+This routine was originally created so that I could make a Perl .xs module.
+Since I did not know how to mess around with passing structures, I changed
 the interface to avoid using structures.
 
 @<Prototype for |ez_RT|@>=
-void ez_RT(int n,   double nslab, 
-                    double ntopslide, 
-                    double nbottomslide, 
+void ez_RT(int n,   double nslab,
+                    double ntopslide,
+                    double nbottomslide,
                     double a,
                     double b,
                     double g,
@@ -286,15 +286,15 @@ struct AD_slab_type slab;
     RT(n, &slab, UR1, UT1, URU, UTU);
 }
 
-@*1 Unscattered reflection and transmission. 
-                
+@*1 Unscattered reflection and transmission.
+
 |ez_RT_unscattered| is a top level routine for accessing the adding-doubling algorithm.
 This routine was created so that I could make a Perl module.  Since I did
 not know how to mess around with passing structures, I changed the interface
-to avoid using structures.  
-        
+to avoid using structures.
+
 @<Prototype for |ez_RT_unscattered|@>=
-void ez_RT_unscattered(int n,       
+void ez_RT_unscattered(int n,
                        double nslab,
                        double ntopslide,
                        double nbottomslide,
@@ -302,12 +302,12 @@ void ez_RT_unscattered(int n,
                        double b,
                        double g,
                        double *UR1, double *UT1, double *URU, double *UTU)
-        
+
 @ @<Definition for |ez_RT_unscattered|@>=
-        @<Prototype for |ez_RT_unscattered|@> 
-{       
+        @<Prototype for |ez_RT_unscattered|@>
+{
 struct AD_slab_type slab;
-        
+
         slab.n_slab = nslab;
         slab.n_top_slide = ntopslide;
         slab.n_bottom_slide = nbottomslide;
@@ -319,7 +319,7 @@ struct AD_slab_type slab;
         slab.phase_function = HENYEY_GREENSTEIN;
         slab.cos_angle = 1.0;
         Sp_RT(n, slab, UR1, UT1, URU, UTU);
-}       
+}
 
 @*1 Including absorbing slides.
 
@@ -343,7 +343,7 @@ void RTabs(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *
     double **Rtop, **Ttop, **Rbottom, **Tbottom;
     struct AD_slab_type slab1;
     double btop, bbottom;
-    
+
     @<Allocate and calculate R and T for homogeneous slab@>@;
     @<Allocate and calculate top absorbing slide@>@;
     @<Allocate and calculate bottom absorbing slide@>@;
@@ -351,7 +351,7 @@ void RTabs(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *
 
     @<Allocate and calculate top non-absorbing boundary@>@;
     @<Allocate and calculate bottom non-absorbing boundary@>@;
-    
+
     @<Add all the stuff together@>@;
 
     @<Free misc matrices@>@;
@@ -371,7 +371,7 @@ void RTabs(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *
     struct AD_method_type method;
 
 @ @<Allocate and calculate top absorbing slide@>=
-  
+
   slab1.b = slab->b_top_slide;
   slab1.cos_angle = slab->cos_angle;
   slab1.a = 0;
@@ -385,7 +385,7 @@ void RTabs(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *
 
   Rtop = dmatrix(1, n, 1, n);
   Ttop = dmatrix(1, n, 1, n);
-  
+
   RT_Matrices(n, &slab1, &method, Rtop, Ttop);
 
 @ @<Allocate and calculate bottom absorbing slide@>=
@@ -395,7 +395,7 @@ void RTabs(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *
   Rbottom = dmatrix(1, n, 1, n);
   Tbottom = dmatrix(1, n, 1, n);
   RT_Matrices(n, &slab1, &method, Rbottom, Tbottom);
- 
+
  @      @<Allocate and calculate top non-absorbing boundary@>=
     btop=slab->b_top_slide;
     slab->b_top_slide = 0;
@@ -459,7 +459,7 @@ This has not been adequately tested.
     for (i = 0; i <= intervals; i++) {
 
         @<Find radiance at each depth@>@;
-        
+
         @<Calculate Fluence and Flux@>@;
     }
 
@@ -580,7 +580,7 @@ This has not been adequately tested.
     }
     flux_down[i] = flx_down * slab->n_slab * slab->n_slab;
     flux_up[i] = flx_up * slab->n_slab * slab->n_slab;
-        
+
 @ @<Free all those intermediate matrices@>=
     free_dmatrix(R02, 1, n, 1, n);
     free_dmatrix(T02, 1, n, 1, n);
