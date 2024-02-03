@@ -1,5 +1,5 @@
 @** AD Cone Test.
-This file provides tests |RT_Cone|.  There is no way to completely
+This file provides tests for |RT_Cone| when .  There is no way to completely
 verify this code, but many tests of self-consistency are possible.  
 That is what this code does and it should turn up any mistakes in the
 implementation.  This data will ultimately be used to verify a layered
