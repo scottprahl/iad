@@ -18,12 +18,14 @@ static void print_usage(void)
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -a #   albedo (0-1)\n");
     fprintf(stderr, "  -b #   optical thickness (>0)\n");
+    fprintf(stderr, "  -B #   beam diameter\n");
     fprintf(stderr, "  -g #   scattering anisotropy (-1 to 1)\n");
     fprintf(stderr, "  -h     display help\n");
     fprintf(stderr, "  -i #   light is incident at this angle in degrees\n");
     fprintf(stderr, "  -n #   specify index of refraction of slab\n");
     fprintf(stderr, "  -N #   specify index of refraction of slide\n");
     fprintf(stderr, "  -p #   number of photons\n");
+    fprintf(stderr, "  -P #   sample port diameter\n");
     fprintf(stderr, "  -v     display help\n");
     fprintf(stderr, "Examples:\n");
     fprintf(stderr,
@@ -34,13 +36,14 @@ static void print_usage(void)
 int main(int argc, char **argv)
 {
     char c;
-    double UR1, UT1, URU, UTU, x;
-    double ur1_lost, ut1_lost, uru_lost, utu_lost;
-    double ur1, ut1, uru, utu;
+    double URx, UTx, URU, UTU, x;
+    double mc_ur1_lost, mc_ut1_lost, mc_uru_lost, mc_utu_lost;
+    double mc_ur1, mc_ut1, mc_uru, mc_utu;
     int collimated = 1;
     int diffuse = 0;
     double t_sample = 1.0;
-    double d_port = 10.0;
+    double dr_port = 10.0;
+    double dt_port = 10.0;
     double d_beam = 5.0;
     double t_slide = 1.0;
     double a = 0.99;
@@ -51,8 +54,9 @@ int main(int argc, char **argv)
     double mu0 = 0.5;
     double mua_slide = 0;
     long n_photons = 1024 * 1024;
+    int machine_output = 0;
 
-    while ((c = getopt(argc, argv, "hva:b:g:i:n:N:p:")) != -1) {
+    while ((c = getopt(argc, argv, "hva:b:B:g:i:n:mN:p:P:")) != -1) {
         switch (c) {
 
         case 'a':
@@ -63,6 +67,10 @@ int main(int argc, char **argv)
             b = strtod(optarg, NULL);
             break;
 
+        case 'B':
+            d_beam = strtod(optarg, NULL);
+            break;
+
         case 'g':
             g = strtod(optarg, NULL);
             break;
@@ -70,9 +78,8 @@ int main(int argc, char **argv)
         case 'i':
             x = strtod(optarg, NULL);
             if (x < 0 || x > 90) {
-                fprintf(stderr,
-                    "Incident angle must be between 0 and 90 degrees\n");
-                return 1;
+                fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
+                exit(EXIT_FAILURE);
             }
             else
                 mu0 = cos(x * M_PI / 180.0);
@@ -80,6 +87,10 @@ int main(int argc, char **argv)
 
         case 'n':
             n_slab = strtod(optarg, NULL);
+            break;
+
+        case 'm':
+            machine_output = 1;
             break;
 
         case 'N':
@@ -90,6 +101,11 @@ int main(int argc, char **argv)
             n_photons = (long) strtod(optarg, NULL);
             break;
 
+        case 'P':
+            dr_port = strtod(optarg, NULL);
+            dt_port = dr_port;
+            break;
+
         default:
         case 'h':
         case 'v':
@@ -98,30 +114,47 @@ int main(int argc, char **argv)
         }
     }
 
-    printf("Oblique angle           %10.5f\n",acos(mu0)*180.0/M_PI);
-    printf("Cosine of oblique angle %10.5f\n",mu0);
-    printf("Albedo                  %10.5f\n",a);
-    printf("Optical Depth           %10.5f\n",b);
-    printf("Anisotropy              %10.5f\n",g);
-    printf("Index for slab          %10.5f\n",n_slab);
-    printf("Index for top slide     %10.5f\n",n_slide);
-    printf("Index for bot slide     %10.5f\n",n_slide);
-    printf("\n");
+    if (machine_output == 0) {
+        printf("Oblique angle           %10.5f\n",acos(mu0)*180.0/M_PI);
+        printf("Cosine of oblique angle %10.5f\n",mu0);
+        printf("Albedo                  %10.5f\n",a);
+        printf("Optical Depth           %10.5f\n",b);
+        printf("Anisotropy              %10.5f\n",g);
+        printf("Indices of Refraction\n");
+        printf("                  slab  %10.5f\n",n_slab);
+        printf("             top slide  %10.5f\n",n_slide);
+        printf("          bottom slide  %10.5f\n",n_slide);
+        printf("Port and Beam Diameter\n");
+        printf("       reflection port  %10.5f mm\n",dr_port);
+        printf("     transmission port  %10.5f mm\n",dt_port);
+        printf("                  beam  %10.5f mm\n",d_beam);
+        printf("\n");
+        printf("  URx    \t   UTx    \t   URU    \t   UTU\n");
+    }
 
     MC_Radial(n_photons, a, b, g, n_slab, n_slide, collimated, mu0, t_sample,
-        t_slide, mua_slide, d_port, d_beam, &ur1, &ut1, &ur1_lost, &ut1_lost);
+        t_slide, mua_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
+
     MC_Radial(n_photons, a, b, g, n_slab, n_slide, diffuse, mu0, t_sample,
-        t_slide, mua_slide, d_port, d_beam, &uru, &utu, &uru_lost, &utu_lost);
+        t_slide, mua_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
 
-    printf("   URx    \t   UTx    \t   URU    \t   UTU\n");
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Calc\n", ur1, ut1, uru, utu);
+    ez_RT_Oblique(12, n_slab, n_slide, n_slide, a, b, g, mu0, &URx, &UTx, &URU, &UTU);
 
-    ez_RT_Oblique(12, n_slab, n_slide, n_slide, a, b, g, mu0, &UR1, &UT1, &URU, &UTU);
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc\n", UR1, UT1, URU, UTU);
-    printf
-        ("-----------------------------------------------------------------------\n");
-    printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Loss\n", ur1_lost, ut1_lost,
-        uru_lost, utu_lost);
+    if (machine_output == 0) {
+        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Calc\n", mc_ur1, mc_ut1, mc_uru, mc_utu);
+        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc\n", URx, UTx, URU, UTU);
+        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Loss\n", mc_ur1_lost, mc_ut1_lost,
+            mc_uru_lost, mc_utu_lost);
+//        ez_RT(12, n_slab, n_slide, n_slide, a, b, g, &URx, &UTx, &URU, &UTU);
+//        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc UR1 and UT1\n", URx, UTx, URU, UTU);
+        printf
+            ("-----------------------------------------------------------------------\n");
+        printf("\n");
+    } else {
+        printf("%9.5f %9.5f %9.5f %9.5f ", mc_ur1, mc_ut1, mc_uru, mc_utu);
+        printf("%9.5f %9.5f %9.5f %9.5f ", URx, UTx, URU, UTU);
+        printf("%9.5f %9.5f %9.5f %9.5f" , mc_ur1_lost, mc_ut1_lost, mc_uru_lost, mc_utu_lost);
+    }
 
-    return 0;
+    exit(EXIT_SUCCESS);
 }
