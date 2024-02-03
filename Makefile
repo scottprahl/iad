@@ -211,6 +211,17 @@ realclean:
 tidy:
 	cd src ; make tidy
 
+mctest:
+	cd src ; make mc_test
+	src/mc_test
+	src/mc_test -P 0
+	src/mc_test -i 0 -n 1.0
+	src/mc_test -i 0 -n 2
+	src/mc_test -n 1.4
+	src/mc_test -n 1.4 -N 1.5
+	src/mc_test -n 1.4 -N 1.5 -g 0.9
+
+
 veryshorttest:
 	@echo "********* Basic tests ***********"
 	@echo "      Meas R        Calc R          Meas T          Calc T            mu_a           mu_s'               g"
