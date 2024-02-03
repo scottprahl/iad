@@ -16,29 +16,29 @@ Revision May 1998 to improve |wrarray|.
 #include "ad_globl.h"
 #include "ad_frsnl.h"
 
-	@<Global variables for adding-doubling@>@;
-	@<Definition for |Zero_Layer|@>@;
-	@<Definition for |AD_error|@>@;
-	@<Definition for |URU_and_UR1|@>@;
-	@<Definition for |URU_and_UR1_Cone|@>@;
-	@<Definition for |URU_and_URx_Cone|@>@;
-	@<Definition for |UFU_and_UF1|@>@;
-	@<Definition for |wrmatrix|@>@;
-	@<Definition for |wrarray|@>@;
+    @<Global variables for adding-doubling@>@;
+    @<Definition for |Zero_Layer|@>@;
+    @<Definition for |AD_error|@>@;
+    @<Definition for |URU_and_UR1|@>@;
+    @<Definition for |URU_and_UR1_Cone|@>@;
+    @<Definition for |URU_and_URx_Cone|@>@;
+    @<Definition for |UFU_and_UF1|@>@;
+    @<Definition for |wrmatrix|@>@;
+    @<Definition for |wrarray|@>@;
 
 @ @(ad_globl.h@>=
-	@h
- 	@<Types to export from AD Globals@>@;
-	@<External variables to export from AD Globals@>@;
-	@<Prototype for |Zero_Layer|@>;
-	@<Prototype for |AD_error|@>;
-	@<Prototype for |URU_and_UR1|@>;
-	@<Prototype for |URU_and_UR1_Cone|@>;
-	@<Prototype for |URU_and_URx_Cone|@>;
-	@<Prototype for |UFU_and_UF1|@>;
-	@<Prototype for |wrmatrix|@>;
-	@<Prototype for |wrarray|@>;
-	
+    @h
+    @<Types to export from AD Globals@>@;
+    @<External variables to export from AD Globals@>@;
+    @<Prototype for |Zero_Layer|@>;
+    @<Prototype for |AD_error|@>;
+    @<Prototype for |URU_and_UR1|@>;
+    @<Prototype for |URU_and_UR1_Cone|@>;
+    @<Prototype for |URU_and_URx_Cone|@>;
+    @<Prototype for |UFU_and_UF1|@>;
+    @<Prototype for |wrmatrix|@>;
+    @<Prototype for |wrarray|@>;
+    
 @*1 Constants.
 
 This is Version 2.0.0 of the adding-doubling code.  (The inverse adding-doubling 
@@ -111,16 +111,16 @@ phase functions at the moment.
 @<Types to export from AD Globals@>=
 
 typedef struct AD_slab_type {
-  double a; 
-  double b; 
-  double g; 
-  int phase_function; 
-  double n_slab;	
-  double n_top_slide; 
-  double n_bottom_slide; 
-  double b_top_slide;
-  double b_bottom_slide;
-  double cos_angle;
+    double a; 
+    double b; 
+    double g; 
+    int phase_function; 
+    double n_slab;  
+    double n_top_slide; 
+    double n_bottom_slide; 
+    double b_top_slide;
+    double b_bottom_slide;
+    double cos_angle;
 } slab_type;
 
 @ @<Types to export from AD Globals@>=
@@ -155,44 +155,44 @@ My standard error handler
 void AD_error(char error_text[])
 
 @ @<Definition for |AD_error|@>=
-	@<Prototype for |AD_error|@>
+    @<Prototype for |AD_error|@>
 {
-  fprintf(stderr,"Adding-Doubling error\n");
-  fprintf(stderr,"%s\n",error_text);
-  fprintf(stderr,"...now exiting to system...\n");
-  exit(EXIT_FAILURE);
+    fprintf(stderr,"Adding-Doubling error\n");
+    fprintf(stderr,"%s\n",error_text);
+    fprintf(stderr,"...now exiting to system...\n");
+    exit(EXIT_FAILURE);
 }
 
 @ @<Prototype for |Zero_Layer|@>=
 void Zero_Layer(int n, double **r, double **t)
-	
+    
 @ @<Definition for |Zero_Layer|@>=
-	@<Prototype for |Zero_Layer|@>
+    @<Prototype for |Zero_Layer|@>
 {
-  int i, j;
-
-  for (i = 1; i <= n; i++) 
-    for (j = 1; j <= n; j++) {
- 	  t[i][j] = 0.0;
-      r[i][j] = 0.0;
-    }
-
-  for (i = 1; i <= n; i++) 
-	t[i][i] = 1 / twoaw[i];
+    int i, j;
+    
+    for (i = 1; i <= n; i++) 
+        for (j = 1; j <= n; j++) {
+          t[i][j] = 0.0;
+          r[i][j] = 0.0;
+        }
+    
+    for (i = 1; i <= n; i++) 
+        t[i][i] = 1 / twoaw[i];
 }
 
 @ Figure out the reflection for collimated irradiance returning within
-a cone whose cosine is |mu|.  Note that |mu| is defined on the air side
-of the slab and that |mu| is the cosine of the angle that the cone makes
-with the normal to the slab,
+a right angle cone whose cosine of the half-apex angle is |mu|.  Thus when 
+|mu == 0| then the total light over all angles is returned.  Furthermore |mu| is defined 
+on the air side of the slab,
 $$
-\hbox{UR1} \equiv \int_\mu^1 R(\nu',1) 2\nu'\,d\nu'
+\hbox{UR1} \equiv \int_\mu^1 R(\nu',1) \,2\nu'd\nu'
 $$
 Similarly for irradiance characterized by diffuse light within a cone
 one can calculate the amount of reflectance returing within that cone
 as
 $$
-\hbox{URU} \equiv n^2 \int_\mu^1 \int_0^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
+\hbox{URU} \equiv n^2 \int_\mu^1 \int_0^1 R(\nu',\nu'') 2\nu'd\nu'\, 2\nu''\,d\nu''
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance.
 
@@ -200,30 +200,30 @@ where, $n^2$ term is to account for the $n^2$ law of radiance.
 void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, double *UR1)
 
 @ @<Definition for |URU_and_UR1_Cone|@>=
-	@<Prototype for |URU_and_UR1_Cone|@>
+    @<Prototype for |URU_and_UR1_Cone|@>
 {
-  int i, j, last_j;
-  double mu_slab;
-  double temp = 0.0;
+    int i, j, last_j;
+    double mu_slab;
+    double temp = 0.0;
 
-  if (n_slab == 1) 
-  	  mu_slab = mu;
-  else 
-      mu_slab = sqrt(n_slab*n_slab-1+mu*mu)/n_slab;
-  
-  last_j = 1;
-  while (angle[last_j] <= mu_slab)
-    last_j++;
+    if (n_slab == 1) 
+        mu_slab = mu;
+    else 
+        mu_slab = sqrt(n_slab*n_slab-1+mu*mu)/n_slab;
 
-  *URU = 0.0;
-  for (i = 1; i <= n; i++) {
-    temp = 0.0;
-    for (j = last_j; j <= n; j++)
-      temp += R[i][j] * twoaw[j];
-    *URU += temp * twoaw[i];
-  }
-  *UR1 = temp;
-  *URU *= n_slab * n_slab / (1 - mu * mu);
+    last_j = 1;
+    while (angle[last_j] <= mu_slab)
+        last_j++;
+
+    *URU = 0.0;
+    for (i = 1; i <= n; i++) {
+        temp = 0.0;
+        for (j = last_j; j <= n; j++)
+            temp += R[i][j] * twoaw[j];
+        *URU += temp * twoaw[i];
+    }
+    *UR1 = temp;
+    *URU *= n_slab * n_slab / (1 - mu * mu);
 }
 
 @ Figure out the reflection for oblique irradiance returning from a layer
@@ -246,52 +246,52 @@ use |URU_and_UR1_Cone|.)
 void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, double *URx)
 
 @ @<Definition for |URU_and_URx_Cone|@>=
-	@<Prototype for |URU_and_URx_Cone|@>
+    @<Prototype for |URU_and_URx_Cone|@>
 {
-	int i, j, cone_index;
-	double mu_slab, urx, delta, closest_delta;
-	double degrees = 180.0/M_PI;
-	
-	mu_slab = sqrt(n_slab*n_slab-1+mu*mu)/n_slab;
-	
-	closest_delta = 1;
-	cone_index = n;
-	
-	for (i=n; i>=1; i--) {
-		delta = fabs(angle[i] - mu_slab);
-		if (delta < closest_delta) {
-			closest_delta = delta;
-			cone_index = i;
-		}
-	}
-	
-	if (fabs(angle[cone_index] - mu_slab) > 1e-5) {
-		fprintf(stderr, "Something is wrong with the quadrature\n");
-		fprintf(stderr, "theta_i = %5.2f degrees or ", acos(mu)*degrees);
-		fprintf(stderr, "cos(theta_i) = %8.5f\n", mu);
-		fprintf(stderr, "theta_t = %5.2f degrees or ", acos(mu_slab)*degrees);
-		fprintf(stderr, "cos(theta_t) = %8.5f\n", mu_slab);
-		fprintf(stderr, " index  degrees cosine\n");
-		for (i=n; i>=1; i--) {
-		    fprintf(stderr, " %5d   %5.2f ", i, acos(angle[i])*degrees);
-		    fprintf(stderr, " %8.5f\n", angle[i]);
-		}
+    int i, j, cone_index;
+    double mu_slab, urx, delta, closest_delta;
+    double degrees = 180.0/M_PI;
+    
+    mu_slab = sqrt(n_slab*n_slab-1+mu*mu)/n_slab;
+    
+    closest_delta = 1;
+    cone_index = n;
+    
+    for (i=n; i>=1; i--) {
+        delta = fabs(angle[i] - mu_slab);
+        if (delta < closest_delta) {
+            closest_delta = delta;
+            cone_index = i;
+        }
+    }
+    
+    if (fabs(angle[cone_index] - mu_slab) > 1e-5) {
+        fprintf(stderr, "Something is wrong with the quadrature\n");
+        fprintf(stderr, "theta_i = %5.2f degrees or ", acos(mu)*degrees);
+        fprintf(stderr, "cos(theta_i) = %8.5f\n", mu);
+        fprintf(stderr, "theta_t = %5.2f degrees or ", acos(mu_slab)*degrees);
+        fprintf(stderr, "cos(theta_t) = %8.5f\n", mu_slab);
+        fprintf(stderr, " index  degrees cosine\n");
+        for (i=n; i>=1; i--) {
+            fprintf(stderr, " %5d   %5.2f ", i, acos(angle[i])*degrees);
+            fprintf(stderr, " %8.5f\n", angle[i]);
+        }
 
-		fprintf(stderr, "Closest quadrature angle is i=%5d ", cone_index);
-		fprintf(stderr, "or cos(theta)=%8.5f\n", angle[cone_index]);
-		fprintf(stderr, "Assuming normal incidence\n");
-	}
-	
+        fprintf(stderr, "Closest quadrature angle is i=%5d ", cone_index);
+        fprintf(stderr, "or cos(theta)=%8.5f\n", angle[cone_index]);
+        fprintf(stderr, "Assuming normal incidence\n");
+    }
+    
     *URU = 0.0;
-	for (i = 1; i <= n; i++) {
-		urx = 0.0;
-		for (j = 1; j <= n; j++)
-			urx += R[i][j] * twoaw[j];
-		
-		*URU += urx * twoaw[i];
-		if (i == cone_index) *URx = urx;
-	}
-	*URU *= n_slab * n_slab;
+    for (i = 1; i <= n; i++) {
+        urx = 0.0;
+        for (j = 1; j <= n; j++)
+            urx += R[i][j] * twoaw[j];
+        
+        *URU += urx * twoaw[i];
+        if (i == cone_index) *URx = urx;
+    }
+    *URU *= n_slab * n_slab;
 }
 
 @ Just add up all the angles up to the critical angle.  This is 
@@ -303,9 +303,9 @@ to the |URU_and_UR1_Cone| routine.
 void URU_and_UR1(int n, double n_slab, double **R, double *URU, double *UR1)
 
 @ @<Definition for |URU_and_UR1|@>=
-	@<Prototype for |URU_and_UR1|@>
+    @<Prototype for |URU_and_UR1|@>
 {
-  URU_and_UR1_Cone(n, n_slab, 0.0, R, URU, UR1);
+    URU_and_UR1_Cone(n, n_slab, 0.0, R, URU, UR1);
 }
 
 
@@ -314,7 +314,7 @@ void UFU_and_UF1(int n, double n_slab,
                         double **Lup, double **Ldown, double *UFU, double *UF1)
 
 @ @<Definition for |UFU_and_UF1|@>=
-	@<Prototype for |UFU_and_UF1|@>
+    @<Prototype for |UFU_and_UF1|@>
 {
   int i, j;
   double temp = 0.0;
@@ -332,10 +332,10 @@ void UFU_and_UF1(int n, double n_slab,
 
 
 @ @<Prototype for |wrmatrix|@>=
- 	void wrmatrix(int n, double **a)
+    void wrmatrix(int n, double **a)
 
 @ @<Definition for |wrmatrix|@>=
-	@<Prototype for |wrmatrix|@>
+    @<Prototype for |wrmatrix|@>
 {
   int i, j;
   double tflux, flux;
@@ -351,9 +351,9 @@ void UFU_and_UF1(int n, double n_slab,
     printf("%9.5f", angle[i]);
     for (j = 1; j <= n; j++)
       if ((a[i][j]>10) || (a[i][j]<-10))
-	  	printf("    *****");
-	  else
-	    printf("%9.5f", a[i][j]);
+        printf("    *****");
+      else
+        printf("%9.5f", a[i][j]);
     flux = 0.0;
     for (j = 1; j <= n; j++)
       if ((a[i][j]<10) && (a[i][j]>-10)) flux += a[i][j] * twoaw[j];
@@ -379,7 +379,7 @@ void UFU_and_UF1(int n, double n_slab,
 void wrarray(int n, double *a)
 
 @ @<Definition for |wrarray|@>=
-	@<Prototype for |wrarray|@>
+    @<Prototype for |wrarray|@>
 {
   int i;
   double sum;
@@ -391,9 +391,9 @@ void wrarray(int n, double *a)
   sum = 0.0;
   for (i = 1; i <= n; i++) {
       if (a[i]>10 || a[i]<-10)
-	  	printf("    *****");
-	  else
-    	printf("%9.5f", a[i]);
+        printf("    *****");
+      else
+        printf("%9.5f", a[i]);
     if (a[i]<10 && a[i]<-10) sum += a[i];
   }
   printf("%9.5f", sum);
@@ -402,9 +402,9 @@ void wrarray(int n, double *a)
   sum = 0.0;
   for (i = 1; i <= n; i++) {
       if (a[i]>10 || a[i]<-10)
-	  	printf("    *****");
-	  else
-    	printf("%9.5f", a[i]/twoaw[i]);
+        printf("    *****");
+      else
+        printf("%9.5f", a[i]/twoaw[i]);
     if (a[i]<10 && a[i]<-10) sum += a[i];
   }
   printf("%9.5f", sum);
@@ -418,7 +418,7 @@ void wrarray(int n, double *a)
 void swrarray(int n, double *a)
 
 @ @<Definition for |swrarray|@>=
-	@<Prototype for |swrarray|@>
+    @<Prototype for |swrarray|@>
 {
   int i;
   double sum;
@@ -429,9 +429,9 @@ void swrarray(int n, double *a)
   sum = 0.0;
   for (i = 1; i <= n; i++) {
       if (a[i]>10 || a[i]<-10)
-	  	printf("    *****");
-	  else
-    	printf("%9.5f", a[i]/twoaw[i]);
+        printf("    *****");
+      else
+        printf("%9.5f", a[i]/twoaw[i]);
     if (a[i]<10 && a[i]<-10) sum += a[i];
   }
   printf("%9.5f\n", sum);
