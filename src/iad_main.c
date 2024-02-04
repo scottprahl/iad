@@ -207,22 +207,23 @@ static double my_strtod(const char *str)
 
     if (endptr == str) {
 
-        fprintf(stderr, "Error: No conversion could be performed for `%s`.\n",
+        fprintf(stderr, "Error in command-line\n");
+        fprintf(stderr, "    No conversion could be performed for `%s`.\n",
             str);
         exit(EXIT_FAILURE);
     }
 
     if (*endptr != '\0') {
 
-        printf
-            ("Partial conversion: converted value = %f, remaining string = %s\n",
-            val, endptr);
+        fprintf(stderr, "Error in command-line\n");
+        fprintf(stderr, "    Partial conversion of string = '%s'\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (errno == ERANGE) {
 
-        printf("Error: The value is out of range of double.\n");
+        fprintf(stderr, "Error in command-line\n");
+        printf("    The value '%s' is out of range of double.\n", str);
         exit(EXIT_FAILURE);
     }
 
@@ -514,8 +515,8 @@ int main(int argc, char **argv)
         case 'a':
             cl_default_a = my_strtod(optarg);
             if (cl_default_a < 0 || cl_default_a > 1) {
-                fprintf(stderr, "bad command line albedo -a '%g'\n",
-                    cl_default_a);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    albedo '-a %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -523,8 +524,8 @@ int main(int argc, char **argv)
         case 'A':
             cl_default_mua = my_strtod(optarg);
             if (cl_default_mua < 0) {
-                fprintf(stderr, "bad command line absorption -A '%g'\n",
-                    cl_default_mua);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    absorption '-A %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -532,8 +533,8 @@ int main(int argc, char **argv)
         case 'b':
             cl_default_b = my_strtod(optarg);
             if (cl_default_b < 0) {
-                fprintf(stderr, "bad command line optical thickness -b '%g'\n",
-                    cl_default_b);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    optical thickness '-b %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -541,8 +542,8 @@ int main(int argc, char **argv)
         case 'B':
             cl_beam_d = my_strtod(optarg);
             if (cl_beam_d < 0) {
-                fprintf(stderr, "bad command line beam diameter -B '%g'\n",
-                    cl_beam_d);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    beam diameter '-B %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -550,8 +551,10 @@ int main(int argc, char **argv)
         case 'c':
             cl_rc_fraction = my_strtod(optarg);
             if (cl_rc_fraction < 0.0 || cl_rc_fraction > 1.0) {
-                fprintf(stderr,
-                    "required: 0 <= fraction of unscattered refl. in M_R <= 1\n");
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    unscattered refl fraction '-c %s'\n",
+                    optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -559,8 +562,10 @@ int main(int argc, char **argv)
         case 'C':
             cl_tc_fraction = my_strtod(optarg);
             if (cl_tc_fraction < 0.0 || cl_tc_fraction > 1.0) {
-                fprintf(stderr,
-                    "required: 0 <= fraction of unscattered trans. in M_T <= 1\n");
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    unscattered trans fraction '-C %s'\n",
+                    optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -568,8 +573,8 @@ int main(int argc, char **argv)
         case 'd':
             cl_sample_d = my_strtod(optarg);
             if (cl_sample_d < 0) {
-                fprintf(stderr, "bad command line sample thickness -d '%g'\n",
-                    cl_sample_d);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    sample thickness '-d %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -577,8 +582,8 @@ int main(int argc, char **argv)
         case 'D':
             cl_slide_d = my_strtod(optarg);
             if (cl_slide_d < 0) {
-                fprintf(stderr, "bad command line slide thickness -D '%g'\n",
-                    cl_slide_d);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    slide thickness '-D %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -586,8 +591,8 @@ int main(int argc, char **argv)
         case 'e':
             cl_tolerance = my_strtod(optarg);
             if (cl_tolerance < 0) {
-                fprintf(stderr, "bad command error tolerance -e '%g'\n",
-                    cl_tolerance);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    error tolerance '-e %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -595,9 +600,8 @@ int main(int argc, char **argv)
         case 'E':
             cl_slide_OD = my_strtod(optarg);
             if (cl_slide_OD < 0) {
-                fprintf(stderr,
-                    "bad command line slide optical depth -E '%g'\n",
-                    cl_slide_OD);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    slide optical depth '-E %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -605,8 +609,9 @@ int main(int argc, char **argv)
         case 'f':
             cl_default_fr = my_strtod(optarg);
             if (cl_default_fr < 0.0 || cl_default_fr > 1.0) {
-                fprintf(stderr,
-                    "bad -f value. 0 <= fraction light hitting wall first <= 1\n");
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    fraction hitting wall '-f %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -615,6 +620,11 @@ int main(int argc, char **argv)
 
             if (isdigit(optarg[0])) {
                 cl_default_mus = my_strtod(optarg);
+                if (cl_default_mus < 0) {
+                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "    mus '-F %s'\n", optarg);
+                    exit(EXIT_FAILURE);
+                }
                 break;
             }
 
@@ -622,13 +632,13 @@ int main(int argc, char **argv)
                 &cl_mus0, &cl_mus0_pwr);
 
             if (n != 4 || (cc != 'P' && cc != 'R')) {
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    bad -F option. '-F %s'\n", optarg);
+                fprintf(stderr, "    -F 1.0              for mus =1.0\n");
                 fprintf(stderr,
-                    "Screwy argument for -F option.  Try something like\n");
-                fprintf(stderr, " -F 1.0              for mus =1.0\n");
+                    "    -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
                 fprintf(stderr,
-                    " -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
-                fprintf(stderr,
-                    " -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
+                    "    -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -641,8 +651,8 @@ int main(int argc, char **argv)
         case 'g':
             cl_default_g = my_strtod(optarg);
             if (cl_default_g < -1 || cl_default_g > 1) {
-                fprintf(stderr, "bad command line anisotropy -g '%g'\n",
-                    cl_default_g);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    anisotropy '-g %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -661,7 +671,8 @@ int main(int argc, char **argv)
             else if (optarg[0] == 'f' || optarg[0] == 'F')
                 cl_slides = ONE_SLIDE_NOT_NEAR_SPHERE;
             else {
-                fprintf(stderr, "Argument for -G option must be \n");
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    Argument for '-G %s' must be \n", optarg);
                 fprintf(stderr,
                     "    't' --- light always hits top slide first\n");
                 fprintf(stderr,
@@ -676,18 +687,20 @@ int main(int argc, char **argv)
 
         case 'i':
             cl_cos_angle = my_strtod(optarg);
-            if (cl_cos_angle < 0 || cl_cos_angle > 90)
-                fprintf(stderr,
-                    "Incident angle must be between 0 and 90 degrees\n");
-            else
-                cl_cos_angle = cos(cl_cos_angle * M_PI / 180.0);
+            if (cl_cos_angle < 0 || cl_cos_angle > 90) {
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    incident angle '-i %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 90 degrees\n");
+                exit(EXIT_FAILURE);
+            }
+            cl_cos_angle = cos(cl_cos_angle * M_PI / 180.0);
             break;
 
         case 'M':
             MC_iterations = (int) my_strtod(optarg);
             if (MC_iterations < 0 || MC_iterations > 50) {
-                fprintf(stderr, "bad number of MC iterations '%d'\n",
-                    MC_iterations);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    MC iterations '-M %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -695,8 +708,8 @@ int main(int argc, char **argv)
         case 'n':
             cl_sample_n = my_strtod(optarg);
             if (cl_sample_n < 0.1 || cl_sample_n > 10) {
-                fprintf(stderr, "bad command slab index -n '%g'\n",
-                    cl_sample_n);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    slab index '-n %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -704,8 +717,8 @@ int main(int argc, char **argv)
         case 'N':
             cl_slide_n = my_strtod(optarg);
             if (cl_slide_n < 0.1 || cl_slide_n > 10) {
-                fprintf(stderr, "bad command slide index -N '%g'\n",
-                    cl_slide_n);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    slide index '-N %s'\n", optarg);
                 exit(EXIT_FAILURE);
             }
             break;
@@ -721,14 +734,18 @@ int main(int argc, char **argv)
         case 'q':
             cl_quadrature_points = (int) my_strtod(optarg);
             if (cl_quadrature_points % 4 != 0) {
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    '-q %s'\n", optarg);
                 fprintf(stderr,
-                    "Number of quadrature points must be a multiple of 4\n");
+                    "    Quadrature points must be a multiple of 4\n");
                 exit(EXIT_FAILURE);
             }
             if ((cl_cos_angle != UNINITIALIZED)
                 && (cl_quadrature_points % 12 != 0)) {
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    '-q %s'\n", optarg);
                 fprintf(stderr,
-                    "Quadrature must be 12, 24, 36,... for oblique incidence\n");
+                    "    Quadrature points must be multiple of 12 for oblique incidence\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -737,7 +754,9 @@ int main(int argc, char **argv)
             cl_UR1 = my_strtod(optarg);
             process_command_line = 1;
             if (cl_UR1 < 0 || cl_UR1 > 1) {
-                fprintf(stderr, "bad UR1 value -r '%g'\n", cl_UR1);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    UR1 value '-r %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -745,7 +764,9 @@ int main(int argc, char **argv)
         case 'R':
             cl_rstd_r = my_strtod(optarg);
             if (cl_rstd_r < 0 || cl_rstd_r > 1) {
-                fprintf(stderr, "bad Rstd value -R '%g'\n", cl_rstd_r);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    Rstd value '-R %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -758,8 +779,9 @@ int main(int argc, char **argv)
             cl_num_spheres = (int) my_strtod(optarg);
             if (cl_num_spheres != 0 && cl_num_spheres != 1
                 && cl_num_spheres != 2) {
-                fprintf(stderr, "Sphere number must be 0, 1, or 2: -S '%d'\n",
-                    cl_num_spheres);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    sphere number '-S %s'\n", optarg);
+                fprintf(stderr, "    must be 0, 1, or 2\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -767,7 +789,9 @@ int main(int argc, char **argv)
         case 't':
             cl_UT1 = my_strtod(optarg);
             if (cl_UT1 < 0 || cl_UT1 > 1) {
-                fprintf(stderr, "bad UT1 value -t '%g'\n", cl_UT1);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    UT1 value '-t %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_FAILURE);
             }
             process_command_line = 1;
@@ -776,7 +800,9 @@ int main(int argc, char **argv)
         case 'T':
             cl_rstd_t = my_strtod(optarg);
             if (cl_rstd_t < 0 || cl_rstd_t > 1) {
-                fprintf(stderr, "bad trans std value -T '%g'\n", cl_rstd_t);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    transmission standard '-T %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -784,8 +810,10 @@ int main(int argc, char **argv)
         case 'u':
             cl_Tc = my_strtod(optarg);
             if (cl_Tc < 0 || cl_Tc > 1) {
-                fprintf(stderr, "bad unscattered trans value -u '%g'\n",
-                    cl_Tc);
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    unscattered transmission '-u %s'\n",
+                    optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_FAILURE);
             }
             process_command_line = 1;
