@@ -45,14 +45,14 @@ jobs:
         sudo apt install -y texlive texlive-extra-utils texlive-latex-extra qpdf
 
     - name: Build docs
-      run: make doc
+      run: make docs
 
     - name: Upload generated docs artefacts
       uses: actions/upload-artifact@v3
       with:
         name: generated-docs
         path: |
-          doc/ad_src.pdf
-          doc/iad_src.pdf
-          doc/manual.pdf
+          docs/ad_src.pdf
+          docs/iad_src.pdf
+          docs/manual.pdf
 
