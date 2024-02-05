@@ -1,11 +1,13 @@
 Changelog
 =========
 
-v3.14.5 (2 Feb 2024)
+v3.14.5 (5 Feb 2024)
 --------------------
-*   add bounds checking for command line parameters
-*   use exit(EXIT_SUCCESSS) and exit(EXIT_FAILURE) everywhere
+*   improve command line parameter handling
+*   fix URU calc for oblique angles
+*   use exit(EXIT_SUCCESSS) and exit(EXIT_FAILURE) consistently
 *   detab more files
+*   add mctest target
 
 v3.14.4 (1 Feb 2024)
 --------------------
