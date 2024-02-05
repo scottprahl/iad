@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-export VERSION = 3-14-5
+export VERSION = 3-14-6
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -32,7 +32,7 @@ NR_OBJ	= src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnb
 
 MAIN = Makefile INSTALL.md README.md License
 
-DOCS =	docs/CHANGELOG.rst    docs/ToDo.md               docs/manual.tex      \
+DOCS =	CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
 		docs/ad_src.pdf       docs/iad_src.pdf           docs/manual.pdf      \
 		docs/ch3RTcorr.pdf    docs/ch3spheremeas.pdf     docs/ch3spheresR.pdf \
 		docs/ch3spheresT.pdf  docs/ch3Doublespheres.pdf  docs/colltrans.pdf   \
@@ -123,9 +123,9 @@ unixdist:
 	ln $(CSRC)  iad-$(VERSION)/src
 	ln $(NRSRC) iad-$(VERSION)/src
 	ln $(OSRC)  iad-$(VERSION)/src
-	zip -r iad-$(VERSION) iad-$(VERSION)
+	zip -r archives/iad-$(VERSION) iad-$(VERSION)
 	rm -rf iad-$(VERSION)
-	cp iad-$(VERSION).zip iad-latest.zip
+	cp archives/iad-$(VERSION).zip archives/iad-latest.zip
 
 windist: ad.exe iad.exe libiad.dll
 	make docs
@@ -151,9 +151,9 @@ windist: ad.exe iad.exe libiad.dll
 	src/toDOS.pl  iad-win-$(VERSION)/test/valid.bat
 	rm iad-win-$(VERSION)/src/*.bak
 	rm iad-win-$(VERSION)/test/*.bak
-	zip -r iad-win-$(VERSION) iad-win-$(VERSION)
+	zip -r archives/iad-win-$(VERSION) iad-win-$(VERSION)
 	rm -rf iad-win-$(VERSION)
-	cp iad-win-$(VERSION).zip iad-win-latest.zip
+	cp archives/iad-win-$(VERSION).zip archives/iad-win-latest.zip
 
 ad: $(WSRC) $(NRSRC)
 	cd src ; make ad
