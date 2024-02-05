@@ -1,32 +1,34 @@
-# make sure all the .h and .c files have been pushed so that users
-# do not need ctangle
-    git status
-    git commit src/*.c src/*.h -m 'update ctangle files'
+# verify the version number in the Makefile
 
-# things to do when releasing a new version
-    make realclean
-    make
-    make shorttest        # visually check for failures
-    make longtest        # visually check for failures
-    make wintest
-
-# update the version number in the Makefile
-    make realclean
-    make dists
-
-# now commit the new files
-    git commit -a -m 'new version'
-
-# update doc/CHANGELOG.rst  `git log v3.12.0..HEAD --pretty=format:"%s"`
+# update CHANGELOG.rst as needed  `git log v3.14.5..HEAD --pretty=format:"%s"`
     git commit -m 'update recent changes' CHANGELOG.rst
     git push
 
-# create release tag on github
-    git tag v3.12.0
-    git push origin v3.12.0
+# final sanity check
+    make realclean
+    make
+    make shorttest       # visually check for failures
+    make longtest        # visually check for failures
+    make wintest
 
-# edit release notes on github  
+# verify first page of source listing is still correct
+    open docs/ad_src.pdf
+    open docs/iad_src.pdf
+
+# make the unix and windows distributions
+    make realclean
+    make dists
+    git commit -a -m ' version'
+
+# create tag for release on github
+    git tag v3.14.6
+    git push origin v3.14.6
+
+# create a release on github and upload latest to omlc.org
+#
+# do not forget to attach archives/iad-win-v3.14.6.zip to release!
+
     open https://github.com/scottprahl/iad/releases/
-    sftp omlc.org /var/www/html/software/iad/iad-latest.zip <<< $'put iad-latest.zip'
-    sftp omlc.org /var/www/html/software/iad/iad-win-latest.zip <<< $'put iad-win-latest.zip'
+    sftp omlc.org /var/www/omlc.org/html/software/iad/iad-latest.zip <<< $'put archives/iad-latest.zip'
+    sftp omlc.org /var/www/omlc.org/html/software/iad/iad-win-latest.zip <<< $'put archives/iad-win-latest.zip'
     open .
