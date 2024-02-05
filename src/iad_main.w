@@ -1270,7 +1270,7 @@ void print_optical_property_result(FILE *fp,
     fprintf(fp, "% 9.4f\t", mu_sp);
     fprintf(fp, "% 9.4f\t", r.g);
 
-if (Debug(DEBUG_LOST_LIGHT)) {
+    if (Debug(DEBUG_LOST_LIGHT)) {
         fprintf(fp, "% 9.4f\t% 9.4f\t", m.ur1_lost, m.uru_lost);
         fprintf(fp, "% 9.4f\t% 9.4f\t", m.ut1_lost, m.utu_lost);
         fprintf(fp, " %2d  \t", mc_iter);
