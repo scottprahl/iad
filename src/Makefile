@@ -8,17 +8,17 @@ ASSERT = -DNDEBUG
 
 SHARED_LIB_OPT = -lm -shared
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
-				  -compatibility_version 2.0 -current_version 2.0.0 \
+                  -compatibility_version 2.0 -current_version 2.0.0 \
 
 CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC -fsigned-char
 
 IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o
 
-AD_OBJ	= nr_zbrak.o  ad_bound.o ad_doubl.o ad_frsnl.o ad_globl.o ad_matrx.o \
-		  ad_phase.o  ad_prime.o ad_radau.o ad_start.o ad_cone.o  ad_layers.o
+AD_OBJ  = nr_zbrak.o  ad_bound.o ad_doubl.o ad_frsnl.o ad_globl.o ad_matrx.o \
+          ad_phase.o  ad_prime.o ad_radau.o ad_start.o ad_cone.o  ad_layers.o
 
-NR_OBJ	= nr_amoeb.o  nr_amotr.o nr_brent.o nr_gaulg.o  nr_mnbrk.o     nr_rtsaf.o \
-		  nr_util.o	  mc_lost.o  nr_hj.o    nr_zbrent.o
+NR_OBJ  = nr_amoeb.o  nr_amotr.o nr_brent.o nr_gaulg.o  nr_mnbrk.o     nr_rtsaf.o \
+          nr_util.o   mc_lost.o  nr_hj.o    nr_zbrent.o
 
 ad: $(AD_OBJ) $(NR_OBJ) ad_main.o version.o
 	./version.pl
@@ -88,10 +88,10 @@ iad_doc: iad.w
 #	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=docs/iad_src.pdf src/iad_toc.pdf src/iad_body.pdf src/iad_index.pdf &> /dev/null
 #	rm -f src/iad_body.pdf src/iad_toc.pdf src/iad_index.pdf src/iad.pdf
 
-CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/iad_calc.c   src/iad_io.c	  \
-		src/iad_type.c		src/iad_main.c		 src/ad_doubl.c	  src/iad_util.c  src/ad_radau.c   src/iad_pub.c \
-		src/ad_prime.c		src/iad_find.c		 src/ad_phase.c	  src/ad_main.c	  src/ad_bound.c   src/ad_cone.c \
-		src/ad_layers.c		src/version.c
+adchapter: $(AD_OBJ) $(NR_OBJ) ad_chapter.o version.o
+	./version.pl
+	$(CC) -c -o version.o version.c
+	$(CC) -o $@ $^ -lm
 
 layer_test: $(AD_OBJ) $(NR_OBJ) version.o ad_layers.o ad_layers_test.o
 	ctangle -bhp ad_layers.w

@@ -22,62 +22,60 @@ IAD_EXECUTABLE = ./iad
 
 CFLAGS = -dynamic -fno-common -Wall -ansi  #First two flags needed on macOS to build .dylib
 
-IAD_OBJ = src/iad_util.o  src/iad_calc.o src/iad_find.o src/iad_pub.o  src/iad_io.o
+export IAD_OBJ = src/iad_util.o  src/iad_calc.o src/iad_find.o src/iad_pub.o  src/iad_io.o
 
-AD_OBJ	= src/nr_zbrak.o  src/ad_bound.o src/ad_doubl.o src/ad_frsnl.o src/ad_globl.o src/ad_matrx.o \
-		  src/ad_phase.o  src/ad_prime.o src/ad_radau.o src/ad_start.o src/ad_cone.o  src/ad_layers.o
+export AD_OBJ  = src/nr_zbrak.o  src/ad_bound.o src/ad_doubl.o src/ad_frsnl.o src/ad_globl.o \
+                 src/ad_matrx.o  src/ad_phase.o src/ad_prime.o src/ad_radau.o src/ad_start.o \
+                 src/ad_cone.o  src/ad_layers.o
 
-NR_OBJ	= src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnbrk.o src/nr_rtsaf.o\
-		  src/nr_util.o   src/nr_hj.o
+export NR_OBJ  = src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnbrk.o \
+                src/nr_rtsaf.o  src/nr_util.o  src/nr_hj.o
 
 MAIN = Makefile INSTALL.md README.md License
 
-DOCS =	CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
-		docs/ad_src.pdf       docs/iad_src.pdf           docs/manual.pdf      \
-		docs/ch3RTcorr.pdf    docs/ch3spheremeas.pdf     docs/ch3spheresR.pdf \
-		docs/ch3spheresT.pdf  docs/ch3Doublespheres.pdf  docs/colltrans.pdf   \
-		docs/lightloss.pdf    docs/niek_graph.pdf        docs/glass-slide.pdf \
-		docs/cmdexe.png       docs/valid.png             docs/dual8.png       \
+DOCS =  CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
+        docs/ad_src.pdf       docs/iad_src.pdf           docs/manual.pdf      \
+        docs/ch3RTcorr.pdf    docs/ch3spheremeas.pdf     docs/ch3spheresR.pdf \
+        docs/ch3spheresT.pdf  docs/ch3Doublespheres.pdf  docs/colltrans.pdf   \
+        docs/lightloss.pdf    docs/niek_graph.pdf        docs/glass-slide.pdf \
+        docs/cmdexe.png       docs/valid.png             docs/dual8.png       \
         docs/dual90.png       docs/iad.bib
 
-TEST =	\
-		test/Makefile       test/basic-A.rxt    test/basic-B.rxt      test/basic-C.rxt    test/basic-D.rxt    \
-		test/double.rxt     test/example2.rxt   test/il-A.rxt         test/il-B.rxt       test/il-C.rxt       \
-		test/ink-A.rxt      test/ink-B.rxt      test/ink-C.rxt        test/kenlee-A.rxt   test/kenlee-B.rxt   \
-		test/kenlee-C.rxt   test/newton.rxt     test/royston2.rxt     test/royston3-A.rxt test/royston3-B.rxt \
-		test/royston3-C.rxt test/royston3-D.rxt test/royston3-E.rxt   test/royston9-A.rxt test/royston9-B.rxt \
-		test/royston9-C.rxt test/royston9-D.rxt test/royston_ink1.rxt test/sample-A.rxt   test/sample-B.rxt   \
-		test/sample-C.rxt   test/sample-D.rxt   test/sample-E.rxt     test/sample-F.rxt   test/sample-G.rxt   \
-		test/sevick-A.rxt   test/sevick-B.rxt   test/terse-A.rxt      test/terse-B.rxt    test/tio2_vis.rxt   \
-		test/uterus.rxt     test/valid.bat      test/vio-A.rxt        test/vio-B.rxt      test/x_bad_data.rxt \
-		test/ville1.rxt     test/fairway-A.rxt  test/fairway-B.rxt    test/fairway-C.rxt  test/fairway-D.rxt  \
-		test/fairway-E.rxt  test/basic-E.rxt
+TEST =  test/Makefile       test/basic-A.rxt    test/basic-B.rxt      test/basic-C.rxt    test/basic-D.rxt    \
+        test/double.rxt     test/example2.rxt   test/il-A.rxt         test/il-B.rxt       test/il-C.rxt       \
+        test/ink-A.rxt      test/ink-B.rxt      test/ink-C.rxt        test/kenlee-A.rxt   test/kenlee-B.rxt   \
+        test/kenlee-C.rxt   test/newton.rxt     test/royston2.rxt     test/royston3-A.rxt test/royston3-B.rxt \
+        test/royston3-C.rxt test/royston3-D.rxt test/royston3-E.rxt   test/royston9-A.rxt test/royston9-B.rxt \
+        test/royston9-C.rxt test/royston9-D.rxt test/royston_ink1.rxt test/sample-A.rxt   test/sample-B.rxt   \
+        test/sample-C.rxt   test/sample-D.rxt   test/sample-E.rxt     test/sample-F.rxt   test/sample-G.rxt   \
+        test/sevick-A.rxt   test/sevick-B.rxt   test/terse-A.rxt      test/terse-B.rxt    test/tio2_vis.rxt   \
+        test/uterus.rxt     test/valid.bat      test/vio-A.rxt        test/vio-B.rxt      test/x_bad_data.rxt \
+        test/ville1.rxt     test/fairway-A.rxt  test/fairway-B.rxt    test/fairway-C.rxt  test/fairway-D.rxt  \
+        test/fairway-E.rxt  test/basic-E.rxt
 
 WSRC =	src/ad.w            src/ad_frsnl.w       src/ad_prime.w   src/iad_io.w          \
-		src/ad_globl.w      src/ad_radau.w       src/iad_main.w                         \
-		src/ad_bound.w      src/ad_layers.w      src/ad_start.w   src/iad_main_mus.w    \
-		src/ad_chapter.w    src/ad_layers_test.w src/iad.w        src/iad_pub.w         \
-		src/ad_cone.w       src/ad_main.w        src/iad_calc.w   src/iad_type.w        \
-		src/ad_cone_test.w  src/ad_matrx.w       src/iad_util.w   src/ad_oblique_test.w \
-		src/ad_doubl.w      src/ad_phase.w       src/iad_find.w
+        src/ad_globl.w      src/ad_radau.w       src/iad_main.w                         \
+        src/ad_bound.w      src/ad_layers.w      src/ad_start.w   src/iad_main_mus.w    \
+        src/ad_chapter.w    src/ad_layers_test.w src/iad.w        src/iad_pub.w         \
+        src/ad_cone.w       src/ad_main.w        src/iad_calc.w   src/iad_type.w        \
+        src/ad_cone_test.w  src/ad_matrx.w       src/iad_util.w   src/ad_oblique_test.w \
+        src/ad_doubl.w      src/ad_phase.w       src/iad_find.w
 
 NRSRC = src/nr_amoeb.c      src/nr_amotr.h       src/nr_gaulg.c   src/nr_mnbrk.h  src/nr_util.c  \
-		src/nr_amoeb.h      src/nr_brent.c       src/nr_gaulg.h   src/nr_rtsaf.c  src/nr_util.h  \
-		src/nr_amotr.c      src/nr_brent.h       src/nr_mnbrk.c   src/nr_rtsaf.h  src/nr_zbrak.c \
-		                                         src/version.h    src/mc_lost.c   src/mc_lost.h  \
-		src/nr_hj.c         src/nr_hj.h          src/nr_zbrent.h  src/nr_zbrent.c src/nr_zbrak.h \
-		src/mc_lost_test.c
+        src/nr_amoeb.h      src/nr_brent.c       src/nr_gaulg.h   src/nr_rtsaf.c  src/nr_util.h  \
+        src/nr_amotr.c      src/nr_brent.h       src/nr_mnbrk.c   src/nr_rtsaf.h  src/nr_zbrak.c \
+        src/nr_hj.c         src/nr_hj.h          src/nr_zbrent.h  src/nr_zbrent.c src/nr_zbrak.h \
+        src/mc_lost_test.c  src/version.h        src/mc_lost.c    src/mc_lost.h
 
 CSRC  = src/ad_frsnl.c      src/ad_globl.c       src/ad_matrx.c   src/ad_start.c  src/iad_calc.c \
-		src/iad_main.c      src/ad_doubl.c       src/iad_util.c   src/ad_radau.c  src/iad_pub.c  \
-		src/ad_prime.c      src/iad_find.c       src/ad_phase.c   src/ad_bound.c  src/ad_cone.c  \
-		src/ad_layers.c     src/version.c        src/iad_io.c
+        src/iad_main.c      src/ad_doubl.c       src/iad_util.c   src/ad_radau.c  src/iad_pub.c  \
+        src/ad_prime.c      src/iad_find.c       src/ad_phase.c   src/ad_bound.c  src/ad_cone.c  \
+        src/ad_layers.c     src/version.c        src/iad_io.c
 
 HSRC  = src/ad_bound.h      src/ad_globl.h       src/ad_phase.h   src/ad_start.h   src/iad_io.h   \
-		src/ad_doubl.h                           src/ad_prime.h   src/iad_calc.h   src/iad_util.h \
-		src/ad_frsnl.h      src/ad_matrx.h       src/ad_radau.h   src/iad_find.h   src/iad_pub.h  \
-		src/ad_cone_ez.h    src/ad_layers.h      src/ad_cone.h    src/iad_type.h
-
+        src/ad_doubl.h                           src/ad_prime.h   src/iad_calc.h   src/iad_util.h \
+        src/ad_frsnl.h      src/ad_matrx.h       src/ad_radau.h   src/iad_find.h   src/iad_pub.h  \
+        src/ad_cone_ez.h    src/ad_layers.h      src/ad_cone.h    src/iad_type.h
 
 OSRC  = src/system.bux src/ad.bux src/iad.bux src/cobweb.pl src/version.pl src/Makefile src/toDOS.pl
 
@@ -491,5 +489,5 @@ help::
 .SECONDARY: $(HSRC) $(CSRC)
 
 .PHONY: clean realclean dists docs test lib install tidy unixdist win windist \
-		test veryshorttest shorttest longtest layertest wintest
+        test veryshorttest shorttest longtest layertest wintest
 
