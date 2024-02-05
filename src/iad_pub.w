@@ -249,8 +249,8 @@ if the number of spheres is more than zero.
              r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
     
     if (m.num_spheres == 0 && m.m_t > tu) {
-fprintf(stderr,"ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n", 
-r.slab.n_top_slide,r.slab.n_slab,r.slab.n_bottom_slide);
+        fprintf(stderr,"ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n", 
+                r.slab.n_top_slide,r.slab.n_slab,r.slab.n_bottom_slide);
         fprintf(stderr,"tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu, m.m_t, m.rstd_t);
         return IAD_MT_TOO_BIG;
     }
