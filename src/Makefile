@@ -158,7 +158,7 @@ clean:
 	rm -f version.o ad_main.o ad_cone_test.o ad_oblique_test.o
 	rm -f mc_lost_test.o ad_layers_test.o
 	rm -f cone_test layer_test mc_test oblique_test
-	rm -f ad iad
+	rm -f ad iad adchapter
 
 realclean:
 	make clean
