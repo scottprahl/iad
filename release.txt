@@ -27,8 +27,6 @@
 # create a release on github and upload latest to omlc.org
 #
 # do not forget to attach archives/iad-win-v3.14.6.zip to release!
-
     open https://github.com/scottprahl/iad/releases/
-    sftp omlc.org /var/www/omlc.org/html/software/iad/iad-latest.zip <<< $'put archives/iad-latest.zip'
-    sftp omlc.org /var/www/omlc.org/html/software/iad/iad-win-latest.zip <<< $'put archives/iad-win-latest.zip'
     open .
+    sftp -b sftp_commands.txt
