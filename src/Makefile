@@ -53,8 +53,8 @@ ad_doc: ad.w
 	cweave -bph ad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex ad
 	qpdf ad.pdf --pages ad.pdf 130-131 ad.pdf 1-129 -- ad2.pdf
-	mv ad2.pdf ../doc/ad_src.pdf
-	rm ad.pdf
+	mv ad2.pdf ../docs/ad_src.pdf
+#	rm ad.pdf
 
 #	cd src ; ctwill -bhp ad.w
 #	cd src ; ctwill -bhp ad.w
@@ -66,15 +66,15 @@ ad_doc: ad.w
 #	pdftex -output-directory src src/ad.tex
 #	texexec --pdfselect --paper=letter --selection=113:123 --result src/ad_index.pdf src/ad.pdf
 #	texexec --pdfselect --paper=letter --selection=124:125 --result src/ad_toc.pdf	 src/ad.pdf
-#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=doc/ad_src.pdf src/ad_toc.pdf src/ad_body.pdf src/ad_index.pdf &> /dev/null
+#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=docs/ad_src.pdf src/ad_toc.pdf src/ad_body.pdf src/ad_index.pdf &> /dev/null
 #	rm -f src/ad_body.pdf src/ad_toc.pdf src/ad_index.pdf src/ad.pdf
 
 iad_doc: iad.w
 	cweave -bph iad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex iad
 	qpdf iad.pdf --pages iad.pdf 145 iad.pdf 1-144 -- iad2.pdf
-	mv iad2.pdf ../doc/iad_src.pdf
-	rm iad.pdf
+	mv iad2.pdf ../docs/iad_src.pdf
+#	rm iad.pdf
 #	cd src ; ctwill -bhp iad.w
 #	cd src ; ctwill -bhp iad.w
 #	cd src ; tex iad.tex
@@ -85,7 +85,7 @@ iad_doc: iad.w
 #	pdftex	-output-directory src src/iad.tex
 #	texexec --pdfselect --paper=letter --selection=96:100 --result src/iad_index.pdf src/iad.pdf
 #	texexec --pdfselect --paper=letter --selection=106	  --result src/iad_toc.pdf	 src/iad.pdf
-#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=doc/iad_src.pdf src/iad_toc.pdf src/iad_body.pdf src/iad_index.pdf &> /dev/null
+#	gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=docs/iad_src.pdf src/iad_toc.pdf src/iad_body.pdf src/iad_index.pdf &> /dev/null
 #	rm -f src/iad_body.pdf src/iad_toc.pdf src/iad_index.pdf src/iad.pdf
 
 CSRC  = src/ad_frsnl.c		src/ad_globl.c		 src/ad_matrx.c	  src/ad_start.c  src/iad_calc.c   src/iad_io.c	  \

@@ -32,13 +32,13 @@ NR_OBJ	= src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnb
 
 MAIN = Makefile INSTALL.md README.md License
 
-DOCS =	doc/CHANGELOG.rst    doc/ToDo.md               doc/manual.tex      \
-		doc/ad_src.pdf       doc/iad_src.pdf           doc/manual.pdf      \
-		doc/ch3RTcorr.pdf    doc/ch3spheremeas.pdf     doc/ch3spheresR.pdf \
-		doc/ch3spheresT.pdf  doc/ch3Doublespheres.pdf  doc/colltrans.pdf   \
-		doc/lightloss.pdf    doc/niek_graph.pdf        doc/glass-slide.pdf \
-		doc/cmdexe.png       doc/valid.png             doc/dual8.png       \
-        doc/dual90.png       doc/iad.bib
+DOCS =	docs/CHANGELOG.rst    docs/ToDo.md               docs/manual.tex      \
+		docs/ad_src.pdf       docs/iad_src.pdf           docs/manual.pdf      \
+		docs/ch3RTcorr.pdf    docs/ch3spheremeas.pdf     docs/ch3spheresR.pdf \
+		docs/ch3spheresT.pdf  docs/ch3Doublespheres.pdf  docs/colltrans.pdf   \
+		docs/lightloss.pdf    docs/niek_graph.pdf        docs/glass-slide.pdf \
+		docs/cmdexe.png       docs/valid.png             docs/dual8.png       \
+        docs/dual90.png       docs/iad.bib
 
 TEST =	\
 		test/Makefile       test/basic-A.rxt    test/basic-B.rxt      test/basic-C.rxt    test/basic-D.rxt    \
@@ -112,11 +112,11 @@ unixdist:
 	make
 	make tidy
 	mkdir -p    iad-$(VERSION)
-	mkdir -p    iad-$(VERSION)/doc
+	mkdir -p    iad-$(VERSION)/docs
 	mkdir -p    iad-$(VERSION)/test
 	mkdir -p    iad-$(VERSION)/src
 	ln $(MAIN)  iad-$(VERSION)
-	ln $(DOCS)  iad-$(VERSION)/doc
+	ln $(DOCS)  iad-$(VERSION)/docs
 	ln $(TEST)  iad-$(VERSION)/test
 	ln $(WSRC)  iad-$(VERSION)/src
 	ln $(HSRC)  iad-$(VERSION)/src
@@ -131,14 +131,14 @@ windist: ad.exe iad.exe libiad.dll
 	make docs
 	make tidy
 	mkdir -p      iad-win-$(VERSION)
-	mkdir -p      iad-win-$(VERSION)/doc
+	mkdir -p      iad-win-$(VERSION)/docs
 	mkdir -p      iad-win-$(VERSION)/test
 	mkdir -p      iad-win-$(VERSION)/src
 	ln ad.exe     iad-win-$(VERSION)
 	ln iad.exe    iad-win-$(VERSION)
 	ln libiad.dll iad-win-$(VERSION)
 	ln $(MAIN)    iad-win-$(VERSION)
-	ln $(DOCS)    iad-win-$(VERSION)/doc
+	ln $(DOCS)    iad-win-$(VERSION)/docs
 	ln $(TEST)    iad-win-$(VERSION)/test
 	ln $(WSRC)    iad-win-$(VERSION)/src
 	ln $(HSRC)    iad-win-$(VERSION)/src
@@ -186,10 +186,10 @@ docs:
 	cd src ; make ad_doc
 	perl -pi -e 's/\\def\\iadversion.*/\\def\\iadversion{$(VERSION)}/' src/iad.w
 	cd src ; make iad_doc
-	cd doc ; pdflatex manual
-	cd doc ; bibtex manual
-	cd doc ; pdflatex manual
-	cd doc ; pdflatex manual
+	cd docs ; pdflatex manual
+	cd docs ; bibtex manual
+	cd docs ; pdflatex manual
+	cd docs ; pdflatex manual
 
 clean:
 	rm -f ad iad *.pdf libiad.a libiad.so libiad.dylib libiad.h src/lib_iad.h src/lib_ad.h
@@ -203,8 +203,8 @@ realclean:
 	make clean
 	cd src ; make realclean
 	rm -f ad iad libiad.h libiad$(LIB_EXT)
-	rm -f doc/manual.pdf doc/manual.bbl doc/manual.blg doc/manual.out doc/manual.toc
-	rm -f doc/manual.aux doc/manual.log
+	rm -f docs/manual.pdf docs/manual.bbl docs/manual.blg docs/manual.out docs/manual.toc
+	rm -f docs/manual.aux docs/manual.log
 	cd test ; make clean
 	rm -f $(CSRC) $(HSRC)
 
