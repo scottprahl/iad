@@ -222,6 +222,13 @@ mctest:
 	src/mc_test -n 1.4 -N 1.5
 	src/mc_test -n 1.4 -N 1.5 -g 0.9
 
+executables:
+	cd src; make ad
+	cd src; make iad
+	cd src; make mc_test
+	cd src; make layer_test
+	cd src; make oblique_test
+	cd src; make cone_test
 
 veryshorttest:
 	@echo "********* Basic tests ***********"
