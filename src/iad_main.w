@@ -100,62 +100,65 @@ int main (int argc, char **argv)
 #include "ad_frsnl.h"
 
 @ @<Declare variables for |main|@>=
-  struct measure_type m;
-  struct invert_type r;
-  char *g_out_name = NULL;
-  int c;
+    struct measure_type m;
+    struct invert_type r;
+    char *g_out_name = NULL;
+    int c;
 
-  long n_photons = 100000;
-  int MC_iterations = 19;
-  int any_error = 0;
-  int process_command_line = 0;
-  int params = 0;
+    long n_photons = 100000;
+    int MC_iterations = 19;
+    int any_error = 0;
+    int process_command_line = 0;
+    int params = 0;
 
-  int    cl_quadrature_points = UNINITIALIZED;
-  int    cl_verbosity = 2;
+    int cl_quadrature_points = UNINITIALIZED;
+    int cl_verbosity = 2;
 
-  double cl_forward_calc= UNINITIALIZED;
-  double cl_default_a   = UNINITIALIZED;
-  double cl_default_g   = UNINITIALIZED;
-  double cl_default_b   = UNINITIALIZED;
-  double cl_default_mua = UNINITIALIZED;
-  double cl_default_mus = UNINITIALIZED;
-  double cl_tolerance   = UNINITIALIZED;
-  double cl_slide_OD    = UNINITIALIZED;
+    double cl_forward_calc= UNINITIALIZED;
+    double cl_default_a   = UNINITIALIZED;
+    double cl_default_g   = UNINITIALIZED;
+    double cl_default_b   = UNINITIALIZED;
+    double cl_default_mua = UNINITIALIZED;
+    double cl_default_mus = UNINITIALIZED;
+    double cl_tolerance   = UNINITIALIZED;
+    double cl_slide_OD    = UNINITIALIZED;
 
-  double cl_cos_angle   = UNINITIALIZED;
-  double cl_beam_d      = UNINITIALIZED;
-  double cl_sample_d    = UNINITIALIZED;
-  double cl_sample_n    = UNINITIALIZED;
-  double cl_slide_d     = UNINITIALIZED;
-  double cl_slide_n     = UNINITIALIZED;
-  double cl_slides      = UNINITIALIZED;
-  double cl_default_fr  = UNINITIALIZED;
-  double cl_rstd_t      = UNINITIALIZED;
-  double cl_rstd_r      = UNINITIALIZED;
-  double cl_rc_fraction = UNINITIALIZED;
-  double cl_tc_fraction = UNINITIALIZED;
+    double cl_cos_angle   = UNINITIALIZED;
+    double cl_beam_d      = UNINITIALIZED;
+    double cl_sample_d    = UNINITIALIZED;
+    double cl_sample_n    = UNINITIALIZED;
+    double cl_slide_d     = UNINITIALIZED;
+    double cl_slide_n     = UNINITIALIZED;
+    double cl_slides      = UNINITIALIZED;
+    double cl_default_fr  = UNINITIALIZED;
+    double cl_rstd_t      = UNINITIALIZED;
+    double cl_rstd_r      = UNINITIALIZED;
+    double cl_baffle_r    = UNINITIALIZED;
+    double cl_baffle_t    = UNINITIALIZED;
+    double cl_rc_fraction = UNINITIALIZED;
+    double cl_tc_fraction = UNINITIALIZED;
+    double cl_gain_type   = UNINITIALIZED;
 
-  double cl_search      = UNINITIALIZED;
-  double cl_mus0        = UNINITIALIZED;
-  double cl_musp0       = UNINITIALIZED;
-  double cl_mus0_pwr    = UNINITIALIZED;
-  double cl_mus0_lambda = UNINITIALIZED;
+    double cl_search      = UNINITIALIZED;
+    double cl_mus0        = UNINITIALIZED;
+    double cl_musp0       = UNINITIALIZED;
+    double cl_mus0_pwr    = UNINITIALIZED;
+    double cl_mus0_lambda = UNINITIALIZED;
 
-  double cl_UR1         = UNINITIALIZED;
-  double cl_UT1         = UNINITIALIZED;
-  double cl_Tc          = UNINITIALIZED;
+    double cl_UR1         = UNINITIALIZED;
+    double cl_UT1         = UNINITIALIZED;
+    double cl_Tc          = UNINITIALIZED;
 
-  double cl_method      = UNINITIALIZED;
-  int    cl_num_spheres = UNINITIALIZED;
-  double cl_sphere_one[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
+    double cl_method      = UNINITIALIZED;
+    int    cl_num_spheres = UNINITIALIZED;
+    double cl_sphere_one[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
                              UNINITIALIZED, UNINITIALIZED };
-  double cl_sphere_two[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
+    double cl_sphere_two[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
                              UNINITIALIZED, UNINITIALIZED };
 
-  clock_t start_time=clock();
-  char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hi:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
+    clock_t start_time=clock();
+    char command_line_options[] =
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xy:z";
 
 @ use the |getopt()| to process options.
 
@@ -163,15 +166,30 @@ int main (int argc, char **argv)
     while ((c = getopt(argc, argv, command_line_options)) != EOF) {
         int n;
         char cc;
+        char *tmp_str = NULL;
 
         switch (c) {
 
             case '1':
+                tmp_str = strdup(optarg);
                 parse_string_into_array(optarg, cl_sphere_one, 5);
+                if (cl_sphere_one[4] == UNINITIALIZED) {
+                    fprintf(stderr, "Error in command-line argument for -1\n");
+                    fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
+                    fprintf(stderr, "'d_sphere d_sample d_empty d_detector r_wall'\n");
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case '2':
+                tmp_str = strdup(optarg);
                 parse_string_into_array(optarg, cl_sphere_two, 5);
+                if (cl_sphere_two[4] == UNINITIALIZED) {
+                    fprintf(stderr, "Error in command-line argument for -2\n");
+                    fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
+                    fprintf(stderr, "'d_sphere d_sample d_empty d_detector r_wall'\n");
+                    exit(EXIT_FAILURE);
+                }
                 break;
 
             case 'a':
@@ -269,9 +287,8 @@ int main (int argc, char **argv)
             case 'f':
                 cl_default_fr = my_strtod(optarg);
                 if (cl_default_fr < 0.0 || cl_default_fr > 1.0) {
-                    fprintf(stderr, "Error in command-line\n");
-                    fprintf(stderr, "    fraction hitting wall '-f %s'\n", optarg);
-                    fprintf(stderr, "    must be between 0 and 1\n");
+                    fprintf(stderr, "Error in command-line argument: ");
+                    fprintf(stderr, "'-f %s' The argument must be between 0 and 1.\n", optarg);
                     exit(EXIT_SUCCESS);
                 }
                 break;
@@ -338,6 +355,26 @@ int main (int argc, char **argv)
                     exit(EXIT_FAILURE);
                 }
                 break;
+
+            case 'H':
+                if (optarg[0]=='0') {
+                    cl_baffle_r = 0;
+                    cl_baffle_t = 0;
+                } else if (optarg[0]=='1') {
+                    cl_baffle_r = 1;
+                    cl_baffle_t = 0;
+                } else if (optarg[0]=='2') {
+                    cl_baffle_r = 0;
+                    cl_baffle_t = 1;
+                } else if (optarg[0]=='3') {
+                    cl_baffle_r = 1;
+                    cl_baffle_t = 1;
+                } else {
+                    fprintf(stderr, "Error in command-line -H argument\n");
+                    fprintf(stderr, "    argument is '%s', but ", optarg);
+                    fprintf(stderr, "must be 0, 1, 2, or 3\n");
+                    exit(EXIT_FAILURE);
+                }
 
             case 'i':
                 cl_cos_angle = my_strtod(optarg);
@@ -483,6 +520,10 @@ int main (int argc, char **argv)
 
             case 'X':
                 cl_method=COMPARISON;
+                break;
+
+            case 'y':
+                cl_gain_type = (int) my_strtod(optarg);
                 break;
 
             case 'z':
@@ -636,7 +677,7 @@ measurements.
             fprintf(stderr, "lambda=%6.1f ", m.lambda);
         fprintf(stderr, "MR=%8.5f MT=%8.5f\n\n", m.m_r, m.m_t);
     }
-    
+
     Initialize_Result(m, &r);
     @<Command-line changes to |r|@>@;
 
@@ -975,17 +1016,17 @@ properties can be determined.
     if (cl_rstd_r != UNINITIALIZED)
         m.rstd_r = cl_rstd_r;
 
-    if (cl_sphere_one[4] != UNINITIALIZED) {
-        double d_sample_r, d_entrance_r, d_detector_r;
+    if (cl_sphere_one[0] != UNINITIALIZED) {
+        double d_sample_r, d_empty_r, d_detector_r;
 
         m.d_sphere_r     = cl_sphere_one[0];
         d_sample_r       = cl_sphere_one[1];
-        d_entrance_r     = cl_sphere_one[2];
+        d_empty_r        = cl_sphere_one[2];
         d_detector_r     = cl_sphere_one[3];
         m.rw_r           = cl_sphere_one[4];
 
         m.as_r = (d_sample_r   / m.d_sphere_r / 2) * (d_sample_r   / m.d_sphere_r / 2);
-        m.ae_r = (d_entrance_r / m.d_sphere_r / 2) * (d_entrance_r / m.d_sphere_r / 2);
+        m.ae_r = (d_empty_r    / m.d_sphere_r / 2) * (d_empty_r    / m.d_sphere_r / 2);
         m.ad_r = (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r / 2);
 
         m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
@@ -1001,17 +1042,17 @@ properties can be determined.
             m.num_spheres = 1;
     }
 
-    if (cl_sphere_two[4] != UNINITIALIZED) {
-        double d_sample_t, d_entrance_t, d_detector_t;
+    if (cl_sphere_two[0] != UNINITIALIZED) {
+        double d_sample_t, d_empty_t, d_detector_t;
 
         m.d_sphere_t     = cl_sphere_two[0];
         d_sample_t       = cl_sphere_two[1];
-        d_entrance_t     = cl_sphere_two[2];
+        d_empty_t        = cl_sphere_two[2];
         d_detector_t     = cl_sphere_two[3];
         m.rw_t           = cl_sphere_two[4];
 
         m.as_t = (d_sample_t   / m.d_sphere_t / 2) * (d_sample_t   / m.d_sphere_t / 2);
-        m.ae_t = (d_entrance_t / m.d_sphere_t / 2) * (d_entrance_t / m.d_sphere_t / 2);
+        m.ae_t = (d_empty_t    / m.d_sphere_t / 2) * (d_empty_t    / m.d_sphere_t / 2);
         m.ad_t = (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t / 2);
         m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
 
@@ -1031,6 +1072,9 @@ properties can be determined.
     if (cl_tc_fraction != UNINITIALIZED)
         m.fraction_of_tc_in_mt = cl_tc_fraction;
 
+    if (cl_gain_type != UNINITIALIZED)
+        m.gain_type = cl_gain_type;
+
     if (cl_UR1 != UNINITIALIZED)
         m.m_r = cl_UR1;
 
@@ -1042,6 +1086,12 @@ properties can be determined.
 
     if (cl_default_fr != UNINITIALIZED)
         m.f_r = cl_default_fr;
+
+    if (cl_baffle_r != UNINITIALIZED)
+        m.baffle_r = cl_baffle_r;
+
+    if (cl_baffle_t != UNINITIALIZED)
+        m.baffle_t = cl_baffle_t;
 
 @ put the values for command line reflection and transmission into the measurement record.
 
@@ -1089,7 +1139,7 @@ fprintf(stdout, "Usage:  iad [options] input\n\n");
 fprintf(stdout, "Options:\n");
 fprintf(stdout, "  -1 '# # # # #'   reflection sphere parameters \n");
 fprintf(stdout, "  -2 '# # # # #'   transmission sphere parameters \n");
-fprintf(stdout, "     'sphere d, sample d, entrance d, detector d, wall r'\n");
+fprintf(stdout, "     'sphere d, sample d, empty d, detector d, wall r'\n");
 fprintf(stdout, "  -a #             use this albedo \n");
 fprintf(stdout, "  -A #             use this absorption coefficient \n");
 fprintf(stdout, "  -b #             use this optical thickness \n");
@@ -1324,14 +1374,14 @@ static char *  strdup_together(char *s, char *t)
 @ catch parsing errors in strtod
 @<mystrtod function@>=
 
-static double my_strtod(const char *str) 
+static double my_strtod(const char *str)
 {
     char* endptr;
     errno = 0;
 
     double val = strtod(str, &endptr);
 
-    if (endptr == str) { 
+    if (endptr == str) {
         // No digits were found
         fprintf(stderr, "Error in command-line\n");
         fprintf(stderr, "    No conversion could be performed for `%s`.\n", str);
@@ -1343,7 +1393,7 @@ static double my_strtod(const char *str)
         fprintf(stderr, "Error in command-line\n");
         fprintf(stderr, "    Partial conversion of string = '%s'\n", str);
         exit(EXIT_FAILURE);
-    } 
+    }
 
     if (errno == ERANGE) {
         // The converted value is out of range of representable values by a double
