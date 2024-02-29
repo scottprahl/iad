@@ -26,6 +26,8 @@
 #define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
 
+#define SWAP(a,b) {double swap= (a);(a)= (b);(b)= swap;}
+
 static int CALCULATING_GRID = 1;
 static struct measure_type MM;
 static struct invert_type RR;
@@ -511,27 +513,27 @@ void Grid_ABG(int i, int j, guess_type *guess)
 
 double Gain(int sphere, struct measure_type m, double URU)
 {
-    double G, tmp;
+    double G, denom;
 
     if (sphere == REFLECTION_SPHERE) {
-        tmp =
-            m.rw_r * (m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r +
-                m.as_r * URU));
-        if (tmp == 1.0)
-            G = 1;
+        if (m.baffle_r)
+            denom =
+                1.0 - m.rw_r * (m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r +
+                    m.as_r * URU));
         else
-            G = 1.0 + tmp / (1.0 - tmp);
+            denom = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * URU;
 
     }
     else {
-        tmp =
-            m.rw_t * (m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t +
-                m.as_t * URU));
-        if (tmp == 1.0)
-            G = 1;
+        if (m.baffle_t)
+            denom =
+                1.0 - m.rw_t * (m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t +
+                    m.as_t * URU));
         else
-            G = 1.0 + tmp / (1.0 - tmp);
+            denom = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * URU;
     }
+
+    G = 1.0 / denom;
 
     return G;
 }
@@ -614,30 +616,47 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
 
     case 1:
         if (MM.method == COMPARISON) {
-            *M_R =
-                (1 - MM.f_r) * R_direct / ((1 - MM.f_r) +
-                MM.f_r * MM.rw_r / MM.rstd_r);
-            *M_T = T_direct;
-        }
 
+            {
+                *M_R =
+                    (1 - MM.f_r) * R_direct / ((1 - MM.f_r) +
+                    MM.f_r * MM.rw_r / MM.rstd_r);
+                *M_T = T_direct;
+            }
+
+        }
         else {
-            double P_std, P_d, P_0;
-            double G, G_0, G_std, GP_std, GP;
+
+            double P_std, P, P_0, G, G_0, G_std;
+            int tmp;
 
             G_0 = Gain(REFLECTION_SPHERE, MM, 0.0);
             G = Gain(REFLECTION_SPHERE, MM, R_diffuse);
             G_std = Gain(REFLECTION_SPHERE, MM, MM.rstd_r);
 
-            P_d = G * (R_direct * (1 - MM.f_r) + MM.f_r * MM.rw_r);
+            P = G * (R_direct * (1 - MM.f_r) + MM.f_r * MM.rw_r);
             P_std = G_std * (MM.rstd_r * (1 - MM.f_r) + MM.f_r * MM.rw_r);
             P_0 = G_0 * (MM.f_r * MM.rw_r);
-            *M_R = MM.rstd_r * (P_d - P_0) / (P_std - P_0);
+            *M_R = MM.rstd_r * (P - P_0) / (P_std - P_0);
 
-            GP = Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
-            GP_std = Gain(TRANSMISSION_SPHERE, MM, 0.0);
-            *M_T = T_direct * GP / GP_std;
+            P = T_direct * Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
+            if (MM.baffle_t)
+                P *= (1 - MM.ae_t) * MM.rw_t;
+
+            tmp = MM.baffle_t;
+            MM.baffle_t = FALSE;
+            if (MM.ae_t == 0) {
+                P_std = Gain(TRANSMISSION_SPHERE, MM, 0);
+            }
+            else {
+                SWAP(MM.ae_t, MM.as_t);
+                P_std = Gain(TRANSMISSION_SPHERE, MM, MM.rstd_t);
+                SWAP(MM.ae_t, MM.as_t);
+            }
+            MM.baffle_t = tmp;
+            *M_T = P / P_std;
+
         }
-
         break;
 
     case 2:

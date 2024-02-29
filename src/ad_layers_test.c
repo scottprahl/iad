@@ -3,6 +3,7 @@
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "nr_util.h"
 #include "ad_globl.h"
 #include "ad_prime.h"
@@ -35,6 +36,7 @@ int main(int argc, char **argv)
     a[0] = 0.0;
     b[0] = 0.1;
     g[0] = 0.875;
+    ez_RT(N, 1.0, 1.0, 1.0, a[0], b[0], g[0], &aUR1, &aUT1, &aURU, &aUTU);
     RT_Layers(N, 1.0, 1.0, 1.0, 1, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
     PrintTestResults(1, 1, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 

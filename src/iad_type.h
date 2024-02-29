@@ -97,6 +97,8 @@ typedef struct measure_type {
     int num_measures;
     int method;
     int flip_sample;
+    int gain_type;
+    int baffle_r, baffle_t;
 
     double d_beam;
     double fraction_of_rc_in_mr;

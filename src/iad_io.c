@@ -103,12 +103,12 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
     m->method = SUBSTITUTION;
 
     {
-        double d_sample_r, d_entrance_r, d_detector_r;
+        double d_sample_r, d_empty_r, d_detector_r;
         if (read_number(fp, &m->d_sphere_r))
             return 1;
         if (read_number(fp, &d_sample_r))
             return 1;
-        if (read_number(fp, &d_entrance_r))
+        if (read_number(fp, &d_empty_r))
             return 1;
         if (read_number(fp, &d_detector_r))
             return 1;
@@ -119,8 +119,8 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
             (d_sample_r / m->d_sphere_r / 2.0) * (d_sample_r / m->d_sphere_r /
             2.0);
         m->ae_r =
-            (d_entrance_r / m->d_sphere_r / 2.0) * (d_entrance_r /
-            m->d_sphere_r / 2.0);
+            (d_empty_r / m->d_sphere_r / 2.0) * (d_empty_r / m->d_sphere_r /
+            2.0);
         m->ad_r =
             (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r /
             m->d_sphere_r / 2.0);
@@ -128,12 +128,12 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
     }
 
     {
-        double d_sample_t, d_entrance_t, d_detector_t;
+        double d_sample_t, d_empty_t, d_detector_t;
         if (read_number(fp, &m->d_sphere_t))
             return 1;
         if (read_number(fp, &d_sample_t))
             return 1;
-        if (read_number(fp, &d_entrance_t))
+        if (read_number(fp, &d_empty_t))
             return 1;
         if (read_number(fp, &d_detector_t))
             return 1;
@@ -144,8 +144,8 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
             (d_sample_t / m->d_sphere_t / 2.0) * (d_sample_t / m->d_sphere_t /
             2.0);
         m->ae_t =
-            (d_entrance_t / m->d_sphere_t / 2.0) * (d_entrance_t /
-            m->d_sphere_t / 2.0);
+            (d_empty_t / m->d_sphere_t / 2.0) * (d_empty_t / m->d_sphere_t /
+            2.0);
         m->ad_t =
             (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t /
             m->d_sphere_t / 2.0);
@@ -188,38 +188,49 @@ void Write_Header(struct measure_type m, struct invert_type r, int params)
         m.fraction_of_tc_in_mt * 100);
     printf("# \n");
 
-    printf("# Reflection sphere\n");
+    printf("# Reflection sphere");
+    if (m.baffle_r)
+        printf(" with baffle\n");
+    else
+        printf(" without baffle\n");
     printf("#                      sphere diameter = %7.1f mm\n",
         m.d_sphere_r);
     printf("#                 sample port diameter = %7.1f mm\n",
         2 * m.d_sphere_r * sqrt(m.as_r));
-    printf("#               entrance port diameter = %7.1f mm\n",
+    printf("#                  empty port diameter = %7.1f mm\n",
         2 * m.d_sphere_r * sqrt(m.ae_r));
     printf("#               detector port diameter = %7.1f mm\n",
         2 * m.d_sphere_r * sqrt(m.ad_r));
-    printf("#                     wall reflectance = %7.1f %%\n",
-        m.rw_r * 100);
-    printf("#                 standard reflectance = %7.1f %%\n",
-        m.rstd_r * 100);
     printf("#                 detector reflectance = %7.1f %%\n",
         m.rd_r * 100);
+    printf("#                     wall reflectance = %7.1f %%\n",
+        m.rw_r * 100);
+    printf("#       reference standard reflectance = %7.1f %%\n",
+        m.rstd_r * 100);
     printf("#\n");
 
-    printf("# Transmission sphere\n");
+    printf("# Transmission sphere");
+    if (m.baffle_t)
+        printf(" with baffle\n");
+    else
+        printf(" without baffle\n");
     printf("#                      sphere diameter = %7.1f mm\n",
         m.d_sphere_t);
     printf("#                 sample port diameter = %7.1f mm\n",
         2 * m.d_sphere_r * sqrt(m.as_t));
-    printf("#               entrance port diameter = %7.1f mm\n",
+    printf("#                  empty port diameter = %7.1f mm\n",
         2 * m.d_sphere_r * sqrt(m.ae_t));
     printf("#               detector port diameter = %7.1f mm\n",
         2 * m.d_sphere_r * sqrt(m.ad_t));
-    printf("#                     wall reflectance = %7.1f %%\n",
-        m.rw_t * 100);
-    printf("#               standard transmittance = %7.1f %%\n",
-        m.rstd_t * 100);
     printf("#                 detector reflectance = %7.1f %%\n",
         m.rd_t * 100);
+    printf("#                     wall reflectance = %7.1f %%\n",
+        m.rw_t * 100);
+    printf("#       reference standard reflectance = %7.1f %%",
+        m.rstd_t * 100);
+    if (m.ae_t == 0)
+        printf(" (unused because empty port is closed)");
+    printf("\n");
 
     printf("#\n");
     switch (params) {
