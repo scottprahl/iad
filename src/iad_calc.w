@@ -35,6 +35,8 @@
 #define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
 
+#define SWAP(a,b) {double swap=(a);(a)=(b);(b)=swap;}
+
 static int CALCULATING_GRID = 1;
 static struct measure_type MM;
 static struct invert_type RR;
@@ -78,7 +80,7 @@ static boolean_type The_Grid_Search = -1;
     @<Definition for |Calculate_Grid_Distance|@>@;
     @<Definition for |Calculate_Distance|@>@;
     @<Definition for |abg_distance|@>@;
-    
+
     @<Definition for |Find_AG_fn|@>@;
     @<Definition for |Find_AB_fn|@>@;
     @<Definition for |Find_Ba_fn|@>@;
@@ -93,7 +95,7 @@ static boolean_type The_Grid_Search = -1;
     @<Definition for |Max_Light_Loss|@>@;
 
 
-@  
+@
 
 @(iad_calc.h@>=
     @<Prototype for |Gain|@>;
@@ -133,133 +135,65 @@ static boolean_type The_Grid_Search = -1;
 @*1 Initialization.
 
 The functions in this file assume that the local variables |MM| and |RR|
-have been initialized appropriately.  The variable |MM| contains all the 
+have been initialized appropriately.  The variable |MM| contains all the
 information about how a particular experiment was done.  The structure
 |RR| contains the data structure that is passed to the adding-doubling routines
-as well as the number of quadrature points.  
-
-history
-6/8/94 changed error output to |stderr|.
+as well as the number of quadrature points.
 
 @*1 Gain.
 
 Assume that a sphere is illuminated with diffuse light having a power
-$P$. 
-This light can reach all parts of sphere --- specifically, light from
-this source is not blocked by a baffle.  Multiple reflections in the
-sphere will increase the power falling on non-white areas in the sphere
-(e.g., the sample, detector, and entrance)  To find the total we need to
-sum all the total of all incident light at a point.  The first incidence
-is
-$$
-P_w^{(1)} = a_w P, \qquad P_s^{(1)} = a_s P, \qquad P_d^{(1)} = a_d P
-$$
-The light from the detector and sample is multiplied by $(1-a_e)$ and
-not by $a_w$ because the light from the detector (and sample) is not
-allowed to hit either the detector or sample.  The second incidence on
-the wall is
-$$
-P_w^{(2)} = a_w r_w P_w^{(1)} + (1-a_e) r_d P_d^{(1)} + (1-a_e)\rdiffuse
- P_s^{(1)}
-$$
-The light that hits the walls after $k$ bounces has the same form as
-above 
-$$
-P_w^{(k)} = a_w r_w P_w^{(k-1)} + (1-a_e) r_d  P_d^{(k-1)} + (1-a_e)
-\rdiffuse P_s^{(k-1)}
-$$
-Since the light falling on the sample and detector must come from the
-wall
-$$
-P_s^{(k)} = a_s r_w P_w^{(k-1)} \qquad\hbox{and}\qquad  P_d^{(k)} = a_d
-r_w P_w^{(k-1)},
-$$
-Therefore,
-$$
-P_w^{(k)} = a_w r_w P_w^{(k-1)} + (1-a_e) r_w (a_d r_d + a_s \rdiffuse)
-P_w^{(k-2)}
-$$
-The total power falling on the walls is just
-$$
-P_w = \sum_{k=1}^\infty P_w^{(k)} = {a_w + (1-a_e) ( a_d r_d +a_s
-\rdiffuse) 
-\over 1- a_w r_w - (1-a_e)r_w(a_d r_d + a_s \rdiffuse)} P
-$$
-The total power falling the detector is
-$$
-P_d = a_d P + \sum_{k=2}^\infty a_d r_w P_w^{(k-1)} = a_d P + a_d r_w
-P_w
-$$
+$P$. This light will undergo multiple reflections in the sphere walls that
+will increase the power falling on the detector.
 
-The gain $G(\rdiffuse)$ on the irradiance on the detector (relative to a
-black sphere),
+The gain on the detector due to integrating sphere effects varies with
+the presence of a baffle between the sample and the detector.  If a baffle is
+present then
 $$
-G(\rdiffuse) \equiv {P_d /A_d\over P/A} 
+G_{\rm no\ baffle}(\rdiffuse) = {1 \over 1 - a_w r_w - a_d r_d - a_s \rdiffuse}
 $$
-in terms of the sphere parameters
+or with a baffle as
 $$
-G(\rdiffuse)  = 1+ {1\over a_w} \cdot {a_w r_w + (1-a_e) r_w (a_d r_d
-+a_s \rdiffuse)  \over 1- a_w r_w - (1-a_e)r_w(a_d r_d + a_s \rdiffuse)}
+G_{\rm baffle}(\rdiffuse) = {1 \over 1- a_w r_w - r_w (1-a_e) (a_d r_d + a_s \rdiffuse)}
 $$
-The gain for a detector in a transmission sphere is similar, but with
-primed parameters to designate a second potential sphere that is used.
-For a black sphere the gain $G(0) = 1$, which is easily verified by
-setting $r_w=0$, $\rdiffuse=0$, and $r_d=0$.  Conversely, when the
-sphere walls and sample are perfectly white, the irradiance at the
-entrance port, the sample port, and the detector port must increase so
-that the total power leaving via these ports is equal to the incident
-diffuse power $P$.  
-Thus the gain should be the ratio of the sphere wall area over the area
-of the ports through which light leaves or $G(1)=A/(A_e+A_d)$ which
-follows immediately from the gain formula with $r_w=1$, $\rdiffuse=1$,
-and $r_d=0$.
+For a black sphere the gain does not depend on the diffuse reflectivity of the sample
+and is unity.  $G(\rdiffuse) = 1$, which is easily verified by setting $r_w=0$.
 
-
-@ The gain $G(r_s)$ on the irradiance on the detector (relative to a black sphere),
-$$
-G(r_s) \equiv {P_d /A_d\over P/A} 
-$$
-in terms of the sphere parameters
-$$
-G(r_s)  = 1+ {a_w r_w + (1-a_e) r_w (a_d r_d +a_s r_s) 
-\over 1- a_w r_w - (1-a_e)r_w(a_d r_d + a_s r_s)}
-$$
-
-@<Prototype for |Gain|@>=
+@ @<Prototype for |Gain|@>=
 double Gain(int sphere, struct measure_type m, double URU)
 
 @ @<Definition for |Gain|@>=
     @<Prototype for |Gain|@>
 {
-double G, tmp;
+double G, denom;
 
-if (sphere==REFLECTION_SPHERE) {
-    tmp = m.rw_r*(m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r + m.as_r * URU));
-    if (tmp == 1.0) 
-        G = 1;
+if (sphere == REFLECTION_SPHERE) {
+    if (m.baffle_r)
+        denom = 1.0 - m.rw_r * (m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r + m.as_r * URU));
     else
-        G = 1.0 + tmp / (1.0 - tmp);
+        denom = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * URU;
 
 } else {
-    tmp = m.rw_t*(m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t + m.as_t * URU));
-    if (tmp == 1.0) 
-        G = 1;
+    if (m.baffle_t)
+        denom = 1.0 - m.rw_t * (m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t + m.as_t * URU));
     else
-        G = 1.0 + tmp / (1.0 - tmp);
+        denom = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * URU;
 }
+
+G = 1.0 / denom;
 
 return G;
 }
 
-@ The gain for light on the detector in the first sphere for diffuse light starting 
+@ The gain for light on the detector in the first sphere for diffuse light starting
 in that same sphere is defined as
 $$
-G_{1\rightarrow1}(r_s,t_s) \equiv 
+G_{1\rightarrow1}(r_s,t_s) \equiv
 {P_{1\rightarrow1}(r_s,t_s)/A_d\over P/A}
 $$
 then the full expression for the gain is
 $$
-G_{1\rightarrow1}(r_s,t_s) = 
+G_{1\rightarrow1}(r_s,t_s) =
 {G(r_s) \over 1-a_s a_s' r_w r_w' (1-a_e)(1-a_e') G(r_s) G'(r_s)t_s^2  }
 $$
 
@@ -277,15 +211,15 @@ double Gain_11(struct measure_type m, double URU, double tdiffuse)
 
     G11 = G / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.ae_r) * (1-m.ae_t)
                * G * GP * tdiffuse * tdiffuse);
-    
+
     return G11;
 }
 
-@ Similarly, when the light starts in the second sphere, the gain for light 
-on the detector in the second sphere $G_{2\rightarrow2}$ is found by switching 
+@ Similarly, when the light starts in the second sphere, the gain for light
+on the detector in the second sphere $G_{2\rightarrow2}$ is found by switching
 all primed variables to unprimed.  Thus $G_{2\rightarrow1}(r_s,t_s)$ is
 $$
-G_{2\rightarrow2}(r_s,t_s) = {G'(r_s) \over 1-a_s a_s' r_w r_w' 
+G_{2\rightarrow2}(r_s,t_s) = {G'(r_s) \over 1-a_s a_s' r_w r_w'
                               (1-a_e)(1-a_e') G(r_s) G'(r_s)t_s^2  }
 $$
 
@@ -302,7 +236,7 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
 
     G22 = GP / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.ae_r) * (1-m.ae_t)
                * G * GP * tdiffuse * tdiffuse);
-    
+
     return G22;
 }
 
@@ -317,7 +251,7 @@ r_w^2 (1-a_e) P$, the fraction of light reflected by the sample $(1-f)
 $(1-f) \tdirect r_w' (1-a_e') P$,
 $$
 \eqalign{
-R(\rdirect,\rdiffuse,\tdirect,\tdiffuse) 
+R(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
 &= G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_e) r_w^2 f  P \cr
 &+ G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_e) r_w (1-f) \rdirect  P \cr
 &+ G_{2\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_e') r_w' (1-f) \tdirect  P \cr
@@ -326,15 +260,15 @@ $$
 which simplifies slightly to
 $$
 \eqalign{
-R(\rdirect,\rdiffuse,\tdirect,\tdiffuse) 
+R(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
 &= a_d (1-a_e) r_w P \cdot G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cr
-&\times \bigg[(1-f)\rdirect + f r_w + 
+&\times \bigg[(1-f)\rdirect + f r_w +
 (1-f)a_s'(1-a_e')r_w'\tdirect\tdiffuse G'(\rdiffuse)\bigg] \cr
 }
 $$
 
 @<Prototype for |Two_Sphere_R|@>=
-double Two_Sphere_R(struct measure_type m, 
+double Two_Sphere_R(struct measure_type m,
                     double UR1, double URU, double UT1, double UTU)
 
 @ @<Definition for |Two_Sphere_R|@>=
@@ -354,24 +288,24 @@ on the gain terms now indicate that the light ends up in the second
 sphere
 $$
 \eqalign{
-T(\rdirect,\rdiffuse,\tdirect,\tdiffuse) 
+T(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
 &= G_{1\rightarrow2}(\rdiffuse,\tdiffuse)  \cdot a_d' (1-a_e) r_w^2 f P \cr
 &+ G_{1\rightarrow2}(\rdiffuse,\tdiffuse) \cdot a_d' (1-a_e) r_w (1-f) \rdirect P  \cr
 &+ G_{2\rightarrow2}(\rdiffuse,\tdiffuse) \cdot a_d' (1-a_e') r_w' (1-f) \tdirect  P \cr
 }
 $$
-or 
+or
 $$
 \eqalign{
-T(\rdirect,\rdiffuse,\tdirect,\tdiffuse) 
+T(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
 &= a_d' (1-a_e') r_w' P\cdot G_{2\rightarrow2}(\rdiffuse,\tdiffuse) \cr
-&\times \bigg[(1-f)\tdirect 
+&\times \bigg[(1-f)\tdirect
  + (1-a_e)r_w a_s \tdiffuse (f r_w+(1-f) \rdirect)G(\rdiffuse) \bigg] \cr
 }
 $$
 
 @<Prototype for |Two_Sphere_T|@>=
-double Two_Sphere_T(struct measure_type m, 
+double Two_Sphere_T(struct measure_type m,
                     double UR1, double URU, double UT1, double UTU)
 
 @ @<Definition for |Two_Sphere_T|@>=
@@ -385,19 +319,19 @@ double Two_Sphere_T(struct measure_type m,
 }
 
 @*1 Grid Routines.
-There is a long story associated with these routines.  I spent a lot of time 
+There is a long story associated with these routines.  I spent a lot of time
 trying to find an empirical function to allow a guess at a starting value for
-the inversion routine.  Basically nothing worked very well.  There were 
+the inversion routine.  Basically nothing worked very well.  There were
 too many special cases and what not.  So I decided to calculate a whole bunch
-of reflection and transmission values and keep their associated optical 
-properties linked nearby.  
+of reflection and transmission values and keep their associated optical
+properties linked nearby.
 
 I did the very simplest thing.  I just allocate a matrix that is five columns wide.
 Then I fill every row with a calculated set of optical properties and observables.
 The distribution of values that I use could certainly use some work, but
 they currently work.
 
-SO... how does this thing work anyway?   There are two possible grids one for 
+SO... how does this thing work anyway?   There are two possible grids one for
 calculations requiring the program to find the albedo and the optical depth ($a$
 and $b$) and one to find the albedo and anisotropy ($a$ and $g$).  These grids
 must be allocated and initialized before use.
@@ -406,7 +340,7 @@ must be allocated and initialized before use.
 reason that it exists, is that we need some `out-of-band' information during
 the minimization process.  Since the light transport calculation depends on
 all sorts of stuff (e.g., the sphere parameters) and the minimization routines
-just vary one or two parameters this information needs to be put somewhere.  
+just vary one or two parameters this information needs to be put somewhere.
 
 I chose the global variables |MM| and |RR| to save things in.
 
@@ -473,7 +407,7 @@ void Allocate_Grid(search_type s)
 
 @ @<Definition for |Allocate_Grid|@>=
     @<Prototype for |Allocate_Grid|@>
-{ 
+{
     (void) s;
     The_Grid = dmatrix(0,GRID_SIZE*GRID_SIZE,1,7);
     if (The_Grid==NULL) AD_error("unable to allocate the grid matrix");
@@ -517,7 +451,7 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
 
 @ @<Definition for |Valid_Grid|@>=
     @<Prototype for |Valid_Grid|@>
-{   
+{
     @<Tests for invalid grid@>@;
 
     return(TRUE);
@@ -527,12 +461,12 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
 
 @<Tests for invalid grid@>=
     if (The_Grid==NULL) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because NULL\n");
         return(FALSE);
     }
     if (!The_Grid_Initialized) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because not initialized\n");
         return(FALSE);
     }
@@ -541,7 +475,7 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
 
 @<Tests for invalid grid@>=
     if (The_Grid_Search != s) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because search type changed\n");
         return(FALSE);
     }
@@ -551,33 +485,33 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
 @<Tests for invalid grid@>=
 
     if ((m.num_measures==3) && (m.m_u!=MGRID.m_u)) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because unscattered light changed\n");
         return (FALSE);
     }
-    
+
 @ Make sure that the boundary conditions have not changed.
 
 @<Tests for invalid grid@>=
     if (m.slab_index              != MGRID.slab_index) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because slab refractive index changed\n");
         return(FALSE);
     }
     if (m.slab_cos_angle          != MGRID.slab_cos_angle) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because light angle changed\n");
         return(FALSE);
     }
 
     if (m.slab_top_slide_index    != MGRID.slab_top_slide_index) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because top slide index changed\n");
         return(FALSE);
     }
 
     if (m.slab_bottom_slide_index != MGRID.slab_bottom_slide_index) {
-        if (Debug(DEBUG_GRID)) 
+        if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because bottom slide index changed\n");
         return(FALSE);
     }
@@ -594,17 +528,17 @@ void abg_distance(double a, double b, double g, guess_type *guess)
     double m_r, m_t, distance;
     struct measure_type old_mm;
     struct invert_type old_rr;
-        
+
     Get_Calc_State(&old_mm, &old_rr);
 
     RR.slab.a = a;
     RR.slab.b = b;
     RR.slab.g = g;
-    
+
     Calculate_Distance(&m_r,&m_t,&distance);
 
     Set_Calc_State(old_mm, old_rr);
-    
+
     guess->a = a;
     guess->b = b;
     guess->g = g;
@@ -612,8 +546,8 @@ void abg_distance(double a, double b, double g, guess_type *guess)
 }
 
 @ This just searches through the grid to find the minimum entry and returns the
-optical properties of that entry.  The 
-smallest, the next smallest, and the third smallest values are returned.  
+optical properties of that entry.  The
+smallest, the next smallest, and the third smallest values are returned.
 
 This has been rewritten to use |Calculate_Distance_With_Corrections| so that changes in
 sphere parameters won't necessitate recalculating the grid.
@@ -632,18 +566,18 @@ void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
     (void) r;
     (void) t;
     (void) s;
-        
+
     Get_Calc_State(&old_mm, &old_rr);
 
     *i_min = 0;
     *j_min = 0;
     for(i=0; i<GRID_SIZE; i++){
         for(j=0; j<GRID_SIZE; j++){
-        
+
             CALCULATING_GRID = 1;
             fval = Calculate_Grid_Distance(i,j);
             CALCULATING_GRID = 0;
-    
+
             if (fval<smallest){
                 *i_min = i;
                 *j_min = j;
@@ -651,7 +585,7 @@ void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
             }
         }
     }
-    
+
     Set_Calc_State(old_mm, old_rr);
 }
 
@@ -660,13 +594,13 @@ simple.  The assumption is that flipping is handled relative to the
 reflection side of the sphere.  Thus even when flipping is needed,
 the usual call to |RT()| will result in the correct values for the
 reflectances.  The transmission values can then be calculated by
-swapping the top and bottom slides.  
+swapping the top and bottom slides.
 
 Technically, the value of slab should be |const| but it is not so that
 we don't pay a copying overhead whenever |flip| is false (the usual case).
 
 @<Prototype for |RT_Flip|@>=
-void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *UT1, 
+void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *UT1,
              double *URU, double *UTU)
 
 @ @<Definition for |RT_Flip|@>=
@@ -703,20 +637,20 @@ Presumes that |RR.slab| is properly set up.
 static void fill_grid_entry(int i, int j)
 {
     double ur1,ut1,uru,utu;
-    
+
     if (RR.slab.b <= 1e-6 ) RR.slab.b = 1e-6;
     if (Debug(DEBUG_EVERY_CALC) ) {
-        if (!CALCULATING_GRID) 
+        if (!CALCULATING_GRID)
             fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
         else {
             if (j==0) fprintf(stderr, ".");
             if (i+1 == GRID_SIZE && j==0) fprintf(stderr, "\n");
         }
     }
-    
+
     RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
-    
-    if (Debug(DEBUG_EVERY_CALC) && !CALCULATING_GRID) 
+
+    if (Debug(DEBUG_EVERY_CALC) && !CALCULATING_GRID)
         fprintf(stderr, "ur1=%8.5f ut1=%8.5f\n", ur1, ut1);
 
     The_Grid[GRID_SIZE*i+j][A_COLUMN]=RR.slab.a;
@@ -735,7 +669,7 @@ static void fill_grid_entry(int i, int j)
     }
 }
 
-@ This routine fills the grid with a proper set of values.  With a little work, this 
+@ This routine fills the grid with a proper set of values.  With a little work, this
 routine could be made much faster by (1) only generating the phase function
 matrix once, (2) Making only one pass through the array for each albedo value,
 i.e., using the matrix left over from $b=1$ to generate the solution for $b=2$.
@@ -748,7 +682,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
 
 @ @<Definition for |Fill_AB_Grid|@>=
     @<Prototype for |Fill_AB_Grid|@>
-{ 
+{
     int i,j;
     double a;
     double min_b = -8;  /* exp(-10) is smallest thickness */
@@ -756,20 +690,20 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
 
     if (Debug(DEBUG_GRID))
         fprintf(stderr, "Filling AB grid\n");
-        
+
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
 
     Set_Calc_State(m,r);
-        
+
     GG_g = RR.slab.g;
     for(i=0; i<GRID_SIZE; i++){
         double x = (double) i/(GRID_SIZE-1.0);
-        
+
         RR.slab.b = exp(min_b + (max_b-min_b) *x);
         for(j=0; j<GRID_SIZE; j++){
             @<Generate next albedo using j@>@;
-            
+
             fill_grid_entry(i,j);
         }
     }
@@ -791,14 +725,14 @@ change it from a square to a cube to get more global convergence.
 So why am I rewriting this?  Well, because it works very poorly for samples
 with small albedos.  For example, when $n=11$ then the values chosen for
 |a| are (1, .999, .992, .973, .936, .875, .784, .657, .488, .271, 0).
-Clearly very skewed towards high albedos.  
+Clearly very skewed towards high albedos.
 
 I am considering a two part division.  I'm not too sure how it should go.
 Let the first half be uniformly divided and the last half follow the
 cubic scheme given above.  The list of values should then be
 (1, .996, .968, .892, 0.744, .5, .4, .3, .2, .1, 0).
 
-Maybe it would be best if I just went back to a quadratic term.  
+Maybe it would be best if I just went back to a quadratic term.
 Who knows?
 
 In the |if| statement below, note that it could read |j>=k| and still
@@ -814,8 +748,8 @@ generate the same results.
                 RR.slab.a = 1.0-a*a*a/2;
             }
 
-@ Well, the above code did not work well.  So I futzed around and 
-sort of empirically ended up using the very simple method 
+@ Well, the above code did not work well.  So I futzed around and
+sort of empirically ended up using the very simple method
 below.  The only real difference from the previous method what
 that the method is now quadratic and not cubic.
 
@@ -823,9 +757,9 @@ that the method is now quadratic and not cubic.
             a = (double) j/(GRID_SIZE-1.0);
             if (a < 0.25)
                 RR.slab.a = 1.0-a*a;
-            else if (a > 0.75)              
+            else if (a > 0.75)
                 RR.slab.a = (1.0 - a) * (1.0 -a);
-            else 
+            else
                 RR.slab.a = 1 - a;
 
 @ Well, the above code has gaps.  Here is an attempt to eliminate the gaps
@@ -834,13 +768,13 @@ that the method is now quadratic and not cubic.
             a = (double) j/(GRID_SIZE-1.0);
             RR.slab.a = (1.0-a*a)*(1.0-a) + (1.0-a)*(1.0-a)*a;
 
-@ This is quite similar to |Fill_AB_Grid|, with the exception of the 
+@ This is quite similar to |Fill_AB_Grid|, with the exception of the
 little shuffle I do at the beginning to figure out the optical thickness to
 use.  The problem is that the optical thickness may not be known.  If it is
 known then the only way that we could have gotten here is if the user
 dictated |FIND_AG| and specified |b| and only provided two measurements.
 Otherwise, the user must have made three measurements and the optical
-depth can be figured out from |m.m_u|. 
+depth can be figured out from |m.m_u|.
 
 This routine could also be improved by not recalculating the anisotropy
 matrix for every point.  But this would only end up being a minor performance
@@ -851,7 +785,7 @@ void Fill_AG_Grid(struct measure_type m, struct invert_type r)
 
 @ @<Definition for |Fill_AG_Grid|@>=
     @<Prototype for |Fill_AG_Grid|@>
-{ 
+{
 int i,j;
 double a;
 
@@ -860,13 +794,13 @@ double a;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
-        
+
     Set_Calc_State(m,r);
     GG_b=r.slab.b;
     for(i=0; i<GRID_SIZE; i++){
         RR.slab.g =0.9999*(2.0*i/(GRID_SIZE-1.0)-1.0);
         for(j=0; j<GRID_SIZE; j++){
-        
+
             @<Generate next albedo using j@>@;
             fill_grid_entry(i,j);
         }
@@ -884,7 +818,7 @@ GG_bs = 0.0;
 GG_ba = 0.0;
 
 
-@ This is quite similar to |Fill_AB_Grid|, with the exception of the 
+@ This is quite similar to |Fill_AB_Grid|, with the exception of the
 that the albedo is held fixed while $b$ and $g$ are varied.
 
 This routine could also be improved by not recalculating the anisotropy
@@ -896,12 +830,12 @@ void Fill_BG_Grid(struct measure_type m, struct invert_type r)
 
 @ @<Definition for |Fill_BG_Grid|@>=
     @<Prototype for |Fill_BG_Grid|@>
-{ 
+{
 int i,j;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
-    
+
     if (Debug(DEBUG_GRID))
         fprintf(stderr, "Filling BG grid\n");
 
@@ -909,7 +843,7 @@ int i,j;
     RR.slab.b = 1.0/32.0;
     RR.slab.a = RR.default_a;
     GG_a = RR.slab.a;
-    
+
     for(i=0; i<GRID_SIZE; i++){
         RR.slab.b *=2;
         for(j=0; j<GRID_SIZE; j++){
@@ -922,7 +856,7 @@ The_Grid_Initialized=TRUE;
 The_Grid_Search = FIND_BG;
 }
 
-@ This is quite similar to |Fill_BG_Grid|, with the exception of the 
+@ This is quite similar to |Fill_BG_Grid|, with the exception of the
 that the $b_s=\mu_s d$ is held fixed.  Here $b$ and $g$ are varied
 on the usual grid, but the albedo is forced to take whatever value
 is needed to ensure that the scattering constant remains fixed.
@@ -932,7 +866,7 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
 
 @ @<Definition for |Fill_BaG_Grid|@>=
     @<Prototype for |Fill_BaG_Grid|@>
-{ 
+{
 int i,j;
 double bs, ba;
 
@@ -950,7 +884,7 @@ double bs, ba;
         ba *=2;
         ba = exp((double) i/(GRID_SIZE-1.0)*log(1024.0))/16.0;
         RR.slab.b = ba+bs;
-        if (RR.slab.b>0) 
+        if (RR.slab.b>0)
             RR.slab.a = bs/RR.slab.b;
         else
             RR.slab.a = 0;
@@ -971,13 +905,13 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
 
 @ @<Definition for |Fill_BsG_Grid|@>=
     @<Prototype for |Fill_BsG_Grid|@>
-{ 
+{
 int i,j;
 double bs, ba;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
-    
+
     Set_Calc_State(m,r);
     bs = 1.0/32.0;
     ba = RR.default_ba;
@@ -985,7 +919,7 @@ double bs, ba;
     for(i=0; i<GRID_SIZE; i++){
         bs *=2;
         RR.slab.b = ba+bs;
-        if (RR.slab.b>0) 
+        if (RR.slab.b>0)
             RR.slab.a = bs/RR.slab.b;
         else
             RR.slab.a = 0;
@@ -1004,26 +938,26 @@ void Fill_Grid(struct measure_type m, struct invert_type r, int force_new)
 
 @ @<Definition for |Fill_Grid|@>=
     @<Prototype for |Fill_Grid|@>
-{ 
+{
     if (force_new || !Same_Calc_State(m,r)) {
         switch (r.search) {
             case FIND_AB:
                 if (Debug(DEBUG_SEARCH)) fprintf(stderr,"filling AB Grid\n");
                 Fill_AB_Grid(m,r);
                 break;
-            case FIND_AG: 
+            case FIND_AG:
                 if (Debug(DEBUG_SEARCH)) fprintf(stderr,"filling AG Grid\n");
                 Fill_AG_Grid(m,r);
                 break;
-            case FIND_BG: 
+            case FIND_BG:
                 if (Debug(DEBUG_SEARCH)) fprintf(stderr,"filling BG Grid\n");
                 Fill_BG_Grid(m,r);
                 break;
-            case FIND_BaG: 
+            case FIND_BaG:
                 if (Debug(DEBUG_SEARCH)) fprintf(stderr,"filling BaG Grid\n");
                 Fill_BaG_Grid(m,r);
                 break;
-            case FIND_BsG: 
+            case FIND_BsG:
                 if (Debug(DEBUG_SEARCH)) fprintf(stderr,"filling BsG Grid\n");
                 Fill_BsG_Grid(m,r);
                 break;
@@ -1042,7 +976,7 @@ void Fill_Grid(struct measure_type m, struct invert_type r, int force_new)
 values in |MM| and the calculated values for the current
 guess at the optical properties.  It
 assumes that the everything in the local variables |MM| and |RR| have
-been set appropriately.  
+been set appropriately.
 
 @<Prototype for |Calculate_Distance|@>=
 void Calculate_Distance(double *M_R, double *M_T, double *deviation)
@@ -1052,26 +986,26 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
 {
     double Rc, Tc, ur1, ut1, uru, utu;
 
-    if (RR.slab.b <= 1e-6 ) 
+    if (RR.slab.b <= 1e-6 )
         RR.slab.b = 1e-6;
 
-    if (0 && Debug(DEBUG_EVERY_CALC)) 
+    if (0 && Debug(DEBUG_EVERY_CALC))
         fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
-                
+
     RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
-    
-    if (0 && Debug(DEBUG_EVERY_CALC)) 
+
+    if (0 && Debug(DEBUG_EVERY_CALC))
         fprintf(stderr, "ur1=%8.5f ut1=%8.5f (not M_R and M_T!)\n", ur1, ut1);
 
-    Sp_mu_RT_Flip(MM.flip_sample, 
-             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide, 
-             RR.slab.b_top_slide, RR.slab.b,      RR.slab.b_bottom_slide, 
+    Sp_mu_RT_Flip(MM.flip_sample,
+             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
+             RR.slab.b_top_slide, RR.slab.b,      RR.slab.b_bottom_slide,
              RR.slab.cos_angle, &Rc, &Tc);
 
     if ((!CALCULATING_GRID && Debug(DEBUG_ITERATIONS)) ||
         ( CALCULATING_GRID && Debug(DEBUG_GRID_CALC)))
             fprintf(stderr, "        ");
-            
+
     Calculate_Distance_With_Corrections(ur1,ut1,Rc,Tc,uru,utu,M_R,M_T,deviation);
 }
 
@@ -1082,10 +1016,10 @@ double Calculate_Grid_Distance(int i, int j)
     @<Prototype for |Calculate_Grid_Distance|@>
 {
     double ur1,ut1,uru,utu,Rc,Tc,b,dev,LR,LT;
-    
-    if (Debug(DEBUG_GRID_CALC)) 
+
+    if (Debug(DEBUG_GRID_CALC))
         fprintf(stderr, "g %2d %2d ",i,j);
-        
+
     b   = The_Grid[GRID_SIZE*i+j][B_COLUMN];
     ur1 = The_Grid[GRID_SIZE*i+j][UR1_COLUMN];
     ut1 = The_Grid[GRID_SIZE*i+j][UT1_COLUMN];
@@ -1094,23 +1028,23 @@ double Calculate_Grid_Distance(int i, int j)
     RR.slab.a = The_Grid[GRID_SIZE*i+j][A_COLUMN];
     RR.slab.b = The_Grid[GRID_SIZE*i+j][B_COLUMN];
     RR.slab.g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
-    
+
     Sp_mu_RT_Flip(MM.flip_sample,
-             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide, 
-             RR.slab.b_top_slide, b,      RR.slab.b_bottom_slide, 
+             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
+             RR.slab.b_top_slide, b,      RR.slab.b_bottom_slide,
              RR.slab.cos_angle, &Rc, &Tc);
 
     CALCULATING_GRID = 1;
     Calculate_Distance_With_Corrections(ur1,ut1,Rc,Tc,uru,utu,&LR,&LT,&dev);
     CALCULATING_GRID = 0;
-    
+
     return dev;
 }
 
 @ This is the routine that actually finds the distance.  I have factored
 this part out so that it can be used in the |Near_Grid_Points| routine.
 
-|Rc| and |Tc| refer to the unscattered (collimated) reflection and transmission.  
+|Rc| and |Tc| refer to the unscattered (collimated) reflection and transmission.
 
 The only tricky part is to remember that the we are trying to match the
 measured values.  The measured values are affected by sphere parameters
@@ -1121,9 +1055,9 @@ modified |UR1| and |UT1| to values for |*M_R| and |*M_T|.
 
 @<Prototype for |Calculate_Distance_With_Corrections|@>=
 void Calculate_Distance_With_Corrections(
-                double UR1, double UT1, 
-                double Rc,  double Tc, 
-                double URU, double UTU, 
+                double UR1, double UT1,
+                double Rc,  double Tc,
+                double URU, double UTU,
                 double *M_R, double *M_T, double *dev)
 
 @ @<Definition for |Calculate_Distance_With_Corrections|@>=
@@ -1133,7 +1067,7 @@ void Calculate_Distance_With_Corrections(
 
     R_diffuse = URU - MM.uru_lost;
     T_diffuse = UTU - MM.utu_lost;
-    
+
     R_direct = UR1 - MM.ur1_lost - (1.0 - MM.fraction_of_rc_in_mr) * Rc;
     T_direct = UT1 - MM.ut1_lost - (1.0 - MM.fraction_of_tc_in_mt) * Tc;
 
@@ -1143,16 +1077,16 @@ void Calculate_Distance_With_Corrections(
             break;
 
         case 1:
-            if (MM.method == COMPARISON)
+            if (MM.method == COMPARISON) {
                 @<Calc |M_R| and |M_T| for dual beam sphere@>@;
-            else
+            } else {
                 @<Calc |M_R| and |M_T| for single beam sphere@>@;
-            break;
+            }break;
 
         case 2:
             @<Calc |M_R| and |M_T| for two spheres@>@;
             break;
-        
+
         default:
             fprintf(stderr, "Bad number of spheres = %d\n", MM.num_spheres);
     }
@@ -1174,48 +1108,114 @@ transmission is only modified for collimated irradiance.
     *M_R = R_direct;
     *M_T = T_direct;
 }
-        
-@ The direct incident power is $(1-f) P$. The reflected power will 
-be $(1-f)\rdirect P$.  Since baffles ensure that the light cannot
-reach the detector, we must bounce the light off the sphere walls to
-use to above gain formulas.  The contribution will then be 
-$(1-f) \rdirect (1-a_e) r_w P$.  The measured power will be 
-$$
-P_d = a_d (1-a_e) r_w [(1-f) \rdirect + f r_w] P \cdot G(r_s)
-$$
-Similarly the power falling on the detector measuring transmitted light is
-$$
-P_d'= a_d' \tdirect r_w'  (1-a_e')  P \cdot G'(r_s)
-$$
-when the `entrance' port in the transmission sphere is closed, $a_e'=0$.
 
-The normalized sphere measurements are
+@ Define a bunch of temporary variable names
+
+@<Calc |M_R| and |M_T| for single beam sphere@>=
+    double P_std, P, P_0, G, G_0, G_std;
+    int tmp;
+
+@ In a reflection experiment, some fraction $f$ of the incident light $P_i$ might
+hit the wall first.  Thus the incident power on the sample is $(1-f) P_i$ and
+the incident power on the sphere wall will be $f P_i$.  The diffuse reflection
+entering the sphere depends on the presence of a baffle.
+
+If a baffle is present then
+$$
+P_d = [a_d (1-a_e) r_w P_i] (\rdirect * (1-f) + r_w f) G(r_s)
+$$
+and when there is no baffle
+$$
+P_d = [a_d P_i] (\rdirect * (1-f) + r_w f) G(r_s)
+$$
+Since the quantities in square brackets are identical for
+$R(\rdirect,r_s)$, $R(0,0)$, and $R(r_\std,r_\std)$ and they all cancel out
+when calculating the normalized reflection measurement
 $$
 M_R = r_\std\cdot{R(\rdirect,r_s)-R(0,0) \over R(r_\std,r_\std)-R(0,0)}
 $$
-and
-$$
-M_T = t_\std\cdot{T(\tdirect,r_s)-T(0,0) \over T(t_\std,r_\std)-T(0,0)}
-$$
+This leads to the following code for |M_R|
 
 @<Calc |M_R| and |M_T| for single beam sphere@>=
-{
-    double P_std, P_d, P_0;
-    double G, G_0, G_std, GP_std, GP;
-    
+
     G_0      = Gain(REFLECTION_SPHERE, MM, 0.0);
     G        = Gain(REFLECTION_SPHERE, MM, R_diffuse);
     G_std    = Gain(REFLECTION_SPHERE, MM, MM.rstd_r);
-    
-    P_d      = G     * (R_direct  * (1-MM.f_r) + MM.f_r*MM.rw_r);
-    P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r*MM.rw_r);
-    P_0      = G_0   * (                         MM.f_r*MM.rw_r);   
-    *M_R     = MM.rstd_r * (P_d - P_0)/(P_std - P_0);
 
-    GP       = Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
-    GP_std   = Gain(TRANSMISSION_SPHERE, MM, 0.0);
-    *M_T     = T_direct * GP / GP_std;
-}
+    P        = G     * (R_direct  * (1-MM.f_r) + MM.f_r*MM.rw_r);
+    P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r*MM.rw_r);
+    P_0      = G_0   * (                         MM.f_r*MM.rw_r);
+    *M_R     = MM.rstd_r * (P - P_0)/(P_std - P_0);
+
+@ In a transmission experiment, the calculations are simpler and harder.  First,
+the value of $T(0,0) = 0$ because computationally, there is no dark noise in
+the detector nor any possible light leakage from the outside into the
+sphere.  This simplifies
+$$
+M_T = r_0 \cdot{T(\tdirect,r_s)-T(0,0) \over T(t_\std,r_\std)-T(0,0)}
+$$
+to
+$$
+M_T = r_0 \cdot {T(\tdirect,r_s) \over T(t_\std,r_\std)}
+$$
+where $r_0$ might be $r_\std$ or $r_w$ for the transmission sphere.
+
+We do not need to worry about some fraction of the incident light $P_i$
+hitting the sphere wall before interacting with the sample.
+
+Finally, if the transmission sphere has a baffle present for the sample measurement,
+then it is no longer in the right place and diffuse light entering the sphere is
+just $[a_d P_i] r_0$
+
+When a baffle is present then the light falling on the detector in a transmission
+experiment is
+$$
+P_d = [a_d P_i] (1-a_e) r_w \tdirect G(r_s)
+$$
+and with no baffle
+$$
+P_d = [a_d P_i] \tdirect G(r_s)
+$$
+
+The normalization $T(t_\std,r_\std)$ can be measured in two ways.  The most
+common is that the empty port is filled with a white port cover whose reflectance
+matches the rest of the sphere. The empty port has zero area for both the
+sample and standard measurements.
+$$
+P_\std = [a_d P_i] r_0 G(0)
+$$
+
+The second way is when there is an empty port in the sphere (perhaps to allow
+the unscattered light to leave).  In any case, the calibration experiment removes
+the sample and covers the empty port with a reflection standard.  In this case,
+the roles of the sample and empty ports have switched.  Consequently the areas of
+the sample and empty ports must be swapped before the gain is calculated.
+
+$$
+P_\std = [a_d P_i] r_\std G(r_\std)
+$$
+
+Note that $r_w$ or $r_\std$ in $P_\std$ term cancel with $r_0$ when calculating $M_T$.
+Further, the quantities $a_d P_i$ also cancel.
+
+
+@<Calc |M_R| and |M_T| for single beam sphere@>=
+
+    P = T_direct * Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
+    if (MM.baffle_t)
+        P *= (1-MM.ae_t) * MM.rw_t;
+
+    tmp = MM.baffle_t;
+    MM.baffle_t = FALSE;
+    if (MM.ae_t == 0) {
+        P_std = Gain(TRANSMISSION_SPHERE, MM, 0);
+    } else {
+        SWAP(MM.ae_t, MM.as_t);
+        P_std = Gain(TRANSMISSION_SPHERE, MM, MM.rstd_t);
+        SWAP(MM.ae_t, MM.as_t);
+    }
+    MM.baffle_t = tmp;
+    *M_T  = P / P_std;
 
 @ The dual beam case is different because the sphere efficiency
 is equivalent for measurement of light hitting the sample first or
@@ -1254,8 +1254,6 @@ calculations are made and therefore that is a potential error.
 @ When two integrating spheres are present then the
 double integrating sphere formulas are slightly more complicated.
 
-I am not sure what it means when |rstd_t| is not unity.
-
 The normalized sphere measurements for two spheres are
 
 $$
@@ -1269,7 +1267,7 @@ M_T = {T(\rdirect,\rdiffuse,\tdirect,\tdiffuse) - T(0,0,0,0)
 $$
 
 Note that |R_0| and |T_0| will be zero unless one has explicitly
-set the fraction |m.f_r| ore |m.f_t| to be non-zero.
+set the fraction |m.f_r| or |m.f_t| to be non-zero.
 
 @<Calc |M_R| and |M_T| for two spheres@>=
 {
@@ -1282,15 +1280,15 @@ T_0 = Two_Sphere_T(MM, 0, 0, 0, 0);
 *M_T =  (Two_Sphere_T(MM, R_direct, R_diffuse, T_direct, T_diffuse) - T_0)/
                    (Two_Sphere_T(MM, 0, 0, 1, 1) - T_0);
 }
-    
+
 @ There are at least three things that need to be considered here.
-First, the number of measurements.  Second, is the metric is relative or absolute.  
+First, the number of measurements.  Second, is the metric is relative or absolute.
 And third, is the albedo fixed at zero which means that the transmission
 measurement should be used instead of the reflection measurement.
 
 @<Calculate the deviation@>=
 
-if (RR.search==FIND_A  || RR.search==FIND_G || RR.search==FIND_B || 
+if (RR.search==FIND_A  || RR.search==FIND_G || RR.search==FIND_B ||
     RR.search==FIND_Bs || RR.search == FIND_Ba) {
         @<One parameter deviation@>@;
 } else {
@@ -1301,20 +1299,20 @@ if (RR.search==FIND_A  || RR.search==FIND_G || RR.search==FIND_B ||
 decide if the transmission or the reflection was trustworthy.  After
 looking a bunches of measurements, I decided that the transmission
 measurement was almost always more reliable.  So when there is just
-a single measurement known, then use the total transmission if it 
+a single measurement known, then use the total transmission if it
 exists.
 
 @<One parameter deviation@>=
 
 if ( MM.m_t > 0 ){
-    if (RR.metric == RELATIVE) 
+    if (RR.metric == RELATIVE)
         *dev = fabs(MM.m_t - *M_T) / (MM.m_t + ABIT);
-    else 
+    else
         *dev = fabs(MM.m_t - *M_T) ;
 } else {
-    if (RR.metric == RELATIVE) 
+    if (RR.metric == RELATIVE)
         *dev = fabs(MM.m_r - *M_R) / (MM.m_r + ABIT);
-    else 
+    else
         *dev = fabs(MM.m_r - *M_R) ;
 }
 
@@ -1330,29 +1328,29 @@ both.  The albedo stuff might be able to be take out.  We'll see.
         if (MM.m_t > ABIT)
             *dev = T_TRUST_FACTOR* fabs(MM.m_t - *M_T) / (MM.m_t + ABIT);
         if ( RR.default_a != 0 )
-            *dev += fabs(MM.m_r - *M_R) / (MM.m_r + ABIT);          
+            *dev += fabs(MM.m_r - *M_R) / (MM.m_r + ABIT);
     } else {
         *dev = T_TRUST_FACTOR * fabs(MM.m_t - *M_T);
         if ( RR.default_a != 0 )
-            *dev += fabs(MM.m_r - *M_R);            
-    } 
+            *dev += fabs(MM.m_r - *M_R);
+    }
 
 
 @ This is here so that I can figure out why the program is not converging.
   This is a little convoluted so that the global constants at the top of
-  this file interact properly.  
-  
+  this file interact properly.
+
 @<Print diagnostics@>=
 if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || @|
     (Debug(DEBUG_GRID_CALC)  &&  CALCULATING_GRID)) {
     static int once;
-    
+
     if (once != MM.lambda) {
             fprintf(stderr, "%10s %10s %10s | %7s %7s | %7s %7s |%8s\n        ",
                     "a", "b", "g", "m_r", "fit", "m_t", "fit", "delta");
             once = MM.lambda;
         }
-    
+
     fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
     fprintf(stderr, " %7.5f %7.5f |", MM.m_r, *M_R);
     fprintf(stderr, " %7.5f %7.5f |", MM.m_t, *M_T);
@@ -1423,7 +1421,7 @@ double Find_Bs_fn(double x)
     bs        = bcalc2b(x);
     RR.slab.b = ba+bs;
     RR.slab.a = bs/(ba+bs);
-     
+
     Calculate_Distance(&m_r,&m_t,&deviation);
 
     RR.slab.b = ba;         /* swindle */
@@ -1497,11 +1495,11 @@ double Find_BaG_fn(double x[])
     RR.slab.b = bcalc2b(x[1])+RR.default_bs;
     if (RR.slab.b<=0 )
         RR.slab.a = 0;
-    else 
+    else
         RR.slab.a = RR.default_bs/RR.slab.b;
-        
+
     RR.slab.g = gcalc2g(x[2]);
-    
+
     Calculate_Distance(&m_r,&m_t,&deviation);
     return deviation;
 }
@@ -1517,9 +1515,9 @@ double Find_BsG_fn(double x[])
     RR.slab.b = bcalc2b(x[1])+RR.default_ba;
     if (RR.slab.b<=0 )
         RR.slab.a = 0;
-    else 
+    else
         RR.slab.a = 1.0 - RR.default_ba/RR.slab.b;
-        
+
     RR.slab.g = gcalc2g(x[2]);
     Calculate_Distance(&m_r,&m_t,&deviation);
     return deviation;
@@ -1539,18 +1537,18 @@ double maxloss(double f)
     struct measure_type m_old;
     struct invert_type r_old;
     double m_r, m_t, deviation;
-    
+
     Get_Calc_State(&m_old, &r_old);
-    
+
     RR.slab.a = 1.0;
     MM.ur1_lost *= f;
     MM.ut1_lost *= f;
-    
+
     Calculate_Distance(&m_r,&m_t,&deviation);
-    
+
     Set_Calc_State(m_old, r_old);
     deviation = ( (MM.m_r + MM.m_t) - ( m_r + m_t ) );
-    
+
     return deviation;
 }
 
@@ -1560,7 +1558,7 @@ these values are replaced by a couple that are the maximum possible
 for the current values in |m| and |r|.
 
 @<Prototype for |Max_Light_Loss|@>=
-void Max_Light_Loss(struct measure_type m, struct invert_type r, 
+void Max_Light_Loss(struct measure_type m, struct invert_type r,
                     double *ur1_loss, double *ut1_loss)
 
 @ @<Definition for |Max_Light_Loss|@>=
@@ -1568,25 +1566,25 @@ void Max_Light_Loss(struct measure_type m, struct invert_type r,
 {
     struct measure_type m_old;
     struct invert_type r_old;
-    
+
     *ur1_loss = m.ur1_lost;
     *ut1_loss = m.ut1_lost;
-    
+
     if (Debug(DEBUG_LOST_LIGHT))
         fprintf(stderr, "\nlost before ur1=%7.5f, ut1=%7.5f\n", *ur1_loss, *ut1_loss);
-    
+
     Get_Calc_State(&m_old, &r_old);
-    
+
     Set_Calc_State(m, r);
-    
+
     if (maxloss(1.0) * maxloss(0.0) < 0) {
         double frac;
         frac = zbrent(maxloss,0.00,1.0,0.001);
-    
+
         *ur1_loss = m.ur1_lost * frac;
         *ut1_loss = m.ut1_lost * frac;
     }
-    
+
     Set_Calc_State(m_old, r_old);
     if (Debug(DEBUG_LOST_LIGHT))
         fprintf(stderr, "lost after  ur1=%7.5f, ut1=%7.5f\n", *ur1_loss, *ut1_loss);
@@ -1610,7 +1608,7 @@ typedef struct {
   double Exact_coll_flag;
 } slabtype;
 @#
-static void DE_RT(int nfluxes, AD_slab_type slab, 
+static void DE_RT(int nfluxes, AD_slab_type slab,
 double *UR1, double *UT1, double *URU, double *UTU)
 {
     slabtype s;
