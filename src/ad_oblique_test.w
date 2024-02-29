@@ -21,7 +21,6 @@ code.
 #include "ad_cone.h"
 
 @<Definition for |PrintTestResults|@>@;
-@<Definition for |PrintUnityResults|@>@;
 @<Definition for |RT_Oblique_Main|@>@;
     
 @ A simple utility routine to print the results nicely.
@@ -44,40 +43,6 @@ static void PrintTestResults(int test, int cas, struct AD_slab_type *slab,
     printf("UT1     %10.5f    %10.5f\n", aUT1, bUT1);
     printf("URU     %10.5f    %10.5f\n", aURU, bURU);
     printf("UTU     %10.5f    %10.5f\n", aUTU, bUTU);
-}
-
-@ A simple utility routine to print the results nicely.
-@<Definition for |PrintUnityResults|@>=
-static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
-            double aUR1, double aUT1, double aURU, double aUTU,
-            double bUR1, double bUT1, double bURU, double bUTU)
-{
-    double denom = 1 - (slab->cos_angle) * (slab->cos_angle);
-    
-    printf("\nTest:%d.%d\n", test, cas);
-    printf("Cone angle           %10.5f\n", acos(slab->cos_angle)*180.0/M_PI);
-    printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
-    printf("Albedo               %10.5f\n", slab->a);
-    printf("Optical Depth        %10.5f\n", slab->b);
-    printf("Anisotropy           %10.5f\n", slab->g);
-    printf("Index for slab       %10.5f\n", slab->n_slab);
-    printf("Index for top slide  %10.5f\n", slab->n_top_slide);
-    printf("Index for bot slide  %10.5f\n", slab->n_bottom_slide);
-    printf("            truth        cone\n");
-    printf("UR1               %10.5f\n", aUR1);
-    printf("UT1               %10.5f\n", aUT1);
-    printf("UR1+UT1                  %10.5f\n", aUR1+aUT1);
-    printf("URU               %10.5f\n", aURU);
-    printf("UTU               %10.5f\n", aUTU);
-    printf("URU+UTU                  %10.5f\n", aURU+aUTU);
-    printf("rc + rd/(1-mu^2) = %10.5f\n", bUR1 - (bUR1-aUR1)/denom);
-    printf("tc + td/(1-mu^2) = %10.5f\n", bUT1 - (bUT1-aUT1)/denom);
-    printf("           total = %10.5f\n", bUR1 - (bUR1-aUR1)/denom + 
-                                      bUT1 - (bUT1-aUT1)/denom);
-    printf("rc + rd/(1-mu^2) = %10.5f\n", bURU - (bURU-aURU)/denom);
-    printf("tc + td/(1-mu^2) = %10.5f\n", bUTU - (bUTU-aUTU)/denom);
-    printf("           total = %10.5f\n", bURU - (bURU-aURU)/denom + 
-                                      bUTU - (bUTU-aUTU)/denom);
 }
 
 @ @<Definition for |RT_Oblique_Main|@>=
