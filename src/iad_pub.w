@@ -625,7 +625,7 @@ void Initialize_Measure(struct measure_type *m)
     @<Prototype for |Initialize_Measure|@>
 {
     double default_sphere_d   = 8.0 * 25.4;
-    double default_sample_d   = 0.0 * 25.4;
+    double default_sample_d   = 1.0 * 25.4;
     double default_detector_d = 0.1 * 25.4;
     double default_entrance_d = 0.5 * 25.4;
     double sphere_area = M_PI * default_sphere_d * default_sphere_d;
@@ -647,7 +647,11 @@ void Initialize_Measure(struct measure_type *m)
     m->fraction_of_rc_in_mr=1.0;
     m->fraction_of_tc_in_mt=1.0;
 
+    m->baffle_r=1;
+    m->baffle_t=1;
+
     m->flip_sample = 0;
+    m->gain_type = 0;
     
     m->m_r=0.0;
     m->m_t=0.0;
@@ -666,8 +670,8 @@ void Initialize_Measure(struct measure_type *m)
     m->d_sphere_t = default_sphere_d;
     m->as_t = m->as_r;
     m->ad_t = m->ad_r;
-    m->ae_t = m->ae_r;
-    m->aw_t = m->aw_r;
+    m->ae_t = 0;
+    m->aw_t = 1.0 - m->as_t - m->ad_t -m->ae_t;
     m->rd_t = 0.0;
     m->rw_t = 1.0;
     m->rstd_t = 1.0;
