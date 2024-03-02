@@ -2,7 +2,7 @@
 #  Makefile by Scott Prahl, Aug 2017
 #
 
-export VERSION = 3-14-6
+export VERSION = 3-15-0
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -26,7 +26,7 @@ export IAD_OBJ = src/iad_util.o  src/iad_calc.o src/iad_find.o src/iad_pub.o  sr
 
 export AD_OBJ  = src/nr_zbrak.o  src/ad_bound.o src/ad_doubl.o src/ad_frsnl.o src/ad_globl.o \
                  src/ad_matrx.o  src/ad_phase.o src/ad_prime.o src/ad_radau.o src/ad_start.o \
-                 src/ad_cone.o  src/ad_layers.o
+                 src/ad_cone.o   src/ad_layers.o
 
 export NR_OBJ  = src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnbrk.o \
                 src/nr_rtsaf.o  src/nr_util.o  src/nr_hj.o
@@ -236,11 +236,11 @@ veryshorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0
 	@echo "EXPECT	   0.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000	   0.0000"
 	$(IAD_EXECUTABLE) -V 0 -r 1
-	@echo "EXPECT	   1.0000	   0.9975	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000"
+	@echo "EXPECT	   1.0000	   1.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4
 	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.1217	   1.0000	   0.0000"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 2 0.95'
-	@echo "EXPECT	   0.2000	   0.2000	   0.0100	   0.0100	   0.9100	   7.6725	   0.0000"
+	@echo "EXPECT	   0.4000	   0.4000	   0.0100	   0.0100	   0.9100	   7.6725	   0.0000"
 
 test shorttest:
 	@echo "********* Basic tests ***********"
@@ -334,7 +334,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6221	   3.9698	  -0.6694"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4361	   4.5203	  -0.7631"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.7046	   4.3993	  -0.9166"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.4 -N 1.5
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4642	   4.4406	  -0.7512"
 	@echo "********* Constrain mu_s ************"
