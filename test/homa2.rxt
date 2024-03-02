@@ -15,14 +15,14 @@ IAD1   # Must be first four characters
 # Properties of reflectance measurement sphere
 60      # [mm] Sphere Diameter
 17.41   # [mm] Sample Port Diameter
-17.41   # [mm] Entrance Port Diameter
+17.41   # [mm] Empty Port Diameter
 13.12   # [mm] Detector Port Diameter
 0.98    # Reflectivity of the sphere wall
 
 # Properties of transmittance measurement sphere
 60      # [mm] Sphere Diameter
 17.41   # [mm] Sample Port Diameter
-17.41   # [mm] Entrance Port Diameter
+17.41   # [mm] Empty Port Diameter
 13.12   # [mm] Detector Port Diameter
 0.98    # Reflectivity of the sphere wall
 

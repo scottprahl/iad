@@ -16,14 +16,14 @@ IAD1   # Must be first four characters
       # Properties of sphere used for reflection measurements
 50.8   # [mm] Sphere Diameter
 12.5   # [mm] Sample Port Diameter
-12.5   # [mm] Entrance Port Diameter
+12.5   # [mm] Empty Port Diameter
 0.400  # [mm] Detector Port Diameter; Ocean fiber white/pink 400um
 0.99   # Reflectivity of the sphere wall
 
       # Properties of sphere used for transmission measurements
 50.8   # [mm] Sphere Diameter
 12.5   # [mm] Sample Port Diameter
-0      # [mm] Entrance Port Diameter; zero for single transmission sphere
+0      # [mm] Empty Port Diameter; zero for single transmission sphere
 0.400  # [mm] Detector Port Diameter; Ocean fiber white/pink 400um
 0.99   # Reflectivity of the sphere wall
 

@@ -15,14 +15,14 @@ IAD1
              # Refection sphere properties (unused because n_spheres=0)
 203.2        # [mm] Sphere Diameter
 25.4         # [mm] Sample Port Diameter
-12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Empty Port Diameter
 12.7         # [mm] Detector Port Diameter
 0.96         # Reflectivity of the sphere wall
 
              # Transmission sphere properties (unused because n_spheres=0)
 203.2        # [mm] Sphere Diameter
 25.4         # [mm] Sample Port Diameter
-12.7         # [mm] Entrance Port Diameter
+12.7         # [mm] Empty Port Diameter
 12.7         # [mm] Detector Port Diameter
 0.96         # Reflectivity of the sphere wall
 
