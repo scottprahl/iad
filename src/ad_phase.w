@@ -8,6 +8,7 @@ This is the place to put code to implement other phase functions.
 \def\qandq{\qquad{\rm and}\qquad}
 
 @(ad_phase.c@>=
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 #include "nr_util.h"
@@ -303,3 +304,4 @@ all the symmetries present.
 @ @<Free |p| and |chi|@>=
     free_dmatrix(p, 0, n, -n, n);
     free_dvector(chi, 1, n);
+
