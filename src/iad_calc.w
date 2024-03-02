@@ -34,6 +34,7 @@
 #define TRANSMISSION_SPHERE 0
 #define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
+#define MAX_ABS_G 0.999999
 
 #define SWAP(a,b) {double swap=(a);(a)=(b);(b)=swap;}
 
@@ -699,11 +700,9 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     GG_g = RR.slab.g;
     for(i=0; i<GRID_SIZE; i++){
         double x = (double) i/(GRID_SIZE-1.0);
-
         RR.slab.b = exp(min_b + (max_b-min_b) *x);
         for(j=0; j<GRID_SIZE; j++){
             @<Generate next albedo using j@>@;
-
             fill_grid_entry(i,j);
         }
     }
@@ -748,21 +747,7 @@ generate the same results.
                 RR.slab.a = 1.0-a*a*a/2;
             }
 
-@ Well, the above code did not work well.  So I futzed around and
-sort of empirically ended up using the very simple method
-below.  The only real difference from the previous method what
-that the method is now quadratic and not cubic.
-
-@<Generate next albedo using j@>=
-            a = (double) j/(GRID_SIZE-1.0);
-            if (a < 0.25)
-                RR.slab.a = 1.0-a*a;
-            else if (a > 0.75)
-                RR.slab.a = (1.0 - a) * (1.0 -a);
-            else
-                RR.slab.a = 1 - a;
-
-@ Well, the above code has gaps.  Here is an attempt to eliminate the gaps
+@ Here is heuristic that seems to work well
 
 @<Generate next albedo using j@>=
             a = (double) j/(GRID_SIZE-1.0);
@@ -798,7 +783,7 @@ double a;
     Set_Calc_State(m,r);
     GG_b=r.slab.b;
     for(i=0; i<GRID_SIZE; i++){
-        RR.slab.g =0.9999*(2.0*i/(GRID_SIZE-1.0)-1.0);
+        RR.slab.g =MAX_ABS_G*(2.0*i/(GRID_SIZE-1.0)-1.0);
         for(j=0; j<GRID_SIZE; j++){
 
             @<Generate next albedo using j@>@;
@@ -847,7 +832,7 @@ int i,j;
     for(i=0; i<GRID_SIZE; i++){
         RR.slab.b *=2;
         for(j=0; j<GRID_SIZE; j++){
-            RR.slab.g =0.9999*(2.0*j/(GRID_SIZE-1.0)-1.0);
+            RR.slab.g =MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
             fill_grid_entry(i,j);
         }
     }
@@ -889,7 +874,7 @@ double bs, ba;
         else
             RR.slab.a = 0;
         for(j=0; j<GRID_SIZE; j++){
-            RR.slab.g = 0.9999*(2.0*j/(GRID_SIZE-1.0)-1.0);
+            RR.slab.g = MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
             fill_grid_entry(i,j);
         }
     }
@@ -924,7 +909,7 @@ double bs, ba;
         else
             RR.slab.a = 0;
         for(j=0; j<GRID_SIZE; j++){
-            RR.slab.g = 0.9999*(2.0*j/(GRID_SIZE-1.0)-1.0);
+            RR.slab.g = MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
             fill_grid_entry(i,j);
         }
     }
@@ -1066,7 +1051,10 @@ void Calculate_Distance_With_Corrections(
     double R_direct, T_direct, R_diffuse, T_diffuse;
 
     R_diffuse = URU - MM.uru_lost;
+    if (R_diffuse < 0) R_diffuse = 0;
+
     T_diffuse = UTU - MM.utu_lost;
+    if (T_diffuse < 0) T_diffuse = 0;
 
     R_direct = UR1 - MM.ur1_lost - (1.0 - MM.fraction_of_rc_in_mr) * Rc;
     T_direct = UT1 - MM.ut1_lost - (1.0 - MM.fraction_of_tc_in_mt) * Tc;
@@ -1170,29 +1158,35 @@ just $[a_d P_i] r_0$
 When a baffle is present then the light falling on the detector in a transmission
 experiment is
 $$
-P_d = [a_d P_i] (1-a_e) r_w \tdirect G(r_s)
+P_d = T(\tdirect,r_s) = [a_d P_i] (1-a_e) r_w \tdirect G(r_s)
 $$
-and with no baffle
+and with no baffle present
 $$
-P_d = [a_d P_i] \tdirect G(r_s)
-$$
-
-The normalization $T(t_\std,r_\std)$ can be measured in two ways.  The most
-common is that the empty port is filled with a white port cover whose reflectance
-matches the rest of the sphere. The empty port has zero area for both the
-sample and standard measurements.
-$$
-P_\std = [a_d P_i] r_0 G(0)
+P_d = T(\tdirect,r_s) = [a_d P_i] \tdirect G(r_s)
 $$
 
-The second way is when there is an empty port in the sphere (perhaps to allow
-the unscattered light to leave).  In any case, the calibration experiment removes
-the sample and covers the empty port with a reflection standard.  In this case,
-the roles of the sample and empty ports have switched.  Consequently the areas of
-the sample and empty ports must be swapped before the gain is calculated.
+The normalization $T(t_\std,r_\std)$ can be measured in two ways.
 
+When transmission measurements are made, typically the empty port (the one that
+let the light into the sphere for the reflection measurement) is filled with a white
+port cover whose reflectance matches the rest of the sphere. In this case, the
+natural way to make the standard transmission measurement is to shine the beam through
+the empty sample port onto the back side of the sphere.  If the baffle was properly
+placed for the transmission experiment (between the sample port and the detector) then
+the calibration transmission measurement is now made in a sphere without a baffle. In addition,
+the beam is diffused only after bouncing off the sphere wall.  Therefore the power falling
+on the detector is
 $$
-P_\std = [a_d P_i] r_\std G(r_\std)
+P_\std = T(1.0, r_w) = [a_d P_i] r_w G(0)
+$$
+
+An alternate experiment is when there is an empty port in the sphere (perhaps to allow
+the unscattered light to leave).  In any case, the calibration measurement is done
+by removing the sample and placing the calibration standare in what used to be the empty
+port.  In this case, the roles of the sample and empty ports have switched.  Consequently,
+the areas of the sample and empty ports must be swapped before the gain is calculated.
+$$
+P_\std = T(1.0, r_\std) = [a_d P_i] r_\std G(r_\std)
 $$
 
 Note that $r_w$ or $r_\std$ in $P_\std$ term cancel with $r_0$ when calculating $M_T$.
@@ -1324,11 +1318,19 @@ both.  The albedo stuff might be able to be take out.  We'll see.
 @<Two parameter deviation@>=
 
     if (RR.metric == RELATIVE) {
+        double rc, tc;
+        Absorbing_Glass_RT(1.0,
+                           MM.slab_top_slide_index,
+                           MM.slab_index,
+                           MM.slab_cos_angle,
+                           MM.slab_top_slide_b, &rc, &tc);
+        rc *= MM.fraction_of_rc_in_mr;
         *dev = 0;
         if (MM.m_t > ABIT)
-            *dev = T_TRUST_FACTOR* fabs(MM.m_t - *M_T) / (MM.m_t + ABIT);
-        if ( RR.default_a != 0 )
-            *dev += fabs(MM.m_r - *M_R) / (MM.m_r + ABIT);
+            *dev = T_TRUST_FACTOR* fabs(MM.m_t - *M_T) / (T_diffuse + ABIT);
+        if ( RR.default_a != 0 ) {
+            *dev += fabs(MM.m_r - *M_R) / (R_diffuse + ABIT);
+        }
     } else {
         *dev = T_TRUST_FACTOR * fabs(MM.m_t - *M_T);
         if ( RR.default_a != 0 )
@@ -1354,7 +1356,11 @@ if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || @|
     fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
     fprintf(stderr, " %7.5f %7.5f |", MM.m_r, *M_R);
     fprintf(stderr, " %7.5f %7.5f |", MM.m_t, *M_T);
-    fprintf(stderr, "%8.5f \n", *dev);
+    fprintf(stderr, "%8.5f", *dev);
+    if (RR.metric == RELATIVE)
+        fprintf(stderr, " (relative)\n");
+    else
+        fprintf(stderr, " (absolute)\n");
 }
 
 @ @<Prototype for |Find_AG_fn|@>=
