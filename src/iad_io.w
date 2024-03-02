@@ -267,18 +267,22 @@ int check_magic(FILE *fp)
 
 @ @<Write general sphere info@>=
 
-        printf("#    Fraction unscattered refl. in M_R = %7.1f %%\n",
+        printf("#  Percentage unscattered refl. in M_R = %7.1f %%\n",
         m.fraction_of_rc_in_mr*100);
-        printf("#   Fraction unscattered trans. in M_T = %7.1f %%\n",
+        printf("# Percentage unscattered trans. in M_T = %7.1f %%\n",
         m.fraction_of_tc_in_mt*100);
         printf("# \n");
 
 @ @<Write first sphere info@>=
         printf("# Reflection sphere");
         if (m.baffle_r)
-            printf(" with baffle\n");
+            printf(" has a baffle between sample and detector ");
         else
-            printf(" without baffle\n");
+            printf(" has no baffle between sample and detector");
+        if (m.num_spheres > 0)
+            printf("\n");
+        else
+            printf(" (all ignored since no spheres used)\n");
         printf("#                      sphere diameter = %7.1f mm\n", m.d_sphere_r );
         printf("#                 sample port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.as_r) );
@@ -288,15 +292,19 @@ int check_magic(FILE *fp)
         2*m.d_sphere_r*sqrt(m.ad_r) );
         printf("#                 detector reflectance = %7.1f %%\n", m.rd_r*100 );
         printf("#                     wall reflectance = %7.1f %%\n", m.rw_r*100 );
-        printf("#       reference standard reflectance = %7.1f %%\n", m.rstd_r*100 );
+        printf("#                 calibration standard = %7.1f %%\n", m.rstd_r*100 );
         printf("#\n");
 
 @ @<Write second sphere info@>=
         printf("# Transmission sphere");
         if (m.baffle_t)
-            printf(" with baffle\n");
+            printf(" has a baffle between sample and detector ");
         else
-            printf(" without baffle\n");
+            printf(" has no baffle between sample and detector");
+        if (m.num_spheres > 0)
+            printf("\n");
+        else
+            printf(" (all ignored since no spheres used)\n");
         printf("#                      sphere diameter = %7.1f mm\n",
         m.d_sphere_t );
         printf("#                 sample port diameter = %7.1f mm\n",
@@ -306,10 +314,13 @@ int check_magic(FILE *fp)
         printf("#               detector port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ad_t) );
         printf("#                 detector reflectance = %7.1f %%\n", m.rd_t*100 );
-        printf("#                     wall reflectance = %7.1f %%\n", m.rw_t*100 );
-        printf("#       reference standard reflectance = %7.1f %%", m.rstd_t*100 );
+        printf("#                     wall reflectance = %7.1f %%", m.rw_t*100 );
         if (m.ae_t == 0)
-            printf(" (unused because empty port is closed)");
+            printf(" (cal std since empty port is closed)");
+        printf("\n");
+        printf("#                 calibration standard = %7.1f %%", m.rstd_t*100 );
+        if (m.ae_t == 0)
+            printf(" (ignored)");
         printf("\n");
 
 @ @<Write measure and inversion info@>=
