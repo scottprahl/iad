@@ -370,9 +370,9 @@ double g2gcalc(double g)
 @ @<Definition for |g2gcalc|@>=
 @<Prototype for |g2gcalc|@>
 {
-    if (g <= -1) return (-HUGE_VAL);
+    if (g <= -0.99999) return (-HUGE_VAL);
 
-    if (g >= 1) return (HUGE_VAL);
+    if (g >= 0.99999) return (HUGE_VAL);
 
     return (g / (1 - fabs(g)));
 }
@@ -388,8 +388,8 @@ double gcalc2g(double gcalc)
 @ @<Definition for |gcalc2g|@>=
 @<Prototype for |gcalc2g|@>
 {
-    if (gcalc == -HUGE_VAL) return -1.0;
-    if (gcalc ==  HUGE_VAL) return 1.0;
+    if (gcalc == -HUGE_VAL) return -0.99999;
+    if (gcalc ==  HUGE_VAL) return  0.99999;
     return (gcalc / (1 + fabs(gcalc)));
 }
 
