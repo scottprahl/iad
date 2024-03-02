@@ -1,6 +1,14 @@
 Changelog
 =========
 
+v3.15.0 (2 Mar 2024)
+--------------------
+*   support for spheres with no baffles
+*   better help message
+*   works better with extreme anisotropies
+*   clarify MT calculations
+*   improve header in output file
+
 v3.14.5 (5 Feb 2024)
 --------------------
 *   improve command line parameter handling
