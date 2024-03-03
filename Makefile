@@ -51,9 +51,9 @@ TEST =  test/Makefile       test/basic-A.rxt    test/basic-B.rxt      test/basic
         test/sevick-A.rxt   test/sevick-B.rxt   test/terse-A.rxt      test/terse-B.rxt    test/tio2_vis.rxt   \
         test/uterus.rxt     test/valid.bat      test/vio-A.rxt        test/vio-B.rxt      test/x_bad_data.rxt \
         test/ville1.rxt     test/fairway-A.rxt  test/fairway-B.rxt    test/fairway-C.rxt  test/fairway-D.rxt  \
-        test/fairway-E.rxt  test/basic-E.rxt
+        test/fairway-E.rxt  test/basic-E.rxt    test/combo_0.rxt
 
-WSRC =	src/ad.w            src/ad_frsnl.w       src/ad_prime.w        src/iad_io.w          \
+WSRC =  src/ad.w            src/ad_frsnl.w       src/ad_prime.w        src/iad_io.w          \
         src/ad_globl.w      src/ad_radau.w       src/iad_main.w                              \
         src/ad_bound.w      src/ad_layers.w      src/ad_start.w        src/iad_main_mus.w    \
         src/ad_chapter.w    src/ad_layers_test.w src/iad.w             src/iad_pub.w         \
