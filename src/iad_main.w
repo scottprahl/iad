@@ -138,6 +138,7 @@ int main (int argc, char **argv)
     double cl_rc_fraction = UNINITIALIZED;
     double cl_tc_fraction = UNINITIALIZED;
     double cl_gain_type   = UNINITIALIZED;
+    double cl_lambda      = UNINITIALIZED;
 
     double cl_search      = UNINITIALIZED;
     double cl_mus0        = UNINITIALIZED;
@@ -158,7 +159,7 @@ int main (int argc, char **argv)
 
     clock_t start_time=clock();
     char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xy:z";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:x:Xy:z";
 
 @ use the |getopt()| to process options.
 
@@ -385,6 +386,10 @@ int main (int argc, char **argv)
                     exit(EXIT_FAILURE);
                 }
                 cl_cos_angle = cos(cl_cos_angle*M_PI/180.0);
+                break;
+
+            case 'L':
+                cl_lambda = my_strtod(optarg);
                 break;
 
             case 'M':
@@ -993,6 +998,9 @@ properties can be determined.
     if (cl_baffle_t != UNINITIALIZED)
         m.baffle_t = cl_baffle_t;
 
+    if (cl_lambda != UNINITIALIZED)
+        m.lambda = cl_lambda;
+
 @ put the values for command line reflection and transmission into the measurement record.
 
 @<Count command-line measurements@>=
@@ -1068,7 +1076,8 @@ fprintf(stdout, "  -H #             # = 0, no baffles for R or T spheres\n");
 fprintf(stdout, "                   # = 1, baffle for R but not for T sphere\n");
 fprintf(stdout, "                   # = 2, baffle for T but not for R sphere\n");
 fprintf(stdout, "                   # = 3, baffle for both R and T spheres (default)\n");
-fprintf(stdout, "  -i #             light is incident at this angle in degrees\n");
+fprintf(stdout, "  -L #             specify the wavelength lambda\n");
+fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
 fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
 fprintf(stdout, "  -n #             specify index of refraction of slab\n");
 fprintf(stdout, "  -N #             specify index of refraction of slides\n");
