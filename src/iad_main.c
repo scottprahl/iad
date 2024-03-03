@@ -41,14 +41,10 @@ static void print_version(int verbosity)
     }
     else {
         fprintf(stdout, "iad %s\n", Version);
-        fprintf(stdout,
-            "Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu\n");
-        fprintf(stdout,
-            "          (see Applied Optics, 32:559-568, 1993)\n\n");
-        fprintf(stdout,
-            "This is free software; see the source for copying conditions.\n");
-        fprintf(stdout,
-            "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
+        fprintf(stdout, "Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu\n");
+        fprintf(stdout, "          (see Applied Optics, 32:559-568, 1993)\n\n");
+        fprintf(stdout, "This is free software; see the source for copying conditions.\n");
+        fprintf(stdout, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
         fprintf(stdout, "FOR A PARTICULAR PURPOSE.\n");
     }
 }
@@ -60,118 +56,81 @@ static void print_usage(void)
     fprintf(stdout, "Usage:  iad [options] input\n\n");
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "  -1 '# # # # #'   reflection sphere parameters \n");
-    fprintf(stdout,
-        "                   'd_sphere d d_sample_port d_empty_port d_detector_port r_wall'\n");
+    fprintf(stdout, "                   'd_sphere d d_sample_port d_empty_port d_detector_port r_wall'\n");
     fprintf(stdout, "  -2 '# # # # #'   transmission sphere parameters \n");
-    fprintf(stdout,
-        "                   'd_sphere d d_sample_port d_empty_port d_detector_port r_wall'\n");
+    fprintf(stdout, "                   'd_sphere d d_sample_port d_empty_port d_detector_port r_wall'\n");
     fprintf(stdout, "  -a #             use this albedo \n");
     fprintf(stdout, "  -A #             use this absorption coefficient \n");
     fprintf(stdout, "  -b #             use this optical thickness \n");
     fprintf(stdout, "  -B #             beam diameter \n");
     fprintf(stdout, "  -c #             fraction of unscattered refl in MR\n");
-    fprintf(stdout,
-        "  -C #             fraction of unscattered trans in MT\n");
+    fprintf(stdout, "  -C #             fraction of unscattered trans in MT\n");
     fprintf(stdout, "  -d #             thickness of sample \n");
     fprintf(stdout, "  -D #             thickness of slide \n");
     fprintf(stdout, "  -e #             error tolerance (default 0.0001) \n");
     fprintf(stdout, "  -E #             optical depth (=mua*D) for slides\n");
-    fprintf(stdout,
-        "  -f #             allow a fraction 0.0-1.0 of light to hit sphere wall first\n");
+    fprintf(stdout, "  -f #             allow a fraction 0.0-1.0 of light to hit sphere wall first\n");
     fprintf(stdout, "  -F #             constrain scattering coefficient \n");
-    fprintf(stdout,
-        "                   # = constant: use constant scattering coefficient \n");
-    fprintf(stdout,
-        "                   # = 'P lambda0 mus0 gamma' then mus=mus0*(lambda/lambda0)^gamma\n");
-    fprintf(stdout,
-        "                   # = 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma\n");
+    fprintf(stdout, "                   # = constant: use constant scattering coefficient \n");
+    fprintf(stdout, "                   # = 'P lambda0 mus0 gamma' then mus=mus0*(lambda/lambda0)^gamma\n");
+    fprintf(stdout, "                   # = 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma\n");
     fprintf(stdout, "  -g #             scattering anisotropy (default 0) \n");
-    fprintf(stdout,
-        "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
-    fprintf(stdout,
-        "                   '0' or '2'                --- number of slides\n");
+    fprintf(stdout, "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
+    fprintf(stdout, "                   '0' or '2'                --- number of slides\n");
     fprintf(stdout, "                   't' (top) or 'b' (bottom) \
 --- one slide that is hit by light first\n");
     fprintf(stdout, "                   'n' (near) or 'f' (far)   \
 --- one slide position relative to sphere\n");
     fprintf(stdout, "  -h               display help\n");
-    fprintf(stdout,
-        "  -H #             # = 0, no baffles for R or T spheres\n");
-    fprintf(stdout,
-        "                   # = 1, baffle for R but not for T sphere\n");
-    fprintf(stdout,
-        "                   # = 2, baffle for T but not for R sphere\n");
-    fprintf(stdout,
-        "                   # = 3, baffle for both R and T spheres (default)\n");
-    fprintf(stdout,
-        "  -i #             light is incident at this angle in degrees\n");
+    fprintf(stdout, "  -H #             # = 0, no baffles for R or T spheres\n");
+    fprintf(stdout, "                   # = 1, baffle for R but not for T sphere\n");
+    fprintf(stdout, "                   # = 2, baffle for T but not for R sphere\n");
+    fprintf(stdout, "                   # = 3, baffle for both R and T spheres (default)\n");
+    fprintf(stdout, "  -i #             light is incident at this angle in degrees\n");
     fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
-    fprintf(stdout,
-        "  -n #             specify index of refraction of slab\n");
-    fprintf(stdout,
-        "  -N #             specify index of refraction of slides\n");
-    fprintf(stdout,
-        "  -o filename      explicitly specify filename for output\n");
-    fprintf(stdout,
-        "  -p #             # of Monte Carlo photons (default 100000)\n");
-    fprintf(stdout,
-        "                   a negative number is max MC time in milliseconds\n");
-    fprintf(stdout,
-        "  -q #             number of quadrature points (default=8)\n");
+    fprintf(stdout, "  -n #             specify index of refraction of slab\n");
+    fprintf(stdout, "  -N #             specify index of refraction of slides\n");
+    fprintf(stdout, "  -o filename      explicitly specify filename for output\n");
+    fprintf(stdout, "  -p #             # of Monte Carlo photons (default 100000)\n");
+    fprintf(stdout, "                   a negative number is max MC time in milliseconds\n");
+    fprintf(stdout, "  -q #             number of quadrature points (default=8)\n");
     fprintf(stdout, "  -r #             total reflection measurement\n");
-    fprintf(stdout,
-        "  -R #             actual reflectance for 100%% measurement \n");
+    fprintf(stdout, "  -R #             actual reflectance for 100%% measurement \n");
     fprintf(stdout, "  -S #             number of spheres used\n");
     fprintf(stdout, "  -t #             total transmission measurement\n");
-    fprintf(stdout,
-        "  -T #             actual transmission for 100%% measurement \n");
-    fprintf(stdout,
-        "  -u #             unscattered transmission measurement\n");
+    fprintf(stdout, "  -T #             actual transmission for 100%% measurement \n");
+    fprintf(stdout, "  -u #             unscattered transmission measurement\n");
     fprintf(stdout, "  -v               version information\n");
-    fprintf(stdout,
-        "  -V 0             verbosity low --- no output to stdout\n");
+    fprintf(stdout, "  -V 0             verbosity low --- no output to stdout\n");
     fprintf(stdout, "  -V 1             verbosity moderate \n");
     fprintf(stdout, "  -V 2             verbosity high\n");
     fprintf(stdout, "  -x #             set debugging level\n");
     fprintf(stdout, "  -X               dual beam configuration\n");
     fprintf(stdout, "  -z               do forward calculation\n");
     fprintf(stdout, "Examples:\n");
-    fprintf(stdout,
-        "  iad file.rxt              Results will be put in file.txt\n");
+    fprintf(stdout, "  iad file.rxt              Results will be put in file.txt\n");
     fprintf(stdout, "  iad file                  Same as above\n");
     fprintf(stdout, "  iad -c 0.9 file.rxt       \
 Assume M_R includes 90%% of unscattered reflectance\n");
     fprintf(stdout, "  iad -C 0.8 file.rxt       \
 Assume M_T includes 80%% of unscattered transmittance\n");
-    fprintf(stdout,
-        "  iad -e 0.0001 file.rxt    Better convergence to R & T values\n");
-    fprintf(stdout,
-        "  iad -f 1.0 file.rxt       All light hits reflectance sphere wall first\n");
+    fprintf(stdout, "  iad -e 0.0001 file.rxt    Better convergence to R & T values\n");
+    fprintf(stdout, "  iad -f 1.0 file.rxt       All light hits reflectance sphere wall first\n");
     fprintf(stdout, "  iad -o out file.rxt       Calculated values in out\n");
-    fprintf(stdout,
-        "  iad -r 0.3                R_total=0.3, b=inf, find albedo\n");
-    fprintf(stdout,
-        "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b,g\n");
-    fprintf(stdout,
-        "  iad -r 0.3 -t 0.4 -n 1.5  R_total=0.3, T_total=0.4, n=1.5, find a,b\n");
-    fprintf(stdout,
-        "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b\n");
+    fprintf(stdout, "  iad -r 0.3                R_total=0.3, b=inf, find albedo\n");
+    fprintf(stdout, "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b,g\n");
+    fprintf(stdout, "  iad -r 0.3 -t 0.4 -n 1.5  R_total=0.3, T_total=0.4, n=1.5, find a,b\n");
+    fprintf(stdout, "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b\n");
     fprintf(stdout, "  iad -p 1000 file.rxt      Only 1000 photons\n");
-    fprintf(stdout,
-        "  iad -p -100 file.rxt      Allow only 100ms per iteration\n");
+    fprintf(stdout, "  iad -p -100 file.rxt      Allow only 100ms per iteration\n");
     fprintf(stdout, "  iad -q 4 file.rxt         Four quadrature points\n");
     fprintf(stdout, "  iad -M 0 file.rxt         No MC    (iad)\n");
-    fprintf(stdout,
-        "  iad -M 1 file.rxt         MC once  (iad -> MC -> iad)\n");
-    fprintf(stdout,
-        "  iad -M 2 file.rxt         MC twice (iad -> MC -> iad -> MC -> iad)\n");
+    fprintf(stdout, "  iad -M 1 file.rxt         MC once  (iad -> MC -> iad)\n");
+    fprintf(stdout, "  iad -M 2 file.rxt         MC twice (iad -> MC -> iad -> MC -> iad)\n");
     fprintf(stdout, "  iad -M 0 -q 4 file.rxt    Fast and crude conversion\n");
-    fprintf(stdout,
-        "  iad -G t file.rxt         One top slide with properties from file.rxt\n");
-    fprintf(stdout,
-        "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
-    fprintf(stdout,
-        "  iad -x   1 file.rxt       Show sphere and MC effects\n");
+    fprintf(stdout, "  iad -G t file.rxt         One top slide with properties from file.rxt\n");
+    fprintf(stdout, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
+    fprintf(stdout, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
     fprintf(stdout, "  iad -x   2 file.rxt       DEBUG_GRID\n");
     fprintf(stdout, "  iad -x   4 file.rxt       DEBUG_ITERATIONS\n");
     fprintf(stdout, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
@@ -182,10 +141,8 @@ Assume M_T includes 80%% of unscattered transmittance\n");
     fprintf(stdout, "  iad -x 256 file.rxt       DEBUG_RD_ONLY\n");
     fprintf(stdout, "  iad -x 512 file.rxt       DEBUG_GRID_CALC\n");
     fprintf(stdout, "  iad -x 1023 file.rxt      All debugging output\n");
-    fprintf(stdout,
-        "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
-    fprintf(stdout,
-        "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
+    fprintf(stdout, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
+    fprintf(stdout, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
     fprintf(stdout, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
     fprintf(stdout, "Report bugs to <scott.prahl@oit.edu>\n\n");
 }
@@ -222,8 +179,7 @@ static double my_strtod(const char *str)
     if (endptr == str) {
 
         fprintf(stderr, "Error in command-line\n");
-        fprintf(stderr, "    No conversion could be performed for `%s`.\n",
-            str);
+        fprintf(stderr, "    No conversion could be performed for `%s`.\n", str);
         exit(EXIT_FAILURE);
     }
 
@@ -252,8 +208,7 @@ static double seconds_elapsed(clock_t start_time)
 
 static void print_error_legend(void)
 {
-    fprintf(stderr,
-        "----------------- Sorry, but ... errors encountered ---------------\n");
+    fprintf(stderr, "----------------- Sorry, but ... errors encountered ---------------\n");
     fprintf(stderr, "   *  ==> Success          ");
     fprintf(stderr, "  0-9 ==> Monte Carlo Iteration\n");
     fprintf(stderr, "   R  ==> M_R is too big   ");
@@ -289,8 +244,7 @@ static char what_char(int err)
     return '?';
 }
 
-static void print_dot(clock_t start_time, int err, int count, int points,
-    int final, int verbosity, int *any_error)
+static void print_dot(clock_t start_time, int err, int count, int points, int final, int verbosity, int *any_error)
 {
     static int counter = 0;
     (void) count;
@@ -321,8 +275,7 @@ static void print_dot(clock_t start_time, int err, int count, int points,
     fflush(stderr);
 }
 
-static void Calculate_Mua_Musp(struct measure_type m,
-    struct invert_type r, double *musp, double *mua)
+static void Calculate_Mua_Musp(struct measure_type m, struct invert_type r, double *musp, double *mua)
 {
     if (r.b == HUGE_VAL) {
         if (r.a <= 1e-5) {
@@ -380,9 +333,7 @@ static int parse_string_into_array(char *s, double *a, int n)
 
         if (i == n) {
             if (a[i - 1] <= 0 || a[i - 1] > 1) {
-                fprintf(stderr,
-                    "Sphere wall reflectivity (r_w=%g) must be a fraction less than one.\n",
-                    a[i - 1]);
+                fprintf(stderr, "Sphere wall reflectivity (r_w=%g) must be a fraction less than one.\n", a[i - 1]);
                 exit(EXIT_FAILURE);
             }
             return 0;
@@ -396,32 +347,24 @@ static int parse_string_into_array(char *s, double *a, int n)
 
 static void print_results_header(FILE *fp)
 {
-    fprintf(fp,
-        "#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
+    fprintf(fp, "#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
     if (Debug(DEBUG_LOST_LIGHT))
-        fprintf(fp,
-            "\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
+        fprintf(fp, "\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
     fprintf(fp, "\n");
 
-    fprintf(fp,
-        "##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
+    fprintf(fp, "##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
     if (Debug(DEBUG_LOST_LIGHT))
-        fprintf(fp,
-            "\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
+        fprintf(fp, "\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
     fprintf(fp, "\n");
 
-    fprintf(fp,
-        "# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
+    fprintf(fp, "# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
     if (Debug(DEBUG_LOST_LIGHT))
-        fprintf(fp,
-            "\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
+        fprintf(fp, "\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
     fprintf(fp, "\n");
 }
 
 void print_optical_property_result(FILE *fp,
-    struct measure_type m,
-    struct invert_type r,
-    double LR, double LT, double mu_a, double mu_sp, int mc_iter, int line)
+    struct measure_type m, struct invert_type r, double LR, double LT, double mu_a, double mu_sp, int mc_iter, int line)
 {
     if (m.lambda != 0)
         fprintf(fp, "%6.1f\t", m.lambda);
@@ -512,8 +455,7 @@ int main(int argc, char **argv)
     };
 
     clock_t start_time = clock();
-    char command_line_options[] =
-        "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xy:z";
+    char command_line_options[] = "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:n:N:M:o:p:q:r:R:s:S:t:T:u:vV:x:Xy:z";
 
     while ((c = getopt(argc, argv, command_line_options)) != EOF) {
         int n;
@@ -527,11 +469,8 @@ int main(int argc, char **argv)
             parse_string_into_array(optarg, cl_sphere_one, 5);
             if (cl_sphere_one[4] == UNINITIALIZED) {
                 fprintf(stderr, "Error in command-line argument for -1\n");
-                fprintf(stderr,
-                    "    the current argument is '%s' but it must have 5 terms: ",
-                    tmp_str);
-                fprintf(stderr,
-                    "'d_sphere d_sample d_empty d_detector r_wall'\n");
+                fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
+                fprintf(stderr, "'d_sphere d_sample d_empty d_detector r_wall'\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -541,11 +480,8 @@ int main(int argc, char **argv)
             parse_string_into_array(optarg, cl_sphere_two, 5);
             if (cl_sphere_two[4] == UNINITIALIZED) {
                 fprintf(stderr, "Error in command-line argument for -2\n");
-                fprintf(stderr,
-                    "    the current argument is '%s' but it must have 5 terms: ",
-                    tmp_str);
-                fprintf(stderr,
-                    "'d_sphere d_sample d_empty d_detector r_wall'\n");
+                fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
+                fprintf(stderr, "'d_sphere d_sample d_empty d_detector r_wall'\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -590,8 +526,7 @@ int main(int argc, char **argv)
             cl_rc_fraction = my_strtod(optarg);
             if (cl_rc_fraction < 0.0 || cl_rc_fraction > 1.0) {
                 fprintf(stderr, "Error in command-line\n");
-                fprintf(stderr, "    unscattered refl fraction '-c %s'\n",
-                    optarg);
+                fprintf(stderr, "    unscattered refl fraction '-c %s'\n", optarg);
                 fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_SUCCESS);
             }
@@ -601,8 +536,7 @@ int main(int argc, char **argv)
             cl_tc_fraction = my_strtod(optarg);
             if (cl_tc_fraction < 0.0 || cl_tc_fraction > 1.0) {
                 fprintf(stderr, "Error in command-line\n");
-                fprintf(stderr, "    unscattered trans fraction '-C %s'\n",
-                    optarg);
+                fprintf(stderr, "    unscattered trans fraction '-C %s'\n", optarg);
                 fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_SUCCESS);
             }
@@ -648,8 +582,7 @@ int main(int argc, char **argv)
             cl_default_fr = my_strtod(optarg);
             if (cl_default_fr < 0.0 || cl_default_fr > 1.0) {
                 fprintf(stderr, "Error in command-line argument: ");
-                fprintf(stderr,
-                    "'-f %s' The argument must be between 0 and 1.\n", optarg);
+                fprintf(stderr, "'-f %s' The argument must be between 0 and 1.\n", optarg);
                 exit(EXIT_SUCCESS);
             }
             break;
@@ -666,17 +599,14 @@ int main(int argc, char **argv)
                 break;
             }
 
-            n = sscanf(optarg, "%c %lf %lf %lf", &cc, &cl_mus0_lambda,
-                &cl_mus0, &cl_mus0_pwr);
+            n = sscanf(optarg, "%c %lf %lf %lf", &cc, &cl_mus0_lambda, &cl_mus0, &cl_mus0_pwr);
 
             if (n != 4 || (cc != 'P' && cc != 'R')) {
                 fprintf(stderr, "Error in command-line\n");
                 fprintf(stderr, "    bad -F option. '-F %s'\n", optarg);
                 fprintf(stderr, "    -F 1.0              for mus =1.0\n");
-                fprintf(stderr,
-                    "    -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
-                fprintf(stderr,
-                    "    -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
+                fprintf(stderr, "    -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
+                fprintf(stderr, "    -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
                 exit(EXIT_FAILURE);
             }
 
@@ -711,14 +641,10 @@ int main(int argc, char **argv)
             else {
                 fprintf(stderr, "Error in command-line\n");
                 fprintf(stderr, "    Argument for '-G %s' must be \n", optarg);
-                fprintf(stderr,
-                    "    't' --- light always hits top slide first\n");
-                fprintf(stderr,
-                    "    'b' --- light always hits bottom slide first\n");
-                fprintf(stderr,
-                    "    'n' --- slide always closest to sphere\n");
-                fprintf(stderr,
-                    "    'f' --- slide always farthest from sphere\n");
+                fprintf(stderr, "    't' --- light always hits top slide first\n");
+                fprintf(stderr, "    'b' --- light always hits bottom slide first\n");
+                fprintf(stderr, "    'n' --- slide always closest to sphere\n");
+                fprintf(stderr, "    'f' --- slide always farthest from sphere\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -798,16 +724,13 @@ int main(int argc, char **argv)
             if (cl_quadrature_points % 4 != 0) {
                 fprintf(stderr, "Error in command-line\n");
                 fprintf(stderr, "    '-q %s'\n", optarg);
-                fprintf(stderr,
-                    "    Quadrature points must be a multiple of 4\n");
+                fprintf(stderr, "    Quadrature points must be a multiple of 4\n");
                 exit(EXIT_FAILURE);
             }
-            if ((cl_cos_angle != UNINITIALIZED)
-                && (cl_quadrature_points % 12 != 0)) {
+            if ((cl_cos_angle != UNINITIALIZED) && (cl_quadrature_points % 12 != 0)) {
                 fprintf(stderr, "Error in command-line\n");
                 fprintf(stderr, "    '-q %s'\n", optarg);
-                fprintf(stderr,
-                    "    Quadrature points must be multiple of 12 for oblique incidence\n");
+                fprintf(stderr, "    Quadrature points must be multiple of 12 for oblique incidence\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -839,8 +762,7 @@ int main(int argc, char **argv)
 
         case 'S':
             cl_num_spheres = (int) my_strtod(optarg);
-            if (cl_num_spheres != 0 && cl_num_spheres != 1
-                && cl_num_spheres != 2) {
+            if (cl_num_spheres != 0 && cl_num_spheres != 1 && cl_num_spheres != 2) {
                 fprintf(stderr, "Error in command-line\n");
                 fprintf(stderr, "    sphere number '-S %s'\n", optarg);
                 fprintf(stderr, "    must be 0, 1, or 2\n");
@@ -873,8 +795,7 @@ int main(int argc, char **argv)
             cl_Tc = my_strtod(optarg);
             if (cl_Tc < 0 || cl_Tc > 1) {
                 fprintf(stderr, "Error in command-line\n");
-                fprintf(stderr, "    unscattered transmission '-u %s'\n",
-                    optarg);
+                fprintf(stderr, "    unscattered transmission '-u %s'\n", optarg);
                 fprintf(stderr, "    must be between 0 and 1\n");
                 exit(EXIT_FAILURE);
             }
@@ -927,10 +848,8 @@ int main(int argc, char **argv)
             cl_quadrature_points = 12;
 
         if (cl_quadrature_points != 12 * (cl_quadrature_points / 12)) {
-            fprintf(stderr,
-                "If you use the -i option to specify an oblique incidence angle, then\n");
-            fprintf(stderr,
-                "the number of quadrature points must be a multiple of 12\n");
+            fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
+            fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
             exit(EXIT_SUCCESS);
         }
     }
@@ -971,14 +890,12 @@ int main(int argc, char **argv)
         m.slab_bottom_slide_thickness = 0.0;
     }
 
-    if (cl_slides == ONE_SLIDE_ON_BOTTOM ||
-        cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE) {
+    if (cl_slides == ONE_SLIDE_ON_BOTTOM || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE) {
         m.slab_top_slide_index = 1.0;
         m.slab_top_slide_thickness = 0.0;
     }
 
-    if (cl_slides == ONE_SLIDE_NEAR_SPHERE ||
-        cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+    if (cl_slides == ONE_SLIDE_NEAR_SPHERE || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
         m.flip_sample = 1;
     else
         m.flip_sample = 0;
@@ -1001,13 +918,9 @@ int main(int argc, char **argv)
         d_detector_r = cl_sphere_one[3];
         m.rw_r = cl_sphere_one[4];
 
-        m.as_r =
-            (d_sample_r / m.d_sphere_r / 2) * (d_sample_r / m.d_sphere_r / 2);
-        m.ae_r =
-            (d_empty_r / m.d_sphere_r / 2) * (d_empty_r / m.d_sphere_r / 2);
-        m.ad_r =
-            (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r /
-            2);
+        m.as_r = (d_sample_r / m.d_sphere_r / 2) * (d_sample_r / m.d_sphere_r / 2);
+        m.ae_r = (d_empty_r / m.d_sphere_r / 2) * (d_empty_r / m.d_sphere_r / 2);
+        m.ad_r = (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r / 2);
 
         m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
 
@@ -1031,13 +944,9 @@ int main(int argc, char **argv)
         d_detector_t = cl_sphere_two[3];
         m.rw_t = cl_sphere_two[4];
 
-        m.as_t =
-            (d_sample_t / m.d_sphere_t / 2) * (d_sample_t / m.d_sphere_t / 2);
-        m.ae_t =
-            (d_empty_t / m.d_sphere_t / 2) * (d_empty_t / m.d_sphere_t / 2);
-        m.ad_t =
-            (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t /
-            2);
+        m.as_t = (d_sample_t / m.d_sphere_t / 2) * (d_sample_t / m.d_sphere_t / 2);
+        m.ae_t = (d_empty_t / m.d_sphere_t / 2) * (d_empty_t / m.d_sphere_t / 2);
+        m.ad_t = (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t / 2);
         m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
 
         if (cl_num_spheres == UNINITIALIZED)
@@ -1107,9 +1016,7 @@ int main(int argc, char **argv)
     }
 
     if (cl_musp0 != UNINITIALIZED)
-        cl_mus0 =
-            (r.default_g !=
-            UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
+        cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
 
     if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
         cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
@@ -1178,8 +1085,7 @@ int main(int argc, char **argv)
                 Write_Header(m, r, -1);
                 print_results_header(stdout);
             }
-            print_optical_property_result(stdout, m, r, m_r, m_t, mu_a, mu_sp,
-                0, 0);
+            print_optical_property_result(stdout, m, r, m_r, m_t, mu_a, mu_sp, 0, 0);
         }
 
         exit(EXIT_SUCCESS);
@@ -1202,10 +1108,8 @@ int main(int argc, char **argv)
 
         rt_name = strdup_together(base_name, ".rxt");
 
-        if (freopen(argv[0], "r", stdin) == NULL &&
-            freopen(rt_name, "r", stdin) == NULL) {
-            fprintf(stderr, "Could not open either '%s' or '%s'\n",
-                argv[0], rt_name);
+        if (freopen(argv[0], "r", stdin) == NULL && freopen(rt_name, "r", stdin) == NULL) {
+            fprintf(stderr, "Could not open either '%s' or '%s'\n", argv[0], rt_name);
             exit(EXIT_FAILURE);
         }
 
@@ -1219,8 +1123,7 @@ int main(int argc, char **argv)
 
     if (g_out_name != NULL) {
         if (freopen(g_out_name, "w", stdout) == NULL) {
-            fprintf(stderr, "Could not open file '%s' for output\n",
-                g_out_name);
+            fprintf(stderr, "Could not open file '%s' for output\n", g_out_name);
             exit(EXIT_FAILURE);
         }
     }
@@ -1264,8 +1167,7 @@ int main(int argc, char **argv)
             rt_total++;
 
             if (Debug(DEBUG_ANY)) {
-                fprintf(stderr,
-                    "\n-------------------NEXT DATA POINT---------------------\n");
+                fprintf(stderr, "\n-------------------NEXT DATA POINT---------------------\n");
                 if (m.lambda != 0)
                     fprintf(stderr, "lambda=%6.1f ", m.lambda);
                 fprintf(stderr, "MR=%8.5f MT=%8.5f\n\n", m.m_r, m.m_t);
@@ -1301,13 +1203,10 @@ int main(int argc, char **argv)
             }
 
             if (cl_musp0 != UNINITIALIZED)
-                cl_mus0 =
-                    (r.default_g !=
-                    UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
+                cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
 
             if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
-                cl_default_mus =
-                    cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
+                cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
 
             if (cl_default_mus != UNINITIALIZED) {
                 r.default_mus = cl_default_mus;
@@ -1321,28 +1220,19 @@ int main(int argc, char **argv)
                 r.search = cl_search;
 
             if (cl_method == COMPARISON && m.d_sphere_r != 0 && m.as_r == 0) {
-                fprintf(stderr,
-                    "A dual-beam measurement is specified, but no port sizes.\n");
-                fprintf(stderr,
-                    "You might forsake the -X option and use zero spheres (which gives\n");
-                fprintf(stderr,
-                    "the same result except lost light is not taken into account).\n");
-                fprintf(stderr,
-                    "Alternatively, bite the bullet and enter your sphere parameters,\n");
-                fprintf(stderr,
-                    "with the knowledge that only the beam diameter and sample port\n");
-                fprintf(stderr,
-                    "diameter will be used to estimate lost light from the edges.\n");
+                fprintf(stderr, "A dual-beam measurement is specified, but no port sizes.\n");
+                fprintf(stderr, "You might forsake the -X option and use zero spheres (which gives\n");
+                fprintf(stderr, "the same result except lost light is not taken into account).\n");
+                fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
+                fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
+                fprintf(stderr, "diameter will be used to estimate lost light from the edges.\n");
                 exit(EXIT_SUCCESS);
             }
 
             if (cl_method == COMPARISON && m.num_spheres == 2) {
-                fprintf(stderr,
-                    "A dual-beam measurement is specified, but a two sphere experiment\n");
-                fprintf(stderr,
-                    "is specified. Since this seems impossible, I will make it\n");
-                fprintf(stderr,
-                    "impossible for you unless you specify 0 or 1 sphere.\n");
+                fprintf(stderr, "A dual-beam measurement is specified, but a two sphere experiment\n");
+                fprintf(stderr, "is specified. Since this seems impossible, I will make it\n");
+                fprintf(stderr, "impossible for you unless you specify 0 or 1 sphere.\n");
                 exit(EXIT_SUCCESS);
             }
 
@@ -1350,17 +1240,12 @@ int main(int argc, char **argv)
                 Write_Header(m, r, params);
                 if (MC_iterations > 0) {
                     if (n_photons >= 0)
-                        fprintf(stdout,
-                            "#  Photons used to estimate lost light =   %ld\n",
-                            n_photons);
+                        fprintf(stdout, "#  Photons used to estimate lost light =   %ld\n", n_photons);
                     else
-                        fprintf(stdout,
-                            "#     Time used to estimate lost light =   %ld ms\n",
-                            -n_photons);
+                        fprintf(stdout, "#     Time used to estimate lost light =   %ld ms\n", -n_photons);
                 }
                 else
-                    fprintf(stdout,
-                        "#  Photons used to estimate lost light =   0\n");
+                    fprintf(stdout, "#  Photons used to estimate lost light =   0\n");
 
                 fprintf(stdout, "#\n");
 
@@ -1378,15 +1263,13 @@ int main(int argc, char **argv)
 
                     if (Debug(DEBUG_LOST_LIGHT)) {
                         print_results_header(stderr);
-                        print_optical_property_result(stderr, m, r, LR, LT,
-                            mu_a, mu_sp, mc_iter, rt_total);
+                        print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, mc_iter, rt_total);
                     }
 
                     while (mc_iter < MC_iterations) {
 
                         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
-                            &m.ur1_lost, &m.ut1_lost, &m.uru_lost,
-                            &m.utu_lost);
+                            &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
                         mc_total++;
                         mc_iter++;
@@ -1394,21 +1277,17 @@ int main(int argc, char **argv)
                         Inverse_RT(m, &r);
                         calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                        if (fabs(mu_a_last - mu_a) / (mu_a + 0.0001) <
-                            r.MC_tolerance
-                            && fabs(mu_sp_last - mu_sp) / (mu_sp + 0.0001) <
-                            r.MC_tolerance)
+                        if (fabs(mu_a_last - mu_a) / (mu_a + 0.0001) < r.MC_tolerance &&
+                            fabs(mu_sp_last - mu_sp) / (mu_sp + 0.0001) < r.MC_tolerance)
                             break;
 
                         mu_a_last = mu_a;
                         mu_sp_last = mu_sp;
 
                         if (Debug(DEBUG_LOST_LIGHT))
-                            print_optical_property_result(stderr, m, r, LR, LT,
-                                mu_a, mu_sp, mc_iter, rt_total);
+                            print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, mc_iter, rt_total);
                         else
-                            print_dot(start_time, r.error, mc_total, rt_total,
-                                mc_iter, cl_verbosity, &any_error);
+                            print_dot(start_time, r.error, mc_total, rt_total, mc_iter, cl_verbosity, &any_error);
 
                         if (r.error != IAD_NO_ERROR)
                             break;
@@ -1416,14 +1295,12 @@ int main(int argc, char **argv)
                 }
 
             }
-            print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp,
-                mc_iter, rt_total);
+            print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, mc_iter, rt_total);
 
             if (Debug(DEBUG_LOST_LIGHT))
                 fprintf(stderr, "\n");
             else
-                print_dot(start_time, r.error, mc_total, rt_total, 99,
-                    cl_verbosity, &any_error);
+                print_dot(start_time, r.error, mc_total, rt_total, 99, cl_verbosity, &any_error);
         }
 
         exit(EXIT_SUCCESS);
@@ -1439,10 +1316,8 @@ int main(int argc, char **argv)
                     cl_quadrature_points = 12;
 
                 if (cl_quadrature_points != 12 * (cl_quadrature_points / 12)) {
-                    fprintf(stderr,
-                        "If you use the -i option to specify an oblique incidence angle, then\n");
-                    fprintf(stderr,
-                        "the number of quadrature points must be a multiple of 12\n");
+                    fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
+                    fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
                     exit(EXIT_SUCCESS);
                 }
             }
@@ -1478,20 +1353,17 @@ int main(int argc, char **argv)
                 m.slab_top_slide_thickness = 0.0;
             }
 
-            if (cl_slides == ONE_SLIDE_ON_TOP ||
-                cl_slides == ONE_SLIDE_NEAR_SPHERE) {
+            if (cl_slides == ONE_SLIDE_ON_TOP || cl_slides == ONE_SLIDE_NEAR_SPHERE) {
                 m.slab_bottom_slide_index = 1.0;
                 m.slab_bottom_slide_thickness = 0.0;
             }
 
-            if (cl_slides == ONE_SLIDE_ON_BOTTOM ||
-                cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE) {
+            if (cl_slides == ONE_SLIDE_ON_BOTTOM || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE) {
                 m.slab_top_slide_index = 1.0;
                 m.slab_top_slide_thickness = 0.0;
             }
 
-            if (cl_slides == ONE_SLIDE_NEAR_SPHERE ||
-                cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+            if (cl_slides == ONE_SLIDE_NEAR_SPHERE || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
                 m.flip_sample = 1;
             else
                 m.flip_sample = 0;
@@ -1514,15 +1386,9 @@ int main(int argc, char **argv)
                 d_detector_r = cl_sphere_one[3];
                 m.rw_r = cl_sphere_one[4];
 
-                m.as_r =
-                    (d_sample_r / m.d_sphere_r / 2) * (d_sample_r /
-                    m.d_sphere_r / 2);
-                m.ae_r =
-                    (d_empty_r / m.d_sphere_r / 2) * (d_empty_r /
-                    m.d_sphere_r / 2);
-                m.ad_r =
-                    (d_detector_r / m.d_sphere_r / 2) * (d_detector_r /
-                    m.d_sphere_r / 2);
+                m.as_r = (d_sample_r / m.d_sphere_r / 2) * (d_sample_r / m.d_sphere_r / 2);
+                m.ae_r = (d_empty_r / m.d_sphere_r / 2) * (d_empty_r / m.d_sphere_r / 2);
+                m.ad_r = (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r / 2);
 
                 m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
 
@@ -1546,15 +1412,9 @@ int main(int argc, char **argv)
                 d_detector_t = cl_sphere_two[3];
                 m.rw_t = cl_sphere_two[4];
 
-                m.as_t =
-                    (d_sample_t / m.d_sphere_t / 2) * (d_sample_t /
-                    m.d_sphere_t / 2);
-                m.ae_t =
-                    (d_empty_t / m.d_sphere_t / 2) * (d_empty_t /
-                    m.d_sphere_t / 2);
-                m.ad_t =
-                    (d_detector_t / m.d_sphere_t / 2) * (d_detector_t /
-                    m.d_sphere_t / 2);
+                m.as_t = (d_sample_t / m.d_sphere_t / 2) * (d_sample_t / m.d_sphere_t / 2);
+                m.ae_t = (d_empty_t / m.d_sphere_t / 2) * (d_empty_t / m.d_sphere_t / 2);
+                m.ad_t = (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t / 2);
                 m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
 
                 if (cl_num_spheres == UNINITIALIZED)
@@ -1612,8 +1472,7 @@ int main(int argc, char **argv)
                 rt_total++;
 
                 if (Debug(DEBUG_ANY)) {
-                    fprintf(stderr,
-                        "\n-------------------NEXT DATA POINT---------------------\n");
+                    fprintf(stderr, "\n-------------------NEXT DATA POINT---------------------\n");
                     if (m.lambda != 0)
                         fprintf(stderr, "lambda=%6.1f ", m.lambda);
                     fprintf(stderr, "MR=%8.5f MT=%8.5f\n\n", m.m_r, m.m_t);
@@ -1649,14 +1508,10 @@ int main(int argc, char **argv)
                 }
 
                 if (cl_musp0 != UNINITIALIZED)
-                    cl_mus0 =
-                        (r.default_g !=
-                        UNINITIALIZED) ? cl_musp0 / (1 -
-                        r.default_g) : cl_musp0;
+                    cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
 
                 if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
-                    cl_default_mus =
-                        cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
+                    cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
 
                 if (cl_default_mus != UNINITIALIZED) {
                     r.default_mus = cl_default_mus;
@@ -1669,30 +1524,20 @@ int main(int argc, char **argv)
                 if (cl_search != UNINITIALIZED)
                     r.search = cl_search;
 
-                if (cl_method == COMPARISON && m.d_sphere_r != 0
-                    && m.as_r == 0) {
-                    fprintf(stderr,
-                        "A dual-beam measurement is specified, but no port sizes.\n");
-                    fprintf(stderr,
-                        "You might forsake the -X option and use zero spheres (which gives\n");
-                    fprintf(stderr,
-                        "the same result except lost light is not taken into account).\n");
-                    fprintf(stderr,
-                        "Alternatively, bite the bullet and enter your sphere parameters,\n");
-                    fprintf(stderr,
-                        "with the knowledge that only the beam diameter and sample port\n");
-                    fprintf(stderr,
-                        "diameter will be used to estimate lost light from the edges.\n");
+                if (cl_method == COMPARISON && m.d_sphere_r != 0 && m.as_r == 0) {
+                    fprintf(stderr, "A dual-beam measurement is specified, but no port sizes.\n");
+                    fprintf(stderr, "You might forsake the -X option and use zero spheres (which gives\n");
+                    fprintf(stderr, "the same result except lost light is not taken into account).\n");
+                    fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
+                    fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
+                    fprintf(stderr, "diameter will be used to estimate lost light from the edges.\n");
                     exit(EXIT_SUCCESS);
                 }
 
                 if (cl_method == COMPARISON && m.num_spheres == 2) {
-                    fprintf(stderr,
-                        "A dual-beam measurement is specified, but a two sphere experiment\n");
-                    fprintf(stderr,
-                        "is specified. Since this seems impossible, I will make it\n");
-                    fprintf(stderr,
-                        "impossible for you unless you specify 0 or 1 sphere.\n");
+                    fprintf(stderr, "A dual-beam measurement is specified, but a two sphere experiment\n");
+                    fprintf(stderr, "is specified. Since this seems impossible, I will make it\n");
+                    fprintf(stderr, "impossible for you unless you specify 0 or 1 sphere.\n");
                     exit(EXIT_SUCCESS);
                 }
 
@@ -1700,17 +1545,12 @@ int main(int argc, char **argv)
                     Write_Header(m, r, params);
                     if (MC_iterations > 0) {
                         if (n_photons >= 0)
-                            fprintf(stdout,
-                                "#  Photons used to estimate lost light =   %ld\n",
-                                n_photons);
+                            fprintf(stdout, "#  Photons used to estimate lost light =   %ld\n", n_photons);
                         else
-                            fprintf(stdout,
-                                "#     Time used to estimate lost light =   %ld ms\n",
-                                -n_photons);
+                            fprintf(stdout, "#     Time used to estimate lost light =   %ld ms\n", -n_photons);
                     }
                     else
-                        fprintf(stdout,
-                            "#  Photons used to estimate lost light =   0\n");
+                        fprintf(stdout, "#  Photons used to estimate lost light =   0\n");
 
                     fprintf(stdout, "#\n");
 
@@ -1728,39 +1568,31 @@ int main(int argc, char **argv)
 
                         if (Debug(DEBUG_LOST_LIGHT)) {
                             print_results_header(stderr);
-                            print_optical_property_result(stderr, m, r, LR, LT,
-                                mu_a, mu_sp, mc_iter, rt_total);
+                            print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, mc_iter, rt_total);
                         }
 
                         while (mc_iter < MC_iterations) {
 
                             MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
-                                &m.ur1_lost, &m.ut1_lost, &m.uru_lost,
-                                &m.utu_lost);
+                                &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
                             mc_total++;
                             mc_iter++;
 
                             Inverse_RT(m, &r);
-                            calculate_coefficients(m, r, &LR, &LT, &mu_sp,
-                                &mu_a);
+                            calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                            if (fabs(mu_a_last - mu_a) / (mu_a + 0.0001) <
-                                r.MC_tolerance
-                                && fabs(mu_sp_last - mu_sp) / (mu_sp +
-                                    0.0001) < r.MC_tolerance)
+                            if (fabs(mu_a_last - mu_a) / (mu_a + 0.0001) < r.MC_tolerance &&
+                                fabs(mu_sp_last - mu_sp) / (mu_sp + 0.0001) < r.MC_tolerance)
                                 break;
 
                             mu_a_last = mu_a;
                             mu_sp_last = mu_sp;
 
                             if (Debug(DEBUG_LOST_LIGHT))
-                                print_optical_property_result(stderr, m, r, LR,
-                                    LT, mu_a, mu_sp, mc_iter, rt_total);
+                                print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, mc_iter, rt_total);
                             else
-                                print_dot(start_time, r.error, mc_total,
-                                    rt_total, mc_iter, cl_verbosity,
-                                    &any_error);
+                                print_dot(start_time, r.error, mc_total, rt_total, mc_iter, cl_verbosity, &any_error);
 
                             if (r.error != IAD_NO_ERROR)
                                 break;
@@ -1768,14 +1600,12 @@ int main(int argc, char **argv)
                     }
 
                 }
-                print_optical_property_result(stdout, m, r, LR, LT, mu_a,
-                    mu_sp, mc_iter, rt_total);
+                print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, mc_iter, rt_total);
 
                 if (Debug(DEBUG_LOST_LIGHT))
                     fprintf(stderr, "\n");
                 else
-                    print_dot(start_time, r.error, mc_total, rt_total, 99,
-                        cl_verbosity, &any_error);
+                    print_dot(start_time, r.error, mc_total, rt_total, 99, cl_verbosity, &any_error);
             }
 
         }

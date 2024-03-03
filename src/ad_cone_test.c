@@ -13,12 +13,10 @@
 #include "ad_cone.h"
 
 static void PrintTestResults(int test, int cas, struct AD_slab_type *slab,
-    double aUR1, double aUT1, double aURU, double aUTU,
-    double bUR1, double bUT1, double bURU, double bUTU)
+    double aUR1, double aUT1, double aURU, double aUTU, double bUR1, double bUT1, double bURU, double bUTU)
 {
     printf("\nTest:%d.%d\n", test, cas);
-    printf("Cone angle           %10.5f\n",
-        acos(slab->cos_angle) * 180.0 / M_PI);
+    printf("Cone angle           %10.5f\n", acos(slab->cos_angle) * 180.0 / M_PI);
     printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
     printf("Albedo               %10.5f\n", slab->a);
     printf("Optical Depth        %10.5f\n", slab->b);
@@ -34,14 +32,12 @@ static void PrintTestResults(int test, int cas, struct AD_slab_type *slab,
 }
 
 static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
-    double aUR1, double aUT1, double aURU, double aUTU,
-    double bUR1, double bUT1, double bURU, double bUTU)
+    double aUR1, double aUT1, double aURU, double aUTU, double bUR1, double bUT1, double bURU, double bUTU)
 {
     double denom = 1 - slab->cos_angle * slab->cos_angle;
 
     printf("\nTest:%d.%d\n", test, cas);
-    printf("Cone angle           %10.5f\n",
-        acos(slab->cos_angle) * 180.0 / M_PI);
+    printf("Cone angle           %10.5f\n", acos(slab->cos_angle) * 180.0 / M_PI);
     printf("Cosine of cone angle %10.5f\n", slab->cos_angle);
     printf("Albedo               %10.5f\n", slab->a);
     printf("Optical Depth        %10.5f\n", slab->b);
@@ -58,12 +54,10 @@ static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
     printf("URU+UTU                  %10.5f\n", aURU + aUTU);
     printf("rc + rd/(1-mu^2) = %10.5f\n", bUR1 - (bUR1 - aUR1) / denom);
     printf("tc + td/(1-mu^2) = %10.5f\n", bUT1 - (bUT1 - aUT1) / denom);
-    printf("           total = %10.5f\n", bUR1 - (bUR1 - aUR1) / denom +
-        bUT1 - (bUT1 - aUT1) / denom);
+    printf("           total = %10.5f\n", bUR1 - (bUR1 - aUR1) / denom + bUT1 - (bUT1 - aUT1) / denom);
     printf("rc + rd/(1-mu^2) = %10.5f\n", bURU - (bURU - aURU) / denom);
     printf("tc + td/(1-mu^2) = %10.5f\n", bUTU - (bUTU - aUTU) / denom);
-    printf("           total = %10.5f\n", bURU - (bURU - aURU) / denom +
-        bUTU - (bUTU - aUTU) / denom);
+    printf("           total = %10.5f\n", bURU - (bURU - aURU) / denom + bUTU - (bUTU - aUTU) / denom);
 }
 
 int main(int argc, char **argv)
@@ -87,8 +81,7 @@ int main(int argc, char **argv)
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     slab.cos_angle = 0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.a = 0.5;
     slab.b = 0.5;
@@ -97,8 +90,7 @@ int main(int argc, char **argv)
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     slab.cos_angle = 0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.a = 0.0;
     slab.b = 0.1;
@@ -108,8 +100,7 @@ int main(int argc, char **argv)
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     slab.cos_angle = 0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 3, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 3, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.a = 0.5;
     slab.b = 0.5;
@@ -119,24 +110,21 @@ int main(int argc, char **argv)
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     slab.cos_angle = 0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 4, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 4, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.n_top_slide = 1.5;
     slab.cos_angle = 1;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     slab.cos_angle = 0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 5, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 5, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.n_bottom_slide = 1.6;
     slab.cos_angle = 1;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     slab.cos_angle = 0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 6, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 6, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.n_slab = 1.0;
     slab.n_top_slide = 1.0;
@@ -153,16 +141,14 @@ int main(int argc, char **argv)
     aURU = 0.0;
     aUTU = 1 - slab.cos_angle * slab.cos_angle;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(2, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(2, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.b = 1.0;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     aURU = 0.0;
     aUTU = 0.219314;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(2, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(2, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.n_slab = 1.0;
     slab.n_top_slide = 1.0;
@@ -174,33 +160,28 @@ int main(int argc, char **argv)
     slab.g = 0.0;
     slab.phase_function = HENYEY_GREENSTEIN;
 
-    printf
-        ("*****************************************************************\n");
-    printf
-        ("These tests don't quite add up because they are only approximate \n");
+    printf("*****************************************************************\n");
+    printf("These tests don't quite add up because they are only approximate \n");
     slab.cos_angle = 0.2;
     slab.a = 0.0;
     RT_Cone(N, &slab, CONE, &aUR1, &aUT1, &aURU, &aUTU);
     slab.a = 1.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU,
-        aUTU);
+    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU, aUTU);
 
     slab.cos_angle = 0.5;
     slab.a = 0.0;
     RT_Cone(N, &slab, CONE, &aUR1, &aUT1, &aURU, &aUTU);
     slab.a = 1.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU,
-        aUTU);
+    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU, aUTU);
 
     slab.cos_angle = 0.8;
     slab.a = 0.0;
     RT_Cone(N, &slab, CONE, &aUR1, &aUT1, &aURU, &aUTU);
     slab.a = 1.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU,
-        aUTU);
+    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU, aUTU);
 
     slab.cos_angle = 0.3;
     slab.g = 0.875;
@@ -208,37 +189,31 @@ int main(int argc, char **argv)
     RT_Cone(N, &slab, CONE, &aUR1, &aUT1, &aURU, &aUTU);
     slab.a = 1.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU,
-        aUTU);
+    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU, aUTU);
 
     slab.n_slab = 1.4;
     slab.a = 0.0;
     RT_Cone(N, &slab, CONE, &aUR1, &aUT1, &aURU, &aUTU);
     slab.a = 1.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU,
-        aUTU);
+    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU, aUTU);
 
     slab.n_top_slide = 1.5;
     slab.a = 0.0;
     RT_Cone(N, &slab, CONE, &aUR1, &aUT1, &aURU, &aUTU);
     slab.a = 1.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU,
-        aUTU);
+    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU, aUTU);
 
     slab.n_bottom_slide = 1.6;
     slab.a = 0.0;
     RT_Cone(N, &slab, CONE, &aUR1, &aUT1, &aURU, &aUTU);
     slab.a = 1.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU,
-        aUTU);
+    PrintUnityResults(3, 1, &slab, bUR1, bUT1, bURU, bUTU, aUR1, aUT1, aURU, aUTU);
 
-    printf
-        ("*****************************************************************\n");
-    printf
-        ("These tests still need some work and will still be approximate \n");
+    printf("*****************************************************************\n");
+    printf("These tests still need some work and will still be approximate \n");
     slab.cos_angle = 0.4;
     slab.b = 4.0;
     slab.a = 0.99;
@@ -246,8 +221,7 @@ int main(int argc, char **argv)
     aUR1 *= (1 - 0.4 * 0.4);
     aUT1 *= (1 - 0.4 * 0.4);
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(4, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(4, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.cos_angle = 0.0;
     slab.n_slab = 1.5;
@@ -256,11 +230,9 @@ int main(int argc, char **argv)
     aURU = Diffuse_Glass_R(1.0, 1.0, 1.5);
     aUTU = 0.0;
     RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(4, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(4, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
-    printf
-        ("*****************************************************************\n");
+    printf("*****************************************************************\n");
     printf("These tests are for Paulo \n");
     printf("The truth values are not correct\n");
     slab.n_slab = 1.0;
@@ -304,13 +276,11 @@ int main(int argc, char **argv)
         slab.cos_angle = cos(atan2(10, 150));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 
-        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g,
-            slab.b, aUT1, bUT1);
+        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g, slab.b, aUT1, bUT1);
         slab.cos_angle = cos(atan2(10, 70));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 
-        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g,
-            slab.b, aUT1, bUT1);
+        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g, slab.b, aUT1, bUT1);
         slab.g += 0.2;
     }
     printf("\n");
@@ -326,13 +296,11 @@ int main(int argc, char **argv)
         slab.cos_angle = cos(atan2(10, 150));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 
-        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g,
-            slab.b, aUT1, bUT1);
+        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g, slab.b, aUT1, bUT1);
         slab.cos_angle = cos(atan2(10, 70));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 
-        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g,
-            slab.b, aUT1, bUT1);
+        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g, slab.b, aUT1, bUT1);
         slab.g += 0.2;
     }
     printf("\n");
@@ -348,13 +316,11 @@ int main(int argc, char **argv)
         slab.cos_angle = cos(atan2(10, 150));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 
-        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g,
-            slab.b, aUT1, bUT1);
+        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g, slab.b, aUT1, bUT1);
         slab.cos_angle = cos(atan2(10, 70));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
 
-        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g,
-            slab.b, aUT1, bUT1);
+        printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g, slab.b, aUT1, bUT1);
         slab.g += 0.2;
     }
     exit(EXIT_FAILURE);

@@ -52,12 +52,9 @@ int check_magic(FILE *fp)
     for (i = 0; i < 4; i++) {
         c = fgetc(fp);
         if (feof(fp) || c != magic[i]) {
-            fprintf(stderr,
-                "Sorry, but iad input files must begin with IAD1\n");
-            fprintf(stderr,
-                "       as the first four characters of the file.\n");
-            fprintf(stderr,
-                "       Perhaps you are using an old iad format?\n");
+            fprintf(stderr, "Sorry, but iad input files must begin with IAD1\n");
+            fprintf(stderr, "       as the first four characters of the file.\n");
+            fprintf(stderr, "       Perhaps you are using an old iad format?\n");
             return 1;
         }
     }
@@ -115,15 +112,9 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
         if (read_number(fp, &m->rw_r))
             return 1;
 
-        m->as_r =
-            (d_sample_r / m->d_sphere_r / 2.0) * (d_sample_r / m->d_sphere_r /
-            2.0);
-        m->ae_r =
-            (d_empty_r / m->d_sphere_r / 2.0) * (d_empty_r / m->d_sphere_r /
-            2.0);
-        m->ad_r =
-            (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r /
-            m->d_sphere_r / 2.0);
+        m->as_r = (d_sample_r / m->d_sphere_r / 2.0) * (d_sample_r / m->d_sphere_r / 2.0);
+        m->ae_r = (d_empty_r / m->d_sphere_r / 2.0) * (d_empty_r / m->d_sphere_r / 2.0);
+        m->ad_r = (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r / m->d_sphere_r / 2.0);
         m->aw_r = 1.0 - m->as_r - m->ae_r - m->ad_r;
     }
 
@@ -140,15 +131,9 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
         if (read_number(fp, &m->rw_t))
             return 1;
 
-        m->as_t =
-            (d_sample_t / m->d_sphere_t / 2.0) * (d_sample_t / m->d_sphere_t /
-            2.0);
-        m->ae_t =
-            (d_empty_t / m->d_sphere_t / 2.0) * (d_empty_t / m->d_sphere_t /
-            2.0);
-        m->ad_t =
-            (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t /
-            m->d_sphere_t / 2.0);
+        m->as_t = (d_sample_t / m->d_sphere_t / 2.0) * (d_sample_t / m->d_sphere_t / 2.0);
+        m->ae_t = (d_empty_t / m->d_sphere_t / 2.0) * (d_empty_t / m->d_sphere_t / 2.0);
+        m->ad_t = (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t / m->d_sphere_t / 2.0);
         m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
     }
 
@@ -168,24 +153,17 @@ void Write_Header(struct measure_type m, struct invert_type r, int params)
     printf("# Inverse Adding-Doubling %s \n", Version);
     printf("# \n");
     printf("#                        Beam diameter = %7.1f mm\n", m.d_beam);
-    printf("#                     Sample thickness = %7.3f mm\n",
-        m.slab_thickness);
-    printf("#                  Top slide thickness = %7.3f mm\n",
-        m.slab_top_slide_thickness);
-    printf("#               Bottom slide thickness = %7.3f mm\n",
-        m.slab_bottom_slide_thickness);
+    printf("#                     Sample thickness = %7.3f mm\n", m.slab_thickness);
+    printf("#                  Top slide thickness = %7.3f mm\n", m.slab_top_slide_thickness);
+    printf("#               Bottom slide thickness = %7.3f mm\n", m.slab_bottom_slide_thickness);
     printf("#           Sample index of refraction = %7.4f\n", m.slab_index);
-    printf("#        Top slide index of refraction = %7.4f\n",
-        m.slab_top_slide_index);
-    printf("#     Bottom slide index of refraction = %7.4f\n",
-        m.slab_bottom_slide_index);
+    printf("#        Top slide index of refraction = %7.4f\n", m.slab_top_slide_index);
+    printf("#     Bottom slide index of refraction = %7.4f\n", m.slab_bottom_slide_index);
 
     printf("# \n");
 
-    printf("#  Percentage unscattered refl. in M_R = %7.1f %%\n",
-        m.fraction_of_rc_in_mr * 100);
-    printf("# Percentage unscattered trans. in M_T = %7.1f %%\n",
-        m.fraction_of_tc_in_mt * 100);
+    printf("#  Percentage unscattered refl. in M_R = %7.1f %%\n", m.fraction_of_rc_in_mr * 100);
+    printf("# Percentage unscattered trans. in M_T = %7.1f %%\n", m.fraction_of_tc_in_mt * 100);
     printf("# \n");
 
     printf("# Reflection sphere");
@@ -197,20 +175,13 @@ void Write_Header(struct measure_type m, struct invert_type r, int params)
         printf("\n");
     else
         printf(" (all ignored since no spheres used)\n");
-    printf("#                      sphere diameter = %7.1f mm\n",
-        m.d_sphere_r);
-    printf("#                 sample port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.as_r));
-    printf("#                  empty port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.ae_r));
-    printf("#               detector port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.ad_r));
-    printf("#                 detector reflectance = %7.1f %%\n",
-        m.rd_r * 100);
-    printf("#                     wall reflectance = %7.1f %%\n",
-        m.rw_r * 100);
-    printf("#                 calibration standard = %7.1f %%\n",
-        m.rstd_r * 100);
+    printf("#                      sphere diameter = %7.1f mm\n", m.d_sphere_r);
+    printf("#                 sample port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.as_r));
+    printf("#                  empty port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ae_r));
+    printf("#               detector port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ad_r));
+    printf("#                 detector reflectance = %7.1f %%\n", m.rd_r * 100);
+    printf("#                     wall reflectance = %7.1f %%\n", m.rw_r * 100);
+    printf("#                 calibration standard = %7.1f %%\n", m.rstd_r * 100);
     printf("#\n");
 
     printf("# Transmission sphere");
@@ -222,22 +193,16 @@ void Write_Header(struct measure_type m, struct invert_type r, int params)
         printf("\n");
     else
         printf(" (all ignored since no spheres used)\n");
-    printf("#                      sphere diameter = %7.1f mm\n",
-        m.d_sphere_t);
-    printf("#                 sample port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.as_t));
-    printf("#                  empty port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.ae_t));
-    printf("#               detector port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.ad_t));
-    printf("#                 detector reflectance = %7.1f %%\n",
-        m.rd_t * 100);
+    printf("#                      sphere diameter = %7.1f mm\n", m.d_sphere_t);
+    printf("#                 sample port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.as_t));
+    printf("#                  empty port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ae_t));
+    printf("#               detector port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ad_t));
+    printf("#                 detector reflectance = %7.1f %%\n", m.rd_t * 100);
     printf("#                     wall reflectance = %7.1f %%", m.rw_t * 100);
     if (m.ae_t == 0)
         printf(" (cal std since empty port is closed)");
     printf("\n");
-    printf("#                 calibration standard = %7.1f %%",
-        m.rstd_t * 100);
+    printf("#                 calibration standard = %7.1f %%", m.rstd_t * 100);
     if (m.ae_t == 0)
         printf(" (ignored)");
     printf("\n");
@@ -306,8 +271,7 @@ void Write_Header(struct measure_type m, struct invert_type r, int params)
         break;
     }
 
-    printf(" and light was incident at %d degrees from the normal",
-        (int) (acos(m.slab_cos_angle) * 57.2958));
+    printf(" and light was incident at %d degrees from the normal", (int) (acos(m.slab_cos_angle) * 57.2958));
     printf(".\n");
 
     switch (r.search) {
@@ -321,8 +285,7 @@ void Write_Header(struct measure_type m, struct invert_type r, int params)
         printf("# The inverse routine varied the albedo and anisotropy.\n");
         printf("# \n");
         if (r.default_b != UNINITIALIZED)
-            printf("#                     Default (mu_t*d) = %7.3g\n",
-                r.default_b);
+            printf("#                     Default (mu_t*d) = %7.3g\n", r.default_b);
         else
             printf("# \n");
         break;
@@ -368,11 +331,9 @@ void Write_Header(struct measure_type m, struct invert_type r, int params)
         break;
     }
 
-    printf("#                 AD quadrature points = %3d\n",
-        r.method.quad_pts);
+    printf("#                 AD quadrature points = %3d\n", r.method.quad_pts);
     printf("#             AD tolerance for success = %9.5f\n", r.tolerance);
-    printf("#      MC tolerance for mu_a and mu_s' = %7.3f %%\n",
-        r.MC_tolerance);
+    printf("#      MC tolerance for mu_a and mu_s' = %7.3f %%\n", r.MC_tolerance);
 }
 
 int Read_Data_Line(FILE *fp, struct measure_type *m, int params)

@@ -77,8 +77,7 @@ void Choose_Method(struct AD_slab_type *slab, struct AD_method_type *method)
     method->b_thinnest = Get_Start_Depth(angle[1], method->b_calc);
 }
 
-void Choose_Cone_Method(struct AD_slab_type *slab,
-    struct AD_method_type *method)
+void Choose_Cone_Method(struct AD_slab_type *slab, struct AD_method_type *method)
 {
     double af, *angle1, *weight1, cos_crit_angle, mu;
     int i, n, nby2, nby3;
@@ -95,8 +94,7 @@ void Choose_Cone_Method(struct AD_slab_type *slab,
         return;
     }
 
-    if (slab->n_slab == 1 && slab->n_top_slide == 1
-        && slab->n_bottom_slide == 1) {
+    if (slab->n_slab == 1 && slab->n_top_slide == 1 && slab->n_bottom_slide == 1) {
         nby2 = n / 2;
         Radau(0.0, slab->cos_angle, angle, weight, nby2);
 
@@ -123,8 +121,7 @@ void Choose_Cone_Method(struct AD_slab_type *slab,
     nby3 = n / 3;
     gauleg(0.0, cos_crit_angle, angle, weight, nby3);
 
-    mu = sqrt(slab->n_slab * slab->n_slab - 1 +
-        slab->cos_angle * slab->cos_angle) / slab->n_slab;
+    mu = sqrt(slab->n_slab * slab->n_slab - 1 + slab->cos_angle * slab->cos_angle) / slab->n_slab;
     angle1 = dvector(1, nby3);
     weight1 = dvector(1, nby3);
     Radau(cos_crit_angle, mu, angle1, weight1, nby3);
@@ -148,8 +145,7 @@ void Choose_Cone_Method(struct AD_slab_type *slab,
 
 }
 
-static void Get_IGI_Layer(struct AD_method_type method, double **h, double **R,
-    double **T)
+static void Get_IGI_Layer(struct AD_method_type method, double **h, double **R, double **T)
 {
     int i, j, n;
     double a, c, d, temp;
@@ -169,8 +165,7 @@ static void Get_IGI_Layer(struct AD_method_type method, double **h, double **R,
     }
 }
 
-static void Get_Diamond_Layer(struct AD_method_type method, double **h,
-    double **R, double **T)
+static void Get_Diamond_Layer(struct AD_method_type method, double **h, double **R, double **T)
 {
 
     int i, j, n;
@@ -319,8 +314,7 @@ static void Get_Diamond_Layer(struct AD_method_type method, double **h,
 
 }
 
-void Init_Layer(struct AD_slab_type slab, struct AD_method_type method,
-    double **R, double **T)
+void Init_Layer(struct AD_slab_type slab, struct AD_method_type method, double **R, double **T)
 {
     static double **h = NULL;
     static double current_g = 10.0;

@@ -18,8 +18,7 @@ void RT_Layers_All(int n,
     double a[],
     double b[],
     double g[],
-    double *dUR1, double *dUT1, double *dURU, double *dUTU,
-    double *uUR1, double *uUT1, double *uURU, double *uUTU)
+    double *dUR1, double *dUT1, double *dURU, double *dUTU, double *uUR1, double *uUT1, double *uURU, double *uUTU)
 {
 
     struct AD_slab_type slab;
@@ -116,10 +115,8 @@ void RT_Layers_All(int n,
         Copy_Matrix(n, T31, T32);
     }
 
-    Add_Top(n, R01, R10, T01, T10, R23, R32, T23, T32, R13, R31, T13, T31,
-        atemp, btemp);
-    Add_Bottom(n, R13, R31, T13, T31, R34, R43, T34, T43, R23, R32, T23, T32,
-        atemp, btemp);
+    Add_Top(n, R01, R10, T01, T10, R23, R32, T23, T32, R13, R31, T13, T31, atemp, btemp);
+    Add_Bottom(n, R13, R31, T13, T31, R34, R43, T34, T43, R23, R32, T23, T32, atemp, btemp);
     URU_and_UR1(n, slab.n_slab, R23, dURU, dUR1);
     URU_and_UR1(n, slab.n_slab, R32, uURU, uUR1);
     Transpose_Matrix(n, T23);
@@ -161,12 +158,9 @@ void RT_Layers(int n,
     double nslab,
     double ntopslide,
     double nbottomslide,
-    int nlayers,
-    double a[],
-    double b[], double g[], double *UR1, double *UT1, double *URU, double *UTU)
+    int nlayers, double a[], double b[], double g[], double *UR1, double *UT1, double *URU, double *UTU)
 {
     double uUR1, uUT1, uURU, uUTU;
 
-    RT_Layers_All(n, nslab, ntopslide, nbottomslide, nlayers, a, b, g,
-        UR1, UT1, URU, UTU, &uUR1, &uUT1, &uURU, &uUTU);
+    RT_Layers_All(n, nslab, ntopslide, nbottomslide, nlayers, a, b, g, UR1, UT1, URU, UTU, &uUR1, &uUT1, &uURU, &uUTU);
 }

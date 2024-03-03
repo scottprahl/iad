@@ -16,8 +16,7 @@ void Get_Phi(int n, int phase_function, double g, double **h)
     double **p;
 
     if (g != 0 && phase_function != HENYEY_GREENSTEIN)
-        AD_error
-            ("Only the Henyey-Greenstein phase function has been implemented\n");
+        AD_error("Only the Henyey-Greenstein phase function has been implemented\n");
 
     if (fabs(g) >= 1)
         AD_error("Get_Phi was called with a bad g_calc value");
@@ -49,8 +48,7 @@ void Get_Phi(int n, int phase_function, double g, double **h)
         x = angle[j];
         p[1][j] = x;
         for (k = 1; k < n; k++)
-            p[k + 1][j] =
-                ((2 * k + 1) * x * p[k][j] - k * p[k - 1][j]) / (k + 1);
+            p[k + 1][j] = ((2 * k + 1) * x * p[k][j] - k * p[k - 1][j]) / (k + 1);
     }
 
     for (j = 1; j <= n; j++)

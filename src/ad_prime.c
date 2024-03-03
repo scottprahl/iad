@@ -12,8 +12,7 @@
 #include "ad_matrx.h"
 #include "ad_cone.h"
 
-void RT_Matrices(int n, struct AD_slab_type *slab,
-    struct AD_method_type *method, double **R, double **T)
+void RT_Matrices(int n, struct AD_slab_type *slab, struct AD_method_type *method, double **R, double **T)
 {
     double d;
 
@@ -44,8 +43,7 @@ void RT_Matrices(int n, struct AD_slab_type *slab,
     Double_Until(n, R, T, d, slab->b);
 }
 
-void RT(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
-    double *URU, double *UTU)
+void RT(int n, struct AD_slab_type *slab, double *UR1, double *UT1, double *URU, double *UTU)
 {
 
     double **R, **T, **R2, **T2;
@@ -86,23 +84,20 @@ void RT(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
         Sp_RT(n, *slab, UR1, UT1, URU, UTU);
 
     }
-    else if (slab->n_slab == 1 && slab->n_top_slide == 1
-        && slab->n_bottom_slide == 1 && slab->b_top_slide == 0
-        && slab->b_bottom_slide == 0) {
+    else if (slab->n_slab == 1 && slab->n_top_slide == 1 && slab->n_bottom_slide == 1
+        && slab->b_top_slide == 0 && slab->b_bottom_slide == 0) {
 
         URU_and_UR1(n, slab->n_slab, R, URU, UR1);
         URU_and_UR1(n, slab->n_slab, T, UTU, UT1);
 
     }
-    else if (slab->n_top_slide == slab->n_bottom_slide &&
-        slab->b_top_slide == 0 && slab->b_bottom_slide == 0) {
+    else if (slab->n_top_slide == slab->n_bottom_slide && slab->b_top_slide == 0 && slab->b_bottom_slide == 0) {
 
         R01 = dvector(1, n);
         R10 = dvector(1, n);
         T01 = dvector(1, n);
         T10 = dvector(1, n);
-        Init_Boundary(*slab, method.quad_pts, R01, R10, T01, T10,
-            TOP_BOUNDARY);
+        Init_Boundary(*slab, method.quad_pts, R01, R10, T01, T10, TOP_BOUNDARY);
 
         atemp = dmatrix(1, n, 1, n);
         btemp = dmatrix(1, n, 1, n);
@@ -128,15 +123,13 @@ void RT(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
         R10 = dvector(1, n);
         T01 = dvector(1, n);
         T10 = dvector(1, n);
-        Init_Boundary(*slab, method.quad_pts, R01, R10, T01, T10,
-            TOP_BOUNDARY);
+        Init_Boundary(*slab, method.quad_pts, R01, R10, T01, T10, TOP_BOUNDARY);
 
         R23 = dvector(1, n);
         R32 = dvector(1, n);
         T23 = dvector(1, n);
         T32 = dvector(1, n);
-        Init_Boundary(*slab, method.quad_pts, R23, R32, T23, T32,
-            BOTTOM_BOUNDARY);
+        Init_Boundary(*slab, method.quad_pts, R23, R32, T23, T32, BOTTOM_BOUNDARY);
 
         R02 = dmatrix(1, n, 1, n);
         R20 = dmatrix(1, n, 1, n);
@@ -149,10 +142,8 @@ void RT(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
         atemp = dmatrix(1, n, 1, n);
         btemp = dmatrix(1, n, 1, n);
 
-        Add_Top(n, R01, R10, T01, T10, R, R, T, T, R02, R20, T02, T20, atemp,
-            btemp);
-        Add_Bottom(n, R02, R20, T02, T20, R23, R32, T23, T32, R03, R30, T03,
-            T30, atemp, btemp);
+        Add_Top(n, R01, R10, T01, T10, R, R, T, T, R02, R20, T02, T20, atemp, btemp);
+        Add_Bottom(n, R02, R20, T02, T20, R23, R32, T23, T32, R03, R30, T03, T30, atemp, btemp);
         URU_and_UR1(n, slab->n_slab, R03, URU, UR1);
         Transpose_Matrix(n, T03);
         URU_and_UR1(n, slab->n_slab, T03, UTU, UT1);
@@ -189,9 +180,7 @@ void RT(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
 
 void ez_RT(int n, double nslab,
     double ntopslide,
-    double nbottomslide,
-    double a,
-    double b, double g, double *UR1, double *UT1, double *URU, double *UTU)
+    double nbottomslide, double a, double b, double g, double *UR1, double *UT1, double *URU, double *UTU)
 {
     struct AD_slab_type slab;
 
@@ -208,8 +197,7 @@ void ez_RT(int n, double nslab,
     RT(n, &slab, UR1, UT1, URU, UTU);
 }
 
-void RTabs(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
-    double *URU, double *UTU)
+void RTabs(int n, struct AD_slab_type *slab, double *UR1, double *UT1, double *URU, double *UTU)
 {
 
     double **R, **T;
@@ -285,12 +273,9 @@ void RTabs(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
     slab->b_bottom_slide = bbottom;
 
     Add(n, Rtop, Rtop, Ttop, Ttop, R, R, T, T, R02, R20, T02, T20);
-    Add(n, R02, R20, T02, T20, Rbottom, Rbottom, Tbottom, Tbottom, R03, R30,
-        T03, T30);
-    Add_Top(n, R01, R10, T01, T10, R03, R30, T03, T30, R02, R20, T02, T20,
-        atemp, btemp);
-    Add_Bottom(n, R02, R20, T02, T20, R23, R32, T23, T32, R03, R30, T03, T30,
-        atemp, btemp);
+    Add(n, R02, R20, T02, T20, Rbottom, Rbottom, Tbottom, Tbottom, R03, R30, T03, T30);
+    Add_Top(n, R01, R10, T01, T10, R03, R30, T03, T30, R02, R20, T02, T20, atemp, btemp);
+    Add_Bottom(n, R02, R20, T02, T20, R23, R32, T23, T32, R03, R30, T03, T30, atemp, btemp);
     URU_and_UR1(n, slab->n_slab, R03, URU, UR1);
     Transpose_Matrix(n, T03);
     URU_and_UR1(n, slab->n_slab, T03, UTU, UT1);
@@ -328,9 +313,8 @@ void RTabs(int n, struct AD_slab_type *slab, double *UR1, double *UT1,
 
 }
 
-void Flux_Fluence(int n, struct AD_slab_type *slab, double zmin, double zmax,
-    int intervals, double *UF1_array, double *UFU_array, double *flux_up,
-    double *flux_down)
+void Flux_Fluence(int n, struct AD_slab_type *slab, double zmin, double zmax, int intervals,
+    double *UF1_array, double *UFU_array, double *flux_up, double *flux_down)
 {
 
     double *R01, *R10, *T01, *T10;
@@ -352,8 +336,7 @@ void Flux_Fluence(int n, struct AD_slab_type *slab, double zmin, double zmax,
     int i, j;
 
     if (intervals > MAX_FLUENCE_INTERVALS)
-        AD_error
-            ("too many intervals requested.  increase the const max_fluence_intervals\n");
+        AD_error("too many intervals requested.  increase the const max_fluence_intervals\n");
 
     slab_thickness = slab->b;
     slab->b = zmin;
@@ -373,8 +356,7 @@ void Flux_Fluence(int n, struct AD_slab_type *slab, double zmin, double zmax,
     T02 = dmatrix(1, n, 1, n);
     a = dmatrix(1, n, 1, n);
     b = dmatrix(1, n, 1, n);
-    Add_Top(n, R01, R10, T01, T10, R12, R12, T12, T12, R02, R20, T02, T20, a,
-        b);
+    Add_Top(n, R01, R10, T01, T10, R12, R12, T12, T12, R02, R20, T02, T20, a, b);
 
     free_dmatrix(R12, 1, n, 1, n);
     free_dmatrix(T12, 1, n, 1, n);
@@ -396,8 +378,7 @@ void Flux_Fluence(int n, struct AD_slab_type *slab, double zmin, double zmax,
     T46 = dmatrix(1, n, 1, n);
     R64 = dmatrix(1, n, 1, n);
     T64 = dmatrix(1, n, 1, n);
-    Add_Bottom(n, R45, R45, T45, T45, R56, R65, T56, T65, R46, R64, T46, T64,
-        a, b);
+    Add_Bottom(n, R45, R45, T45, T45, R56, R65, T56, T65, R46, R64, T46, T64, a, b);
     free_dmatrix(R45, 1, n, 1, n);
     free_dmatrix(T45, 1, n, 1, n);
     free_dvector(R56, 1, n);
@@ -485,9 +466,7 @@ void Flux_Fluence(int n, struct AD_slab_type *slab, double zmin, double zmax,
 void ez_RT_unscattered(int n,
     double nslab,
     double ntopslide,
-    double nbottomslide,
-    double a,
-    double b, double g, double *UR1, double *UT1, double *URU, double *UTU)
+    double nbottomslide, double a, double b, double g, double *UR1, double *UT1, double *URU, double *UTU)
 {
     struct AD_slab_type slab;
 

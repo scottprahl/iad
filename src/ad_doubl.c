@@ -28,8 +28,7 @@ static void Star_One_Minus(int n, double **A)
 
 static void Basic_Add_Layers(int n,
     double **R10, double **T01,
-    double **R12, double **R21, double **T12, double **T21,
-    double **R20, double **T02, double **a, double **b)
+    double **R12, double **R21, double **T12, double **T21, double **R20, double **T02, double **a, double **b)
 {
     Star_Multiply(n, R10, R12, a);
     Star_One_Minus(n, a);
@@ -47,9 +46,7 @@ static void Basic_Add_Layers(int n,
 static void Basic_Add_Layers_With_Sources(int n,
     double **R10, double **T01,
     double **R12, double **R21, double **T12, double **T21,
-    double **R20, double **T02,
-    double **J01, double **J12, double **J21, double **J02,
-    double **a, double **b)
+    double **R20, double **T02, double **J01, double **J12, double **J21, double **J02, double **a, double **b)
 {
     Star_Multiply(n, R10, R12, a);
     Star_One_Minus(n, a);
@@ -72,8 +69,7 @@ static void Basic_Add_Layers_With_Sources(int n,
 
 void Add(int n,
     double **R01, double **R10, double **T01, double **T10,
-    double **R12, double **R21, double **T12, double **T21,
-    double **R02, double **R20, double **T02, double **T20)
+    double **R12, double **R21, double **T12, double **T21, double **R02, double **R20, double **T02, double **T20)
 {
 
     double **a, **b;
@@ -89,10 +85,9 @@ void Add(int n,
 }
 
 void Add_With_Sources(int n,
-    double **R01, double **R10, double **T01, double **T10, double **J01,
-    double **J10, double **R12, double **R21, double **T12, double **T21,
-    double **J12, double **J21, double **R02, double **R20, double **T02,
-    double **T20, double **J02, double **J20)
+    double **R01, double **R10, double **T01, double **T10, double **J01, double **J10,
+    double **R12, double **R21, double **T12, double **T21, double **J12, double **J21,
+    double **R02, double **R20, double **T02, double **T20, double **J02, double **J20)
 {
 
     double **a, **b;
@@ -100,18 +95,14 @@ void Add_With_Sources(int n,
     a = dmatrix(1, n, 1, n);
     b = dmatrix(1, n, 1, n);
 
-    Basic_Add_Layers_With_Sources(n, R10, T01, R12, R21, T12, T21, R20, T02,
-        J01, J12, J21, J02, a, b);
-    Basic_Add_Layers_With_Sources(n, R12, T21, R10, R01, T10, T01, R02, T20,
-        J21, J10, J01, J20, a, b);
+    Basic_Add_Layers_With_Sources(n, R10, T01, R12, R21, T12, T21, R20, T02, J01, J12, J21, J02, a, b);
+    Basic_Add_Layers_With_Sources(n, R12, T21, R10, R01, T10, T01, R02, T20, J21, J10, J01, J20, a, b);
 
     free_dmatrix(a, 1, n, 1, n);
     free_dmatrix(b, 1, n, 1, n);
 }
 
-void Add_Homogeneous(int n,
-    double **R01, double **T01,
-    double **R12, double **T12, double **R02, double **T02)
+void Add_Homogeneous(int n, double **R01, double **T01, double **R12, double **T12, double **R02, double **T02)
 {
 
     double **a, **b;
@@ -186,8 +177,7 @@ void Double_Until_Infinite(int n, double **r, double **t)
 
 void Between(int n,
     double **R01, double **R10, double **T01, double **T10,
-    double **R12, double **R21, double **T12, double **T21,
-    double **Lup, double **Ldown)
+    double **R12, double **R21, double **T12, double **T21, double **Lup, double **Ldown)
 {
     (void) R01;
     (void) T10;

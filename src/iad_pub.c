@@ -18,10 +18,8 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
 {
     if (0 && Debug(DEBUG_LOST_LIGHT)) {
         fprintf(stderr, "** Inverse_RT (%d spheres) **\n", m.num_spheres);
-        fprintf(stderr, "    M_R      = %8.5f, MT       = %8.5f\n", m.m_r,
-            m.m_t);
-        fprintf(stderr, "    UR1 lost = %8.5f, UT1 lost = %8.5f\n", m.ur1_lost,
-            m.ut1_lost);
+        fprintf(stderr, "    M_R      = %8.5f, MT       = %8.5f\n", m.m_r, m.m_t);
+        fprintf(stderr, "    UR1 lost = %8.5f, UT1 lost = %8.5f\n", m.ur1_lost, m.ut1_lost);
     }
 
     r->found = FALSE;
@@ -96,15 +94,13 @@ int measure_OK(struct measure_type m, struct invert_type r)
         if (m.m_t < 0)
             return IAD_MT_TOO_SMALL;
 
-        Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab,
-            r.slab.n_bottom_slide, r.slab.b_top_slide, 0,
-            r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
+        Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide,
+            r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
 
         if (m.num_spheres == 0 && m.m_t > tu) {
             fprintf(stderr, "ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n",
                 r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide);
-            fprintf(stderr, "tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu,
-                m.m_t, m.rstd_t);
+            fprintf(stderr, "tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu, m.m_t, m.rstd_t);
             return IAD_MT_TOO_BIG;
         }
 
@@ -112,8 +108,8 @@ int measure_OK(struct measure_type m, struct invert_type r)
             double mr, mt;
             Calculate_Minimum_MR(m, r, &mr, &mt);
 
-            if (r.search == FIND_A || r.search == FIND_G || r.search == FIND_B
-                || r.search == FIND_Bs || r.search == FIND_Ba) {
+            if (r.search == FIND_A || r.search == FIND_G || r.search == FIND_B ||
+                r.search == FIND_Bs || r.search == FIND_Ba) {
                 if (m.m_r < mr && m.m_t <= 0)
                     return IAD_MR_TOO_SMALL;
             }
@@ -199,8 +195,7 @@ search_type determine_search(struct measure_type m, struct invert_type r)
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "\n*** Determine_Search()\n");
-        fprintf(stderr, "    starting with %d measurement(s)\n",
-            m.num_measures);
+        fprintf(stderr, "    starting with %d measurement(s)\n", m.num_measures);
         fprintf(stderr, "    m_r=%.5f\n", m.m_r);
         fprintf(stderr, "    m_t=%.5f\n", m.m_t);
     }
@@ -307,8 +302,7 @@ search_type determine_search(struct measure_type m, struct invert_type r)
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "    independent measurements = %3d\n", independent);
-        fprintf(stderr, "    m_r=%8.5f m_t=%8.5f (rd = %8.5f td=%8.5f)\n",
-            m.m_r, m.m_t, rd, td);
+        fprintf(stderr, "    m_r=%8.5f m_t=%8.5f (rd = %8.5f td=%8.5f)\n", m.m_r, m.m_t, rd, td);
         if (search == FIND_A)
             fprintf(stderr, "    search = FIND_A\n");
         if (search == FIND_B)
@@ -420,10 +414,8 @@ void Initialize_Measure(struct measure_type *m)
 
     m->d_sphere_r = default_sphere_d;
     m->as_r = (M_PI * default_sample_d * default_sample_d / 4.0) / sphere_area;
-    m->ad_r =
-        (M_PI * default_detector_d * default_detector_d / 4.0) / sphere_area;
-    m->ae_r =
-        (M_PI * default_entrance_d * default_entrance_d / 4.0) / sphere_area;
+    m->ad_r = (M_PI * default_detector_d * default_detector_d / 4.0) / sphere_area;
+    m->ae_r = (M_PI * default_entrance_d * default_entrance_d / 4.0) / sphere_area;
     m->aw_r = 1.0 - m->as_r - m->ad_r - m->ae_r;
     m->rd_r = 0.0;
     m->rw_r = 1.0;
@@ -488,8 +480,7 @@ void ez_Inverse_RT(double n, double nslide, double UR1, double UT1, double Tc,
 }
 
 void Spheres_Inverse_RT(double *setup,
-    double *analysis,
-    double *sphere_r, double *sphere_t, double *measurements, double *results)
+    double *analysis, double *sphere_r, double *sphere_t, double *measurements, double *results)
 {
     struct measure_type m;
     struct invert_type r;
@@ -526,25 +517,13 @@ void Spheres_Inverse_RT(double *setup,
         r.default_g = setup[17];
         num_photons = (long) setup[18];
 
-        m.as_r =
-            (d_sample_r / m.d_sphere_r / 2.0) * (d_sample_r / m.d_sphere_r /
-            2.0);
-        m.ae_r =
-            (d_entrance_r / m.d_sphere_r / 2.0) * (d_entrance_r /
-            m.d_sphere_r / 2.0);
-        m.ad_r =
-            (d_detector_r / m.d_sphere_r / 2.0) * (d_detector_r /
-            m.d_sphere_r / 2.0);
+        m.as_r = (d_sample_r / m.d_sphere_r / 2.0) * (d_sample_r / m.d_sphere_r / 2.0);
+        m.ae_r = (d_entrance_r / m.d_sphere_r / 2.0) * (d_entrance_r / m.d_sphere_r / 2.0);
+        m.ad_r = (d_detector_r / m.d_sphere_r / 2.0) * (d_detector_r / m.d_sphere_r / 2.0);
         m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
-        m.as_t =
-            (d_sample_t / m.d_sphere_t / 2.0) * (d_sample_t / m.d_sphere_t /
-            2.0);
-        m.ae_t =
-            (d_entrance_t / m.d_sphere_t / 2.0) * (d_entrance_t /
-            m.d_sphere_t / 2.0);
-        m.ad_t =
-            (d_detector_t / m.d_sphere_t / 2.0) * (d_detector_t /
-            m.d_sphere_t / 2.0);
+        m.as_t = (d_sample_t / m.d_sphere_t / 2.0) * (d_sample_t / m.d_sphere_t / 2.0);
+        m.ae_t = (d_entrance_t / m.d_sphere_t / 2.0) * (d_entrance_t / m.d_sphere_t / 2.0);
+        m.ad_t = (d_detector_t / m.d_sphere_t / 2.0) * (d_detector_t / m.d_sphere_t / 2.0);
         m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
 
         m.slab_bottom_slide_index = m.slab_top_slide_index;
@@ -591,8 +570,7 @@ void Spheres_Inverse_RT(double *setup,
 
     Inverse_RT(m, &r);
     for (i = 0; i < mc_runs; i++) {
-        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu,
-            &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu, &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
         Inverse_RT(m, &r);
     }
 
@@ -607,9 +585,7 @@ void Spheres_Inverse_RT(double *setup,
 
 void Spheres_Inverse_RT2(double *sample,
     double *illumination,
-    double *sphere_r,
-    double *sphere_t,
-    double *analysis, double *measurement, double *a, double *b, double *g)
+    double *sphere_r, double *sphere_t, double *analysis, double *measurement, double *a, double *b, double *g)
 {
     struct measure_type m;
     struct invert_type r;
@@ -642,15 +618,9 @@ void Spheres_Inverse_RT2(double *sample,
         m.rw_r = sphere_r[4];
         m.rd_r = sphere_r[5];
 
-        m.as_r =
-            (d_sample_r / m.d_sphere_r / 2.0) * (d_sample_r / m.d_sphere_r /
-            2.0);
-        m.ae_r =
-            (d_entrance_r / m.d_sphere_r / 2.0) * (d_entrance_r /
-            m.d_sphere_r / 2.0);
-        m.ad_r =
-            (d_detector_r / m.d_sphere_r / 2.0) * (d_detector_r /
-            m.d_sphere_r / 2.0);
+        m.as_r = (d_sample_r / m.d_sphere_r / 2.0) * (d_sample_r / m.d_sphere_r / 2.0);
+        m.ae_r = (d_entrance_r / m.d_sphere_r / 2.0) * (d_entrance_r / m.d_sphere_r / 2.0);
+        m.ad_r = (d_detector_r / m.d_sphere_r / 2.0) * (d_detector_r / m.d_sphere_r / 2.0);
         m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
     }
 
@@ -664,15 +634,9 @@ void Spheres_Inverse_RT2(double *sample,
         m.rw_t = sphere_t[4];
         m.rd_t = sphere_t[5];
 
-        m.as_t =
-            (d_sample_t / m.d_sphere_t / 2.0) * (d_sample_t / m.d_sphere_t /
-            2.0);
-        m.ae_t =
-            (d_entrance_t / m.d_sphere_t / 2.0) * (d_entrance_t /
-            m.d_sphere_t / 2.0);
-        m.ad_t =
-            (d_detector_t / m.d_sphere_t / 2.0) * (d_detector_t /
-            m.d_sphere_t / 2.0);
+        m.as_t = (d_sample_t / m.d_sphere_t / 2.0) * (d_sample_t / m.d_sphere_t / 2.0);
+        m.ae_t = (d_entrance_t / m.d_sphere_t / 2.0) * (d_entrance_t / m.d_sphere_t / 2.0);
+        m.ad_t = (d_detector_t / m.d_sphere_t / 2.0) * (d_detector_t / m.d_sphere_t / 2.0);
         m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
     }
 
@@ -695,8 +659,7 @@ void Spheres_Inverse_RT2(double *sample,
 
     Inverse_RT(m, &r);
     for (i = 0; i < mc_runs; i++) {
-        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu,
-            &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu, &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
         Inverse_RT(m, &r);
     }
 
@@ -707,16 +670,14 @@ void Spheres_Inverse_RT2(double *sample,
     }
 }
 
-void Calculate_MR_MT(struct measure_type m,
-    struct invert_type r, int include_MC, double *M_R, double *M_T)
+void Calculate_MR_MT(struct measure_type m, struct invert_type r, int include_MC, double *M_R, double *M_T)
 {
     double distance, ur1, ut1, uru, utu;
     struct measure_type old_mm;
     struct invert_type old_rr;
 
     if (include_MC && m.num_spheres > 0)
-        MC_Lost(m, r, -2000, &ur1, &ut1, &uru, &utu,
-            &(m.ur1_lost), &(m.ut1_lost), &(m.uru_lost), &(m.utu_lost));
+        MC_Lost(m, r, -2000, &ur1, &ut1, &uru, &utu, &(m.ur1_lost), &(m.ut1_lost), &(m.uru_lost), &(m.utu_lost));
 
     Get_Calc_State(&old_mm, &old_rr);
     Set_Calc_State(m, r);
@@ -728,8 +689,7 @@ void Calculate_MR_MT(struct measure_type m,
 
 int MinMax_MR_MT(struct measure_type m, struct invert_type r)
 {
-    double distance, measured_m_r, min_possible_m_r, max_possible_m_r,
-        temp_m_t;
+    double distance, measured_m_r, min_possible_m_r, max_possible_m_r, temp_m_t;
 
     if (m.m_r < 0)
         return IAD_MR_TOO_SMALL;
@@ -760,8 +720,7 @@ int MinMax_MR_MT(struct measure_type m, struct invert_type r)
     return IAD_NO_ERROR;
 }
 
-void Calculate_Minimum_MR(struct measure_type m,
-    struct invert_type r, double *mr, double *mt)
+void Calculate_Minimum_MR(struct measure_type m, struct invert_type r, double *mr, double *mt)
 {
     if (r.default_b == UNINITIALIZED)
         if (r.slab.n_slab > 1.0)

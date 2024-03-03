@@ -309,8 +309,7 @@ void U_Find_AG(struct measure_type m, struct invert_type *r)
         if (Debug(DEBUG_BEST_GUESS)) {
             int k;
             fprintf(stderr, "Best Grid Guesses\n");
-            fprintf(stderr,
-                "  k      albedo          b          g    distance\n");
+            fprintf(stderr, "  k      albedo          b          g    distance\n");
             for (k = 0; k <= 6; k++) {
                 fprintf(stderr, "%3d  ", k);
                 fprintf(stderr, "%10.5f ", guess[k].a);
@@ -440,8 +439,7 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
         if (Debug(DEBUG_BEST_GUESS)) {
             int k;
             fprintf(stderr, "Best Grid Guesses\n");
-            fprintf(stderr,
-                "  k      albedo          b          g    distance\n");
+            fprintf(stderr, "  k      albedo          b          g    distance\n");
             for (k = 0; k <= 6; k++) {
                 fprintf(stderr, "%3d  ", k);
                 fprintf(stderr, "%10.5f ", guess[k].a);
@@ -477,8 +475,7 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
         p[3][2] = b2bcalc(guess[kk].b);
 
         if (Debug(DEBUG_BEST_GUESS)) {
-            fprintf(stderr,
-                "------------------------------------------------\n");
+            fprintf(stderr, "------------------------------------------------\n");
             fprintf(stderr, " <1> ");
             fprintf(stderr, "%10.5f ", guess[0].a);
             fprintf(stderr, "%10.5f ", guess[0].b);
@@ -574,8 +571,7 @@ void U_Find_BG(struct measure_type m, struct invert_type *r)
         if (Debug(DEBUG_BEST_GUESS)) {
             int k;
             fprintf(stderr, "Best Grid Guesses\n");
-            fprintf(stderr,
-                "  k      albedo          b          g    distance\n");
+            fprintf(stderr, "  k      albedo          b          g    distance\n");
             for (k = 0; k <= 6; k++) {
                 fprintf(stderr, "%3d  ", k);
                 fprintf(stderr, "%10.5f ", guess[k].a);
@@ -696,8 +692,7 @@ void U_Find_BaG(struct measure_type m, struct invert_type *r)
         if (Debug(DEBUG_BEST_GUESS)) {
             int k;
             fprintf(stderr, "Best Grid Guesses\n");
-            fprintf(stderr,
-                "  k      albedo          b          g    distance\n");
+            fprintf(stderr, "  k      albedo          b          g    distance\n");
             for (k = 0; k <= 6; k++) {
                 fprintf(stderr, "%3d  ", k);
                 fprintf(stderr, "%10.5f ", guess[k].a);
@@ -800,8 +795,7 @@ void U_Find_BsG(struct measure_type m, struct invert_type *r)
         if (Debug(DEBUG_BEST_GUESS)) {
             int k;
             fprintf(stderr, "Best Grid Guesses\n");
-            fprintf(stderr,
-                "  k      albedo          b          g    distance\n");
+            fprintf(stderr, "  k      albedo          b          g    distance\n");
             for (k = 0; k <= 6; k++) {
                 fprintf(stderr, "%3d  ", k);
                 fprintf(stderr, "%10.5f ", guess[k].a);

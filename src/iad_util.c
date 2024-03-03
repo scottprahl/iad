@@ -20,13 +20,11 @@ double What_Is_B(struct AD_slab_type slab, double Tc)
 {
     double r1, r2, t1, t2, mu_in_slab;
 
-    Absorbing_Glass_RT(1.0, slab.n_top_slide, slab.n_slab,
-        slab.cos_angle, slab.b_top_slide, &r1, &t1);
+    Absorbing_Glass_RT(1.0, slab.n_top_slide, slab.n_slab, slab.cos_angle, slab.b_top_slide, &r1, &t1);
 
     mu_in_slab = Cos_Snell(1.0, slab.cos_angle, slab.n_slab);
 
-    Absorbing_Glass_RT(slab.n_slab, slab.n_bottom_slide, 1.0,
-        mu_in_slab, slab.b_bottom_slide, &r2, &t2);
+    Absorbing_Glass_RT(slab.n_slab, slab.n_bottom_slide, 1.0, mu_in_slab, slab.b_bottom_slide, &r2, &t2);
 
     if (Tc <= 0)
         return (HUGE_VAL);
@@ -41,14 +39,13 @@ double What_Is_B(struct AD_slab_type slab, double Tc)
         double B;
 
         B = t1 * t2;
-        return (-slab.cos_angle * log(2 * Tc / (B + sqrt(B * B +
-                        4 * Tc * Tc * r1 * r2))));
+        return (-slab.cos_angle * log(2 * Tc / (B + sqrt(B * B + 4 * Tc * Tc * r1 * r2))));
     }
 
 }
 
-void Estimate_RT(struct measure_type m, struct invert_type r, double *rt,
-    double *tt, double *rd, double *rc, double *td, double *tc)
+void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double *tt,
+    double *rd, double *rc, double *td, double *tc)
 {
 
     Calculate_Minimum_MR(m, r, rc, tc);
@@ -175,8 +172,7 @@ void twounprime(double ap, double bp, double g, double *a, double *b)
         *b = (1 + ap * g / (1 - g)) * bp;
 }
 
-void abgg2ab(double a1, double b1, double g1, double g2, double *a2,
-    double *b2)
+void abgg2ab(double a1, double b1, double g1, double g2, double *a2, double *b2)
 {
     double a, b;
 
@@ -212,8 +208,7 @@ void abgb2ag(double a1, double b1, double b2, double *a2, double *g2)
         *g2 = (1 - b1 / b2) / (*a2);
 }
 
-void quick_guess(struct measure_type m, struct invert_type r, double *a,
-    double *b, double *g)
+void quick_guess(struct measure_type m, struct invert_type r, double *a, double *b, double *g)
 {
     double UR1, UT1, rd, td, tc, rc, bprime, aprime, alpha, beta, logr;
 
@@ -246,8 +241,7 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a,
 
         if (rd < 0.01) {
             bprime = What_Is_B(r.slab, UT1);
-            fprintf(stderr, "low rd<0.01! ut1=%f aprime=%f bprime=%f\n", UT1,
-                aprime, bprime);
+            fprintf(stderr, "low rd<0.01! ut1=%f aprime=%f bprime=%f\n", UT1, aprime, bprime);
         }
         else if (UT1 <= 0)
             bprime = HUGE_VAL;
@@ -294,8 +288,7 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a,
 
             if (rd < 0.01) {
                 bprime = What_Is_B(r.slab, UT1);
-                fprintf(stderr, "low rd<0.01! ut1=%f aprime=%f bprime=%f\n",
-                    UT1, aprime, bprime);
+                fprintf(stderr, "low rd<0.01! ut1=%f aprime=%f bprime=%f\n", UT1, aprime, bprime);
             }
             else if (UT1 <= 0)
                 bprime = HUGE_VAL;
@@ -326,9 +319,7 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a,
 
                 if (rd < 0.01) {
                     bprime = What_Is_B(r.slab, UT1);
-                    fprintf(stderr,
-                        "low rd<0.01! ut1=%f aprime=%f bprime=%f\n", UT1,
-                        aprime, bprime);
+                    fprintf(stderr, "low rd<0.01! ut1=%f aprime=%f bprime=%f\n", UT1, aprime, bprime);
                 }
                 else if (UT1 <= 0)
                     bprime = HUGE_VAL;
@@ -380,69 +371,43 @@ int Debug(unsigned long mask)
 void Print_Invert_Type(struct invert_type r)
 {
     fprintf(stderr, "\n");
-    fprintf(stderr, "default  a=%10.5f   b=%10.5f    g=%10.5f\n",
-        r.default_a, r.default_b, r.default_g);
-    fprintf(stderr, "slab     a=%10.5f   b=%10.5f    g=%10.5f\n",
-        r.slab.a, r.slab.b, r.slab.g);
+    fprintf(stderr, "default  a=%10.5f   b=%10.5f    g=%10.5f\n", r.default_a, r.default_b, r.default_g);
+    fprintf(stderr, "slab     a=%10.5f   b=%10.5f    g=%10.5f\n", r.slab.a, r.slab.b, r.slab.g);
     fprintf(stderr, "n      top=%10.5f mid=%10.5f  bot=%10.5f\n",
         r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide);
     fprintf(stderr, "thick  top=%10.5f cos=%10.5f  bot=%10.5f\n",
         r.slab.b_top_slide, r.slab.cos_angle, r.slab.b_bottom_slide);
-    fprintf(stderr, "search = %d quadrature points = %d\n", r.search,
-        r.method.quad_pts);
+    fprintf(stderr, "search = %d quadrature points = %d\n", r.search, r.method.quad_pts);
 }
 
 void Print_Measure_Type(struct measure_type m)
 {
     fprintf(stderr, "\n");
-    fprintf(stderr, "#                        Beam diameter = %7.1f mm\n",
-        m.d_beam);
-    fprintf(stderr, "#                     Sample thickness = %7.1f mm\n",
-        m.slab_thickness);
-    fprintf(stderr, "#                  Top slide thickness = %7.1f mm\n",
-        m.slab_top_slide_thickness);
-    fprintf(stderr, "#               Bottom slide thickness = %7.1f mm\n",
-        m.slab_bottom_slide_thickness);
-    fprintf(stderr, "#           Sample index of refraction = %7.3f\n",
-        m.slab_index);
-    fprintf(stderr, "#        Top slide index of refraction = %7.3f\n",
-        m.slab_top_slide_index);
-    fprintf(stderr, "#     Bottom slide index of refraction = %7.3f\n",
-        m.slab_bottom_slide_index);
-    fprintf(stderr, "#    Fraction unscattered light in M_R = %7.1f %%\n",
-        m.fraction_of_rc_in_mr * 100);
-    fprintf(stderr, "#    Fraction unscattered light in M_T = %7.1f %%\n",
-        m.fraction_of_tc_in_mt * 100);
+    fprintf(stderr, "#                        Beam diameter = %7.1f mm\n", m.d_beam);
+    fprintf(stderr, "#                     Sample thickness = %7.1f mm\n", m.slab_thickness);
+    fprintf(stderr, "#                  Top slide thickness = %7.1f mm\n", m.slab_top_slide_thickness);
+    fprintf(stderr, "#               Bottom slide thickness = %7.1f mm\n", m.slab_bottom_slide_thickness);
+    fprintf(stderr, "#           Sample index of refraction = %7.3f\n", m.slab_index);
+    fprintf(stderr, "#        Top slide index of refraction = %7.3f\n", m.slab_top_slide_index);
+    fprintf(stderr, "#     Bottom slide index of refraction = %7.3f\n", m.slab_bottom_slide_index);
+    fprintf(stderr, "#    Fraction unscattered light in M_R = %7.1f %%\n", m.fraction_of_rc_in_mr * 100);
+    fprintf(stderr, "#    Fraction unscattered light in M_T = %7.1f %%\n", m.fraction_of_tc_in_mt * 100);
     fprintf(stderr, "# \n");
     fprintf(stderr, "# Reflection sphere\n");
-    fprintf(stderr, "#                      sphere diameter = %7.1f mm\n",
-        m.d_sphere_r);
-    fprintf(stderr, "#                 sample port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.as_r));
-    fprintf(stderr, "#               entrance port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.ae_r));
-    fprintf(stderr, "#               detector port diameter = %7.1f mm\n",
-        2 * m.d_sphere_r * sqrt(m.ad_r));
-    fprintf(stderr, "#                     wall reflectance = %7.1f %%\n",
-        m.rw_r * 100);
-    fprintf(stderr, "#                 standard reflectance = %7.1f %%\n",
-        m.rstd_r * 100);
-    fprintf(stderr, "#                 detector reflectance = %7.1f %%\n",
-        m.rd_r * 100);
-    fprintf(stderr, "#                              spheres = %7d\n",
-        m.num_spheres);
-    fprintf(stderr, "#                             measures = %7d\n",
-        m.num_measures);
-    fprintf(stderr, "#                               method = %7d\n",
-        m.method);
-    fprintf(stderr, "area_r as=%10.5f  ad=%10.5f    ae=%10.5f  aw=%10.5f\n",
-        m.as_r, m.ad_r, m.ae_r, m.aw_r);
-    fprintf(stderr, "refls  rd=%10.5f  rw=%10.5f  rstd=%10.5f   f=%10.5f\n",
-        m.rd_r, m.rw_r, m.rstd_r, m.f_r);
-    fprintf(stderr, "area_t as=%10.5f  ad=%10.5f    ae=%10.5f  aw=%10.5f\n",
-        m.as_t, m.ad_t, m.ae_t, m.aw_t);
-    fprintf(stderr, "refls  rd=%10.5f  rw=%10.5f  rstd=%10.5f   f=%10.5f\n",
-        m.rd_t, m.rw_t, m.rstd_t, m.f_t);
+    fprintf(stderr, "#                      sphere diameter = %7.1f mm\n", m.d_sphere_r);
+    fprintf(stderr, "#                 sample port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.as_r));
+    fprintf(stderr, "#               entrance port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ae_r));
+    fprintf(stderr, "#               detector port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ad_r));
+    fprintf(stderr, "#                     wall reflectance = %7.1f %%\n", m.rw_r * 100);
+    fprintf(stderr, "#                 standard reflectance = %7.1f %%\n", m.rstd_r * 100);
+    fprintf(stderr, "#                 detector reflectance = %7.1f %%\n", m.rd_r * 100);
+    fprintf(stderr, "#                              spheres = %7d\n", m.num_spheres);
+    fprintf(stderr, "#                             measures = %7d\n", m.num_measures);
+    fprintf(stderr, "#                               method = %7d\n", m.method);
+    fprintf(stderr, "area_r as=%10.5f  ad=%10.5f    ae=%10.5f  aw=%10.5f\n", m.as_r, m.ad_r, m.ae_r, m.aw_r);
+    fprintf(stderr, "refls  rd=%10.5f  rw=%10.5f  rstd=%10.5f   f=%10.5f\n", m.rd_r, m.rw_r, m.rstd_r, m.f_r);
+    fprintf(stderr, "area_t as=%10.5f  ad=%10.5f    ae=%10.5f  aw=%10.5f\n", m.as_t, m.ad_t, m.ae_t, m.aw_t);
+    fprintf(stderr, "refls  rd=%10.5f  rw=%10.5f  rstd=%10.5f   f=%10.5f\n", m.rd_t, m.rw_t, m.rstd_t, m.f_t);
     fprintf(stderr, "lost  ur1=%10.5f ut1=%10.5f   uru=%10.5f  utu=%10.5f\n",
         m.ur1_lost, m.ut1_lost, m.utu_lost, m.utu_lost);
 }

@@ -13,12 +13,10 @@
 #include "ad_cone.h"
 
 static void PrintTestResults(int test, int cas, struct AD_slab_type *slab,
-    double aUR1, double aUT1, double aURU, double aUTU,
-    double bUR1, double bUT1, double bURU, double bUTU)
+    double aUR1, double aUT1, double aURU, double aUTU, double bUR1, double bUT1, double bURU, double bUTU)
 {
     printf("\nTest:%d.%d\n", test, cas);
-    printf("Oblique angle           %10.5f\n",
-        acos(slab->cos_angle) * 180.0 / M_PI);
+    printf("Oblique angle           %10.5f\n", acos(slab->cos_angle) * 180.0 / M_PI);
     printf("Cosine of oblique angle %10.5f\n", slab->cos_angle);
     printf("Albedo                  %10.5f\n", slab->a);
     printf("Optical Depth           %10.5f\n", slab->b);
@@ -53,16 +51,14 @@ int main(int argc, char **argv)
     slab.cos_angle = 1;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.a = 0.5;
     slab.b = 0.5;
     slab.g = 0.875;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.a = 0.0;
     slab.b = 0.1;
@@ -70,8 +66,7 @@ int main(int argc, char **argv)
     slab.n_slab = 1.4;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 3, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 3, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.a = 0.5;
     slab.b = 0.5;
@@ -79,25 +74,20 @@ int main(int argc, char **argv)
     slab.n_slab = 1.4;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 4, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 4, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.n_top_slide = 1.5;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 5, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 5, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     slab.n_bottom_slide = 1.6;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(1, 6, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(1, 6, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
-    printf
-        ("*****************************************************************\n");
-    printf
-        ("See page 256-257 in van de Hulst, Multiple Light Scattering, volume 1\n");
+    printf("*****************************************************************\n");
+    printf("See page 256-257 in van de Hulst, Multiple Light Scattering, volume 1\n");
     slab.cos_angle = 0.5;
     slab.n_slab = 1.0;
     slab.n_top_slide = 1.0;
@@ -111,21 +101,17 @@ int main(int argc, char **argv)
     aUR1 = 0.48652;
     aUT1 = 0.49163;
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(4, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(4, 1, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
-    printf
-        ("*****************************************************************\n");
-    printf
-        ("See page 424-424 in van de Hulst, Multiple Light Scattering, volume 2\n");
+    printf("*****************************************************************\n");
+    printf("See page 424-424 in van de Hulst, Multiple Light Scattering, volume 2\n");
     slab.b = 4.0;
     slab.g = 0.5;
     RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
     aUR1 = 0.61996;
     aUT1 = 0.30605;
     RT_Cone(N, &slab, OBLIQUE, &bUR1, &bUT1, &bURU, &bUTU);
-    PrintTestResults(4, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU,
-        bUTU);
+    PrintTestResults(4, 2, &slab, aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU);
 
     exit(EXIT_SUCCESS);
 }

@@ -46,14 +46,11 @@ void AD_error(char error_text[]);
 
 void URU_and_UR1(int n, double n_slab, double **R, double *URU, double *UR1);
 
-void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU,
-    double *UR1);
+void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, double *UR1);
 
-void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU,
-    double *URx);
+void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, double *URx);
 
-void UFU_and_UF1(int n, double n_slab,
-    double **Lup, double **Ldown, double *UFU, double *UF1);
+void UFU_and_UF1(int n, double n_slab, double **Lup, double **Ldown, double *UFU, double *UF1);
 
 void wrmatrix(int n, double **a);
 

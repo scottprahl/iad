@@ -51,7 +51,7 @@ int main(int argc, char **argv)
     double g = 0.0;
     double n_slab = 1.0;
     double n_slide = 1.0;
-    double mu0 = 0.5;
+    double mu0 = 1;
     double mua_slide = 0;
     long n_photons = 1024 * 1024;
     int machine_output = 0;
@@ -115,8 +115,6 @@ int main(int argc, char **argv)
     }
 
     if (machine_output == 0) {
-        printf("Oblique angle           %10.5f\n",acos(mu0)*180.0/M_PI);
-        printf("Cosine of oblique angle %10.5f\n",mu0);
         printf("Albedo                  %10.5f\n",a);
         printf("Optical Depth           %10.5f\n",b);
         printf("Anisotropy              %10.5f\n",g);
@@ -128,6 +126,8 @@ int main(int argc, char **argv)
         printf("       reflection port  %10.5f mm\n",dr_port);
         printf("     transmission port  %10.5f mm\n",dt_port);
         printf("                  beam  %10.5f mm\n",d_beam);
+        printf("Incidence angle         %10.5f\n",acos(mu0)*180.0/M_PI);
+        printf("Cos of incidence angle  %10.5f\n",mu0);
         printf("\n");
         printf("  URx    \t   UTx    \t   URU    \t   UTU\n");
     }

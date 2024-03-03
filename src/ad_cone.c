@@ -10,9 +10,7 @@
 #include "ad_doubl.h"
 #include "ad_start.h"
 
-void RT_Cone(int n,
-    struct AD_slab_type *slab,
-    int use_cone, double *UR1, double *UT1, double *URU, double *UTU)
+void RT_Cone(int n, struct AD_slab_type *slab, int use_cone, double *UR1, double *UT1, double *URU, double *UTU)
 {
 
     struct AD_method_type method;
@@ -89,10 +87,8 @@ void RT_Cone(int n,
     T32 = dvector(1, n);
     Init_Boundary(*slab, n, R23, R32, T23, T32, BOTTOM_BOUNDARY);
 
-    Add_Top(n, R01, R10, T01, T10, R12, R12, T12, T12, R02, R20, T02, T20,
-        atemp, btemp);
-    Add_Bottom(n, R02, R20, T02, T20, R23, R32, T23, T32, R03, R30, T03, T30,
-        atemp, btemp);
+    Add_Top(n, R01, R10, T01, T10, R12, R12, T12, T12, R02, R20, T02, T20, atemp, btemp);
+    Add_Bottom(n, R02, R20, T02, T20, R23, R32, T23, T32, R03, R30, T03, T30, atemp, btemp);
 
     if (use_cone == CONE) {
         URU_and_UR1_Cone(n, slab->n_slab, slab->cos_angle, R03, URU, UR1);
@@ -103,8 +99,7 @@ void RT_Cone(int n,
         {
             double unused;
             if (use_cone != OBLIQUE)
-                fprintf(stderr,
-                    "Unknown type for use_cone.  Assuming oblique incidence.\n");
+                fprintf(stderr, "Unknown type for use_cone.  Assuming oblique incidence.\n");
             URU_and_URx_Cone(n, slab->n_slab, slab->cos_angle, R03, URU, UR1);
             URU_and_UR1(n, slab->n_slab, R03, URU, &unused);
             Transpose_Matrix(n, T03);
@@ -146,10 +141,7 @@ void ez_RT_Cone(int n,
     double nslab,
     double ntopslide,
     double nbottomslide,
-    double a,
-    double b,
-    double g,
-    double cos_cone_angle, double *UR1, double *UT1, double *URU, double *UTU)
+    double a, double b, double g, double cos_cone_angle, double *UR1, double *UT1, double *URU, double *UTU)
 {
     struct AD_slab_type slab;
 
@@ -171,11 +163,7 @@ void ez_RT_Oblique(int n,
     double nslab,
     double ntopslide,
     double nbottomslide,
-    double a,
-    double b,
-    double g,
-    double cos_oblique_angle,
-    double *URx, double *UTx, double *URU, double *UTU)
+    double a, double b, double g, double cos_oblique_angle, double *URx, double *UTx, double *URU, double *UTU)
 {
     struct AD_slab_type slab;
 

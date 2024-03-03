@@ -48,8 +48,7 @@ void Set_Calc_State(struct measure_type m, struct invert_type r)
     memcpy(&MM, &m, sizeof(struct measure_type));
     memcpy(&RR, &r, sizeof(struct invert_type));
     if (Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) {
-        fprintf(stderr, "MC Loss (UR1=%7.5f, UT1=%7.5f, ", m.ur1_lost,
-            m.ut1_lost);
+        fprintf(stderr, "MC Loss (UR1=%7.5f, UT1=%7.5f, ", m.ur1_lost, m.ut1_lost);
         fprintf(stderr, "URU=%7.5f, UTU=%7.5f)\n", m.uru_lost, m.utu_lost);
     }
 }
@@ -100,8 +99,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r);
 
 void Fill_AG_Grid(struct measure_type m, struct invert_type r);
 
-void RT_Flip(int flip, int n, struct AD_slab_type *slab, double *UR1,
-    double *UT1, double *URU, double *UTU)
+void RT_Flip(int flip, int n, struct AD_slab_type *slab, double *UR1, double *UT1, double *URU, double *UTU)
 {
     double swap, correct_UR1, correct_URU;
     RT(n, slab, UR1, UT1, URU, UTU);
@@ -163,8 +161,7 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
 
     if (m.slab_index != MGRID.slab_index) {
         if (Debug(DEBUG_GRID))
-            fprintf(stderr,
-                "GRID: Fill because slab refractive index changed\n");
+            fprintf(stderr, "GRID: Fill because slab refractive index changed\n");
         return (FALSE);
     }
     if (m.slab_cos_angle != MGRID.slab_cos_angle) {
@@ -196,8 +193,7 @@ static void fill_grid_entry(int i, int j)
         RR.slab.b = 1e-6;
     if (Debug(DEBUG_EVERY_CALC)) {
         if (!CALCULATING_GRID)
-            fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b,
-                RR.slab.g);
+            fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
         else {
             if (j == 0)
                 fprintf(stderr, ".");
@@ -206,8 +202,7 @@ static void fill_grid_entry(int i, int j)
         }
     }
 
-    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru,
-        &utu);
+    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
 
     if (Debug(DEBUG_EVERY_CALC) && !CALCULATING_GRID)
         fprintf(stderr, "ur1=%8.5f ut1=%8.5f\n", ur1, ut1);
@@ -222,8 +217,7 @@ static void fill_grid_entry(int i, int j)
 
     if (Debug(DEBUG_GRID_CALC)) {
         fprintf(stderr, "+ %2d %2d ", i, j);
-        fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b,
-            RR.slab.g);
+        fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
         fprintf(stderr, "%10.5f %10.5f |", MM.m_r, uru);
         fprintf(stderr, "%10.5f %10.5f \n", MM.m_t, utu);
     }
@@ -266,8 +260,7 @@ void Fill_Grid(struct measure_type m, struct invert_type r, int force_new)
     Get_Calc_State(&MGRID, &RGRID);
 }
 
-void Near_Grid_Points(double r, double t, search_type s, int *i_min,
-    int *j_min)
+void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
 {
     int i, j;
     double fval;
@@ -501,18 +494,14 @@ double Gain(int sphere, struct measure_type m, double URU)
 
     if (sphere == REFLECTION_SPHERE) {
         if (m.baffle_r)
-            denom =
-                1.0 - m.rw_r * (m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r +
-                    m.as_r * URU));
+            denom = 1.0 - m.rw_r * (m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r + m.as_r * URU));
         else
             denom = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * URU;
 
     }
     else {
         if (m.baffle_t)
-            denom =
-                1.0 - m.rw_t * (m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t +
-                    m.as_t * URU));
+            denom = 1.0 - m.rw_t * (m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t + m.as_t * URU));
         else
             denom = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * URU;
     }
@@ -529,9 +518,7 @@ double Gain_11(struct measure_type m, double URU, double tdiffuse)
     G = Gain(REFLECTION_SPHERE, m, URU);
     GP = Gain(TRANSMISSION_SPHERE, m, URU);
 
-    G11 =
-        G / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.ae_r) * (1 -
-            m.ae_t)
+    G11 = G / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.ae_r) * (1 - m.ae_t)
         * G * GP * tdiffuse * tdiffuse);
 
     return G11;
@@ -544,41 +531,33 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
     G = Gain(REFLECTION_SPHERE, m, URU);
     GP = Gain(TRANSMISSION_SPHERE, m, URU);
 
-    G22 =
-        GP / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.ae_r) * (1 -
-            m.ae_t)
+    G22 = GP / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.ae_r) * (1 - m.ae_t)
         * G * GP * tdiffuse * tdiffuse);
 
     return G22;
 }
 
-double Two_Sphere_R(struct measure_type m,
-    double UR1, double URU, double UT1, double UTU)
+double Two_Sphere_R(struct measure_type m, double UR1, double URU, double UT1, double UTU)
 {
     double x, GP;
     GP = Gain(TRANSMISSION_SPHERE, m, URU);
 
     x = m.ad_r * (1 - m.ae_r) * m.rw_r * Gain_11(m, URU, UTU);
-    x *= (1 - m.f_r) * UR1 + m.rw_r * m.f_r + (1 - m.f_r) * m.as_t * (1 -
-        m.ae_t) * m.rw_t * UT1 * UTU * GP;
+    x *= (1 - m.f_r) * UR1 + m.rw_r * m.f_r + (1 - m.f_r) * m.as_t * (1 - m.ae_t) * m.rw_t * UT1 * UTU * GP;
     return x;
 }
 
-double Two_Sphere_T(struct measure_type m,
-    double UR1, double URU, double UT1, double UTU)
+double Two_Sphere_T(struct measure_type m, double UR1, double URU, double UT1, double UTU)
 {
     double x, G;
     G = Gain(REFLECTION_SPHERE, m, URU);
     x = m.ad_t * (1 - m.ae_t) * m.rw_t * Gain_22(m, URU, UTU);
-    x *= (1 - m.f_r) * UT1 + (1 -
-        m.ae_r) * m.rw_r * m.as_r * UTU * (m.f_r * m.rw_r + (1 -
-            m.f_r) * UR1) * G;
+    x *= (1 - m.f_r) * UT1 + (1 - m.ae_r) * m.rw_r * m.as_r * UTU * (m.f_r * m.rw_r + (1 - m.f_r) * UR1) * G;
     return x;
 }
 
 void Calculate_Distance_With_Corrections(double UR1, double UT1,
-    double Rc, double Tc,
-    double URU, double UTU, double *M_R, double *M_T, double *dev)
+    double Rc, double Tc, double URU, double UTU, double *M_R, double *M_T, double *dev)
 {
     double R_direct, T_direct, R_diffuse, T_diffuse;
 
@@ -607,9 +586,7 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
         if (MM.method == COMPARISON) {
 
             {
-                *M_R =
-                    (1 - MM.f_r) * R_direct / ((1 - MM.f_r) +
-                    MM.f_r * MM.rw_r / MM.rstd_r);
+                *M_R = (1 - MM.f_r) * R_direct / ((1 - MM.f_r) + MM.f_r * MM.rw_r / MM.rstd_r);
                 *M_T = T_direct;
             }
 
@@ -655,13 +632,10 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
             R_0 = Two_Sphere_R(MM, 0, 0, 0, 0);
             T_0 = Two_Sphere_T(MM, 0, 0, 0, 0);
 
-            *M_R =
-                MM.rstd_r * (Two_Sphere_R(MM, R_direct, R_diffuse, T_direct,
-                    T_diffuse) - R_0) / (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r,
-                    0, 0) - R_0);
-            *M_T =
-                (Two_Sphere_T(MM, R_direct, R_diffuse, T_direct,
-                    T_diffuse) - T_0) / (Two_Sphere_T(MM, 0, 0, 1, 1) - T_0);
+            *M_R = MM.rstd_r * (Two_Sphere_R(MM, R_direct, R_diffuse, T_direct, T_diffuse) - R_0) /
+                (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r, 0, 0) - R_0);
+            *M_T = (Two_Sphere_T(MM, R_direct, R_diffuse, T_direct, T_diffuse) - T_0) /
+                (Two_Sphere_T(MM, 0, 0, 1, 1) - T_0);
         }
 
         break;
@@ -692,14 +666,11 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
         if (RR.metric == RELATIVE) {
             double rc, tc;
             Absorbing_Glass_RT(1.0,
-                MM.slab_top_slide_index,
-                MM.slab_index,
-                MM.slab_cos_angle, MM.slab_top_slide_b, &rc, &tc);
+                MM.slab_top_slide_index, MM.slab_index, MM.slab_cos_angle, MM.slab_top_slide_b, &rc, &tc);
             rc *= MM.fraction_of_rc_in_mr;
             *dev = 0;
             if (MM.m_t > ABIT)
-                *dev =
-                    T_TRUST_FACTOR * fabs(MM.m_t - *M_T) / (T_diffuse + ABIT);
+                *dev = T_TRUST_FACTOR * fabs(MM.m_t - *M_T) / (T_diffuse + ABIT);
             if (RR.default_a != 0) {
                 *dev += fabs(MM.m_r - *M_R) / (R_diffuse + ABIT);
             }
@@ -712,19 +683,16 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
 
     }
 
-    if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) ||
-        (Debug(DEBUG_GRID_CALC) && CALCULATING_GRID)) {
+    if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || (Debug(DEBUG_GRID_CALC) && CALCULATING_GRID)) {
         static int once;
 
         if (once != MM.lambda) {
-            fprintf(stderr,
-                "%10s %10s %10s | %7s %7s | %7s %7s |%8s\n        ", "a", "b",
-                "g", "m_r", "fit", "m_t", "fit", "delta");
+            fprintf(stderr, "%10s %10s %10s | %7s %7s | %7s %7s |%8s\n        ",
+                "a", "b", "g", "m_r", "fit", "m_t", "fit", "delta");
             once = MM.lambda;
         }
 
-        fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b,
-            RR.slab.g);
+        fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
         fprintf(stderr, " %7.5f %7.5f |", MM.m_r, *M_R);
         fprintf(stderr, " %7.5f %7.5f |", MM.m_t, *M_T);
         fprintf(stderr, "%8.5f", *dev);
@@ -754,12 +722,10 @@ double Calculate_Grid_Distance(int i, int j)
 
     Sp_mu_RT_Flip(MM.flip_sample,
         RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
-        RR.slab.b_top_slide, b, RR.slab.b_bottom_slide,
-        RR.slab.cos_angle, &Rc, &Tc);
+        RR.slab.b_top_slide, b, RR.slab.b_bottom_slide, RR.slab.cos_angle, &Rc, &Tc);
 
     CALCULATING_GRID = 1;
-    Calculate_Distance_With_Corrections(ur1, ut1, Rc, Tc, uru, utu, &LR, &LT,
-        &dev);
+    Calculate_Distance_With_Corrections(ur1, ut1, Rc, Tc, uru, utu, &LR, &LT, &dev);
     CALCULATING_GRID = 0;
 
     return dev;
@@ -773,26 +739,21 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
         RR.slab.b = 1e-6;
 
     if (0 && Debug(DEBUG_EVERY_CALC))
-        fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b,
-            RR.slab.g);
+        fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
 
-    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru,
-        &utu);
+    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
 
     if (0 && Debug(DEBUG_EVERY_CALC))
         fprintf(stderr, "ur1=%8.5f ut1=%8.5f (not M_R and M_T!)\n", ur1, ut1);
 
     Sp_mu_RT_Flip(MM.flip_sample,
         RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
-        RR.slab.b_top_slide, RR.slab.b, RR.slab.b_bottom_slide,
-        RR.slab.cos_angle, &Rc, &Tc);
+        RR.slab.b_top_slide, RR.slab.b, RR.slab.b_bottom_slide, RR.slab.cos_angle, &Rc, &Tc);
 
-    if ((!CALCULATING_GRID && Debug(DEBUG_ITERATIONS)) ||
-        (CALCULATING_GRID && Debug(DEBUG_GRID_CALC)))
+    if ((!CALCULATING_GRID && Debug(DEBUG_ITERATIONS)) || (CALCULATING_GRID && Debug(DEBUG_GRID_CALC)))
         fprintf(stderr, "        ");
 
-    Calculate_Distance_With_Corrections(ur1, ut1, Rc, Tc, uru, utu, M_R, M_T,
-        deviation);
+    Calculate_Distance_With_Corrections(ur1, ut1, Rc, Tc, uru, utu, M_R, M_T, deviation);
 }
 
 void abg_distance(double a, double b, double g, guess_type *guess)
@@ -950,8 +911,7 @@ double maxloss(double f)
     return deviation;
 }
 
-void Max_Light_Loss(struct measure_type m, struct invert_type r,
-    double *ur1_loss, double *ut1_loss)
+void Max_Light_Loss(struct measure_type m, struct invert_type r, double *ur1_loss, double *ut1_loss)
 {
     struct measure_type m_old;
     struct invert_type r_old;
@@ -960,8 +920,7 @@ void Max_Light_Loss(struct measure_type m, struct invert_type r,
     *ut1_loss = m.ut1_lost;
 
     if (Debug(DEBUG_LOST_LIGHT))
-        fprintf(stderr, "\nlost before ur1=%7.5f, ut1=%7.5f\n", *ur1_loss,
-            *ut1_loss);
+        fprintf(stderr, "\nlost before ur1=%7.5f, ut1=%7.5f\n", *ur1_loss, *ut1_loss);
 
     Get_Calc_State(&m_old, &r_old);
 
@@ -977,6 +936,5 @@ void Max_Light_Loss(struct measure_type m, struct invert_type r,
 
     Set_Calc_State(m_old, r_old);
     if (Debug(DEBUG_LOST_LIGHT))
-        fprintf(stderr, "lost after  ur1=%7.5f, ut1=%7.5f\n", *ur1_loss,
-            *ut1_loss);
+        fprintf(stderr, "lost after  ur1=%7.5f, ut1=%7.5f\n", *ur1_loss, *ut1_loss);
 }

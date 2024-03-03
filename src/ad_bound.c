@@ -8,33 +8,25 @@
 #include "ad_matrx.h"
 #include "nr_util.h"
 
-static void A_Add_Slide(int n, double **R12, double **R21, double **T12,
-    double **T21, double *R10, double *T01, double **R20, double **T02,
-    double **atemp, double **btemp);
+static void A_Add_Slide(int n, double **R12, double **R21, double **T12, double **T21,
+    double *R10, double *T01, double **R20, double **T02, double **atemp, double **btemp);
 
 static void B_Add_Slide(int n, double **R12, double **T21,
-    double *R01, double *R10, double *T01, double *T10,
-    double **R02, double **T20, double **atemp, double **btemp);
+    double *R01, double *R10, double *T01, double *T10, double **R02, double **T20, double **atemp, double **btemp);
 
-void Init_Boundary(struct AD_slab_type slab, int n,
-    double *R01, double *R10, double *T01, double *T10, char boundary)
+void Init_Boundary(struct AD_slab_type slab, int n, double *R01, double *R10, double *T01, double *T10, char boundary)
 {
     if (boundary == TOP_BOUNDARY) {
-        Boundary_RT(1.0, slab.n_top_slide, slab.n_slab, n, slab.b_top_slide,
-            R01, T01);
-        Boundary_RT(slab.n_slab, slab.n_top_slide, 1.0, n, slab.b_top_slide,
-            R10, T10);
+        Boundary_RT(1.0, slab.n_top_slide, slab.n_slab, n, slab.b_top_slide, R01, T01);
+        Boundary_RT(slab.n_slab, slab.n_top_slide, 1.0, n, slab.b_top_slide, R10, T10);
     }
     else {
-        Boundary_RT(1.0, slab.n_bottom_slide, slab.n_slab, n,
-            slab.b_bottom_slide, R10, T10);
-        Boundary_RT(slab.n_slab, slab.n_bottom_slide, 1.0, n,
-            slab.b_bottom_slide, R01, T01);
+        Boundary_RT(1.0, slab.n_bottom_slide, slab.n_slab, n, slab.b_bottom_slide, R10, T10);
+        Boundary_RT(slab.n_slab, slab.n_bottom_slide, 1.0, n, slab.b_bottom_slide, R01, T01);
     }
 }
 
-void Boundary_RT(double n_i, double n_g, double n_t, int n, double b,
-    double *R, double *T)
+void Boundary_RT(double n_i, double n_g, double n_t, int n, double b, double *R, double *T)
 {
     int i;
     double refl, trans;
@@ -55,8 +47,7 @@ void Boundary_RT(double n_i, double n_g, double n_t, int n, double b,
 
 void Add_Top(int n, double *R01, double *R10, double *T01, double *T10,
     double **R12, double **R21, double **T12, double **T21,
-    double **R02, double **R20, double **T02, double **T20,
-    double **atemp, double **btemp)
+    double **R02, double **R20, double **T02, double **T20, double **atemp, double **btemp)
 {
     A_Add_Slide(n, R12, R21, T12, T21, R10, T01, R20, T02, atemp, btemp);
     B_Add_Slide(n, R12, T21, R01, R10, T01, T10, R02, T20, atemp, btemp);
@@ -64,16 +55,14 @@ void Add_Top(int n, double *R01, double *R10, double *T01, double *T10,
 
 void Add_Bottom(int n, double **R01, double **R10, double **T01, double **T10,
     double *R12, double *R21, double *T12, double *T21,
-    double **R02, double **R20, double **T02, double **T20,
-    double **atemp, double **btemp)
+    double **R02, double **R20, double **T02, double **T20, double **atemp, double **btemp)
 {
     A_Add_Slide(n, R10, R01, T10, T01, R12, T21, R02, T20, atemp, btemp);
     B_Add_Slide(n, R10, T01, R21, R12, T21, T12, R20, T02, atemp, btemp);
 }
 
-static void A_Add_Slide(int n, double **R12, double **R21, double **T12,
-    double **T21, double *R10, double *T01, double **R20, double **T02,
-    double **atemp, double **btemp)
+static void A_Add_Slide(int n, double **R12, double **R21, double **T12, double **T21,
+    double *R10, double *T01, double **R20, double **T02, double **atemp, double **btemp)
 {
     double **ctemp;
 
@@ -88,8 +77,7 @@ static void A_Add_Slide(int n, double **R12, double **R21, double **T12,
 }
 
 static void B_Add_Slide(int n, double **R12, double **T21,
-    double *R01, double *R10, double *T01, double *T10,
-    double **R02, double **T20, double **atemp, double **btemp)
+    double *R01, double *R10, double *T01, double *T10, double **R02, double **T20, double **atemp, double **btemp)
 {
     double **ctemp;
     int i;
@@ -107,8 +95,7 @@ static void B_Add_Slide(int n, double **R12, double **T21,
 }
 
 void Add_Slides(int n, double *R01, double *R10, double *T01, double *T10,
-    double **R, double **T,
-    double **R_total, double **T_total, double **atemp, double **btemp)
+    double **R, double **T, double **R_total, double **T_total, double **atemp, double **btemp)
 {
     int i;
     double **R12, **R21, **T12, **T21;
@@ -139,8 +126,7 @@ void Add_Slides(int n, double *R01, double *R10, double *T01, double *T10,
     }
 }
 
-void Sp_RT(int n, struct AD_slab_type slab, double *urx, double *utx,
-    double *uru, double *utu)
+void Sp_RT(int n, struct AD_slab_type slab, double *urx, double *utx, double *uru, double *utu)
 {
     double mu_outside, r, t;
     int i;
@@ -151,17 +137,15 @@ void Sp_RT(int n, struct AD_slab_type slab, double *urx, double *utx,
     for (i = 1; i <= n; i++) {
         mu_outside = Cos_Snell(slab.n_slab, angle[i], 1.0);
         if (mu_outside != 0) {
-            Sp_mu_RT(slab.n_top_slide, slab.n_slab, slab.n_bottom_slide,
-                slab.b_top_slide, slab.b, slab.b_bottom_slide, mu_outside, &r,
-                &t);
+            Sp_mu_RT(slab.n_top_slide, slab.n_slab, slab.n_bottom_slide, slab.b_top_slide,
+                slab.b, slab.b_bottom_slide, mu_outside, &r, &t);
             *uru += twoaw[i] * r;
             *utu += twoaw[i] * t;
         }
     }
 
-    Sp_mu_RT(slab.n_top_slide, slab.n_slab, slab.n_bottom_slide,
-        slab.b_top_slide, slab.b, slab.b_bottom_slide, slab.cos_angle, urx,
-        utx);
+    Sp_mu_RT(slab.n_top_slide, slab.n_slab, slab.n_bottom_slide, slab.b_top_slide,
+        slab.b, slab.b_bottom_slide, slab.cos_angle, urx, utx);
 
     *uru *= slab.n_slab * slab.n_slab;
     *utu *= slab.n_slab * slab.n_slab;

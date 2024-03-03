@@ -12,8 +12,7 @@
 #include "ad_layers.h"
 
 static void PrintTestResults(int test, int cas,
-    double aUR1, double aUT1, double aURU, double aUTU,
-    double bUR1, double bUT1, double bURU, double bUTU)
+    double aUR1, double aUT1, double aURU, double aUTU, double bUR1, double bUT1, double bURU, double bUTU)
 {
     printf("\nTest:%d.%d\n", test, cas);
     printf("            truth        layers\n");
@@ -274,8 +273,7 @@ int main(int argc, char **argv)
     b[4] = 3;
     a[4] = 0.99;
 
-    RT_Layers_All(N, 1.4, 1.4, 1.4, 5, a, b, g,
-        &aUR1, &aUT1, &aURU, &aUTU, &bUR1, &bUT1, &bURU, &bUTU);
+    RT_Layers_All(N, 1.4, 1.4, 1.4, 5, a, b, g, &aUR1, &aUT1, &aURU, &aUTU, &bUR1, &bUT1, &bURU, &bUTU);
 
     for (i = 0; i < 5; i++) {
         a[i] = 0.5;
@@ -289,8 +287,7 @@ int main(int argc, char **argv)
     a[3] = 0.3;
     a[4] = 0.1;
 
-    RT_Layers_All(N, 1.4, 1.4, 1.4, 5, a, b, g,
-        &cUR1, &cUT1, &cURU, &cUTU, &dUR1, &dUT1, &dURU, &dUTU);
+    RT_Layers_All(N, 1.4, 1.4, 1.4, 5, a, b, g, &cUR1, &cUT1, &cURU, &cUTU, &dUR1, &dUT1, &dURU, &dUTU);
     PrintTestResults(6, 1, aUR1, aUT1, aURU, aUTU, dUR1, dUT1, dURU, dUTU);
     PrintTestResults(6, 2, bUR1, bUT1, bURU, bUTU, cUR1, cUT1, cURU, cUTU);
 

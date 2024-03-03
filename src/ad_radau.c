@@ -113,9 +113,7 @@ static void phi_and_phiprime(double x, double *phi, double *phiprime)
     else {
         Pn_and_Pnm1(n, x, &Pnm1, &Pn);
         *phi = (Pn + Pnm1) / (1 + x);
-        *phiprime =
-            ((n * x - 1 + x + n) * Pnm1 + (-n * x + x - n - 1) * Pn) / (1 +
-            x) / (1 + x) / (1 - x);
+        *phiprime = ((n * x - 1 + x + n) * Pnm1 + (-n * x + x - n - 1) * Pn) / (1 + x) / (1 + x) / (1 - x);
     }
 }
 

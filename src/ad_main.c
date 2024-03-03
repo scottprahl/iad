@@ -17,18 +17,15 @@ static void print_version(void)
     fprintf(stdout, "ad %s\n", Version);
     fprintf(stdout, "Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu\n");
     fprintf(stdout, "          (see Applied Optics, 32:559-568, 1993)\n\n");
-    fprintf(stdout,
-        "This is free software; see the source for copying conditions.\n");
-    fprintf(stdout,
-        "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
+    fprintf(stdout, "This is free software; see the source for copying conditions.\n");
+    fprintf(stdout, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
     fprintf(stdout, "FOR A PARTICULAR PURPOSE.\n");
 }
 
 static void print_usage(void)
 {
     fprintf(stdout, "ad %s\n\n", Version);
-    fprintf(stdout,
-        "ad finds the reflection and transmission from optical properties\n\n");
+    fprintf(stdout, "ad finds the reflection and transmission from optical properties\n\n");
     fprintf(stdout, "Usage:  ad [options] input\n\n");
     fprintf(stdout, "Options:\n");
     fprintf(stdout, "  -a #             albedo (0-1)\n");
@@ -37,44 +34,30 @@ static void print_usage(void)
     fprintf(stdout, "  -h               display help\n");
     fprintf(stdout, "  -i theta         oblique incidence at angle theta\n");
     fprintf(stdout, "  -m               machine readable output\n");
-    fprintf(stdout,
-        "  -n #             specify index of refraction of slab\n");
-    fprintf(stdout,
-        "  -o filename      explicitly specify filename for output\n");
+    fprintf(stdout, "  -n #             specify index of refraction of slab\n");
+    fprintf(stdout, "  -o filename      explicitly specify filename for output\n");
     fprintf(stdout, "  -q #             quadrature points 4, 8, 16, 32\n");
-    fprintf(stdout,
-        "  -s #             specify index of refraction of slide\n");
+    fprintf(stdout, "  -s #             specify index of refraction of slide\n");
     fprintf(stdout, "  -v               version information\n");
     fprintf(stdout, "Examples:\n");
-    fprintf(stdout,
-        "  ad data                        UR1, UT1, URU, UTU in data.rt\n");
-    fprintf(stdout,
-        "  ad -m data                     data.rt in machine readable format\n");
+    fprintf(stdout, "  ad data                        UR1, UT1, URU, UTU in data.rt\n");
+    fprintf(stdout, "  ad -m data                     data.rt in machine readable format\n");
     fprintf(stdout, "  ad data -o out.txt             out.txt is the \n");
-    fprintf(stdout,
-        "  ad -a 0.3                      a=0.3, b=inf, g=0.0, n=1.0\n");
-    fprintf(stdout,
-        "  ad -a 0.3 -b 0.4               a=0.3, b=0.4, g=0.0, n=1.0\n");
-    fprintf(stdout,
-        "  ad -a 0.3 -b 0.4 -g 0.5        a=0.3, b=0.4, g=0.5, n=1.0\n");
-    fprintf(stdout,
-        "  ad -a 0.3 -b 0.4 -n 1.5        a=0.3, b=0.4, g=0.0, n=1.5\n\n");
+    fprintf(stdout, "  ad -a 0.3                      a=0.3, b=inf, g=0.0, n=1.0\n");
+    fprintf(stdout, "  ad -a 0.3 -b 0.4               a=0.3, b=0.4, g=0.0, n=1.0\n");
+    fprintf(stdout, "  ad -a 0.3 -b 0.4 -g 0.5        a=0.3, b=0.4, g=0.5, n=1.0\n");
+    fprintf(stdout, "  ad -a 0.3 -b 0.4 -n 1.5        a=0.3, b=0.4, g=0.0, n=1.5\n\n");
     fprintf(stdout, "inputfile has lines of the form:\n");
-    fprintf(stdout,
-        "    a b g nslab ntopslide nbottomlslide btopslide bbottomslide q\n");
+    fprintf(stdout, "    a b g nslab ntopslide nbottomlslide btopslide bbottomslide q\n");
     fprintf(stdout, "where:\n");
     fprintf(stdout, "    1) a = albedo\n");
     fprintf(stdout, "    2) b = optical thickness\n");
     fprintf(stdout, "    3) g = anisotropy\n");
     fprintf(stdout, "    4) nslab = index of refraction of slab\n");
-    fprintf(stdout,
-        "    5) ntopslide = index of refraction of glass slide on top\n");
-    fprintf(stdout,
-        "    6) nbottomslide = index of refraction of glass slide on bottom\n");
-    fprintf(stdout,
-        "    7) btopslide = optical depth of top slide (for absorbing slides)\n");
-    fprintf(stdout,
-        "    8) bbottomslide = optical depth of bottom slide (for absorbing slides)\n");
+    fprintf(stdout, "    5) ntopslide = index of refraction of glass slide on top\n");
+    fprintf(stdout, "    6) nbottomslide = index of refraction of glass slide on bottom\n");
+    fprintf(stdout, "    7) btopslide = optical depth of top slide (for absorbing slides)\n");
+    fprintf(stdout, "    8) bbottomslide = optical depth of bottom slide (for absorbing slides)\n");
     fprintf(stdout, "    9) q = number of quadrature points\n\n");
     fprintf(stdout, "Report bugs to <scott.prahl@oit.edu>\n\n");
 }
@@ -110,16 +93,13 @@ static double my_strtod(const char *str)
 
     if (endptr == str) {
 
-        fprintf(stderr, "Error: No conversion could be performed for `%s`.\n",
-            str);
+        fprintf(stderr, "Error: No conversion could be performed for `%s`.\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (*endptr != '\0') {
 
-        printf
-            ("Partial conversion: converted value = %f, remaining string = %s\n",
-            val, endptr);
+        printf("Partial conversion: converted value = %f, remaining string = %s\n", val, endptr);
         exit(EXIT_FAILURE);
     }
 
@@ -165,14 +145,12 @@ static void validate_slab(struct AD_slab_type slab, int nstreams, int machine)
     }
 
     if (slab.b_top_slide < 0 || slab.b_top_slide > 10) {
-        fprintf(stderr, "Bad Top Slide Optical Thickness b=%f\n",
-            slab.b_top_slide);
+        fprintf(stderr, "Bad Top Slide Optical Thickness b=%f\n", slab.b_top_slide);
         exit(EXIT_FAILURE);
     }
 
     if (slab.b_bottom_slide < 0 || slab.b_bottom_slide > 10) {
-        fprintf(stderr, "Bad Bottom Slide Optical Thickness b=%f\n",
-            slab.b_bottom_slide);
+        fprintf(stderr, "Bad Bottom Slide Optical Thickness b=%f\n", slab.b_bottom_slide);
         exit(EXIT_FAILURE);
     }
 
@@ -218,8 +196,7 @@ int main(int argc, char **argv)
             case 'i':
                 x = my_strtod(optarg);
                 if (x < 0 || x > 90)
-                    fprintf(stderr,
-                        "Incident angle must be between 0 and 90 degrees\n");
+                    fprintf(stderr, "Incident angle must be between 0 and 90 degrees\n");
                 else
                     g_incident_cosine = cos(x * M_PI / 180.0);
                 break;
@@ -295,8 +272,7 @@ int main(int argc, char **argv)
 
         if (g_out_name != NULL) {
             if (freopen(g_out_name, "w", stdout) == NULL) {
-                fprintf(stderr, "Could not open file <%s> for output",
-                    g_out_name);
+                fprintf(stderr, "Could not open file <%s> for output", g_out_name);
                 exit(EXIT_FAILURE);
             }
         }
@@ -336,8 +312,7 @@ int main(int argc, char **argv)
                 printf("UR1 = Total Reflection   for Normal  Illumination\n");
                 printf("UT1 = Total Transmission for Normal  Illumination\n");
                 printf("URU = Total Reflection   for Diffuse Illumination\n");
-                printf
-                    ("UTU = Total Transmission for Diffuse Illumination\n\n");
+                printf("UTU = Total Transmission for Diffuse Illumination\n\n");
                 printf("   UR1    \t   UT1    \t   URU    \t   UTU\n");
                 printf("%9.5f \t%9.5f \t%9.5f \t%9.5f\n", R1, T1, URU, UTU);
             }

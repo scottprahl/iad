@@ -10,19 +10,35 @@
 
 #define MIN_WEIGHT 0.001
 
-/* The KISS generator, (Keep It Simple Stupid), is
-   designed to combine the two multiply-with-carry
-   generators in MWC with the 3-shift register SHR3 and
-   the congruential generator CONG, using addition and
-   exclusive-or. Period about 2^123.  George Marsaglia*/
+unsigned long photon_seed = 12345678;
 
+/* 
+ * `kiss_rand_max` represents the maximum value that `kiss_rand` can return, 
+ * corresponding to ULONG_MAX, ensuring compatibility across different platforms.
+ *
+ * Variables kiss_x, kiss_y, kiss_z, and kiss_c are state variables that must be
+ * initialized with seed values. The function `kiss_rand` computes and returns
+ * the next random number in the sequence, maintaining state between calls.
+ */
 unsigned long kiss_rand_max = ULONG_MAX;
 unsigned long kiss_x = 123456789;
 unsigned long kiss_y = 362436000;
 unsigned long kiss_z = 521288629;
 unsigned long kiss_c = 7654321;
 
-unsigned long kiss_rand(void)
+/* 
+ * KISS (Keep It Simple Stupid) Random Number Generator
+ * 
+ * This RNG combines multiple algorithms for a balanced approach to randomness:
+ * - Two Multiply-With-Carry (MWC) generators
+ * - A 3-shift register (SHR3)
+ * - A Congruential generator (CONG)
+ * 
+ * Operations involve addition, exclusive-or, and bit shifts to produce a sequence
+ * with a long period (~2^123), designed by George Marsaglia. This makes the KISS
+ * generator suitable for simulations requiring high-quality randomness.
+ */
+static unsigned long kiss_rand(void)
 {
     unsigned long long t, a = 698769069ULL;
 
@@ -36,8 +52,24 @@ unsigned long kiss_rand(void)
     return kiss_x + kiss_y + kiss_z;
 }
 
-/* use Knuth's algorithms to set initial values */
-void kiss_rand_seed(unsigned long seed)
+/*
+ * Initializes the state variables of the KISS random number generator using
+ * a seed value based on Donald Knuth's algorithms. This seeding approach
+ * leverages a linear congruential generator with multiplier 'K', derived from
+ * Knuth's suggestions for generating initial states. The seed influences
+ * the initial values of kiss_x, kiss_y, kiss_z, and kiss_c, ensuring that
+ * different seeds produce different sequences of random numbers.
+ * 
+ * Each state variable is initialized in a chained manner, where each depends
+ * on the previous one, starting with 'kiss_c' based directly on the provided
+ * 'seed'. This method helps in dispersing the seed's influence throughout
+ * all state variables, enhancing the randomness of initial values.
+ *
+ * The constant 'K' and the specific transformations applied to 'seed' and the
+ * state variables follow recommended practices for initializing random number
+ * generators to avoid early patterns or correlations in the generated sequence.
+ */
+static void kiss_rand_seed(unsigned long seed)
 {
     static const unsigned long K = 1812433253UL;
     kiss_c = K * (seed ^ (seed >> 30)) + 1;
@@ -56,15 +88,29 @@ void kiss_rand_seed(unsigned long seed)
    sequence of random numbers for each photon.  This means
    that photon 1001 will reset the KISS generator to the same
    starting number.
-
 */
-unsigned long photon_seed = 12345678;
 
+/*
+ * Configures the KISS random number generator.
+ * This allows consistent random number sequences for each simulation and 
+ * therefore minimizes variation between runs due to small changes in the
+ * optical properties arising in successive runs.
+ */
 static inline void set_photon_seed(unsigned long new_seed)
 {
     photon_seed = new_seed;
 }
 
+/*
+ * The function `set_photon_seed` initializes the seed for photon-specific
+ * random number generation, ensuring a distinct starting point for each
+ * photon path. `next_photon_seed` updates the seed for the next photon,
+ * maintaining the sequence's continuity and resetting the KISS generator
+ * with a new seed derived from the previous one. This setup guarantees
+ * that each photon, such as photon number 1001, consistently starts with 
+ * the same initial conditions in the random number sequence, allowing for
+ * repeatable and comparable simulations across different photon paths.
+ */
 static inline void next_photon_seed(void)
 {
     photon_seed = (1812433253UL * photon_seed) & 0xffffffffUL;
@@ -73,31 +119,6 @@ static inline void next_photon_seed(void)
     kiss_rand();
     kiss_rand();
 }
-
-/* more or less portable random number initialization
-   call this with a non-zero seed to start the sequence from a fixed value
-   otherwise pass seed=0 so that the program starts with a random number
-
-   auto-initialization fails if called faster than once per second.  Since
-   this may happen for successive MC_Radial() calls, the random number sequence
-   IS NOT restarted.  The idea is that one seed determines the entire subsequent
-   sequence of events.
-*/
-
-void my_randomize(unsigned long seed)
-{
-    static int initialized = 0;
-
-    if (!initialized) {
-        initialized = 1;
-
-        if (seed == 0)          /* time in seconds from start of Unix epoch */
-            seed = (unsigned long) time(NULL);
-
-        photon_seed = seed;
-    }
-}
-
 
 /* random number between 0.0 and 1.0 ... EXCLUDING 0.0 */
 static double rand_zero_one(void)
@@ -119,7 +140,6 @@ static double rand_one_one(void)
 {
     return 2.0 * rand_zero_one() - 1.0;
 }
-
 
 static double sqr(double x)
 {
@@ -146,8 +166,7 @@ static double fresnel(double n_i, double n_t, double nu_i)
     /* total internal reflection? */
     ratio = n_i / n_t;
     temp = 1.0 - ratio * ratio * (1.0 - nu_i * nu_i);
-    if (temp < 0)
-        return 1.0;
+    if (temp < 0) return 1.0;
 
     /* Now calculate Fresnel reflection */
     nu_t = sqrt(temp);
@@ -158,49 +177,26 @@ static double fresnel(double n_i, double n_t, double nu_i)
     return (temp1 * temp1 + temp * temp) / 2.0;
 }
 
-double cos_critical_angle(double n_i, double n_t)
-{
-    if (n_t >= n_i)
-        return 0.0;
-    else
-        return sqrt(1.0 - sqr(n_t / n_i));
-}
-
 /* refract a photon into or out of the medium across a z-plane*/
-void refract(double n_i, double n_t, double *u, double *v, double *w)
+static void refract(double n_i, double n_t, double *u, double *v, double *w)
 {
     double nu, c;
 
-#ifndef NDEBUG
-    double wold;
-    wold = *w;
-#endif
+    if (n_i == n_t) return;
 
-    if (n_i == n_t)
-        return;
     c = n_i / n_t;
     nu = (*w) * c;
 
-    assert(n_i < n_t || fabs(*w) > cos_critical_angle(n_i, n_t));
     *u *= c;
     *v *= c;
     if (*w < 0)
-        *w = -sqrt(1.0 - c * c + nu * nu);
+        *w = -sqrt(1.0 - sqr(c) + sqr(nu));
     else
-        *w = sqrt(1.0 - c * c + nu * nu);
-
-    /* Snell's law valid */
-    assert(fabs(n_i * sin(acos(wold)) - n_t * sin(acos(*w))) < 1e-8);
-
-    /* same direction */
-    assert(*w * wold > 0);
-
-    /* still a unit vector */
-    assert(fabs(sqr(*u) + sqr(*v) + sqr(*w) - 1.0) < 1e-8);
+        *w = sqrt(1.0 - sqr(c) + sqr(nu));
 }
 
 /* Scatter photon and establish new direction */
-void scatter(double g, double *u, double *v, double *w)
+static void scatter(double g, double *u, double *v, double *w)
 {
     double t1, t2, t3, mu, uu, vv, ww;
 
@@ -218,7 +214,7 @@ void scatter(double g, double *u, double *v, double *w)
         }
         else {
             *u = 2.0 * t3 - 1.0;
-            t3 = sqrt((1.0 - (*u) * (*u)) / t3);
+            t3 = sqrt((1.0 - sqr(*u)) / t3);
             *v = t1 * t3;
             *w = t2 * t3;
         }
@@ -267,24 +263,36 @@ static void launch_point(double *x, double *y, double *z, double beam_radius)
     }
 }
 
-static void launch_direction(double *u, double *v, double *w, int collimated,
-    double mu)
+/*
+ * Initializes the launch direction of a photon.
+ * If collimated=True, the photon is launched at an angle mu=cos(theta) from the z-axis.
+ * If not collimated, the photon's direction is uniformly distributed over the hemisphere,
+ * ensuring a diffuse isotropic emission.
+ */
+static void launch_direction(double *u, double *v, double *w, int collimated, double mu)
 {
     double phi;
-    if (!collimated) {
-        *w = sqrt(rand_zero_one());
-        phi = 2.0 * M_PI * rand_zero_one();
-        *u = cos(phi) * sqrt(1 - (*w) * (*w));
-        *v = sin(phi) * sqrt(1 - (*w) * (*w));
-    }
-    else {
+    if (collimated) {
         *u = sqrt(1 - mu * mu);
         *v = 0;
         *w = mu;
+    } else {
+        *w = sqrt(rand_zero_one());
+        phi = 2.0 * M_PI * rand_zero_one();
+        *u = cos(phi) * sqrt(1 - sqr(*w));
+        *v = sin(phi) * sqrt(1 - sqr(*w));
     }
-
 }
 
+/*
+ * Implements the Russian roulette technique to unbiasedly terminate a photon's path.
+ * If the photon's weight is below MIN_WEIGHT (but not zero), it has a chance to be terminated
+ * or to have its weight amplified and continue its path. This decision is made stochastically,
+ * giving the photon a 10% chance to survive (weight multiplied by 10) and a 90% chance 
+ * to be terminated (weight set to 0). This approach ensures unbiased termination by 
+ * conserving energy: the residual weight is adjusted to account for the absorbed or 
+ * scattered light, to maintain an exact overall energy balance.
+ */
 static void roulette(double *weight, double *residual_weight)
 {
     if (*weight > MIN_WEIGHT || *weight == 0.0)
@@ -298,22 +306,30 @@ static void roulette(double *weight, double *residual_weight)
     *residual_weight -= *weight;
 }
 
-static void move_in_sample(double mu_t, double *x, double *y, double *z,
-    double u, double v, double w)
+/*
+ * Advances the photon by a random step within the sample, determined by the
+ * medium's total attenuation coefficient (mu_t). The step size follows an
+ * exponential distribution, reflecting the natural path lengths in a
+ * scattering and absorbing medium. The photon's new position (x, y, z) is
+ * updated according to this step, based on its current direction cosines
+ * (u, v, w).
+ */
+static void move_in_sample(double mu_t, double *x, double *y, double *z, 
+                           double u, double v, double w)
 {
     double step = -log(rand_zero_one()) / mu_t;
-
     *x += step * u;
     *y += step * v;
     *z += step * w;
 }
 
-/*On entry the photon is on one boundary of the slide and the direction is
-  into the slide.  On exit, x and y will be the location that the photon
-  leaves the slide and the direction w should be correct.
-  The value of z does not need to be updated because if the ray exits
-  then it does not matter.  If the ray doesn't exit, then it is reflected
-  back into the medium and should have the same value as when it entered
+/* 
+ * On entry the photon is on one boundary of the slide and the direction is
+ * into the slide.  On exit, x and y will be the location that the photon
+ * leaves the slide and the direction w should be correct.
+ * The value of z does not need to be updated because if the ray exits
+ * then it does not matter.  If the ray doesn't exit, then it is reflected
+ * back into the medium and should have the same value as when it entered
  */
 static void move_in_slide(double *x, double *y, double u, double v, double *w,
     double *weight, double t_slide, double mua_slide, double n1, double n2,

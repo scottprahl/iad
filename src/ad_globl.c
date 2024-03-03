@@ -39,8 +39,7 @@ void URU_and_UR1(int n, double n_slab, double **R, double *URU, double *UR1)
     URU_and_UR1_Cone(n, n_slab, 0.0, R, URU, UR1);
 }
 
-void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU,
-    double *UR1)
+void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, double *UR1)
 {
     int i, j, last_j;
     double mu_slab;
@@ -66,8 +65,7 @@ void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU,
     *URU *= n_slab * n_slab / (1 - mu * mu);
 }
 
-void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU,
-    double *URx)
+void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, double *URx)
 {
     int i, j, cone_index;
     double mu_slab, urx, delta, closest_delta;
@@ -90,8 +88,7 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU,
         fprintf(stderr, "Something is wrong with the quadrature\n");
         fprintf(stderr, "theta_i = %5.2f degrees or ", acos(mu) * degrees);
         fprintf(stderr, "cos(theta_i) = %8.5f\n", mu);
-        fprintf(stderr, "theta_t = %5.2f degrees or ",
-            acos(mu_slab) * degrees);
+        fprintf(stderr, "theta_t = %5.2f degrees or ", acos(mu_slab) * degrees);
         fprintf(stderr, "cos(theta_t) = %8.5f\n", mu_slab);
         fprintf(stderr, " index  degrees cosine\n");
         for (i = n; i >= 1; i--) {
@@ -117,8 +114,7 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU,
     *URU *= n_slab * n_slab;
 }
 
-void UFU_and_UF1(int n, double n_slab,
-    double **Lup, double **Ldown, double *UFU, double *UF1)
+void UFU_and_UF1(int n, double n_slab, double **Lup, double **Ldown, double *UFU, double *UF1)
 {
     int i, j;
     double temp = 0.0;

@@ -84,8 +84,7 @@ double Glass(double n_i, double n_g, double n_t, double mu_i)
     return temp;
 }
 
-void Absorbing_Glass_RT(double n_i, double n_g, double n_t, double mu_i,
-    double b, double *r, double *t)
+void Absorbing_Glass_RT(double n_i, double n_g, double n_t, double mu_i, double b, double *r, double *t)
 {
     double r1, r2, mu_g, expo, denom;
     *t = 0;
@@ -144,18 +143,15 @@ static double R1(double ni, double nt)
 }
 
 void Sp_mu_RT(double n_top, double n_slab, double n_bottom,
-    double tau_top, double tau_slab, double tau_bottom, double mu,
-    double *r, double *t)
+    double tau_top, double tau_slab, double tau_bottom, double mu, double *r, double *t)
 {
-    double r_top, r_bottom, t_top, t_bottom, mu_slab, beer, denom, temp,
-        mu_in_slab;
+    double r_top, r_bottom, t_top, t_bottom, mu_slab, beer, denom, temp, mu_in_slab;
     *r = 0;
     *t = 0;
     Absorbing_Glass_RT(1.0, n_top, n_slab, mu, tau_top, &r_top, &t_top);
 
     mu_in_slab = Cos_Snell(1.0, mu, n_slab);
-    Absorbing_Glass_RT(n_slab, n_bottom, 1.0, mu_in_slab, tau_bottom,
-        &r_bottom, &t_bottom);
+    Absorbing_Glass_RT(n_slab, n_bottom, 1.0, mu_in_slab, tau_bottom, &r_bottom, &t_bottom);
 
     mu_slab = Cos_Snell(1.0, mu, n_slab);
 
@@ -184,14 +180,12 @@ void Sp_mu_RT(double n_top, double n_slab, double n_bottom,
 }
 
 void Sp_mu_RT_Flip(int flip, double n_top, double n_slab, double n_bottom,
-    double tau_top, double tau_slab, double tau_bottom, double mu,
-    double *r, double *t)
+    double tau_top, double tau_slab, double tau_bottom, double mu, double *r, double *t)
 {
     Sp_mu_RT(n_top, n_slab, n_bottom, tau_top, tau_slab, tau_bottom, mu, r, t);
     if (flip && n_top != n_bottom && tau_top != tau_bottom) {
         double correct_r = *r;
-        Sp_mu_RT(n_bottom, n_slab, n_top, tau_bottom, tau_slab, tau_top, mu, r,
-            t);
+        Sp_mu_RT(n_bottom, n_slab, n_top, tau_bottom, tau_slab, tau_top, mu, r, t);
         *r = correct_r;
     }
 }
