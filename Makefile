@@ -497,14 +497,13 @@ help::
 	echo "TESTING";\
 	echo "  longtest      run iad program on a bunch of test files";\
 	echo "  shorttest     same as test below";\
-	echo "  test          test iad program from command line";\
 	echo "  veryshorttest github action test target";\
 	echo "  wintest       windows command-line and file tests using wine";\
 	echo "MAINTENANCE";\
 	echo "   clean         remove most generated objects";\
 	echo "   help          this message";\
 	echo "   realclean     remove all generated objects";\
-	echo "   tidy          generate .c and .h files";\
+	echo "   tidy          generate and format .c and .h files";\
 
 .SECONDARY: $(HSRC) $(CSRC)
 
