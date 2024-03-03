@@ -1,7 +1,7 @@
 all : ad iad
 
 INDENT = indent
-INDENT_OPT = -br -brs -nbs -ci4 -cli0 -bli0 -l79 -ncdb -nce -nlp -npcs -npsl -i4 -nut
+INDENT_OPT = -br -brs -nbs -ci4 -cli0 -bli0 -l120 -ncdb -nce -nlp -npcs -npsl -i4 -nut
 
 ASSERT = -DNDEBUG
 #ASSERT =
@@ -52,7 +52,7 @@ libiad.h : ad iad ad_cone_ez.h ad_layers.h
 ad_doc: ad.w
 	cweave -bph ad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex ad
-	qpdf ad.pdf --pages ad.pdf 130-131 ad.pdf 1-129 -- ad2.pdf
+	qpdf ad.pdf --pages ad.pdf r2-r1 ad.pdf 1-r3 -- ad2.pdf
 	mv ad2.pdf ../docs/ad_src.pdf
 	rm ad.pdf
 
@@ -72,7 +72,7 @@ ad_doc: ad.w
 iad_doc: iad.w
 	cweave -bph iad || (echo "cweave exited with code $$? - continue anyway"; exit 0)
 	pdftex iad
-	qpdf iad.pdf --pages iad.pdf 148 iad.pdf 1-147 -- iad2.pdf
+	qpdf iad.pdf --pages iad.pdf r1 iad.pdf 1-r2 -- iad2.pdf
 	mv iad2.pdf ../docs/iad_src.pdf
 	rm iad.pdf
 #	cd src ; ctwill -bhp iad.w
@@ -112,7 +112,10 @@ oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
 	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
-mc_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_test.o
+mc_lost_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_test.o
+	$(CC) -o $@ $^ -lm
+
+mc_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_test.o
 	$(CC) -o $@ $^ -lm
 
 # ctangle rule to make .c and .h files
@@ -148,6 +151,7 @@ iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
 nr_amoeb.o :  iad_type.h
 mc_lost.o  :  iad_type.h
 mc_lost_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
+mc_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 
 version.o :
 	./version.pl
@@ -157,7 +161,7 @@ clean:
 	rm -f $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o
 	rm -f version.o ad_main.o ad_cone_test.o ad_oblique_test.o
 	rm -f mc_lost_test.o ad_layers_test.o
-	rm -f cone_test layer_test mc_test oblique_test
+	rm -f cone_test layer_test mc_test oblique_test mc_lost_test
 	rm -f ad iad adchapter
 
 realclean:

@@ -198,7 +198,7 @@ clean:
 	rm -f src/*.aux src/*.dvi src/*.idx src/*.ref src/*.sref src/*.tex src/*.toc src/*.log src/*.scn
 	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
 	rm -f libiad.dll src/libiad.dll
-	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test
+	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost_test
 
 realclean:
 	make clean
@@ -229,6 +229,7 @@ executables:
 	cd src; make layer_test
 	cd src; make oblique_test
 	cd src; make cone_test
+	cd src; make mc_lost_test
 
 veryshorttest:
 	@echo "********* Basic tests ***********"
