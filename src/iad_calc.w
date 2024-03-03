@@ -131,6 +131,7 @@ static boolean_type The_Grid_Search = -1;
     @<Prototype for |abg_distance|@>;
     @<Prototype for |maxloss|@>;
     @<Prototype for |Max_Light_Loss|@>;
+    @<Prototype for |RT_Flip|@>;
 
 
 @*1 Initialization.
@@ -607,24 +608,16 @@ void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *U
 @ @<Definition for |RT_Flip|@>=
     @<Prototype for |RT_Flip|@>
 {
-    double swap, correct_UR1, correct_URU;
+    double correct_UR1, correct_URU;
     RT(n, slab, UR1, UT1, URU, UTU);
     if (flip) {
         correct_UR1 = *UR1;
         correct_URU = *URU;
-        swap=slab->n_top_slide;
-        slab->n_top_slide = slab->n_bottom_slide;
-        slab->n_bottom_slide = swap;
-        swap=slab->b_top_slide;
-        slab->b_top_slide = slab->b_bottom_slide;
-        slab->b_bottom_slide = swap;
+        SWAP(slab->n_top_slide, slab->n_bottom_slide)
+        SWAP(slab->b_top_slide, slab->b_bottom_slide)
         RT(n, slab, UR1, UT1, URU, UTU);
-        swap=slab->n_top_slide;
-        slab->n_top_slide = slab->n_bottom_slide;
-        slab->n_bottom_slide = swap;
-        swap=slab->b_top_slide;
-        slab->b_top_slide = slab->b_bottom_slide;
-        slab->b_bottom_slide = swap;
+        SWAP(slab->n_top_slide, slab->n_bottom_slide)
+        SWAP(slab->b_top_slide, slab->b_bottom_slide)
         *UR1 = correct_UR1;
         *URU = correct_URU;
     }
@@ -1318,14 +1311,6 @@ both.  The albedo stuff might be able to be take out.  We'll see.
 @<Two parameter deviation@>=
 
     if (RR.metric == RELATIVE) {
-        double rc, tc;
-        Absorbing_Glass_RT(1.0,
-                           MM.slab_top_slide_index,
-                           MM.slab_index,
-                           MM.slab_cos_angle,
-                           MM.slab_top_slide_b, &rc, &tc);
-        rc *= MM.fraction_of_rc_in_mr;
-        *dev = 0;
         if (MM.m_t > ABIT)
             *dev = T_TRUST_FACTOR* fabs(MM.m_t - *M_T) / (T_diffuse + ABIT);
         if ( RR.default_a != 0 ) {

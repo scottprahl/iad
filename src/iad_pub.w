@@ -36,9 +36,9 @@ Note, it really doesn't help to change the method from
     @<Definition for |MinMax_MR_MT|@>@;
     @<Definition for |Calculate_Minimum_MR|@>@;
 
-    
+
 @ All the information that needs to be written to
-the header file \.{iad\_pub.h}.  This eliminates the need to maintain a set of 
+the header file \.{iad\_pub.h}.  This eliminates the need to maintain a set of
 header files as well.
 
 @(iad_pub.h@>=
@@ -54,7 +54,7 @@ header files as well.
     @<Prototype for |Spheres_Inverse_RT2|@>;
 
 
-@ Here is the header file needed to access one interesting routine in the 
+@ Here is the header file needed to access one interesting routine in the
 \.{libiad.so} library.
 
 @(lib_iad.h@>=
@@ -66,8 +66,8 @@ header files as well.
 |Inverse_RT| is the main function in this whole package.
 You pass the variable |m| containing
 your experimentally measured values to the function
-|Inverse_RT|.  It hopefully returns the optical properties in |r| 
-that are appropriate for your experiment.  
+|Inverse_RT|.  It hopefully returns the optical properties in |r|
+that are appropriate for your experiment.
 
 @<Prototype for |Inverse_RT|@>=
     void Inverse_RT(struct measure_type m, struct invert_type *r)
@@ -85,12 +85,12 @@ that are appropriate for your experiment.
 
     if (r->search == FIND_AUTO)
         r->search = determine_search(m,*r);
-    
+
     if (r->search == FIND_B_WITH_NO_ABSORPTION) {
         r->default_a = 1;
         r->search = FIND_B;
     }
-    
+
     if (r->search == FIND_B_WITH_NO_SCATTERING) {
         r->default_a = 0;
         r->search = FIND_B;
@@ -99,22 +99,25 @@ that are appropriate for your experiment.
     @<Exit with bad input data@>@;
 
     @<Find the optical properties@>@;
+
+    @<Print basic sphere and MC effects@>@;
+
     if ( r->final_distance <= r->tolerance) r->found=TRUE;
 }
 
 @ There is no sense going to all the trouble to try a multivariable
-minimization if the input data is bogus.  So I wrote a 
+minimization if the input data is bogus.  So I wrote a
 single routine |measure_OK| to do just this.
 
 @<Exit with bad input data@>=
     r->error=measure_OK(m,*r);
-        
-    if (r->method.quad_pts<4) 
+
+    if (r->method.quad_pts<4)
         r->error = IAD_QUAD_PTS_NOT_VALID;
-        
+
     if (r->error != IAD_NO_ERROR)
         return;
-  
+
 @ Now I fob the real work off to the unconstrained minimization
 routines.  Ultimately, I would like to replace all these by constrained
 minimization routines.  Actually the first five already are constrained.
@@ -145,8 +148,42 @@ switch (r->search){
     case FIND_BaG: U_Find_BaG(m,r);
                   break;
 }
-if (r->iterations==IAD_MAX_ITERATIONS)
+if (r->AD_iterations==IAD_MAX_ITERATIONS)
     r->error=IAD_TOO_MANY_ITERATIONS;
+
+@ This is to support -x 1
+
+@<Print basic sphere and MC effects@>=
+if (Debug(DEBUG_A_LITTLE)) {
+    double M_R, M_T;
+
+    fprintf(stderr, "AD iterations= %3d   MC iterations=%3d", r->AD_iterations, r->MC_iterations);
+    fprintf(stderr, "            a=%6.4f b=%8.4f g=%6.4f\n", r->slab.a, r->slab.b, r->slab.g);
+
+    Calculate_MR_MT(m, *r, TRUE, TRUE, &M_R, &M_T);
+    fprintf(stderr, "    M_R loss     %8.5f  M_T loss     %8.5f", m.ur1_lost, m.ut1_lost);
+    fprintf(stderr, " ( MC loss calculation)\n");
+
+    Calculate_MR_MT(m, *r, FALSE, FALSE, &M_R, &M_T);
+    fprintf(stderr, "    M_R bare     %8.5f  M_T bare     %8.5f", M_R, M_T);
+    fprintf(stderr, " ( --- MC loss, --- sphere effects)\n");
+
+    Calculate_MR_MT(m, *r, FALSE, TRUE, &M_R, &M_T);
+    fprintf(stderr, "    M_R sphere   %8.5f  M_T sphere   %8.5f", M_R, M_T);
+    fprintf(stderr, " ( --- MC loss, +++ sphere effects)\n");
+
+    Calculate_MR_MT(m, *r, TRUE, FALSE, &M_R, &M_T);
+    fprintf(stderr, "    M_R mc       %8.5f  M_T mc       %8.5f", M_R, M_T);
+    fprintf(stderr, " ( +++ MC loss, --- sphere effects)\n");
+
+    Calculate_MR_MT(m, *r, TRUE, TRUE, &M_R, &M_T);
+    fprintf(stderr, "    M_R both     %8.5f  M_T both     %8.5f", M_R, M_T);
+    fprintf(stderr, " ( +++ MC loss, +++ sphere effects)\n");
+
+    fprintf(stderr, "    M_R measured %8.5f  M_T measured %8.5f", m.m_r, m.m_t);
+    fprintf(stderr, " (  target values)\n\n");
+}
+
 
 @*1 Validation.
 
@@ -164,7 +201,7 @@ a damn.
 The two sphere checks are more complicated.  For example, we can no longer
 categorically state that the transmittance is less than one or that the sum
 of the reflectance and transmittance is less than one.  Instead we use
-the transmittance to bound the values for the reflectance --- see the 
+the transmittance to bound the values for the reflectance --- see the
 routine |MinMax_MR_MT| below.
 
 @s error x
@@ -174,7 +211,7 @@ routine |MinMax_MR_MT| below.
 {
     double ru, tu;
 
-    if (m.num_spheres != 2) {  
+    if (m.num_spheres != 2) {
         @<Check \.{MT} for zero or one spheres@>@;
         @<Check \.{MR} for zero or one spheres@>@;
     } else {
@@ -214,14 +251,14 @@ no need to check \.{MR} because it is ignored.
     {
         double mr,mt;
         Calculate_Minimum_MR(m,r,&mr,&mt);
-        
+
         /* one parameter search only needs one good measurement */
-        if (r.search==FIND_A  || r.search==FIND_G || r.search==FIND_B || 
+        if (r.search==FIND_A  || r.search==FIND_G || r.search==FIND_B ||
             r.search==FIND_Bs || r.search == FIND_Ba) {
             if (m.m_r < mr && m.m_t<=0)
                 return IAD_MR_TOO_SMALL;
         } else {
-        
+
             if (r.default_a == UNINITIALIZED || r.default_a > 0) {
                 if (m.m_r < mr)
                     return IAD_MR_TOO_SMALL;
@@ -243,19 +280,19 @@ if the number of spheres is more than zero.
 @<Check \.{MT} for zero or one spheres@>=
 
     if (m.m_t < 0)
-        return IAD_MT_TOO_SMALL;      
+        return IAD_MT_TOO_SMALL;
 
-    Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide, 
+    Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide,
              r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
-    
+
     if (m.num_spheres == 0 && m.m_t > tu) {
-        fprintf(stderr,"ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n", 
+        fprintf(stderr,"ntop=%7.5f, nslab=%7.5f, nbottom=%7.5f\n",
                 r.slab.n_top_slide,r.slab.n_slab,r.slab.n_bottom_slide);
         fprintf(stderr,"tu_max=%7.5f, m_t=%7.5f, t_std=%7.5f\n", tu, m.m_t, m.rstd_t);
         return IAD_MT_TOO_BIG;
     }
 
-@  The unscattered transmission is now always included in the total 
+@  The unscattered transmission is now always included in the total
 transmittance.  Therefore the unscattered transmittance must fall betwee
 zero and |M_T|
 
@@ -263,71 +300,71 @@ zero and |M_T|
 
     if (m.m_u < 0)
         return IAD_MU_TOO_SMALL;
-    
+
     if (m.m_u > m.m_t)
         return IAD_MU_TOO_BIG;
-    
+
 
 @ Make sure that reflection sphere parameters are reasonable
 
 @<Check sphere parameters@>=
-  
-    if (m.as_r < 0 || m.as_r >= 0.2) 
+
+    if (m.as_r < 0 || m.as_r >= 0.2)
         return IAD_AS_NOT_VALID;
-        
-    if (m.ad_r < 0 || m.ad_r >= 0.2) 
+
+    if (m.ad_r < 0 || m.ad_r >= 0.2)
         return IAD_AD_NOT_VALID;
-    
-    if (m.ae_r < 0 || m.ae_r >= 0.2) 
+
+    if (m.ae_r < 0 || m.ae_r >= 0.2)
         return IAD_AE_NOT_VALID;
 
-    if (m.rw_r < 0 || m.rw_r > 1.0) 
+    if (m.rw_r < 0 || m.rw_r > 1.0)
         return IAD_RW_NOT_VALID;
 
-    if (m.rd_r < 0 || m.rd_r > 1.0) 
+    if (m.rd_r < 0 || m.rd_r > 1.0)
         return IAD_RD_NOT_VALID;
 
-    if (m.rstd_r < 0 || m.rstd_r > 1.0) 
+    if (m.rstd_r < 0 || m.rstd_r > 1.0)
         return IAD_RSTD_NOT_VALID;
 
-    if (m.rstd_t < 0 || m.rstd_t > 1.0) 
+    if (m.rstd_t < 0 || m.rstd_t > 1.0)
         return IAD_TSTD_NOT_VALID;
 
-    if (m.f_r < 0 || m.f_r > 1) 
+    if (m.f_r < 0 || m.f_r > 1)
         return IAD_F_NOT_VALID;
-  
+
 @ Make sure that transmission sphere parameters are reasonable
 
 @<Check sphere parameters@>=
-  
-    if (m.as_t < 0 || m.as_t >= 0.2) 
+
+    if (m.as_t < 0 || m.as_t >= 0.2)
         return IAD_AS_NOT_VALID;
-        
-    if (m.ad_t < 0 || m.ad_t >= 0.2) 
+
+    if (m.ad_t < 0 || m.ad_t >= 0.2)
         return IAD_AD_NOT_VALID;
-    
-    if (m.ae_t < 0 || m.ae_t >= 0.2) 
+
+    if (m.ae_t < 0 || m.ae_t >= 0.2)
         return IAD_AE_NOT_VALID;
 
-    if (m.rw_t < 0 || m.rw_r > 1.0) 
+    if (m.rw_t < 0 || m.rw_r > 1.0)
         return IAD_RW_NOT_VALID;
 
-    if (m.rd_t < 0 || m.rd_t > 1.0) 
+    if (m.rd_t < 0 || m.rd_t > 1.0)
         return IAD_RD_NOT_VALID;
 
-    if (m.rstd_t < 0 || m.rstd_t > 1.0) 
+    if (m.rstd_t < 0 || m.rstd_t > 1.0)
         return IAD_TSTD_NOT_VALID;
 
-    if (m.f_t < 0 || m.f_t > 1) 
+    if (m.f_t < 0 || m.f_t > 1)
         return IAD_F_NOT_VALID;
 
-@*1 Searching Method.  
+@*1 Searching Method.
 
 The original idea was that this routine would automatically determine
 what optical parameters could be figured out from the input data.  This
 worked fine for a long while, but I discovered that often it was convenient
 to constrain the optical properties in various ways.  Consequently, this
-routine got more and more complicated.  
+routine got more and more complicated.
 
 What should be done is to figure out whether the search will be 1D or 2D
 and split this routine into two parts.
@@ -338,8 +375,8 @@ the infrastructure is missing at this point.
 @<Prototype for |determine_search|@>=
 search_type determine_search(struct measure_type m, struct invert_type r)
 
-@ This routine is responsible for selecting the appropriate 
-optical properties to determine.  
+@ This routine is responsible for selecting the appropriate
+optical properties to determine.
 
 @<Definition for |determine_search|@>=
 @<Prototype for |determine_search|@>
@@ -366,25 +403,25 @@ optical properties to determine.
         if (Debug(DEBUG_SEARCH)) fprintf(stderr,"    no information in rd\n");
         independent--;
     }
-        
+
     if (td==0 && independent == 2) {
         if (Debug(DEBUG_SEARCH)) fprintf(stderr,"    no information in td\n");
         independent--;
     }
-        
+
     if (independent == 1 || independent == -1) {
         @<One parameter search@>@;
     }
-    
+
     else if (independent == 2) {
         @<Two parameter search@>@;
     }
 
-    /* three real parameters with information! */   
+    /* three real parameters with information! */
     else {
         search = FIND_AG;
     }
-    
+
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"    independent measurements = %3d\n",independent);
         fprintf(stderr,"    m_r=%8.5f m_t=%8.5f (rd = %8.5f td=%8.5f)\n",m.m_r, m.m_t, rd,td);
@@ -404,7 +441,7 @@ optical properties to determine.
         if (search==FIND_B_WITH_NO_SCATTERING)
                                 fprintf(stderr,"    search = FIND_B_WITH_NO_SCATTERING\n");
     }
-    
+
     return search;
 }
 
@@ -412,7 +449,7 @@ optical properties to determine.
 @ The fastest inverse problems are those in which just one
 measurement is known.  This corresponds to a simple one-dimensional
 minimization problem.  The only complexity is deciding exactly what
-should be allowed to vary.  The basic assumption is that the 
+should be allowed to vary.  The basic assumption is that the
 anisotropy has been specified or will be assumed to be zero.
 
 If the anistropy is assumed known, then one other assumption will
@@ -422,7 +459,7 @@ Ultimately, if no default values are given, then we look at the
 value of the total transmittance.  If this is zero, then we
 assume that the optical thickness is infinite and solve for
 the albedo.  Otherwise we will just make a stab at solving
-for the optical thickness assuming the albedo is one.  
+for the optical thickness assuming the albedo is one.
 
 @<One parameter search@>=
     if (r.default_a  != UNINITIALIZED) {
@@ -430,7 +467,7 @@ for the optical thickness assuming the albedo is one.
             search = FIND_B_WITH_NO_SCATTERING;
         else if (r.default_a == 1)
             search = FIND_B_WITH_NO_ABSORPTION;
-        else if (tt == 0) 
+        else if (tt == 0)
             search = FIND_G;
         else
             search = FIND_B;
@@ -450,7 +487,7 @@ for the optical thickness assuming the albedo is one.
     else if (rd == 0)
         search = FIND_B_WITH_NO_SCATTERING;
 
-    else 
+    else
         search = FIND_B_WITH_NO_ABSORPTION;
 
 @ If the absorption depth $\mu_a d$ is constrained return |FIND_BsG|.
@@ -458,51 +495,51 @@ Recall that I use the bizarre mnemonic $bs=\mu_s d$ here and so this
 means that the program will search over various values of $\mu_s d$
 and $g$.
 
-If there are just two measurements then I assume that the 
+If there are just two measurements then I assume that the
 anisotropy is not of interest and the only thing to calculate
 is the reduced albedo and optical thickness based on an assumed
-anisotropy.  
+anisotropy.
 
 @<Two parameter search@>=
     if (r.default_a != UNINITIALIZED) {
-        
+
         if (r.default_a  == 0)
             search =  FIND_B;
         else if (r.default_g  != UNINITIALIZED)
             search =  FIND_B;
         else
             search =  FIND_BG;
-    
+
     } else if (r.default_b  != UNINITIALIZED) {
-    
+
         if (r.default_g  != UNINITIALIZED)
             search =  FIND_A;
         else
             search =  FIND_AG;
 
     } else if (r.default_ba != UNINITIALIZED) {
-    
+
         if (r.default_g  != UNINITIALIZED)
             search =  FIND_Bs;
         else
-            search =  FIND_BsG; 
+            search =  FIND_BsG;
 
     } else if (r.default_bs != UNINITIALIZED) {
-    
+
         if (r.default_g  != UNINITIALIZED)
             search =  FIND_Ba;
         else
-            search =  FIND_BaG; 
-    
-    } else if (rt + tt > 1 && 0 && m.num_spheres != 2) 
+            search =  FIND_BaG;
+
+    } else if (rt + tt > 1 && 0 && m.num_spheres != 2)
         search =  FIND_B_WITH_NO_ABSORPTION;
-        
+
     else
         search = FIND_AB;
 
 
-@ This little routine just stuffs reasonable values into the 
-structure we use to return the solution.  This does not replace 
+@ This little routine just stuffs reasonable values into the
+structure we use to return the solution.  This does not replace
 the values for |r.default_g| nor for |r.method.quad_pts|.  Presumably
 these have been set correctly elsewhere.
 
@@ -529,7 +566,8 @@ void Initialize_Result(struct measure_type m, struct invert_type *r)
     r->search = FIND_AUTO;
     r->metric = RELATIVE;
     r->final_distance = 10;
-    r->iterations =0;
+    r->AD_iterations =0;
+    r->MC_iterations =0;
     r->error = IAD_NO_ERROR;
 
 @ The defaults might be handy
@@ -547,7 +585,7 @@ void Initialize_Result(struct measure_type m, struct invert_type *r)
 @ It is necessary to set up the slab correctly so, I stuff reasonable
 values into this record as well.
 @<Fill |r| with reasonable values@>=
-    
+
     r->slab.a = 0.5;
     r->slab.b = 1.0;
     r->slab.g = 0;
@@ -558,7 +596,7 @@ values into this record as well.
     r->slab.b_top_slide = m.slab_top_slide_b;
     r->slab.b_bottom_slide = m.slab_bottom_slide_b;
     r->slab.cos_angle = m.slab_cos_angle;
-    
+
     r->method.a_calc=0.5;
     r->method.b_calc=1;
     r->method.g_calc=0.5;
@@ -578,7 +616,7 @@ index of refraction, that the illumination is collimated.  Of course
 no sphere parameters are included.
 
 @<Prototype for |ez_Inverse_RT|@>=
-    void ez_Inverse_RT(double n, double nslide, double UR1, double UT1, double Tc, 
+    void ez_Inverse_RT(double n, double nslide, double UR1, double UT1, double Tc,
                        double *a, double *b, double *g, int *error)
 
 @ @<Definition for |ez_Inverse_RT|@>=
@@ -591,12 +629,12 @@ no sphere parameters are included.
   *g = 0;
 
   Initialize_Measure(&m);
-  
+
   m.slab_index = n;
   m.slab_top_slide_index=nslide;
   m.slab_bottom_slide_index=nslide;
   m.slab_cos_angle=1.0;
-  
+
   m.num_measures=3;
   if (UT1 == 0) m.num_measures--;
   if (Tc  == 0) m.num_measures--;
@@ -607,7 +645,7 @@ no sphere parameters are included.
 
   Initialize_Result(m,&r);
   r.method.quad_pts=8;
-  
+
   Inverse_RT (m, &r);
 
   *error = r.error;
@@ -615,7 +653,7 @@ no sphere parameters are included.
     *a = r.a;
     *b = r.b;
     *g = r.g;
-  } 
+  }
 }
 
 @ @<Prototype for |Initialize_Measure|@>=
@@ -629,7 +667,7 @@ void Initialize_Measure(struct measure_type *m)
     double default_detector_d = 0.1 * 25.4;
     double default_entrance_d = 0.5 * 25.4;
     double sphere_area = M_PI * default_sphere_d * default_sphere_d;
-    
+
     m->slab_index=1.0;
     m->slab_top_slide_index=1.0;
     m->slab_top_slide_b=0.0;
@@ -639,11 +677,11 @@ void Initialize_Measure(struct measure_type *m)
     m->slab_bottom_slide_thickness=0.0;
     m->slab_thickness=1.0;
     m->slab_cos_angle=1.0;
-    
+
     m->num_spheres=0;
     m->num_measures=1;
     m->method = UNKNOWN;
-    
+
     m->fraction_of_rc_in_mr=1.0;
     m->fraction_of_tc_in_mt=1.0;
 
@@ -652,11 +690,11 @@ void Initialize_Measure(struct measure_type *m)
 
     m->flip_sample = 0;
     m->gain_type = 0;
-    
+
     m->m_r=0.0;
     m->m_t=0.0;
     m->m_u=0.0;
-    
+
     m->d_sphere_r = default_sphere_d;
     m->as_r = (M_PI * default_sample_d * default_sample_d / 4.0) / sphere_area;
     m->ad_r = (M_PI * default_detector_d * default_detector_d / 4.0) / sphere_area;
@@ -666,7 +704,7 @@ void Initialize_Measure(struct measure_type *m)
     m->rw_r = 1.0;
     m->rstd_r = 1.0;
     m->f_r = 0.0;
-    
+
     m->d_sphere_t = default_sphere_d;
     m->as_t = m->as_r;
     m->ad_t = m->ad_r;
@@ -686,18 +724,18 @@ void Initialize_Measure(struct measure_type *m)
 }
 
 @ To avoid interfacing with C-structures it is necessary to pass the information
-as arrays.  Here I have divided the experiment into (1) setup, (2) reflection 
-sphere coefficients, (3) transmission sphere coefficients, (4) measurements, and (5) 
+as arrays.  Here I have divided the experiment into (1) setup, (2) reflection
+sphere coefficients, (3) transmission sphere coefficients, (4) measurements, and (5)
 results.
 
 @<Prototype for |Spheres_Inverse_RT|@>=
-    void Spheres_Inverse_RT(double *setup, 
-                            double *analysis, 
-                            double *sphere_r, 
+    void Spheres_Inverse_RT(double *setup,
+                            double *analysis,
+                            double *sphere_r,
                             double *sphere_t,
                             double *measurements,
                             double *results)
-    
+
 @ @<Definition for |Spheres_Inverse_RT|@>=
     @<Prototype for |Spheres_Inverse_RT|@>
 {
@@ -706,9 +744,9 @@ results.
     long num_photons;
     double ur1,ut1,uru,utu;
     int i, mc_runs = 1;
-    
+
     Initialize_Measure(&m);
-    
+
     @<handle setup @>@;
     @<handle reflection sphere @>@;
     @<handle transmission sphere @>@;
@@ -720,52 +758,52 @@ results.
     results[2]=0;
 
     @<handle analysis @>@;
-    
+
     Inverse_RT (m, &r);
     for (i=0; i<mc_runs; i++) {
-        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu, 
-                     &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);   
+        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu,
+                     &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
         Inverse_RT (m, &r);
     }
-    
+
     if (r.error == IAD_NO_ERROR) {
         results[0]=(1-r.a)*r.b/m.slab_thickness;
         results[1]=(r.a  )*r.b/m.slab_thickness;
         results[2]=r.g;
-    } 
-    
+    }
+
     results[3]=r.error;
 }
 
 @ These are in exactly the same order as the parameters in the .rxt header
 @<handle setup @>=
-{  
+{
     double d_sample_r, d_entrance_r, d_detector_r;
     double d_sample_t, d_entrance_t, d_detector_t;
-    
+
     m.slab_index               = setup[0];
     m.slab_top_slide_index     = setup[1];
     m.slab_thickness           = setup[2];
     m.slab_top_slide_thickness = setup[3];
     m.d_beam                   = setup[4];
     m.rstd_r                   = setup[5];
-    m.num_spheres              = (int) setup[6];  
-    
+    m.num_spheres              = (int) setup[6];
+
     m.d_sphere_r               = setup[7];
     d_sample_r                 = setup[8];
     d_entrance_r               = setup[9];
     d_detector_r               = setup[10];
     m.rw_r                     = setup[11];
-    
+
     m.d_sphere_t               = setup[12];
     d_sample_t                 = setup[13];
     d_entrance_t               = setup[14];
     d_detector_t               = setup[15];
     m.rw_t                     = setup[16];
-    
+
     r.default_g                = setup[17];
     num_photons                = (long) setup[18];
-    
+
     m.as_r = (d_sample_r   / m.d_sphere_r / 2.0) * (d_sample_r   / m.d_sphere_r / 2.0);
     m.ae_r = (d_entrance_r / m.d_sphere_r / 2.0) * (d_entrance_r / m.d_sphere_r / 2.0);
     m.ad_r = (d_detector_r / m.d_sphere_r / 2.0) * (d_detector_r / m.d_sphere_r / 2.0);
@@ -777,22 +815,22 @@ results.
 
     m.slab_bottom_slide_index = m.slab_top_slide_index;
     m.slab_bottom_slide_thickness = m.slab_top_slide_thickness;
-    
+
     fprintf(stderr,"**** executing FIXME ****/n");
     m.slab_cos_angle = 1.0; /* FIXME */
-    
+
 }
 
 @ @<handle analysis@>=
 
   r.method.quad_pts        = (int) analysis[0];
   mc_runs                  = (int) analysis[1];
-  
+
 @  @<handle measurement @>=
   m.m_r = measurements[0];
   m.m_t = measurements[1];
   m.m_u = measurements[2];
- 
+
   m.num_measures=3;
   if (m.m_t == 0) m.num_measures--;
   if (m.m_u == 0) m.num_measures--;
@@ -805,7 +843,7 @@ results.
   m.rd_r    = sphere_r[4];
   m.rstd_r  = sphere_r[5];
   m.f_r     = sphere_r[7];
-  
+
 @  @<handle transmission sphere @>=
   m.as_t    = sphere_t[0];
   m.ae_t    = sphere_t[1];
@@ -823,38 +861,44 @@ The values for the lost light |m.uru_lost| etc., should be
 calculated before calling this routine.
 
 @<Prototype for |Calculate_MR_MT|@>=
-void Calculate_MR_MT(struct measure_type m, 
-                     struct invert_type r, 
+void Calculate_MR_MT(struct measure_type m,
+                     struct invert_type r,
                      int include_MC,
-                     double *M_R, 
+                     int include_spheres,
+                     double *M_R,
                      double *M_T)
 
 @ @<Definition for |Calculate_MR_MT|@>=
     @<Prototype for |Calculate_MR_MT|@>
 {
-    double distance, ur1, ut1, uru, utu;
+    double distance;
     struct measure_type old_mm;
     struct invert_type old_rr;
+
+    if (!include_MC) {
+        m.ur1_lost = 0;
+        m.ut1_lost = 0;
+        m.uru_lost = 0;
+        m.utu_lost = 0;
+    }
     
-    if (include_MC && m.num_spheres > 0) 
-        MC_Lost(m, r, -2000, &ur1, &ut1, &uru, &utu, 
-            &(m.ur1_lost), &(m.ut1_lost), &(m.uru_lost), &(m.utu_lost));   
-        
+    if (!include_spheres) {
+        m.num_spheres = 0;
+    }
+
     Get_Calc_State(&old_mm, &old_rr);
     Set_Calc_State(m, r);
-
     Calculate_Distance(M_R, M_T, &distance);
-
     Set_Calc_State(old_mm, old_rr);
 }
 
 @ So, it turns out that the minimum measured |M_R| can
-be less than four percent for black glass!  This is because 
+be less than four percent for black glass!  This is because
 the sphere efficiency is much worse for the glass than for
 the white standard.
 
 @<Prototype for |Calculate_Minimum_MR|@>=
-void Calculate_Minimum_MR(struct measure_type m, 
+void Calculate_Minimum_MR(struct measure_type m,
                      struct invert_type r, double *mr, double *mt)
 
 @ @<Definition for |Calculate_Minimum_MR|@>=
@@ -884,8 +928,8 @@ void Calculate_Minimum_MR(struct measure_type m,
     r.a = r.slab.a;
     r.b = r.slab.b;
     r.g = r.slab.g;
-    
-    Calculate_MR_MT(m,r,0,mr,mt);
+
+    Calculate_MR_MT(m, r, FALSE, TRUE, mr, mt);
     *mt = 0;
 }
 
@@ -896,63 +940,63 @@ second we will assume that any light loss is neglible (to maximize \.{MR}).
 
 The second case is perhaps over-simplified.  Obviously for a fixed thickness
 as the albedo increases, the reflectance will increase.  So how does |U_Find_B()|
-work when the albedo is set to 1?  
+work when the albedo is set to 1?
 
-The problem is that to calculate these values one must know the 
-optical thickness.  Fortunately with the recent addition of 
+The problem is that to calculate these values one must know the
+optical thickness.  Fortunately with the recent addition of
 constrained minimization, we can do exactly this.
 
 The only thing that remains is to sort out the light lost effect.
 
 @<Prototype for |MinMax_MR_MT|@>=
-int MinMax_MR_MT(struct measure_type m, 
+int MinMax_MR_MT(struct measure_type m,
                   struct invert_type r)
 
 @ @<Definition for |MinMax_MR_MT|@>=
     @<Prototype for |MinMax_MR_MT|@>
 {
     double distance, measured_m_r, min_possible_m_r, max_possible_m_r, temp_m_t;
-        
+
     if (m.m_r < 0)
         return IAD_MR_TOO_SMALL;
     if (m.m_r*m.rstd_r > 1)
         return IAD_MR_TOO_BIG;
     if (m.m_t < 0)
         return IAD_MT_TOO_SMALL;
-    if (m.m_t == 0) 
+    if (m.m_t == 0)
         return IAD_NO_ERROR;
-        
+
     measured_m_r = m.m_r;
-    
+
     m.m_r = 0;
     r.search = FIND_B;
-    
+
     r.default_a = 0;
     U_Find_B(m, &r);
     Calculate_Distance(&min_possible_m_r, &temp_m_t, &distance);
-    if (measured_m_r < min_possible_m_r) 
+    if (measured_m_r < min_possible_m_r)
         return IAD_MR_TOO_SMALL;
 
     r.default_a = 1.0;
     U_Find_B(m, &r);
     Calculate_Distance(&max_possible_m_r, &temp_m_t, &distance);
-    if (measured_m_r > max_possible_m_r) 
+    if (measured_m_r > max_possible_m_r)
         return IAD_MR_TOO_BIG;
-    
+
     return IAD_NO_ERROR;
 }
 
 @ @<Prototype for |Spheres_Inverse_RT2|@>=
-    void Spheres_Inverse_RT2(double *sample, 
-                            double *illumination, 
-                            double *sphere_r, 
+    void Spheres_Inverse_RT2(double *sample,
+                            double *illumination,
+                            double *sphere_r,
                             double *sphere_t,
                             double *analysis,
                             double *measurement,
                             double *a,
                             double *b,
                             double *g)
-    
+
 @ @<Definition for |Spheres_Inverse_RT2|@>=
     @<Prototype for |Spheres_Inverse_RT2|@>
 {
@@ -961,9 +1005,9 @@ int MinMax_MR_MT(struct measure_type m,
     long num_photons;
     double ur1,ut1,uru,utu;
     int i, mc_runs = 1;
-    
+
     Initialize_Measure(&m);
-    
+
     @<handle2 sample @>@;
     @<handle2 illumination @>@;
     @<handle2 reflection sphere @>@;
@@ -972,19 +1016,19 @@ int MinMax_MR_MT(struct measure_type m,
     @<handle2 measurement @>@;
 
     Initialize_Result(m,&r);
-    
+
     Inverse_RT (m, &r);
     for (i=0; i<mc_runs; i++) {
-        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu, 
-                     &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);   
+        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu,
+                     &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
         Inverse_RT (m, &r);
     }
-    
+
     if (r.error == IAD_NO_ERROR) {
         *a = r.a;
         *b = r.b;
         *g = r.g;
-    } 
+    }
 }
 
 @ Just move the values from the sample array into the right places
@@ -1011,7 +1055,7 @@ to spend time to figure out how to integrate items 2, 3, and 4
 @  @<handle2 reflection sphere @>=
 {
     double d_sample_r, d_entrance_r, d_detector_r;
-    
+
     m.d_sphere_r = sphere_r[0];
     d_sample_r   = sphere_r[1];
     d_entrance_r = sphere_r[2];
@@ -1028,7 +1072,7 @@ to spend time to figure out how to integrate items 2, 3, and 4
 @  @<handle2 transmission sphere @>=
 {
     double d_sample_t, d_entrance_t, d_detector_t;
-    
+
     m.d_sphere_t = sphere_t[0];
     d_sample_t   = sphere_t[1];
     d_entrance_t = sphere_t[2];
@@ -1047,13 +1091,13 @@ to spend time to figure out how to integrate items 2, 3, and 4
     mc_runs                  = (int) analysis[1];
     num_photons              = (long) analysis[2];
 
-  
+
 @  @<handle2 measurement @>=
   m.rstd_r = measurement[0];
   m.m_r    = measurement[1];
   m.m_t    = measurement[2];
   m.m_u    = measurement[3];
- 
+
   m.num_measures=3;
   if (m.m_t == 0) m.num_measures--;
   if (m.m_u == 0) m.num_measures--;

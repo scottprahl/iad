@@ -85,7 +85,7 @@ This is the most common case.
     @<Get the initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |a| and |b| simplex@>@;
     @<Evaluate the |a| and |b| simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_AB_fn, &r->iterations);
+    amoeba(p, y, 2, r->tolerance, Find_AB_fn, &r->AD_iterations);
     @<Choose the best node of the |a| and |b| simplex@>@;
 
     @<Free simplex data structures@>@;
@@ -212,7 +212,7 @@ made in the analagous code for |a| and |b|.
 
 @ @<Put final values in result@>=
     if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba iterations = %d\n", r->iterations);
+        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -528,7 +528,7 @@ away.
     @<Get the initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |a| and |g| simplex@>@;
     @<Evaluate the |a| and |g| simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_AG_fn, &r->iterations);
+    amoeba(p, y, 2, r->tolerance, Find_AG_fn, &r->AD_iterations);
     @<Choose the best node of the |a| and |g| simplex@>@;
     @<Free simplex data structures@>@;
 
@@ -628,7 +628,7 @@ albedo).
     @<Get the initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |b| and |g| simplex@>@;
     @<Evaluate the \\{bg} simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_BG_fn, &r->iterations);
+    amoeba(p, y, 2, r->tolerance, Find_BG_fn, &r->AD_iterations);
     @<Choose the best node of the |b| and |g| simplex@>@;
 
     @<Free simplex data structures@>@;
@@ -725,7 +725,7 @@ $b$.
     @<Get the initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |ba| and |g| simplex@>@;
     @<Evaluate the \\{BaG} simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_BaG_fn, &r->iterations);
+    amoeba(p, y, 2, r->tolerance, Find_BaG_fn, &r->AD_iterations);
     @<Choose the best node of the |ba| and |g| simplex@>@;
 
     @<Free simplex data structures@>@;
@@ -801,7 +801,7 @@ $b$.
     @<Get the initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |bs| and |g| simplex@>@;
     @<Evaluate the \\{BsG} simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_BsG_fn, &r->iterations);
+    amoeba(p, y, 2, r->tolerance, Find_BsG_fn, &r->AD_iterations);
     @<Choose the best node of the |bs| and |g| simplex@>@;
 
     @<Free simplex data structures@>@;

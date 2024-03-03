@@ -149,11 +149,13 @@ typedef struct invert_type {
     double tolerance;
     double MC_tolerance;
     double final_distance;
-    int iterations;
     int error;
 
     struct AD_slab_type slab;
     struct AD_method_type method;
+
+    int AD_iterations;
+    int MC_iterations;
 
     double default_a;
     double default_b;

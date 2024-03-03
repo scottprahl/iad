@@ -106,7 +106,7 @@ int main (int argc, char **argv)
     int c;
 
     long n_photons = 100000;
-    int MC_iterations = 19;
+    int MC_MAX_iterations = 19;
     int any_error = 0;
     int process_command_line = 0;
     int params = 0;
@@ -393,8 +393,8 @@ int main (int argc, char **argv)
                 break;
 
             case 'M':
-                MC_iterations = (int) my_strtod(optarg);
-                if (MC_iterations < 0 || MC_iterations > 50) {
+                MC_MAX_iterations = (int) my_strtod(optarg);
+                if (MC_MAX_iterations < 0 || MC_MAX_iterations > 50) {
                     fprintf(stderr, "Error in command-line\n");
                     fprintf(stderr, "    MC iterations '-M %s'\n", optarg);
                     exit(EXIT_FAILURE);
@@ -612,13 +612,13 @@ to calculate the optical thickness.
 
     {
         double mu_sp, mu_a, m_r, m_t;
-        Calculate_MR_MT(m, r, MC_iterations, &m_r, &m_t);
+        Calculate_MR_MT(m, r, TRUE, TRUE, &m_r, &m_t);
         Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
         if (cl_verbosity>0) {
             Write_Header (m, r, -1);
             print_results_header(stdout);
         }
-        print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0,0);
+        print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0);
     }
 
 @ Make sure that the file is not named '-' and warn about too many files
@@ -712,19 +712,20 @@ measurements.
 
         @<Improve result using Monte Carlo@>@;
     }
-    print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
+    print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
 
 
-    if (Debug(DEBUG_LOST_LIGHT))
+    if (Debug(DEBUG_LOST_LIGHT)) {
         fprintf(stderr,"\n");
-    else
-        print_dot(start_time, r.error, mc_total, rt_total, 99, cl_verbosity, &any_error);
+    } else {
+        if (r.error != IAD_NO_ERROR) any_error = 1;
+    }
+    print_dot(start_time, r.error, mc_total, TRUE, cl_verbosity);
 }
 
 @   @<Local Variables for Calculation@>=
     static int rt_total = 0;
     static int mc_total = 0;
-    int mc_iter = 0;
 
     double ur1=0;
     double ut1=0;
@@ -787,7 +788,7 @@ measurements.
 
 if (rt_total==1 && cl_verbosity>0) {
     Write_Header (m, r, params);
-    if (MC_iterations > 0) {
+    if (MC_MAX_iterations > 0) {
         if (n_photons>=0)
            fprintf(stdout,"#  Photons used to estimate lost light =   %ld\n",n_photons);
         else
@@ -814,16 +815,16 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
 
     if (Debug(DEBUG_LOST_LIGHT)) {
         print_results_header(stderr);
-        print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
+        print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
     }
 
-    while (mc_iter < MC_iterations) {
+    while (r.MC_iterations < MC_MAX_iterations) {
 
         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
                 &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
         mc_total++;
-        mc_iter++;
+        r.MC_iterations++;
 
         Inverse_RT (m, &r);
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
@@ -835,9 +836,9 @@ if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
         mu_sp_last = mu_sp;
 
         if (Debug(DEBUG_LOST_LIGHT))
-            print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,mc_iter,rt_total);
+            print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
         else
-            print_dot(start_time, r.error, mc_total, rt_total, mc_iter, cl_verbosity,&any_error);
+            print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
 
         if (r.error != IAD_NO_ERROR)
             break;
@@ -1220,7 +1221,6 @@ void print_optical_property_result(FILE *fp,
                            double LT,
                            double mu_a,
                            double mu_sp,
-                           int mc_iter,
                            int line)
 {
     if (m.lambda != 0)
@@ -1240,8 +1240,8 @@ void print_optical_property_result(FILE *fp,
     if (Debug(DEBUG_LOST_LIGHT)) {
         fprintf(fp, "% 9.4f\t% 9.4f\t", m.ur1_lost, m.uru_lost);
         fprintf(fp, "% 9.4f\t% 9.4f\t", m.ut1_lost, m.utu_lost);
-        fprintf(fp, " %2d  \t", mc_iter);
-        fprintf(fp, " %4d\t", r.iterations);
+        fprintf(fp, " %2d  \t", r.MC_iterations);
+        fprintf(fp, " %4d\t", r.AD_iterations);
     }
 
     fprintf(fp, "# %c \n",what_char(r.error));
@@ -1373,7 +1373,12 @@ static int parse_string_into_array(char *s, double *a, int n)
     return 1;
 }
 
-@ @<print dot function@>=
+@ The idea here is to show some intermediate output while a file is
+being processed.
+
+Somthings that need to be 
+
+@<print dot function@>=
 
 static char what_char(int err)
 {
@@ -1389,28 +1394,24 @@ static char what_char(int err)
     return '?';
 }
 
-static void print_dot(clock_t start_time, int err, int count, int points,
-                       int final, int verbosity, int *any_error)
+static void print_dot(clock_t start_time, int err, int points, int final, int verbosity)
 {
     static int counter = 0;
-    (void) count;
     counter++;
 
-    if (err != IAD_NO_ERROR) *any_error = err;
+    if (verbosity == 0 || Debug(DEBUG_ANY)) return;
 
-    if (verbosity == 0) return;
-
-    if (final == 99)
+    if (final)
         fprintf(stderr, "%c", what_char(err));
     else {
         counter--;
-        fprintf(stderr, "%1d\b", final % 10);
+        fprintf(stderr, "%1d\b", points % 10);
     }
 
-    if (final == 99) {
+    if (final) {
         if (counter % 50 == 0) {
-            double rate = (seconds_elapsed(start_time) / points);
-            fprintf(stderr, "  %3d done (%5.2f s/pt)\n", points,rate);
+            double rate = (seconds_elapsed(start_time) / counter);
+            fprintf(stderr, "  %3d done (%5.2f s/pt)\n", counter, rate);
         } else if (counter % 10 == 0)
             fprintf(stderr," ");
     }

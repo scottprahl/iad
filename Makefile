@@ -1,8 +1,8 @@
 #
-#  Makefile by Scott Prahl, Aug 2017
+#  Makefile by Scott Prahl, Mar 2024
 #
 
-export VERSION = 3-15-0
+export VERSION = 3-15-1
 
 #Base directory for installation
 DESTDIR=/usr/local

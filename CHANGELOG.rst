@@ -1,6 +1,13 @@
 Changelog
 =========
 
+v3.15.1 (xx Mar 2024)
+--------------------
+*   add -x 1 support back for debugging
+*   add -L 633 to set wavelength to 633nm
+*   fix building docs/iad_src.pdf
+*   add separate mc_test and mc_lost_test
+
 v3.15.0 (2 Mar 2024)
 --------------------
 *   support for spheres with no baffles
