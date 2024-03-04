@@ -145,26 +145,6 @@ void Choose_Cone_Method(struct AD_slab_type *slab, struct AD_method_type *method
 
 }
 
-static void Get_IGI_Layer(struct AD_method_type method, double **h, double **R, double **T)
-{
-    int i, j, n;
-    double a, c, d, temp;
-
-    a = method.a_calc;
-    d = method.b_thinnest;
-    n = method.quad_pts;
-
-    for (j = 1; j <= n; j++) {
-        temp = a * d / 4 / angle[j];
-        for (i = 1; i <= n; i++) {
-            c = temp / angle[i];
-            R[i][j] = c * h[i][-j];
-            T[i][j] = c * h[i][j];
-        }
-        T[j][j] += (1 - d / angle[j]) / twoaw[j];
-    }
-}
-
 static void Get_Diamond_Layer(struct AD_method_type method, double **h, double **R, double **T)
 {
 
@@ -184,9 +164,6 @@ static void Get_Diamond_Layer(struct AD_method_type method, double **h, double *
     C = dmatrix(1, n, 1, n);
     work = dvector(1, n);
     ipvt = ivector(1, n);
-
-    if (0 && d < 1e-4)
-        AD_error("**** Roundoff error is a problem--Use IGI method\n");
 
     for (j = 1; j <= n; j++) {
         temp = a * d * weight[j] / 4;
@@ -335,8 +312,5 @@ void Init_Layer(struct AD_slab_type slab, struct AD_method_type method, double *
         Get_Phi(n, slab.phase_function, method.g_calc, h);
     }
 
-    if (0 && (method.b_thinnest < 1e-4 || method.b_thinnest < 0.09 * angle[1]))
-        Get_IGI_Layer(method, h, R, T);
-    else
-        Get_Diamond_Layer(method, h, R, T);
+    Get_Diamond_Layer(method, h, R, T);
 }

@@ -16,12 +16,6 @@
 
 void Inverse_RT(struct measure_type m, struct invert_type *r)
 {
-    if (0 && Debug(DEBUG_LOST_LIGHT)) {
-        fprintf(stderr, "** Inverse_RT (%d spheres) **\n", m.num_spheres);
-        fprintf(stderr, "    M_R      = %8.5f, MT       = %8.5f\n", m.m_r, m.m_t);
-        fprintf(stderr, "    UR1 lost = %8.5f, UT1 lost = %8.5f\n", m.ur1_lost, m.ut1_lost);
-    }
-
     r->found = FALSE;
 
     if (r->search == FIND_AUTO)

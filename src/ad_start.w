@@ -22,7 +22,6 @@ Added printing of intermediate results for Martin Hammer.
     @<Definition for |Quadrature|@>@;
     @<Definition for |Choose_Method|@>@;
     @<Definition for |Choose_Cone_Method|@>@;
-    @<Definition for |Get_IGI_Layer|@>@;
     @<Definition for |Get_Diamond_Layer|@>@;
     @<Definition for |Init_Layer|@>@;
 
@@ -349,71 +348,6 @@ $$
 L_{1/2}(\nu)={1\over2} [L(\tau^*_0,\nu)+L(\tau^*_1,\nu)]
 $$
 
-@*1 Infinitesmal Generator Initialization.
-
-@ |Get_IGI_Layer| generates the starting matrix with the inifinitesimal generator method.
-The accuracy is $O(d)$ and assumes that the average irradiance upwards is
-equal to that travelling downwards at the top and the average radiance upwards
-equals that moving upwards from the bottom.
-$$
-L_{1/2}(-\nu)=L(\tau^*_1,-\nu)
-\qquad\qquad
-L_{1/2}(\nu)=L(\tau^*_0,\nu)
-$$
-After manipulation, Wiscombe obtains these
-basic formulas for the infinitesimal generator method,
-$$
-R = {\hat R} d\qquad\qquad T = I - {\hat T}d
-$$
-where $d$ is the optical thickness of the layer and $I$ is the
-identity matrix.  The values for $\hat R$ and $\hat T$ are given by
-$$
-\hat R = {a\over2} M^{-1} h^{+-} W \qquad\qquad \hat T = M^{-1}(I - {a\over2}h^{++} W)
-$$
-where $M$ and $W$ are diagonal matrices composed of the quadrature angles and
-their corresponding weights.  Therefore
-$$
-\hat R_{ij} = {a\over2\mu_i} h^{+-}_{ij} w_j\qquad\qquad 
-\hat T_{ij} = {\delta_{ij}\over\mu_i}-{a\over2\mu_i} h^{++}_{ij} w_j
-$$
-and
-$$
-R_{ij} = {ad\over2\mu_i} h^{+-}_{ij} w_j\qquad\qquad 
-T_{ij} = {ad\over2\mu_i} h^{++}_{ij} + \delta_{ij}\left[1-{d\over\mu_i}\right]
-$$
-
-This would be fine, but the way that the reflection and transmission matrices are
-set-up requires that each we multiply each matrix on the right by $1/(2\mu_jw_j)$.
-Putting things together we get
-$$
-R_{ij} = {ad\over4\mu_i\mu_j} h^{+-}_{ij}
-$$
-and
-$$
-T_{ij} = {ad\over4\mu_i\mu_j} h^{++}_{ij} + 
-         {\delta_{ij}\over2\mu_i w_i}\left[1-{d\over\mu_i}\right]
-$$
-
-@<Definition for |Get_IGI_Layer|@>=
-static void Get_IGI_Layer(struct AD_method_type method, double **h, double **R, double **T)
-{
-    int i, j, n;
-    double a, c, d, temp;
-
-    a = method.a_calc;
-    d = method.b_thinnest;
-    n = method.quad_pts;
-
-    for (j = 1; j <= n; j++) {
-        temp = a * d / 4 / angle[j];
-        for (i = 1; i <= n; i++) {
-            c = temp/angle[i];
-            R[i][j] = c*h[i][-j];
-            T[i][j] = c*h[i][j];
-        }
-        T[j][j] += (1-d/angle[j])/twoaw[j];
-    }
-}
 
 @*1 Diamond Initialization.
 
