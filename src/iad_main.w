@@ -1132,7 +1132,7 @@ fprintf(stdout, "  iad -x   2 file.rxt       Show grid decisions\n");
 fprintf(stdout, "  iad -x   4 file.rxt       DEBUG_ITERATIONS\n");
 fprintf(stdout, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
 fprintf(stdout, "  iad -x  16 file.rxt       DEBUG_SPHERE_EFFECTS\n");
-fprintf(stdout, "  iad -x  32 file.rxt       DEBUG_BEST_GUESS\n");
+fprintf(stdout, "  iad -x  32 file.rxt       Show best grid points\n");
 fprintf(stdout, "  iad -x  64 file.rxt       DEBUG_EVERY_CALC\n");
 fprintf(stdout, "  iad -x 128 file.rxt       DEBUG_SEARCH\n");
 fprintf(stdout, "  iad -x 256 file.rxt       DEBUG_RD_ONLY\n");

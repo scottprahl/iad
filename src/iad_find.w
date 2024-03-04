@@ -135,10 +135,10 @@ made in the analagous code for |a| and |b|.
 
     if (Debug(DEBUG_BEST_GUESS)) {
         int k;
-        fprintf(stderr, "Best Grid Guesses\n");
-        fprintf(stderr, "  k      albedo          b          g    distance\n");
+        fprintf(stderr, "BEST: GRID GUESSES\n");
+        fprintf(stderr, "BEST:  k      albedo          b          g   distance\n");
         for (k=0; k<=6; k++) {
-            fprintf(stderr, "%3d  ", k);
+            fprintf(stderr, "BEST:%3d  ", k);
             fprintf(stderr, "%10.5f ", guess[k].a);
             fprintf(stderr, "%10.5f ", guess[k].b);
             fprintf(stderr, "%10.5f ", guess[k].g);
@@ -173,22 +173,23 @@ made in the analagous code for |a| and |b|.
     p[3][2] = b2bcalc(guess[kk].b);
 
     if (Debug(DEBUG_BEST_GUESS)) {
-        fprintf(stderr, "------------------------------------------------\n");
-        fprintf(stderr, " <1> ");
+        fprintf(stderr, "-----------------------------------------------------\n");
+        fprintf(stderr, "BEST: <1> ");
         fprintf(stderr, "%10.5f ", guess[0].a);
         fprintf(stderr, "%10.5f ", guess[0].b);
         fprintf(stderr, "%10.5f ", guess[0].g);
         fprintf(stderr, "%10.5f\n", guess[0].distance);
-        fprintf(stderr, " <2> ");
+        fprintf(stderr, "BEST: <2> ");
         fprintf(stderr, "%10.5f ", guess[k].a);
         fprintf(stderr, "%10.5f ", guess[k].b);
         fprintf(stderr, "%10.5f ", guess[k].g);
         fprintf(stderr, "%10.5f\n", guess[k].distance);
-        fprintf(stderr, " <3> ");
+        fprintf(stderr, "BEST: <3> ");
         fprintf(stderr, "%10.5f ", guess[kk].a);
         fprintf(stderr, "%10.5f ", guess[kk].b);
         fprintf(stderr, "%10.5f ", guess[kk].g);
-        fprintf(stderr, "%10.5f\n\n", guess[kk].distance);
+        fprintf(stderr, "%10.5f\n", guess[kk].distance);
+        fprintf(stderr, "\n");
     }
 }
 
@@ -565,21 +566,23 @@ away.
     p[3][2] = g2gcalc(guess[kk].g);
 
     if (Debug(DEBUG_BEST_GUESS)) {
-        fprintf(stderr, "guess 1");
+        fprintf(stderr, "-----------------------------------------------------\n");
+        fprintf(stderr, "BEST: <1> ");
         fprintf(stderr, "%10.5f ", guess[0].a);
         fprintf(stderr, "%10.5f ", guess[0].b);
         fprintf(stderr, "%10.5f ", guess[0].g);
         fprintf(stderr, "%10.5f\n", guess[0].distance);
-        fprintf(stderr, "guess 2");
+        fprintf(stderr, "BEST: <2> ");
         fprintf(stderr, "%10.5f ", guess[k].a);
         fprintf(stderr, "%10.5f ", guess[k].b);
         fprintf(stderr, "%10.5f ", guess[k].g);
         fprintf(stderr, "%10.5f\n", guess[k].distance);
-        fprintf(stderr, "guess 3");
+        fprintf(stderr, "BEST: <3> ");
         fprintf(stderr, "%10.5f ", guess[kk].a);
         fprintf(stderr, "%10.5f ", guess[kk].b);
         fprintf(stderr, "%10.5f ", guess[kk].g);
         fprintf(stderr, "%10.5f\n", guess[kk].distance);
+        fprintf(stderr, "\n");
     }
 }
 
@@ -669,21 +672,23 @@ are fixed.
     p[3][2] = g2gcalc(guess[kk].g);
 
     if (Debug(DEBUG_BEST_GUESS)) {
-        fprintf(stderr, "guess 1");
+        fprintf(stderr, "-----------------------------------------------------\n");
+        fprintf(stderr, "BEST: <1> ");
         fprintf(stderr, "%10.5f ", guess[0].a);
         fprintf(stderr, "%10.5f ", guess[0].b);
         fprintf(stderr, "%10.5f ", guess[0].g);
         fprintf(stderr, "%10.5f\n", guess[0].distance);
-        fprintf(stderr, "guess 2");
+        fprintf(stderr, "BEST: <2> ");
         fprintf(stderr, "%10.5f ", guess[k].a);
         fprintf(stderr, "%10.5f ", guess[k].b);
         fprintf(stderr, "%10.5f ", guess[k].g);
         fprintf(stderr, "%10.5f\n", guess[k].distance);
-        fprintf(stderr, "guess 3");
+        fprintf(stderr, "BEST: <3> ");
         fprintf(stderr, "%10.5f ", guess[kk].a);
         fprintf(stderr, "%10.5f ", guess[kk].b);
         fprintf(stderr, "%10.5f ", guess[kk].g);
         fprintf(stderr, "%10.5f\n", guess[kk].distance);
+        fprintf(stderr, "\n");
     }
 }
 
