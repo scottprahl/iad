@@ -111,7 +111,6 @@ single routine |measure_OK| to do just this.
 
 @<Exit with bad input data@>=
     r->error=measure_OK(m,*r);
-    fprintf(stderr,"error is %d\n", r->error);
 
     if (r->method.quad_pts<4)
         r->error = IAD_QUAD_PTS_NOT_VALID;
@@ -667,7 +666,7 @@ void Initialize_Measure(struct measure_type *m)
     @<Prototype for |Initialize_Measure|@>
 {
     double default_sphere_d   = 8.0 * 25.4;
-    double default_sample_d   = 1.0 * 25.4;
+    double default_sample_d   = 0.0 * 25.4;
     double default_detector_d = 0.1 * 25.4;
     double default_entrance_d = 0.5 * 25.4;
     double sphere_area = M_PI * default_sphere_d * default_sphere_d;

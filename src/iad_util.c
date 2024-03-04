@@ -49,7 +49,6 @@ void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double
 {
 
     Calculate_Minimum_MR(m, r, rc, tc);
-    fprintf(stderr, "rc=%8.5f tc=%8.5f\n", *rc, *tc);
 
     if (m.fraction_of_rc_in_mr) {
         *rt = m.m_r;
