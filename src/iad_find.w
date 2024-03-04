@@ -396,6 +396,7 @@ is no sense even using it because the slab is not infinitely thick.
 @ @<Definition for |U_Find_G|@>=
 @<Prototype for |U_Find_G|@> {
     double Rt, Tt, Rd, Rc, Td, Tc;
+    double x, ax, bx, cx, fa, fb, fc;
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"In U_Find_G");
@@ -410,22 +411,26 @@ is no sense even using it because the slab is not infinitely thick.
     Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Rc, &Td, &Tc);
 
     r->slab.a = (r->default_a == UNINITIALIZED) ? 0.5      : r->default_a;
-    r->slab.b = (r->default_b == UNINITIALIZED) ? HUGE_VAL : r->default_b;
+    if (r->default_b != UNINITIALIZED)
+        r->slab.b = r->default_b;
+    else if (m.m_u > 0)
+        r->slab.b = What_Is_B(r->slab, m.m_u);
+    else
+        r->slab.b = HUGE_VAL;
+        
     r->slab.g = 0.0;
     r->final_distance = 0.0;
     Set_Calc_State(m,*r);
 
-    if (Rd>0.0) {
-        double x, ax, bx, cx, fa, fb, fc;
+    ax=g2gcalc(-0.99);
+    bx=g2gcalc(0.99);
 
-        ax=g2gcalc(-0.99);
-        bx=g2gcalc(0.99);
+    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_G_fn);
+    r->final_distance=brent(ax,bx,cx,Find_G_fn,r->tolerance,&x);
 
-        mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_G_fn);
-        r->final_distance=brent(ax,bx,cx,Find_G_fn,r->tolerance,&x);
-        r->slab.g = gcalc2g(x);
-        Set_Calc_State(m,*r);
-    }
+    r->slab.g = gcalc2g(x);
+    Set_Calc_State(m,*r);
+
 
     @<Put final values in result@>@;
 }

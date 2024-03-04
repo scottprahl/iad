@@ -246,6 +246,7 @@ Now, we just fob this off on another function.
 @<Calculate the unscattered transmission and reflection@>=
 
     Calculate_Minimum_MR(m,r,rc,tc);
+    fprintf(stderr,"rc=%8.5f tc=%8.5f\n", *rc, *tc);
 
 
 @ Finding the diffuse reflection is now just a matter of checking

@@ -38,6 +38,7 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
     }
 
     r->error = measure_OK(m, *r);
+    fprintf(stderr, "error is %d\n", r->error);
 
     if (r->method.quad_pts < 4)
         r->error = IAD_QUAD_PTS_NOT_VALID;
@@ -162,7 +163,7 @@ int measure_OK(struct measure_type m, struct invert_type r)
     if (m.m_u < 0)
         return IAD_MU_TOO_SMALL;
 
-    if (m.m_u > m.m_t)
+    if (m.m_t > 0 && m.m_u > m.m_t)
         return IAD_MU_TOO_BIG;
 
     if (m.num_spheres != 0) {
@@ -228,6 +229,7 @@ search_type determine_search(struct measure_type m, struct invert_type r)
         fprintf(stderr, "    starting with %d measurement(s)\n", m.num_measures);
         fprintf(stderr, "    m_r=%.5f\n", m.m_r);
         fprintf(stderr, "    m_t=%.5f\n", m.m_t);
+        fprintf(stderr, "    m_u=%.5f\n", m.m_u);
     }
 
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
@@ -238,13 +240,13 @@ search_type determine_search(struct measure_type m, struct invert_type r)
         independent--;
     }
 
-    if (rd == 0 && independent == 2) {
+    if (rd == 0 && independent >= 2) {
         if (Debug(DEBUG_SEARCH))
             fprintf(stderr, "    no information in rd\n");
         independent--;
     }
 
-    if (td == 0 && independent == 2) {
+    if (td == 0 && independent >= 2) {
         if (Debug(DEBUG_SEARCH))
             fprintf(stderr, "    no information in td\n");
         independent--;
@@ -329,6 +331,9 @@ search_type determine_search(struct measure_type m, struct invert_type r)
     else {
         search = FIND_AG;
     }
+
+    if (search == FIND_BG && m.m_u > 0)
+        search = FIND_G;
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "    independent measurements = %3d\n", independent);
@@ -760,26 +765,24 @@ int MinMax_MR_MT(struct measure_type m, struct invert_type r)
 
 void Calculate_Minimum_MR(struct measure_type m, struct invert_type r, double *mr, double *mt)
 {
-    if (r.default_b == UNINITIALIZED)
+    if (m.m_u > 0)
+        r.slab.b = What_Is_B(r.slab, m.m_u);
+
+    else if (r.default_b == UNINITIALIZED) {
         if (r.slab.n_slab > 1.0)
             r.slab.b = HUGE_VAL;
         else
             r.slab.b = 1e-5;
+    }
     else
         r.slab.b = r.default_b;
 
-    if (r.default_a == UNINITIALIZED)
-        r.slab.a = 0;
-    else
-        r.slab.a = r.default_a;
+    r.slab.a = 0;
 
     if (r.default_g == UNINITIALIZED)
         r.slab.g = 0.0;
     else
         r.slab.g = r.default_g;
-
-    if (r.search == FIND_G)
-        r.slab.a = 0;
 
     r.a = r.slab.a;
     r.b = r.slab.b;

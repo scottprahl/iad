@@ -1261,7 +1261,7 @@ int main(int argc, char **argv)
             if (r.error == IAD_NO_ERROR) {
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                if (m.as_r != 0 && r.default_a != 0 && m.num_spheres > 0) {
+                if (m.as_r != 0 && r.default_a != 0) {
                     double mu_sp_last = mu_sp;
                     double mu_a_last = mu_a;
 
@@ -1572,7 +1572,7 @@ int main(int argc, char **argv)
                 if (r.error == IAD_NO_ERROR) {
                     calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                    if (m.as_r != 0 && r.default_a != 0 && m.num_spheres > 0) {
+                    if (m.as_r != 0 && r.default_a != 0) {
                         double mu_sp_last = mu_sp;
                         double mu_a_last = mu_a;
 

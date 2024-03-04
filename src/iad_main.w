@@ -809,7 +809,7 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (m.as_r !=0 && r.default_a != 0 && m.num_spheres > 0) {
+if (m.as_r !=0 && r.default_a != 0) {
     double mu_sp_last = mu_sp;
     double mu_a_last  = mu_a;
 
@@ -1375,8 +1375,6 @@ static int parse_string_into_array(char *s, double *a, int n)
 
 @ The idea here is to show some intermediate output while a file is
 being processed.
-
-Somthings that need to be 
 
 @<print dot function@>=
 
