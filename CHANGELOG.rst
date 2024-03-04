@@ -8,7 +8,8 @@ v3.15.1 (4 Mar 2024)
 *   fix building docs/iad_src.pdf
 *   add separate mc_test and mc_lost_test
 *   improve -x debugging
-*   allow odd constraint situations
+*   allow more constraint situations
+*   remove unused code
 
 v3.15.0 (2 Mar 2024)
 --------------------
