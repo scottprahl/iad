@@ -148,7 +148,7 @@ switch (r->search){
     case FIND_BaG: U_Find_BaG(m,r);
                   break;
 }
-if (r->AD_iterations==IAD_MAX_ITERATIONS)
+if (r->AD_iterations>=IAD_MAX_ITERATIONS)
     r->error=IAD_TOO_MANY_ITERATIONS;
 
 @ This is to support -x 1
@@ -160,9 +160,11 @@ if (Debug(DEBUG_A_LITTLE)) {
     fprintf(stderr, "AD iterations= %3d   MC iterations=%3d", r->AD_iterations, r->MC_iterations);
     fprintf(stderr, "            a=%6.4f b=%8.4f g=%6.4f\n", r->slab.a, r->slab.b, r->slab.g);
 
-    Calculate_MR_MT(m, *r, TRUE, TRUE, &M_R, &M_T);
     fprintf(stderr, "    M_R loss     %8.5f  M_T loss     %8.5f", m.ur1_lost, m.ut1_lost);
-    fprintf(stderr, " ( MC loss calculation)\n");
+    if (r->MC_iterations == 0)
+        fprintf(stderr, " ( no MC calculation yet)\n");
+    else
+        fprintf(stderr, " ( MC loss calculation)\n");
 
     Calculate_MR_MT(m, *r, FALSE, FALSE, &M_R, &M_T);
     fprintf(stderr, "    M_R bare     %8.5f  M_T bare     %8.5f", M_R, M_T);
@@ -386,11 +388,11 @@ optical properties to determine.
     int independent = m.num_measures;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr,"\n*** Determine_Search()\n");
-        fprintf(stderr,"    starting with %d measurement(s)\n",m.num_measures);
-        fprintf(stderr,"    m_r=%.5f\n",m.m_r);
-        fprintf(stderr,"    m_t=%.5f\n",m.m_t);
-        fprintf(stderr,"    m_u=%.5f\n",m.m_u);
+        fprintf(stderr, "\n*** Determine_Search()\n");
+        fprintf(stderr, "    starting with %d measurement(s)\n",m.num_measures);
+        fprintf(stderr, "    m_r = %8.5f ",m.m_r);
+        fprintf(stderr, "m_t = %8.5f ",m.m_t);
+        fprintf(stderr, "m_u = %8.5f\n",m.m_u);
     }
 
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
@@ -426,23 +428,23 @@ optical properties to determine.
     if (search == FIND_BG && m.m_u>0) search = FIND_G;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr,"    independent measurements = %3d\n",independent);
-        fprintf(stderr,"    m_r=%8.5f m_t=%8.5f (rd = %8.5f td=%8.5f)\n",m.m_r, m.m_t, rd,td);
-        if (search==FIND_A)    fprintf(stderr,"    search = FIND_A\n");
-        if (search==FIND_B)    fprintf(stderr,"    search = FIND_B\n");
-        if (search==FIND_AB)   fprintf(stderr,"    search = FIND_AB\n");
-        if (search==FIND_AG)   fprintf(stderr,"    search = FIND_AG\n");
-        if (search==FIND_AUTO) fprintf(stderr,"    search = FIND_AUTO\n");
-        if (search==FIND_BG)   fprintf(stderr,"    search = FIND_BG\n");
-        if (search==FIND_BaG)  fprintf(stderr,"    search = FIND_BaG\n");
-        if (search==FIND_BsG)  fprintf(stderr,"    search = FIND_BsG\n");
-        if (search==FIND_Ba)   fprintf(stderr,"    search = FIND_Ba\n");
-        if (search==FIND_Bs)   fprintf(stderr,"    search = FIND_Bs\n");
-        if (search==FIND_G)    fprintf(stderr,"    search = FIND_G\n");
+        fprintf(stderr,"    ending with %d measurement(s)",m.num_measures);
+        if (search==FIND_A)    fprintf(stderr,"  search = FIND_A\n");
+        if (search==FIND_B)    fprintf(stderr,"  search = FIND_B\n");
+        if (search==FIND_AB)   fprintf(stderr,"  search = FIND_AB\n");
+        if (search==FIND_AG)   fprintf(stderr,"  search = FIND_AG\n");
+        if (search==FIND_AUTO) fprintf(stderr,"  search = FIND_AUTO\n");
+        if (search==FIND_BG)   fprintf(stderr,"  search = FIND_BG\n");
+        if (search==FIND_BaG)  fprintf(stderr,"  search = FIND_BaG\n");
+        if (search==FIND_BsG)  fprintf(stderr,"  search = FIND_BsG\n");
+        if (search==FIND_Ba)   fprintf(stderr,"  search = FIND_Ba\n");
+        if (search==FIND_Bs)   fprintf(stderr,"  search = FIND_Bs\n");
+        if (search==FIND_G)    fprintf(stderr,"  search = FIND_G\n");
         if (search==FIND_B_WITH_NO_ABSORPTION)
-                                fprintf(stderr,"    search = FIND_B_WITH_NO_ABSORPTION\n");
+                               fprintf(stderr,"  search = FIND_B_WITH_NO_ABSORPTION\n");
         if (search==FIND_B_WITH_NO_SCATTERING)
-                                fprintf(stderr,"    search = FIND_B_WITH_NO_SCATTERING\n");
+                               fprintf(stderr,"  search = FIND_B_WITH_NO_SCATTERING\n");
+        fprintf(stderr, "\n");
     }
 
     return search;
@@ -910,13 +912,11 @@ void Calculate_Minimum_MR(struct measure_type m,
     if (m.m_u > 0) 
         r.slab.b = What_Is_B(r.slab, m.m_u);
 
-    else if (r.default_b == UNINITIALIZED) {
-        if (r.slab.n_slab > 1.0)
-            r.slab.b = HUGE_VAL;
-        else
-            r.slab.b = 1e-5;
-    } else
+    else if (r.default_b != UNINITIALIZED) 
         r.slab.b = r.default_b;
+    
+    else 
+        r.slab.b = HUGE_VAL;
 
     r.slab.a = 0;
 
@@ -930,7 +930,6 @@ void Calculate_Minimum_MR(struct measure_type m,
     r.g = r.slab.g;
 
     Calculate_MR_MT(m, r, FALSE, TRUE, mr, mt);
-    *mt = 0;
 }
 
 @ The minimum possible value of \.{MR} for a given \.{MT} will be when

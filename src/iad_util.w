@@ -226,6 +226,7 @@ double *rd, double *rc, double *td, double *tc)
     @<Calculate the unscattered transmission and reflection@>@;
     @<Estimate the backscattered reflection@>@;
     @<Estimate the scattered transmission@>@;
+    @<Debug info for estimate RT@>@;
 }
 
 @ If there are three measurements then the specular reflection can
@@ -266,10 +267,6 @@ appropriate.
         *rd = m.m_r;
         *rt = *rd + *rc;
     }
-    if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr,"        rt = %.5f\n",*rt);
-        fprintf(stderr,"    est rd = %.5f\n",*rd);
-    }
 
 @ The transmission values follow in much the same way as the
 diffuse reflection values --- just subtract the specular
@@ -292,9 +289,18 @@ transmission from the total transmission.
         *td = m.m_t;
         *tt = *td + *tc;
     }
+
+@ Collect debugging info here
+
+@<Debug info for estimate RT@>=
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr,"        tt = %.5f\n",*tt);
-        fprintf(stderr,"    est td = %.5f\n",*td);
+        fprintf(stderr,"    r_t = %8.5f ",*rt);
+        fprintf(stderr,"r_d = %8.5f ",*rd);
+        fprintf(stderr,"r_u = %8.5f\n",*rc);
+        
+        fprintf(stderr,"    t_t = %8.5f ",*tt);
+        fprintf(stderr,"t_d = %8.5f ",*td);
+        fprintf(stderr,"t_u = %8.5f\n",*tc);
     }
 
 @*1 Transforming properties.

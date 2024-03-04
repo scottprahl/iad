@@ -42,7 +42,7 @@ basic-E.txt: basic-E.rxt
 
 # These files all have too little reflected light collected
 fairway-A.txt: fairway-A.rxt
-	$(IAD_EXECUTABLE) -c 0 $<
+	$(IAD_EXECUTABLE) -c 0 -M 0 $<
 
 fairway-B.txt: fairway-B.rxt
 	$(IAD_EXECUTABLE) -c 0 -M 0 $<

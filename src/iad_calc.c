@@ -23,7 +23,7 @@
 #define UT1_COLUMN 7
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
-#define GRID_SIZE 101
+#define GRID_SIZE 51
 #define T_TRUST_FACTOR 1
 #define MAX_ABS_G 0.999999
 
@@ -183,6 +183,14 @@ static void fill_grid_entry(int i, int j)
 
     if (RR.slab.b <= 1e-6)
         RR.slab.b = 1e-6;
+
+    if (Debug(DEBUG_GRID_CALC) && i == 0 && j == 0) {
+        fprintf(stderr, "+   i   j ");
+        fprintf(stderr, "      a         b          g     |");
+        fprintf(stderr, "     M_R        grid  |");
+        fprintf(stderr, "     M_T        grid\n");
+    }
+
     if (Debug(DEBUG_EVERY_CALC)) {
         if (!CALCULATING_GRID)
             fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
@@ -208,7 +216,7 @@ static void fill_grid_entry(int i, int j)
     The_Grid[GRID_SIZE * i + j][UTU_COLUMN] = utu;
 
     if (Debug(DEBUG_GRID_CALC)) {
-        fprintf(stderr, "+ %2d %2d ", i, j);
+        fprintf(stderr, "+ %3d %3d ", i, j);
         fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
         fprintf(stderr, "%10.5f %10.5f |", MM.m_r, uru);
         fprintf(stderr, "%10.5f %10.5f \n", MM.m_t, utu);
@@ -220,32 +228,22 @@ void Fill_Grid(struct measure_type m, struct invert_type r, int force_new)
     if (force_new || !Same_Calc_State(m, r)) {
         switch (r.search) {
         case FIND_AB:
-            if (Debug(DEBUG_SEARCH))
-                fprintf(stderr, "filling AB Grid\n");
             Fill_AB_Grid(m, r);
             break;
         case FIND_AG:
-            if (Debug(DEBUG_SEARCH))
-                fprintf(stderr, "filling AG Grid\n");
             Fill_AG_Grid(m, r);
             break;
         case FIND_BG:
-            if (Debug(DEBUG_SEARCH))
-                fprintf(stderr, "filling BG Grid\n");
             Fill_BG_Grid(m, r);
             break;
         case FIND_BaG:
-            if (Debug(DEBUG_SEARCH))
-                fprintf(stderr, "filling BaG Grid\n");
             Fill_BaG_Grid(m, r);
             break;
         case FIND_BsG:
-            if (Debug(DEBUG_SEARCH))
-                fprintf(stderr, "filling BsG Grid\n");
             Fill_BsG_Grid(m, r);
             break;
         default:
-            AD_error("Attempt to fill grid for unusual search case.");
+            AD_error("Attempt to fill grid for unknown search case.");
         }
     }
 
@@ -263,6 +261,8 @@ void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
     (void) t;
     (void) s;
 
+    if (Debug(DEBUG_GRID))
+        fprintf(stderr, "GRID: Finding best grid points\n");
     Get_Calc_State(&old_mm, &old_rr);
 
     *i_min = 0;
@@ -293,7 +293,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     double max_b = +8;
 
     if (Debug(DEBUG_GRID))
-        fprintf(stderr, "Filling AB grid\n");
+        fprintf(stderr, "GRID: Filling AB grid\n");
 
     if (The_Grid == NULL)
         Allocate_Grid(r.search);
@@ -329,7 +329,7 @@ void Fill_AG_Grid(struct measure_type m, struct invert_type r)
     double a;
 
     if (Debug(DEBUG_GRID))
-        fprintf(stderr, "Filling AG grid\n");
+        fprintf(stderr, "GRID: Filling AG grid\n");
 
     if (The_Grid == NULL)
         Allocate_Grid(r.search);
@@ -371,7 +371,7 @@ void Fill_BG_Grid(struct measure_type m, struct invert_type r)
     GG_ba = 0.0;
 
     if (Debug(DEBUG_GRID))
-        fprintf(stderr, "Filling BG grid\n");
+        fprintf(stderr, "GRID: Filling BG grid\n");
 
     Set_Calc_State(m, r);
     RR.slab.b = 1.0 / 32.0;
@@ -405,7 +405,7 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
     GG_ba = 0.0;
 
     if (Debug(DEBUG_GRID))
-        fprintf(stderr, "Filling BaG grid\n");
+        fprintf(stderr, "GRID: Filling BaG grid\n");
 
     Set_Calc_State(m, r);
     ba = 1.0 / 32.0;
@@ -671,18 +671,10 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
     }
 
     if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || (Debug(DEBUG_GRID_CALC) && CALCULATING_GRID)) {
-        static int once;
-
-        if (once != MM.lambda) {
-            fprintf(stderr, "%10s %10s %10s | %7s %7s | %7s %7s |%8s\n        ",
-                "a", "b", "g", "m_r", "fit", "m_t", "fit", "delta");
-            once = MM.lambda;
-        }
-
         fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
-        fprintf(stderr, " %7.5f %7.5f |", MM.m_r, *M_R);
-        fprintf(stderr, " %7.5f %7.5f |", MM.m_t, *M_T);
-        fprintf(stderr, "%8.5f", *dev);
+        fprintf(stderr, " %10.5f %10.5f |", MM.m_r, *M_R);
+        fprintf(stderr, " %10.5f %10.5f |", MM.m_t, *M_T);
+        fprintf(stderr, "%10.3f", *dev);
         if (RR.metric == RELATIVE)
             fprintf(stderr, " (relative)\n");
         else
@@ -695,8 +687,15 @@ double Calculate_Grid_Distance(int i, int j)
 {
     double ur1, ut1, uru, utu, Rc, Tc, b, dev, LR, LT;
 
+    if (Debug(DEBUG_GRID_CALC) && i == 0 && j == 0) {
+        fprintf(stderr, "+   i   j ");
+        fprintf(stderr, "      a         b          g     |");
+        fprintf(stderr, "     M_R        grid   |");
+        fprintf(stderr, "     M_T        grid   |  distance\n");
+    }
+
     if (Debug(DEBUG_GRID_CALC))
-        fprintf(stderr, "g %2d %2d ", i, j);
+        fprintf(stderr, "g %3d %3d ", i, j);
 
     b = The_Grid[GRID_SIZE * i + j][B_COLUMN];
     ur1 = The_Grid[GRID_SIZE * i + j][UR1_COLUMN];

@@ -705,6 +705,11 @@ measurements.
 
     @<Write Header @>@;
 
+    m.ur1_lost = 0;
+    m.uru_lost = 0;
+    m.ut1_lost = 0;
+    m.utu_lost = 0;
+
     Inverse_RT (m, &r);
 
     if (r.error == IAD_NO_ERROR) {
@@ -1123,7 +1128,7 @@ fprintf(stdout, "  iad -M 0 -q 4 file.rxt    Fast and crude conversion\n");
 fprintf(stdout, "  iad -G t file.rxt         One top slide with properties from file.rxt\n");
 fprintf(stdout, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
 fprintf(stdout, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
-fprintf(stdout, "  iad -x   2 file.rxt       DEBUG_GRID\n");
+fprintf(stdout, "  iad -x   2 file.rxt       Show grid decisions\n");
 fprintf(stdout, "  iad -x   4 file.rxt       DEBUG_ITERATIONS\n");
 fprintf(stdout, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
 fprintf(stdout, "  iad -x  16 file.rxt       DEBUG_SPHERE_EFFECTS\n");
@@ -1131,7 +1136,7 @@ fprintf(stdout, "  iad -x  32 file.rxt       DEBUG_BEST_GUESS\n");
 fprintf(stdout, "  iad -x  64 file.rxt       DEBUG_EVERY_CALC\n");
 fprintf(stdout, "  iad -x 128 file.rxt       DEBUG_SEARCH\n");
 fprintf(stdout, "  iad -x 256 file.rxt       DEBUG_RD_ONLY\n");
-fprintf(stdout, "  iad -x 512 file.rxt       DEBUG_GRID_CALC\n");
+fprintf(stdout, "  iad -x 512 file.rxt       Show all grid calculations\n");
 fprintf(stdout, "  iad -x 1023 file.rxt      All debugging output\n");
 fprintf(stdout, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
 fprintf(stdout, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");

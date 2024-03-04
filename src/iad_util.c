@@ -62,10 +62,6 @@ void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double
         *rd = m.m_r;
         *rt = *rd + *rc;
     }
-    if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "        rt = %.5f\n", *rt);
-        fprintf(stderr, "    est rd = %.5f\n", *rd);
-    }
 
     if (m.num_measures == 1) {
         *tt = 0.0;
@@ -83,9 +79,15 @@ void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double
         *td = m.m_t;
         *tt = *td + *tc;
     }
+
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "        tt = %.5f\n", *tt);
-        fprintf(stderr, "    est td = %.5f\n", *td);
+        fprintf(stderr, "    r_t = %8.5f ", *rt);
+        fprintf(stderr, "r_d = %8.5f ", *rd);
+        fprintf(stderr, "r_u = %8.5f\n", *rc);
+
+        fprintf(stderr, "    t_t = %8.5f ", *tt);
+        fprintf(stderr, "t_d = %8.5f ", *td);
+        fprintf(stderr, "t_u = %8.5f\n", *tc);
     }
 
 }
