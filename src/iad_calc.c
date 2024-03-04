@@ -23,7 +23,7 @@
 #define UT1_COLUMN 7
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
-#define GRID_SIZE 51
+#define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
 #define MAX_ABS_G 0.999999
 

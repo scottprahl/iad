@@ -687,9 +687,6 @@ print a warning if the thickness is too small.
     work = dvector(1, n);
     ipvt = ivector(1, n);
 
-    if (0 && d < 1e-4)
-        AD_error("**** Roundoff error is a problem--Use IGI method\n");
-
 @
 @<Free up memory@>= 
     free_dvector(work,1,n);
@@ -730,8 +727,5 @@ Space must previously been allocated for |R| and |T|.
         Get_Phi(n, slab.phase_function, method.g_calc, h);
     }
     
-    if (0 && (method.b_thinnest < 1e-4 || method.b_thinnest < 0.09 * angle[1]))
-        Get_IGI_Layer(method, h, R, T);
-    else
-        Get_Diamond_Layer(method, h, R, T);
+    Get_Diamond_Layer(method, h, R, T);
 }

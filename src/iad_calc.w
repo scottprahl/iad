@@ -32,7 +32,7 @@
 #define UT1_COLUMN 7
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
-#define GRID_SIZE 51
+#define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
 #define MAX_ABS_G 0.999999
 
@@ -357,10 +357,6 @@ void Set_Calc_State(struct measure_type m, struct invert_type r)
 {
     memcpy(&MM, &m, sizeof(struct measure_type));
     memcpy(&RR, &r, sizeof(struct invert_type));
-    if (0 && Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) {
-        fprintf(stderr,"MC Loss (UR1=%7.5f, UT1=%7.5f, ", m.ur1_lost, m.ut1_lost);
-        fprintf(stderr,"URU=%7.5f, UTU=%7.5f)\n", m.uru_lost, m.utu_lost);
-    }
 }
 
 @ The inverse of the previous routine.  Note that you must have space for
@@ -972,13 +968,7 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
     if (RR.slab.b <= 1e-6 )
         RR.slab.b = 1e-6;
 
-    if (0 && Debug(DEBUG_EVERY_CALC))
-        fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
-
     RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
-
-    if (0 && Debug(DEBUG_EVERY_CALC))
-        fprintf(stderr, "ur1=%8.5f ut1=%8.5f (not M_R and M_T!)\n", ur1, ut1);
 
     Sp_mu_RT_Flip(MM.flip_sample,
              RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,

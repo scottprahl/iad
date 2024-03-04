@@ -1199,13 +1199,13 @@ static void print_results_header(FILE *fp)
     if (Debug(DEBUG_LOST_LIGHT)) {
         fprintf(fp,"#      | Meas      M_R  | Meas      M_T  |  calc   calc   calc  |");
         fprintf(fp,"  Lost   Lost   Lost   Lost  | MC   IAD  Error\n");
-        
+
         fprintf(fp,"# wave |  M_R      fit  |  M_T      fit  |  mu_a   mu_s'   g    |  ");
         fprintf(fp," UR1    URU    UT1    UTU  |  #    #   Type\n");
-        
+
         fprintf(fp,"#  nm  |  ---      ---  |  ---      ---  |  1/mm   1/mm    ---  |");
         fprintf(fp,"   ---    ---    ---    ---  | ---  ---  ---\n");
-        
+
         fprintf(fp,"#---------------------------------------------------------");
         fprintf(fp,"--------------------------------------------------------\n");
     } else {
@@ -1213,12 +1213,12 @@ static void print_results_header(FILE *fp)
         if (Debug(DEBUG_LOST_LIGHT))
             fprintf(fp,"\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
         fprintf(fp,"\n");
-        
+
         fprintf(fp,"##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
         if (Debug(DEBUG_LOST_LIGHT))
             fprintf(fp,"\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
         fprintf(fp,"\n");
-        
+
         fprintf(fp,"# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
         if (Debug(DEBUG_LOST_LIGHT))
             fprintf(fp,"\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
