@@ -38,7 +38,7 @@
 
 #define SWAP(a,b) {double swap=(a);(a)=(b);(b)=swap;}
 
-static int CALCULATING_GRID = 1;
+static int CALCULATING_GRID = 0;
 static struct measure_type MM;
 static struct invert_type RR;
 static struct measure_type MGRID;
@@ -357,7 +357,7 @@ void Set_Calc_State(struct measure_type m, struct invert_type r)
 {
     memcpy(&MM, &m, sizeof(struct measure_type));
     memcpy(&RR, &r, sizeof(struct invert_type));
-    if (Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) {
+    if (0 && Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) {
         fprintf(stderr,"MC Loss (UR1=%7.5f, UT1=%7.5f, ", m.ur1_lost, m.ut1_lost);
         fprintf(stderr,"URU=%7.5f, UTU=%7.5f)\n", m.uru_lost, m.utu_lost);
     }
@@ -1345,11 +1345,7 @@ if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || @|
     fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
     fprintf(stderr, " %10.5f %10.5f |", MM.m_r, *M_R);
     fprintf(stderr, " %10.5f %10.5f |", MM.m_t, *M_T);
-    fprintf(stderr, "%10.3f", *dev);
-    if (RR.metric == RELATIVE)
-        fprintf(stderr, " (relative)\n");
-    else
-        fprintf(stderr, " (absolute)\n");
+    fprintf(stderr, "%10.3f\n", *dev);
 }
 
 @ @<Prototype for |Find_AG_fn|@>=

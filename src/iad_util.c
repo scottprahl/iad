@@ -81,11 +81,11 @@ void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double
     }
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "    r_t = %8.5f ", *rt);
+        fprintf(stderr, "SEARCH: r_t = %8.5f ", *rt);
         fprintf(stderr, "r_d = %8.5f ", *rd);
         fprintf(stderr, "r_u = %8.5f\n", *rc);
 
-        fprintf(stderr, "    t_t = %8.5f ", *tt);
+        fprintf(stderr, "SEARCH: t_t = %8.5f ", *tt);
         fprintf(stderr, "t_d = %8.5f ", *td);
         fprintf(stderr, "t_u = %8.5f\n", *tc);
     }

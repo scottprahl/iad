@@ -35,7 +35,7 @@ void U_Find_Ba(struct measure_type m, struct invert_type *r)
     double ax, bx, cx, fa, fb, fc, ba;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_Bs");
+        fprintf(stderr, "SEARCH: Using U_Find_Bs()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_bs != UNINITIALIZED)
             fprintf(stderr, "  default_bs = %8.5f", r->default_bs);
@@ -64,8 +64,6 @@ void U_Find_Ba(struct measure_type m, struct invert_type *r)
     r->slab.a = (r->slab.b) / (bcalc2b(ba) + r->slab.b);
     r->slab.b = bcalc2b(ba) + r->slab.b;
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -79,7 +77,7 @@ void U_Find_Bs(struct measure_type m, struct invert_type *r)
     double ax, bx, cx, fa, fb, fc, bs;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_Bs");
+        fprintf(stderr, "SEARCH: Using U_Find_Bs()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_ba != UNINITIALIZED)
             fprintf(stderr, "  default_ba = %8.5f", r->default_ba);
@@ -108,8 +106,6 @@ void U_Find_Bs(struct measure_type m, struct invert_type *r)
     r->slab.a = bcalc2b(bs) / (bcalc2b(bs) + r->slab.b);
     r->slab.b = bcalc2b(bs) + r->slab.b;
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -123,7 +119,7 @@ void U_Find_A(struct measure_type m, struct invert_type *r)
     double Rt, Tt, Rd, Rc, Td, Tc;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_A");
+        fprintf(stderr, "SEARCH: Using U_Find_A()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_b != UNINITIALIZED)
             fprintf(stderr, "  default_b = %8.5f", r->default_b);
@@ -155,8 +151,6 @@ void U_Find_A(struct measure_type m, struct invert_type *r)
         r->slab.a = acalc2a(x);
     }
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -170,7 +164,7 @@ void U_Find_B(struct measure_type m, struct invert_type *r)
     double Rt, Tt, Rd, Rc, Td, Tc;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_B");
+        fprintf(stderr, "SEARCH: Using U_Find_B()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_a != UNINITIALIZED)
             fprintf(stderr, "  default_a = %8.5f", r->default_a);
@@ -199,18 +193,12 @@ void U_Find_B(struct measure_type m, struct invert_type *r)
         Set_Calc_State(m, *r);
     }
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
     r->found = (r->tolerance <= r->final_distance);
     Set_Calc_State(m, *r);
 
-    if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_B final (a,b,g) = ");
-        fprintf(stderr, "(%8.5f,%8.5f,%8.5f)\n", r->a, r->b, r->g);
-    }
 }
 
 void U_Find_G(struct measure_type m, struct invert_type *r)
@@ -219,7 +207,7 @@ void U_Find_G(struct measure_type m, struct invert_type *r)
     double x, ax, bx, cx, fa, fb, fc;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_G");
+        fprintf(stderr, "SEARCH: Using U_Find_G()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_a != UNINITIALIZED)
             fprintf(stderr, "  default_a = %8.5f", r->default_a);
@@ -251,8 +239,6 @@ void U_Find_G(struct measure_type m, struct invert_type *r)
     r->slab.g = gcalc2g(x);
     Set_Calc_State(m, *r);
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -272,7 +258,7 @@ void U_Find_AG(struct measure_type m, struct invert_type *r)
     p = dmatrix(1, 3, 1, 2);
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_AG");
+        fprintf(stderr, "SEARCH: Using U_Find_AG()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_b != UNINITIALIZED)
             fprintf(stderr, "  default_b = %8.5f", r->default_b);
@@ -389,8 +375,6 @@ void U_Find_AG(struct measure_type m, struct invert_type *r)
     free_dvector(y, 1, 3);
     free_dmatrix(p, 1, 3, 1, 2);
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -410,7 +394,7 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
     p = dmatrix(1, 3, 1, 2);
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_AB");
+        fprintf(stderr, "SEARCH: Using U_Find_AB()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_g != UNINITIALIZED)
             fprintf(stderr, "  default_g = %8.5f", r->default_g);
@@ -522,8 +506,6 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
     free_dvector(y, 1, 3);
     free_dmatrix(p, 1, 3, 1, 2);
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -543,7 +525,7 @@ void U_Find_BG(struct measure_type m, struct invert_type *r)
     p = dmatrix(1, 3, 1, 2);
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_BG");
+        fprintf(stderr, "SEARCH: Using U_Find_BG()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_a != UNINITIALIZED)
             fprintf(stderr, "  default_a = %8.5f", r->default_a);
@@ -654,8 +636,6 @@ void U_Find_BG(struct measure_type m, struct invert_type *r)
     free_dvector(y, 1, 3);
     free_dmatrix(p, 1, 3, 1, 2);
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -749,8 +729,6 @@ void U_Find_BaG(struct measure_type m, struct invert_type *r)
     free_dvector(y, 1, 3);
     free_dmatrix(p, 1, 3, 1, 2);
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
@@ -770,7 +748,7 @@ void U_Find_BsG(struct measure_type m, struct invert_type *r)
     p = dmatrix(1, 3, 1, 2);
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "In U_Find_BsG");
+        fprintf(stderr, "SEARCH: Using U_Find_BsG()");
         fprintf(stderr, " (mu=%6.4f)", r->slab.cos_angle);
         if (r->default_ba != UNINITIALIZED)
             fprintf(stderr, "  default_ba = %8.5f", r->default_ba);
@@ -846,8 +824,6 @@ void U_Find_BsG(struct measure_type m, struct invert_type *r)
     free_dvector(y, 1, 3);
     free_dmatrix(p, 1, 3, 1, 2);
 
-    if (Debug(DEBUG_ITERATIONS))
-        fprintf(stderr, "amoeba AD_iterations = %d\n", r->AD_iterations);
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;

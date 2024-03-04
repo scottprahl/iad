@@ -78,12 +78,10 @@ the header file \.{iad\_type.h} and nothing else.
 @d DEBUG_GRID                     2
 @d DEBUG_ITERATIONS               4
 @d DEBUG_LOST_LIGHT               8
-@d DEBUG_SPHERE_EFFECTS          16
-@d DEBUG_BEST_GUESS              32
-@d DEBUG_EVERY_CALC              64
-@d DEBUG_SEARCH                   128
-@d DEBUG_RD_ONLY                  256
-@d DEBUG_GRID_CALC                512
+@d DEBUG_BEST_GUESS              16
+@d DEBUG_SEARCH                  32
+@d DEBUG_GRID_CALC               64
+@d DEBUG_EVERY_CALC             128
 @d DEBUG_ANY                      0xFFFFFFFF
 
 @d UNKNOWN                        0

@@ -133,15 +133,13 @@ Assume M_T includes 80%% of unscattered transmittance\n");
     fprintf(stdout, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
     fprintf(stdout, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
     fprintf(stdout, "  iad -x   2 file.rxt       Show grid decisions\n");
-    fprintf(stdout, "  iad -x   4 file.rxt       DEBUG_ITERATIONS\n");
+    fprintf(stdout, "  iad -x   4 file.rxt       Show interations\n");
     fprintf(stdout, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
-    fprintf(stdout, "  iad -x  16 file.rxt       DEBUG_SPHERE_EFFECTS\n");
-    fprintf(stdout, "  iad -x  32 file.rxt       Show best grid points\n");
-    fprintf(stdout, "  iad -x  64 file.rxt       DEBUG_EVERY_CALC\n");
-    fprintf(stdout, "  iad -x 128 file.rxt       DEBUG_SEARCH\n");
-    fprintf(stdout, "  iad -x 256 file.rxt       DEBUG_RD_ONLY\n");
-    fprintf(stdout, "  iad -x 512 file.rxt       Show all grid calculations\n");
-    fprintf(stdout, "  iad -x 1023 file.rxt      All debugging output\n");
+    fprintf(stdout, "  iad -x  16 file.rxt       Show best grid points\n");
+    fprintf(stdout, "  iad -x  32 file.rxt       Show decisions for type of search\n");
+    fprintf(stdout, "  iad -x  64 file.rxt       Show all grid calculations\n");
+    fprintf(stdout, "  iad -x 128 file.rxt       DEBUG_EVERY_CALC\n");
+    fprintf(stdout, "  iad -x 255 file.rxt       Show all debugging output\n");
     fprintf(stdout, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
     fprintf(stdout, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
     fprintf(stdout, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
@@ -1277,6 +1275,10 @@ int main(int argc, char **argv)
 
                     while (r.MC_iterations < MC_MAX_iterations) {
 
+                        if (Debug(DEBUG_ITERATIONS))
+                            fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n",
+                                r.MC_iterations + 1);
+
                         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
                             &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
@@ -1592,6 +1594,10 @@ int main(int argc, char **argv)
                         }
 
                         while (r.MC_iterations < MC_MAX_iterations) {
+
+                            if (Debug(DEBUG_ITERATIONS))
+                                fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n",
+                                    r.MC_iterations + 1);
 
                             MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
                                 &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);

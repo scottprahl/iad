@@ -3,30 +3,30 @@ IAD1
 # Sample header
 # by Scott Prahl 				{also ignored}
 #
-1.4          # Index of refraction of sample
-1.52         # Index of refraction of top slide
-1.0          # [mm] Thickness of sample
-1.0          # [mm] Thickness of slides
-2.0          # [mm] Diameter of illumination beam
-0.99         # Reflectance of calibration standard
+1.4       # Index of refraction of sample
+1.52      # Index of refraction of top slide
+1.0       # [mm] Thickness of sample
+1.0       # [mm] Thickness of slides
+2.0       # [mm] Diameter of illumination beam
+0.99      # Reflectance of calibration standard
 
-2            # [mm] Number of spheres used during each measurement
+2         # [mm] Number of spheres used during each measurement
 
-             # Refection sphere properties
-203.2        # [mm] Sphere Diameter
-10.2         # [mm] Sample Port Diameter
-50.4         # [mm] Empty Port Diameter
-1.0          # [mm] Detector Port Diameter
-0.9115251    # Reflectivity of the sphere wall
+          # Refection sphere properties
+203.2     # [mm] Sphere Diameter
+10.2      # [mm] Sample Port Diameter
+50.4      # [mm] Empty Port Diameter
+1.0       # [mm] Detector Port Diameter
+0.9115251 # Reflectivity of the sphere wall
 
-             # Transmission sphere properties
-203.2        # [mm] Sphere Diameter
-10.2         # [mm] Sample Port Diameter
-50.4         # [mm] Empty Port Diameter
-1.0          # [mm] Detector Port Diameter
-0.9115251    # Reflectivity of the sphere wall
+          # Transmission sphere properties
+203.2     # [mm] Sphere Diameter
+10.2      # [mm] Sample Port Diameter
+0         # [mm] Empty Port Diameter
+1.0       # [mm] Detector Port Diameter
+0.9115251 # Reflectivity of the sphere wall
 
-2            # [mm] Number of measurements
+2         # [mm] Number of measurements
 
 #wave	refl	trans	thickness
 340	0.06813	0.010

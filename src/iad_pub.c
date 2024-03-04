@@ -45,6 +45,18 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
     if (r->error != IAD_NO_ERROR)
         return;
 
+    if (Debug(DEBUG_ITERATIONS)) {
+        fprintf(stderr, "---------------- Beginning New Search -----------------\n");
+        fprintf(stderr, "          ");
+        fprintf(stderr, "      a         b          g   |");
+        fprintf(stderr, "     M_R        calc   |");
+        fprintf(stderr, "     M_T        calc   |");
+        if (r->metric == RELATIVE)
+            fprintf(stderr, " relative distance\n");
+        else
+            fprintf(stderr, " absolute distance\n");
+    }
+
     switch (r->search) {
     case FIND_A:
         U_Find_A(m, r);
@@ -78,6 +90,10 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         U_Find_BaG(m, r);
         break;
     }
+
+    if (Debug(DEBUG_ITERATIONS))
+        fprintf(stderr, "Final amoeba result after AD_iterations = %d\n", r->AD_iterations);
+
     if (r->AD_iterations >= IAD_MAX_ITERATIONS)
         r->error = IAD_TOO_MANY_ITERATIONS;
 
@@ -215,7 +231,6 @@ int measure_OK(struct measure_type m, struct invert_type r)
             return IAD_F_NOT_VALID;
 
     }
-
     return IAD_NO_ERROR;
 }
 
@@ -226,9 +241,8 @@ search_type determine_search(struct measure_type m, struct invert_type r)
     int independent = m.num_measures;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "\n*** Determine_Search()\n");
-        fprintf(stderr, "    starting with %d measurement(s)\n", m.num_measures);
-        fprintf(stderr, "    m_r = %8.5f ", m.m_r);
+        fprintf(stderr, "SEARCH: starting with %d measurement(s)\n", m.num_measures);
+        fprintf(stderr, "SEARCH: m_r = %8.5f ", m.m_r);
         fprintf(stderr, "m_t = %8.5f ", m.m_t);
         fprintf(stderr, "m_u = %8.5f\n", m.m_u);
     }
@@ -237,19 +251,19 @@ search_type determine_search(struct measure_type m, struct invert_type r)
 
     if (m.m_u == 0 && independent == 3) {
         if (Debug(DEBUG_SEARCH))
-            fprintf(stderr, "    no information in tc\n");
+            fprintf(stderr, "SEARCH: no information in tc\n");
         independent--;
     }
 
     if (rd == 0 && independent >= 2) {
         if (Debug(DEBUG_SEARCH))
-            fprintf(stderr, "    no information in rd\n");
+            fprintf(stderr, "SEARCH: no information in rd\n");
         independent--;
     }
 
     if (td == 0 && independent >= 2) {
         if (Debug(DEBUG_SEARCH))
-            fprintf(stderr, "    no information in td\n");
+            fprintf(stderr, "SEARCH: no information in td\n");
         independent--;
     }
 
@@ -337,34 +351,34 @@ search_type determine_search(struct measure_type m, struct invert_type r)
         search = FIND_G;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "    ending with %d measurement(s)", m.num_measures);
+        fprintf(stderr, "SEARCH: ending with %d measurement(s)\n", m.num_measures);
+        fprintf(stderr, "SEARCH: final choice for search = ");
         if (search == FIND_A)
-            fprintf(stderr, "  search = FIND_A\n");
+            fprintf(stderr, "FIND_A\n");
         if (search == FIND_B)
-            fprintf(stderr, "  search = FIND_B\n");
+            fprintf(stderr, "FIND_B\n");
         if (search == FIND_AB)
-            fprintf(stderr, "  search = FIND_AB\n");
+            fprintf(stderr, "FIND_AB\n");
         if (search == FIND_AG)
-            fprintf(stderr, "  search = FIND_AG\n");
+            fprintf(stderr, "FIND_AG\n");
         if (search == FIND_AUTO)
-            fprintf(stderr, "  search = FIND_AUTO\n");
+            fprintf(stderr, "FIND_AUTO\n");
         if (search == FIND_BG)
-            fprintf(stderr, "  search = FIND_BG\n");
+            fprintf(stderr, "FIND_BG\n");
         if (search == FIND_BaG)
-            fprintf(stderr, "  search = FIND_BaG\n");
+            fprintf(stderr, "FIND_BaG\n");
         if (search == FIND_BsG)
-            fprintf(stderr, "  search = FIND_BsG\n");
+            fprintf(stderr, "FIND_BsG\n");
         if (search == FIND_Ba)
-            fprintf(stderr, "  search = FIND_Ba\n");
+            fprintf(stderr, "FIND_Ba\n");
         if (search == FIND_Bs)
-            fprintf(stderr, "  search = FIND_Bs\n");
+            fprintf(stderr, "FIND_Bs\n");
         if (search == FIND_G)
-            fprintf(stderr, "  search = FIND_G\n");
+            fprintf(stderr, "FIND_G\n");
         if (search == FIND_B_WITH_NO_ABSORPTION)
-            fprintf(stderr, "  search = FIND_B_WITH_NO_ABSORPTION\n");
+            fprintf(stderr, "FIND_B_WITH_NO_ABSORPTION\n");
         if (search == FIND_B_WITH_NO_SCATTERING)
-            fprintf(stderr, "  search = FIND_B_WITH_NO_SCATTERING\n");
-        fprintf(stderr, "\n");
+            fprintf(stderr, "FIND_B_WITH_NO_SCATTERING\n");
     }
 
     return search;
@@ -749,12 +763,16 @@ int MinMax_MR_MT(struct measure_type m, struct invert_type r)
     m.m_r = 0;
     r.search = FIND_B;
 
+    if (Debug(DEBUG_ITERATIONS))
+        fprintf(stderr, "Determining minimum possible M_R for given M_T\n");
     r.default_a = 0;
     U_Find_B(m, &r);
     Calculate_Distance(&min_possible_m_r, &temp_m_t, &distance);
     if (measured_m_r < min_possible_m_r)
         return IAD_MR_TOO_SMALL;
 
+    if (Debug(DEBUG_ITERATIONS))
+        fprintf(stderr, "Determining maximum possible M_R for given M_T\n");
     r.default_a = 1.0;
     U_Find_B(m, &r);
     Calculate_Distance(&max_possible_m_r, &temp_m_t, &distance);
