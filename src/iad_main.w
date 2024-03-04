@@ -1133,7 +1133,7 @@ fprintf(stdout, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and t
 fprintf(stdout, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
 fprintf(stdout, "  iad -x   2 file.rxt       Show grid decisions\n");
 fprintf(stdout, "  iad -x   4 file.rxt       Show interations\n");
-fprintf(stdout, "  iad -x   8 file.rxt       DEBUG_LOST_LIGHT\n");
+fprintf(stdout, "  iad -x   8 file.rxt       Show lost light effects\n");
 fprintf(stdout, "  iad -x  16 file.rxt       Show best grid points\n");
 fprintf(stdout, "  iad -x  32 file.rxt       Show decisions for type of search\n");
 fprintf(stdout, "  iad -x  64 file.rxt       Show all grid calculations\n");
@@ -1196,20 +1196,17 @@ static void calculate_coefficients(struct measure_type m,
 @ @<print results header function@>=
 static void print_results_header(FILE *fp)
 {
-fprintf(fp,"#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
-if (Debug(DEBUG_LOST_LIGHT))
-    fprintf(fp,"\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
-fprintf(fp,"\n");
-
-fprintf(fp,"##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
-if (Debug(DEBUG_LOST_LIGHT))
-    fprintf(fp,"\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
-fprintf(fp,"\n");
-
-fprintf(fp,"# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
-if (Debug(DEBUG_LOST_LIGHT))
-    fprintf(fp,"\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
-fprintf(fp,"\n");
+    fprintf(fp,"#      | Meas      M_R  | Meas      M_T  |  calc   calc   calc  |");
+    fprintf(fp,"  Lost   Lost   Lost   Lost  | MC   IAD  Error\n");
+    
+    fprintf(fp,"# wave |  M_R      fit  |  M_T      fit  |  mu_a   mu_s'   g    |  ");
+    fprintf(fp," UR1    URU    UT1    UTU  |  #    #   Type\n");
+    
+    fprintf(fp,"#  nm  |  ---      ---  |  ---      ---  |  1/mm   1/mm    ---  |");
+    fprintf(fp,"   ---    ---    ---    ---  | ---  ---  ---\n");
+    
+    fprintf(fp,"#---------------------------------------------------------");
+    fprintf(fp,"--------------------------------------------------------\n");
 }
 
 @ When debugging lost light, it is handy to see how each iteration changes
@@ -1230,27 +1227,25 @@ void print_optical_property_result(FILE *fp,
                            int line)
 {
     if (m.lambda != 0)
-        fprintf(fp, "%6.1f\t", m.lambda);
+        fprintf(fp, "%6.1f | ", m.lambda);
     else
-        fprintf(fp, "%6d\t", line);
+        fprintf(fp, "%6d  ", line);
 
     if (mu_a >= 200) mu_a = 199.9999;
     if (mu_sp >= 1000) mu_sp = 999.9999;
 
-    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);
-    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_t, LT);
-    fprintf(fp, "% 9.4f\t", mu_a);
-    fprintf(fp, "% 9.4f\t", mu_sp);
-    fprintf(fp, "% 9.4f\t", r.g);
+    fprintf(fp, "%6.4f % 6.4f | ", m.m_r, LR);
+    fprintf(fp, "%6.4f % 6.4f | ", m.m_t, LT);
+    fprintf(fp, "%6.3f ", mu_a);
+    fprintf(fp, "%6.3f ", mu_sp);
+    fprintf(fp, "%6.3f |", r.g);
 
-    if (Debug(DEBUG_LOST_LIGHT)) {
-        fprintf(fp, "% 9.4f\t% 9.4f\t", m.ur1_lost, m.uru_lost);
-        fprintf(fp, "% 9.4f\t% 9.4f\t", m.ut1_lost, m.utu_lost);
-        fprintf(fp, " %2d  \t", r.MC_iterations);
-        fprintf(fp, " %4d\t", r.AD_iterations);
-    }
+    fprintf(fp, " %6.4f %6.4f ", m.ur1_lost, m.uru_lost);
+    fprintf(fp, "%6.4f %6.4f | ", m.ut1_lost, m.utu_lost);
+    fprintf(fp, "%2d  ", r.MC_iterations);
+    fprintf(fp, "%3d", r.AD_iterations);
 
-    fprintf(fp, "# %c \n",what_char(r.error));
+    fprintf(fp, "    %c \n",what_char(r.error));
     fflush(fp);
 }
 
