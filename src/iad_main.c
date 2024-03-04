@@ -342,44 +342,82 @@ static int parse_string_into_array(char *s, double *a, int n)
 
 static void print_results_header(FILE *fp)
 {
-    fprintf(fp, "#      | Meas      M_R  | Meas      M_T  |  calc   calc   calc  |");
-    fprintf(fp, "  Lost   Lost   Lost   Lost  | MC   IAD  Error\n");
+    if (Debug(DEBUG_LOST_LIGHT)) {
+        fprintf(fp, "#      | Meas      M_R  | Meas      M_T  |  calc   calc   calc  |");
+        fprintf(fp, "  Lost   Lost   Lost   Lost  | MC   IAD  Error\n");
 
-    fprintf(fp, "# wave |  M_R      fit  |  M_T      fit  |  mu_a   mu_s'   g    |  ");
-    fprintf(fp, " UR1    URU    UT1    UTU  |  #    #   Type\n");
+        fprintf(fp, "# wave |  M_R      fit  |  M_T      fit  |  mu_a   mu_s'   g    |  ");
+        fprintf(fp, " UR1    URU    UT1    UTU  |  #    #   Type\n");
 
-    fprintf(fp, "#  nm  |  ---      ---  |  ---      ---  |  1/mm   1/mm    ---  |");
-    fprintf(fp, "   ---    ---    ---    ---  | ---  ---  ---\n");
+        fprintf(fp, "#  nm  |  ---      ---  |  ---      ---  |  1/mm   1/mm    ---  |");
+        fprintf(fp, "   ---    ---    ---    ---  | ---  ---  ---\n");
 
-    fprintf(fp, "#---------------------------------------------------------");
-    fprintf(fp, "--------------------------------------------------------\n");
+        fprintf(fp, "#---------------------------------------------------------");
+        fprintf(fp, "--------------------------------------------------------\n");
+    }
+    else {
+        fprintf(fp, "#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
+        if (Debug(DEBUG_LOST_LIGHT))
+            fprintf(fp, "\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
+        fprintf(fp, "\n");
+
+        fprintf(fp, "##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
+        if (Debug(DEBUG_LOST_LIGHT))
+            fprintf(fp, "\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
+        fprintf(fp, "\n");
+
+        fprintf(fp, "# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
+        if (Debug(DEBUG_LOST_LIGHT))
+            fprintf(fp, "\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
+        fprintf(fp, "\n");
+    }
 }
 
 void print_optical_property_result(FILE *fp,
     struct measure_type m, struct invert_type r, double LR, double LT, double mu_a, double mu_sp, int line)
 {
-    if (m.lambda != 0)
-        fprintf(fp, "%6.1f | ", m.lambda);
-    else
-        fprintf(fp, "%6d  ", line);
+    if (Debug(DEBUG_LOST_LIGHT)) {
+        if (m.lambda != 0)
+            fprintf(fp, "%6.1f   ", m.lambda);
+        else
+            fprintf(fp, "%6d   ", line);
 
-    if (mu_a >= 200)
-        mu_a = 199.9999;
-    if (mu_sp >= 1000)
-        mu_sp = 999.9999;
+        if (mu_a >= 200)
+            mu_a = 199.9999;
+        if (mu_sp >= 1000)
+            mu_sp = 999.9999;
 
-    fprintf(fp, "%6.4f % 6.4f | ", m.m_r, LR);
-    fprintf(fp, "%6.4f % 6.4f | ", m.m_t, LT);
-    fprintf(fp, "%6.3f ", mu_a);
-    fprintf(fp, "%6.3f ", mu_sp);
-    fprintf(fp, "%6.3f |", r.g);
+        fprintf(fp, "%6.4f % 6.4f | ", m.m_r, LR);
+        fprintf(fp, "%6.4f % 6.4f | ", m.m_t, LT);
+        fprintf(fp, "%6.3f ", mu_a);
+        fprintf(fp, "%6.3f ", mu_sp);
+        fprintf(fp, "%6.3f |", r.g);
 
-    fprintf(fp, " %6.4f %6.4f ", m.ur1_lost, m.uru_lost);
-    fprintf(fp, "%6.4f %6.4f | ", m.ut1_lost, m.utu_lost);
-    fprintf(fp, "%2d  ", r.MC_iterations);
-    fprintf(fp, "%3d", r.AD_iterations);
+        fprintf(fp, " %6.4f %6.4f ", m.ur1_lost, m.uru_lost);
+        fprintf(fp, "%6.4f %6.4f | ", m.ut1_lost, m.utu_lost);
+        fprintf(fp, "%2d  ", r.MC_iterations);
+        fprintf(fp, "%3d", r.AD_iterations);
 
-    fprintf(fp, "    %c \n", what_char(r.error));
+        fprintf(fp, "    %c \n", what_char(r.error));
+    }
+    else {
+        if (m.lambda != 0)
+            fprintf(fp, "%6.1f\t", m.lambda);
+        else
+            fprintf(fp, "%6d\t", line);
+
+        if (mu_a >= 200)
+            mu_a = 199.9999;
+        if (mu_sp >= 1000)
+            mu_sp = 999.9999;
+
+        fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);
+        fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_t, LT);
+        fprintf(fp, "% 9.4f\t", mu_a);
+        fprintf(fp, "% 9.4f\t", mu_sp);
+        fprintf(fp, "% 9.4f\t", r.g);
+        fprintf(fp, " %c \n", what_char(r.error));
+    }
     fflush(fp);
 }
 
