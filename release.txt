@@ -9,7 +9,7 @@
     make
     make shorttest       # visually check for failures
     make longtest        # visually check for failures
-    make wintest
+    make wintest         # visually check for failures
 
 # verify first page of source listing is still correct
     open docs/ad_src.pdf

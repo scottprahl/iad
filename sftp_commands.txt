@@ -1,3 +1,0 @@
-cd /var/www/omlc.org/html/software/iad/
-put archives/iad-latest.zip
-put archives/iad-win-latest.zip
