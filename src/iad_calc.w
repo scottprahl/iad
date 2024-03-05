@@ -1043,16 +1043,7 @@ void Calculate_Distance_With_Corrections(
 @ @<Definition for |Calculate_Distance_With_Corrections|@>=
     @<Prototype for |Calculate_Distance_With_Corrections|@>
 {
-    double R_direct, T_direct, R_diffuse, T_diffuse;
-
-    R_diffuse = URU - MM.uru_lost;
-    if (R_diffuse < 0) R_diffuse = 0;
-
-    T_diffuse = UTU - MM.utu_lost;
-    if (T_diffuse < 0) T_diffuse = 0;
-
-    R_direct = UR1 - MM.ur1_lost - (1.0 - MM.fraction_of_rc_in_mr) * Rc;
-    T_direct = UT1 - MM.ut1_lost - (1.0 - MM.fraction_of_tc_in_mt) * Tc;
+    @<Determine calculated light to be used@>@;
 
     switch (MM.num_spheres) {
         case 0:
@@ -1072,31 +1063,54 @@ void Calculate_Distance_With_Corrections(
 
         default:
             fprintf(stderr, "Bad number of spheres = %d\n", MM.num_spheres);
+            exit(EXIT_FAILURE);
     }
 
     @<Calculate the deviation@>@;
     @<Print diagnostics@>@;
 }
 
-@ If no spheres were used in the measurement, then presumably the
-measured values are the reflection and transmission.  Consequently,
-we just acertain what the irradiance was and whether the
-specular reflection ports were blocked and proceed accordingly.
-Note that blocking the ports does not have much meaning unless
-the light is collimated, and therefore the reflection and
-transmission is only modified for collimated irradiance.
+@ The calculated values for |M_R| and |M_T| must be adapted to match the measurements.
+The diffuse light |URU| and |UTU| are used to determine the gain from the sphere.
+They're only modified by the lost light calculation.
+All values can become slightly negative because the Monte Carlo is noisy.
+Negative values are set to zero.
+
+@<Determine calculated light to be used@>=
+    double UR1_calc, UT1_calc, URU_calc, UTU_calc;
+
+    URU_calc = URU - MM.uru_lost;
+    if (URU_calc < 0) URU_calc = 0;
+
+    UTU_calc = UTU - MM.utu_lost;
+    if (UTU_calc < 0) UTU_calc = 0;
+
+@ The measurements for |UR1| and |UT1| need to be modified to accommodate light that
+misses the detector either because it is intentionally not collected
+(unscattered light) or it leaks out (lost light).  Since none of the light
+that leaks out could be unscattered light, these two are independent
+of one another.
+
+The code allows for some of the light to hit the sphere wall first; these effects
+are accounted for in the sphere code below.
+
+@<Determine calculated light to be used@>=
+    UR1_calc = UR1 - (1.0 - MM.fraction_of_rc_in_mr) * Rc - MM.ur1_lost;
+    if (UR1_calc < 0) UR1_calc = 0;
+
+    UT1_calc = UT1 - (1.0 - MM.fraction_of_tc_in_mt) * Tc - MM.ut1_lost;
+    if (UT1_calc < 0) UT1_calc = 0;
+
+@ When no spheres are used, then no corrections can or need to
+be made.  The lost light estimates in |MM.ur1_lost| and |MM.ut1_lost|
+should be zero and so the values for |UR1_calc| and |UT1_calc|
+properly account for the presence or absence of unscattered light.
 
 @<Calc |M_R| and |M_T| for no spheres@>=
 {
-    *M_R = R_direct;
-    *M_T = T_direct;
+    *M_R = UR1_calc;
+    *M_T = UT1_calc;
 }
-
-@ Define a bunch of temporary variable names
-
-@<Calc |M_R| and |M_T| for single beam sphere@>=
-    double P_std, P, P_0, G, G_0, G_std;
-    int tmp;
 
 @ In a reflection experiment, some fraction $f$ of the incident light $P_i$ might
 hit the wall first.  Thus the incident power on the sample is $(1-f) P_i$ and
@@ -1105,14 +1119,14 @@ entering the sphere depends on the presence of a baffle.
 
 If a baffle is present then
 $$
-P_d = [a_d (1-a_e) r_w P_i] (\rdirect * (1-f) + r_w f) G(r_s)
+P_d = [a_d (1-a_e) r_w P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s)
 $$
 and when there is no baffle
 $$
-P_d = [a_d P_i] (\rdirect * (1-f) + r_w f) G(r_s)
+P_d = [a_d P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s)
 $$
 Since the quantities in square brackets are identical for
-$R(\rdirect,r_s)$, $R(0,0)$, and $R(r_\std,r_\std)$ and they all cancel out
+$R(\rdirect,r_s)$, $R(0,0)$, and $R(r_\std,r_\std)$. Consequently they cancel out
 when calculating the normalized reflection measurement
 $$
 M_R = r_\std\cdot{R(\rdirect,r_s)-R(0,0) \over R(r_\std,r_\std)-R(0,0)}
@@ -1120,14 +1134,16 @@ $$
 This leads to the following code for |M_R|
 
 @<Calc |M_R| and |M_T| for single beam sphere@>=
+    double P_std, P, P_0, G, G_0, G_std;
+    int tmp;
 
     G_0      = Gain(REFLECTION_SPHERE, MM, 0.0);
-    G        = Gain(REFLECTION_SPHERE, MM, R_diffuse);
+    G        = Gain(REFLECTION_SPHERE, MM, URU_calc);
     G_std    = Gain(REFLECTION_SPHERE, MM, MM.rstd_r);
 
-    P        = G     * (R_direct  * (1-MM.f_r) + MM.f_r*MM.rw_r);
-    P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r*MM.rw_r);
-    P_0      = G_0   * (                         MM.f_r*MM.rw_r);
+    P        = G     * (UR1_calc  * (1-MM.f_r) + MM.f_r * MM.rw_r);
+    P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r * MM.rw_r);
+    P_0      = G_0   * (                         MM.f_r * MM.rw_r);
     *M_R     = MM.rstd_r * (P - P_0)/(P_std - P_0);
 
 @ In a transmission experiment, the calculations are simpler and harder.  First,
@@ -1160,7 +1176,7 @@ $$
 P_d = T(\tdirect,r_s) = [a_d P_i] \tdirect G(r_s)
 $$
 
-The normalization $T(t_\std,r_\std)$ can be measured in two ways.
+@ The normalization $T(t_\std,r_\std)$ can be measured in two ways.
 
 When transmission measurements are made, typically the empty port (the one that
 let the light into the sphere for the reflection measurement) is filled with a white
@@ -1175,7 +1191,7 @@ $$
 P_\std = T(1.0, r_w) = [a_d P_i] r_w G(0)
 $$
 
-An alternate experiment is when there is an empty port in the sphere (perhaps to allow
+An alternate method is when there is an empty port in the sphere (perhaps to allow
 the unscattered light to leave).  In any case, the calibration measurement is done
 by removing the sample and placing the calibration standare in what used to be the empty
 port.  In this case, the roles of the sample and empty ports have switched.  Consequently,
@@ -1187,10 +1203,9 @@ $$
 Note that $r_w$ or $r_\std$ in $P_\std$ term cancel with $r_0$ when calculating $M_T$.
 Further, the quantities $a_d P_i$ also cancel.
 
-
 @<Calc |M_R| and |M_T| for single beam sphere@>=
 
-    P = T_direct * Gain(TRANSMISSION_SPHERE, MM, R_diffuse);
+    P = UT1_calc * Gain(TRANSMISSION_SPHERE, MM, URU_calc);
     if (MM.baffle_t)
         P *= (1-MM.ae_t) * MM.rw_t;
 
@@ -1210,34 +1225,21 @@ Further, the quantities $a_d P_i$ also cancel.
 is equivalent for measurement of light hitting the sample first or
 hitting the reference standard first.  The dual beam measurement
 should report the ratio of these two reflectance measurements, thereby
-eliminating the need to calculate the gain completely.   The same
-holds when no sample is present.
+eliminating the need to calculate the sphere gain.
 
-The normalized reflectance measurement (the difference between
-dual beam measurement for a port with the sample and with nothing)
-is
-$$
-M_R = r_\std\cdot{(1-f)\rdirect  + f r_w\over (1-f')r_\std -f' r_w}
-    - r_\std\cdot{(1-f) (0)  + f r_w\over (1-f')r_\std -f' r_w}
-$$
-or
-$$
-M_R = {(1-f)\rdirect \over (1-f') -f' r_w/r_\std}
-$$
-When $f=f'=1$, then $M_R=1$ no matter what the reflectance is.
-(Leave it in this form to avoid division by zero when $f=1$.)
+The only correction that needs to be made have already been made, namely
+subtracting the |UR1| or |UT1| lost light and also accounting for whether
+or not unscattered light is collected.
 
-The normalized transmittance is simply $\tdirect$.
-
-When $f=0$ then this result is essentially the same as the
-no spheres result (because no sphere corrections are needed).
-However if the number of spheres is zero, then no lost light
-calculations are made and therefore that is a potential error.
+Originally, I had a bunch of calculations trying to account for light
+that hits the sphere wall first.  Since the exact details of how a
+dual beam spectrometer reports its measurements is unknown, it makes
+no sense to try and account for it.
 
 @<Calc |M_R| and |M_T| for dual beam sphere@>=
 {
-    *M_R     = (1-MM.f_r) * R_direct/((1-MM.f_r) + MM.f_r*MM.rw_r/MM.rstd_r);
-    *M_T     = T_direct;
+    *M_R     = UR1_calc;
+    *M_T     = UT1_calc;
 }
 
 @ When two integrating spheres are present then the
@@ -1264,9 +1266,9 @@ double R_0, T_0;
 R_0 = Two_Sphere_R(MM, 0, 0, 0, 0);
 T_0 = Two_Sphere_T(MM, 0, 0, 0, 0);
 
-*M_R = MM.rstd_r * (Two_Sphere_R(MM, R_direct, R_diffuse, T_direct, T_diffuse) - R_0)/
+*M_R = MM.rstd_r * (Two_Sphere_R(MM, UR1_calc, URU_calc, UT1_calc, UTU_calc) - R_0)/
                    (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r, 0, 0) - R_0);
-*M_T =  (Two_Sphere_T(MM, R_direct, R_diffuse, T_direct, T_diffuse) - T_0)/
+*M_T =  (Two_Sphere_T(MM, UR1_calc, URU_calc, UT1_calc, UTU_calc) - T_0)/
                    (Two_Sphere_T(MM, 0, 0, 1, 1) - T_0);
 }
 
@@ -1314,9 +1316,9 @@ both.  The albedo stuff might be able to be take out.  We'll see.
 
     if (RR.metric == RELATIVE) {
         if (MM.m_t > ABIT)
-            *dev = T_TRUST_FACTOR* fabs(MM.m_t - *M_T) / (T_diffuse + ABIT);
+            *dev = T_TRUST_FACTOR* fabs(MM.m_t - *M_T) / (UTU_calc + ABIT);
         if ( RR.default_a != 0 ) {
-            *dev += fabs(MM.m_r - *M_R) / (R_diffuse + ABIT);
+            *dev += fabs(MM.m_r - *M_R) / (URU_calc + ABIT);
         }
     } else {
         *dev = T_TRUST_FACTOR * fabs(MM.m_t - *M_T);
