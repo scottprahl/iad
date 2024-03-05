@@ -20,6 +20,8 @@ I create an empty file \.{iad\_main.h} to simplify the Makefile
 @<mystrtod function@>@;
 @<seconds elapsed function@>@;
 @<print error legend function@>@;
+@<what\_char function@>@;
+@<print long error function@>@;
 @<print dot function@>@;
 @<calculate coefficients function@>@;
 @<parse string into array function@>@;
@@ -137,7 +139,6 @@ int main (int argc, char **argv)
     double cl_baffle_t    = UNINITIALIZED;
     double cl_rc_fraction = UNINITIALIZED;
     double cl_tc_fraction = UNINITIALIZED;
-    double cl_gain_type   = UNINITIALIZED;
     double cl_lambda      = UNINITIALIZED;
 
     double cl_search      = UNINITIALIZED;
@@ -159,7 +160,7 @@ int main (int argc, char **argv)
 
     clock_t start_time=clock();
     char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:x:Xy:z";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
 
 @ use the |getopt()| to process options.
 
@@ -527,10 +528,6 @@ int main (int argc, char **argv)
                 cl_method=COMPARISON;
                 break;
 
-            case 'y':
-                cl_gain_type = (int) my_strtod(optarg);
-                break;
-
             case 'z':
                 cl_forward_calc = 1;
                 process_command_line=1;
@@ -684,25 +681,9 @@ measurements.
     }
 
     Initialize_Result(m, &r);
+
     @<Command-line changes to |r|@>@;
-
-    if (cl_method == COMPARISON && m.d_sphere_r != 0 && m.as_r == 0) {
-        fprintf(stderr, "A dual-beam measurement is specified, but no port sizes.\n");
-        fprintf(stderr, "You might forsake the -X option and use zero spheres (which gives\n");
-        fprintf(stderr, "the same result except lost light is not taken into account).\n");
-        fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
-        fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
-        fprintf(stderr, "diameter will be used to estimate lost light from the edges.\n");
-        exit(EXIT_SUCCESS);
-    }
-
-    if (cl_method == COMPARISON && m.num_spheres == 2) {
-        fprintf(stderr, "A dual-beam measurement is specified, but a two sphere experiment\n");
-        fprintf(stderr, "is specified. Since this seems impossible, I will make it\n");
-        fprintf(stderr, "impossible for you unless you specify 0 or 1 sphere.\n");
-        exit(EXIT_SUCCESS);
-    }
-
+    @<Warn and quit for bad options@>@;
     @<Write Header @>@;
 
     m.ur1_lost = 0;
@@ -719,13 +700,12 @@ measurements.
     }
     print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
 
+    if (r.error != IAD_NO_ERROR) any_error = 1;
 
-    if (Debug(DEBUG_LOST_LIGHT)) {
-        fprintf(stderr,"\n");
-    } else {
-        if (r.error != IAD_NO_ERROR) any_error = 1;
-    }
-    print_dot(start_time, r.error, mc_total, TRUE, cl_verbosity);
+    if (Debug(DEBUG_ANY))
+        print_long_error(r.error);
+    else
+        print_dot(start_time, r.error, mc_total, TRUE, cl_verbosity);
 }
 
 @   @<Local Variables for Calculation@>=
@@ -986,9 +966,6 @@ properties can be determined.
     if (cl_tc_fraction != UNINITIALIZED)
         m.fraction_of_tc_in_mt = cl_tc_fraction;
 
-    if (cl_gain_type != UNINITIALIZED)
-        m.gain_type = cl_gain_type;
-
     if (cl_UR1 != UNINITIALIZED)
         m.m_r = cl_UR1;
 
@@ -1009,6 +986,31 @@ properties can be determined.
 
     if (cl_lambda != UNINITIALIZED)
         m.lambda = cl_lambda;
+
+@ @<Warn and quit for bad options@>=
+    if (cl_method == COMPARISON && m.d_sphere_r != 0 && m.as_r == 0) {
+        fprintf(stderr, "A dual-beam measurement is specified, but no port sizes.\n");
+        fprintf(stderr, "You might forsake the -X option and use zero spheres (which gives\n");
+        fprintf(stderr, "the same result except lost light is not taken into account).\n");
+        fprintf(stderr, "Alternatively, bite the bullet and enter your sphere parameters,\n");
+        fprintf(stderr, "with the knowledge that only the beam diameter and sample port\n");
+        fprintf(stderr, "diameter will be used to estimate lost light from the edges.\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    if (cl_method == COMPARISON && m.num_spheres == 2) {
+        fprintf(stderr, "A dual-beam measurement is specified, but a two sphere experiment\n");
+        fprintf(stderr, "is specified. Since this seems impossible, I will make it\n");
+        fprintf(stderr, "impossible for you unless you specify 0 or 1 sphere.\n");
+        exit(EXIT_SUCCESS);
+    }
+
+    if (cl_method == COMPARISON && m.f_r != 0) {
+        fprintf(stderr, "A dual-beam measurement is specified, but a fraction of light\n");
+        fprintf(stderr, "is specified to hit the sphere wall first.  This situation\n");
+        fprintf(stderr, "is not supported by iad.  Sorry.\n");
+        exit(EXIT_SUCCESS);
+    }
 
 @ put the values for command line reflection and transmission into the measurement record.
 
@@ -1286,6 +1288,7 @@ if (Debug(DEBUG_LOST_LIGHT)) {
 @ @<print error legend function@>=
 static void print_error_legend(void)
 {
+    if (Debug(DEBUG_ANY)) return;
     fprintf(stderr, "----------------- Sorry, but ... errors encountered ---------------\n");
     fprintf(stderr, "   *  ==> Success          ");
     fprintf(stderr, "  0-9 ==> Monte Carlo Iteration\n");
@@ -1408,11 +1411,7 @@ static int parse_string_into_array(char *s, double *a, int n)
     return 1;
 }
 
-@ The idea here is to show some intermediate output while a file is
-being processed.
-
-@<print dot function@>=
-
+@ @<what\_char function@>=
 static char what_char(int err)
 {
     if (err == IAD_NO_ERROR)            return '*';
@@ -1426,6 +1425,25 @@ static char what_char(int err)
     if (err == IAD_TOO_MUCH_LIGHT)      return '!';
     return '?';
 }
+
+@ @<print long error function@>=
+static void print_long_error(int err)
+{
+    if (err == IAD_TOO_MANY_ITERATIONS) fprintf(stderr, "Failed Search, too many iterations\n");
+    if (err == IAD_MR_TOO_BIG)          fprintf(stderr, "Failed Search, M_R is too big\n");
+    if (err == IAD_MR_TOO_SMALL)        fprintf(stderr, "Failed Search, M_R is too small\n");
+    if (err == IAD_MT_TOO_BIG)          fprintf(stderr, "Failed Search, M_T is too big\n");
+    if (err == IAD_MT_TOO_SMALL)        fprintf(stderr, "Failed Search, M_T is too small\n");
+    if (err == IAD_MU_TOO_BIG)          fprintf(stderr, "Failed Search, M_U is too big\n");
+    if (err == IAD_MU_TOO_SMALL)        fprintf(stderr, "Failed Search, M_U is too snall\n");
+    if (err == IAD_TOO_MUCH_LIGHT)      fprintf(stderr, "Failed Search, Total light bigger than 1\n");
+    fprintf(stderr,"\n");
+}
+
+@ The idea here is to show some intermediate output while a file is
+being processed.
+
+@<print dot function@>=
 
 static void print_dot(clock_t start_time, int err, int points, int final, int verbosity)
 {
