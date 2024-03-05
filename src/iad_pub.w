@@ -367,9 +367,6 @@ zero and |M_T|
     if (m.rstd_t < 0 || m.rstd_t > 1.0)
         return IAD_TSTD_NOT_VALID;
 
-    if (m.f_t < 0 || m.f_t > 1)
-        return IAD_F_NOT_VALID;
-
 @*1 Searching Method.
 
 The original idea was that this routine would automatically determine
@@ -703,7 +700,6 @@ void Initialize_Measure(struct measure_type *m)
     m->baffle_t=1;
 
     m->flip_sample = 0;
-    m->gain_type = 0;
 
     m->m_r=0.0;
     m->m_t=0.0;
@@ -727,7 +723,6 @@ void Initialize_Measure(struct measure_type *m)
     m->rd_t = 0.0;
     m->rw_t = 1.0;
     m->rstd_t = 1.0;
-    m->f_t = 0.0;
 
     m->lambda = 0.0;
     m->d_beam = 0.0;
@@ -865,7 +860,6 @@ results.
   m.rw_t    = sphere_t[3];
   m.rd_t    = sphere_t[4];
   m.rstd_t  = sphere_t[5];
-  m.f_t     = sphere_t[7];
 
 @ I needed a routine that would calculate the values of |M_R|
 and |M_T| without doing the whole inversion process.  It

@@ -845,8 +845,8 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
         m.rd_r, m.rw_r, m.rstd_r, m.f_r);
     fprintf(stderr,"area_t as=%10.5f  ad=%10.5f    ae=%10.5f  aw=%10.5f\n",
         m.as_t, m.ad_t, m.ae_t, m.aw_t);
-    fprintf(stderr,"refls  rd=%10.5f  rw=%10.5f  rstd=%10.5f   f=%10.5f\n",
-        m.rd_t, m.rw_t, m.rstd_t, m.f_t);
+    fprintf(stderr,"refls  rd=%10.5f  rw=%10.5f  rstd=%10.5f\n",
+        m.rd_t, m.rw_t, m.rstd_t);
     fprintf(stderr,"lost  ur1=%10.5f ut1=%10.5f   uru=%10.5f  utu=%10.5f\n",
         m.ur1_lost, m.ut1_lost, m.utu_lost, m.utu_lost);
 }
