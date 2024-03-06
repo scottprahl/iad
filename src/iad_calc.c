@@ -598,23 +598,39 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
             P_std = G_std * (MM.rstd_r * (1 - MM.f_r) + MM.f_r * MM.rw_r);
             P_0 = G_0 * (MM.f_r * MM.rw_r);
             *M_R = MM.rstd_r * (P - P_0) / (P_std - P_0);
+            if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
+                fprintf(stderr, "SPHERE: REFLECTION\n");
+                fprintf(stderr, "SPHERE:      G0 = %7.3f      G  = %7.3f G_std = %7.3f\n", G_0, G, G_std);
+                fprintf(stderr, "SPHERE:      P0 = %7.3f      P  = %7.3f P_std = %7.3f\n", P_0, P, P_std);
+                fprintf(stderr, "SPHERE:     UR1 = %7.3f UR1calc = %7.3f   M_R = %7.3f\n", UR1, UR1_calc, *M_R);
+            }
 
-            P = UT1_calc * Gain(TRANSMISSION_SPHERE, MM, URU_calc);
+            G = Gain(TRANSMISSION_SPHERE, MM, URU_calc);
+            P = UT1_calc * G;
             if (MM.baffle_t)
                 P *= (1 - MM.ae_t) * MM.rw_t;
 
             tmp = MM.baffle_t;
             MM.baffle_t = FALSE;
             if (MM.ae_t == 0) {
-                P_std = Gain(TRANSMISSION_SPHERE, MM, 0);
+                G_std = Gain(TRANSMISSION_SPHERE, MM, 0);
             }
             else {
                 SWAP(MM.ae_t, MM.as_t);
-                P_std = Gain(TRANSMISSION_SPHERE, MM, MM.rstd_t);
+                G_std = Gain(TRANSMISSION_SPHERE, MM, MM.rstd_t);
                 SWAP(MM.ae_t, MM.as_t);
             }
+            P_std = G_std;
             MM.baffle_t = tmp;
             *M_T = P / P_std;
+
+            if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
+                fprintf(stderr, "SPHERE: TRANSMISSION\n");
+                fprintf(stderr, "SPHERE:                        G  = %7.3f G_std = %7.3f\n", G, G_std);
+                fprintf(stderr, "SPHERE:                        P  = %7.3f P_std = %7.3f\n", P, P_std);
+                fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f   M_T = %7.3f\n", UT1, UT1_calc, *M_T);
+                fprintf(stderr, "\n");
+            }
 
         }
         break;

@@ -28,7 +28,7 @@ IAD1 # Must be first four characters
 
 7 # Number of measurements, M_R, M_T, M_U, r_w1, r_w_2, rstd1, rstd2
 
-#nm 	M_R     	M_T       	M_U	 r_w_1  	r_w_2   	rstd1	rstd2
+#nm 	M_R     	M_T      	M_U	 r_w_1  	r_w_2   	rstd1	rstd2
 365.0	0.197135	0.0021171	0.0	0.944857	0.944857	0.98	1.0
 366.0	0.200921	0.0000000	0.0	0.945894	0.945894	0.98	1.0
 367.0	0.268724	0.0143392	0.0	0.946896	0.946896	0.98	1.0
