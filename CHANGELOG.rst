@@ -1,6 +1,11 @@
 Changelog
 =========
 
+v3.15.2 (xx Mar 2024)
+--------------------
+*   allow flexible input files
+*   add -w and -W command line options
+
 v3.15.1 (4 Mar 2024)
 --------------------
 *   add -x 1 support back for debugging

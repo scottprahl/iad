@@ -1117,7 +1117,6 @@ fprintf(stdout, "                   # = 2, baffle for T but not for R sphere\n")
 fprintf(stdout, "                   # = 3, baffle for both R and T spheres (default)\n");
 fprintf(stdout, "  -L #             specify the wavelength lambda\n");
 fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
-fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
 fprintf(stdout, "  -n #             specify index of refraction of slab\n");
 fprintf(stdout, "  -N #             specify index of refraction of slides\n");
 fprintf(stdout, "  -o filename      explicitly specify filename for output\n");

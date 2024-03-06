@@ -175,7 +175,7 @@ realclean:
 tidy:
 	apply ctangle *.w
 	./version.pl
-	rm -f iad_main.h ad_main.h iad_type.c iad.c iad_main_mus.c ad_boil.c
+	rm -f iad_main.h ad_main.h iad_type.c iad.c iad_main_mus.c ad_boil.c ad.c
 	apply ./cobweb.pl ad*.c ad*.h iad*.c iad*.h
 	rm -f *.bak *.BAK
 	@for file in ad*.c ad*.h iad*.c iad*.h; do \

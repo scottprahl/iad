@@ -4,8 +4,8 @@ The special define below is to get Visual C to suppress silly warnings.
 
 @(iad_io.c@>=
 #define _CRT_SECURE_NO_WARNINGS
-#define MAX_LINE_LENGTH 256
-char LINE_LEGEND[MAX_LINE_LENGTH] = "";
+#define MAX_COLUMNS 256
+char COLUMN_LABELS[MAX_COLUMNS] = "";
 
 #include <string.h>
 #include <stdio.h>
@@ -25,8 +25,9 @@ char LINE_LEGEND[MAX_LINE_LENGTH] = "";
 @<Definition for |remove_whitespace|@>@;
 @<Definition for |remove_comment|@>@;
 @<Definition for |remove_first_char|@>@;
+@<Definition for |print_maybe|@>@;
 @<Definition for |Read_Data_Legend|@>@;
-@<Definition for |Read_Data_Line_Per_Legend|@>@;
+@<Definition for |Read_Data_Line_Per_Labels|@>@;
 
 @<Definition for |Read_Header|@>@;
 @<Definition for |Write_Header|@>@;
@@ -133,8 +134,8 @@ A non-zero value is returned upon a failure.
 @ @<Definition for |Read_Data_Line|@>=
         @<Prototype for |Read_Data_Line|@>
 {
-    if (strlen(LINE_LEGEND)>0)
-        return Read_Data_Line_Per_Legend(fp, m, r, params);
+    if (strlen(COLUMN_LABELS)>0)
+        return Read_Data_Line_Per_Labels(fp, m, r, params);
 
     if (read_number(fp,&m->m_r)) return 1;
     if (m->m_r > 1) {
@@ -170,19 +171,23 @@ A non-zero value is returned upon a failure.
     return 0;
 }
 
-@ @<Definition for |Read_Data_Line_Per_Legend|@>=
-int Read_Data_Line_Per_Legend(FILE *fp, struct measure_type *m, struct invert_type *r, int params)
+@ @<Definition for |Read_Data_Line_Per_Labels|@>=
+int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_type *r, int params)
 {
     int count=0;
     double x;
     while (count<params) {
         if (read_number(fp,&x)) return 1;
-        char c = LINE_LEGEND[count];
+        char c = COLUMN_LABELS[count];
         if (FALSE)
             fprintf(stderr, "count = %2d, option = %c, value = %10.5f\n", count, c, x);
         switch (c) {
             case 'a':
                 r->default_a = x;
+                break;
+            case 'A':
+                r->default_mua = x;
+                r->default_ba = x * m->slab_thickness;
                 break;
             case 'b':
                 r->default_b = x;
@@ -206,6 +211,10 @@ int Read_Data_Line_Per_Legend(FILE *fp, struct measure_type *m, struct invert_ty
             case 'e':
                 r->tolerance = x;
                 r->MC_tolerance = x;
+                break;
+            case 'F':
+                r->default_mus = x;
+                r->default_bs = x * m->slab_thickness;
                 break;
             case 'g':
                 r->default_g = x;
@@ -350,41 +359,42 @@ int check_magic(FILE *fp)
 
         printf("# Inverse Adding-Doubling %s \n",Version);
         printf("# \n");
-        printf("#                        Beam diameter = %7.1f mm\n", m.d_beam);
-        printf("#                     Sample thickness = %7.3f mm\n",
-                m.slab_thickness );
-        printf("#                  Top slide thickness = %7.3f mm\n",
-                        m.slab_top_slide_thickness );
-        printf("#               Bottom slide thickness = %7.3f mm\n",
-                        m.slab_bottom_slide_thickness );
-        printf("#           Sample index of refraction = %7.4f\n",
-                m.slab_index );
-        printf("#        Top slide index of refraction = %7.4f\n",
-                m.slab_top_slide_index );
-        printf("#     Bottom slide index of refraction = %7.4f\n",
-                m.slab_bottom_slide_index );
+        printf("#                        Beam diameter = ");
+        print_maybe('B', "%7.1f mm\n", m.d_beam);
+        printf("#                     Sample thickness = ");
+        print_maybe('d', "%7.3f mm\n", m.slab_thickness);
+        printf("#                  Top slide thickness = ");
+        print_maybe('D', "%7.3f mm\n", m.slab_top_slide_thickness);
+        printf("#               Bottom slide thickness = ");
+        print_maybe('D', "%7.3f mm\n", m.slab_bottom_slide_thickness);
+        printf("#           Sample index of refraction = ");
+        print_maybe('n', "%7.4f mm\n", m.slab_index);
+        printf("#        Top slide index of refraction = ");
+        print_maybe('N', "%7.4f mm\n", m.slab_top_slide_index);
+        printf("#     Bottom slide index of refraction = ");
+        print_maybe('N', "%7.4f mm\n", m.slab_bottom_slide_index);
 
 @ @<Write irradiation info@>=
         printf("# \n");
 
 @ @<Write general sphere info@>=
 
-        printf("#  Percentage unscattered refl. in M_R = %7.1f %%\n",
-        m.fraction_of_rc_in_mr*100);
-        printf("# Percentage unscattered trans. in M_T = %7.1f %%\n",
-        m.fraction_of_tc_in_mt*100);
+        printf("#  Percentage unscattered refl. in M_R = ");
+        print_maybe('c', "%7.1f %%\n", m.fraction_of_rc_in_mr*100);
+        printf("# Percentage unscattered trans. in M_T = ");
+        print_maybe('C', "%7.1f %%\n", m.fraction_of_tc_in_mt*100);
         printf("# \n");
 
 @ @<Write first sphere info@>=
         printf("# Reflection sphere");
         if (m.baffle_r)
-            printf(" has a baffle between sample and detector ");
+            printf(" has a baffle between sample and detector");
         else
             printf(" has no baffle between sample and detector");
         if (m.num_spheres > 0)
             printf("\n");
         else
-            printf(" (all ignored since no spheres used)\n");
+            printf(" (ignored since no spheres used)\n");
         printf("#                      sphere diameter = %7.1f mm\n", m.d_sphere_r );
         printf("#                 sample port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.as_r) );
@@ -393,20 +403,22 @@ int check_magic(FILE *fp)
         printf("#               detector port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ad_r) );
         printf("#                 detector reflectance = %7.1f %%\n", m.rd_r*100 );
-        printf("#                     wall reflectance = %7.1f %%\n", m.rw_r*100 );
-        printf("#                 calibration standard = %7.1f %%\n", m.rstd_r*100 );
+        printf("#                     wall reflectance = ");
+        print_maybe('w', "%7.1f %%\n", m.rw_r*100);
+        printf("#                 calibration standard = ");
+        print_maybe('R', "%7.1f %%\n", m.rstd_r*100);
         printf("#\n");
 
 @ @<Write second sphere info@>=
         printf("# Transmission sphere");
         if (m.baffle_t)
-            printf(" has a baffle between sample and detector ");
+            printf(" has a baffle between sample and detector");
         else
             printf(" has no baffle between sample and detector");
         if (m.num_spheres > 0)
             printf("\n");
         else
-            printf(" (all ignored since no spheres used)\n");
+            printf(" (ignored since no spheres used)\n");
         printf("#                      sphere diameter = %7.1f mm\n",
         m.d_sphere_t );
         printf("#                 sample port diameter = %7.1f mm\n",
@@ -416,10 +428,11 @@ int check_magic(FILE *fp)
         printf("#               detector port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ad_t) );
         printf("#                 detector reflectance = %7.1f %%\n", m.rd_t*100 );
-        printf("#                     wall reflectance = %7.1f %%", m.rw_t*100 );
         if (m.ae_t == 0)
-            printf(" (cal std since empty port is closed)");
-        printf("\n");
+            printf("#    wall reflectance and cal standard = ");
+        else
+            printf("#                     wall reflectance = ");
+        print_maybe('w', "%7.1f %%\n", m.rw_t*100);
         printf("#                 calibration standard = %7.1f %%", m.rstd_t*100 );
         if (m.ae_t == 0)
             printf(" (ignored)");
@@ -427,51 +440,58 @@ int check_magic(FILE *fp)
 
 @ @<Write measure and inversion info@>=
         printf("#\n");
-        switch (params) {
-            case -1:
-                printf("# No M_R or M_T -- forward calculation.\n");
-                break;
-            case 1:
-                printf("# Just M_R was measured");
-                break;
-            case 2:
-                printf("# M_R and M_T were measured");
-                break;
-            case 3:
-                printf("# M_R, M_T, and M_U were measured");
-                break;
-            case 4:
-                printf("# M_R, M_T, M_U, and r_w were measured");
-                break;
-            case 5:
-                printf("# M_R, M_T, M_U, r_w, and t_w were measured");
-                break;
-            case 6:
-                printf("# M_R, M_T, M_U, r_w, t_w, and r_std were measured");
-                break;
-            case 7:
-                printf("# M_R, M_T, M_U, r_w, t_w, r_std and t_std were measured");
-                break;
-            default:
-                printf("# Something went wrong ... measures should be 1 to 5!\n");
-                break;
-        }
-
-        if (1<=params && params<=7) {
-            if (m.flip_sample)
-                printf(" (sample flipped) ");
-
-            switch (m.method) {
-                case UNKNOWN:
-                    printf(" using an unknown method.\n");
+        if (COLUMN_LABELS[0]=='\0'){
+            switch (params) {
+                case -1:
+                    printf("# No M_R or M_T -- forward calculation.\n");
                     break;
-                case SUBSTITUTION:
-                    printf(" using the substitution (single-beam) method.\n");
+                case 1:
+                    printf("# Just M_R was measured");
                     break;
-                case COMPARISON:
-                    printf(" using the comparison (dual-beam) method.\n");
+                case 2:
+                    printf("# M_R and M_T were measured");
+                    break;
+                case 3:
+                    printf("# M_R, M_T, and M_U were measured");
+                    break;
+                case 4:
+                    printf("# M_R, M_T, M_U, and r_w were measured");
+                    break;
+                case 5:
+                    printf("# M_R, M_T, M_U, r_w, and t_w were measured");
+                    break;
+                case 6:
+                    printf("# M_R, M_T, M_U, r_w, t_w, and r_std were measured");
+                    break;
+                case 7:
+                    printf("# M_R, M_T, M_U, r_w, t_w, r_std and t_std were measured");
+                    break;
+                default:
+                    printf("# Something went wrong ... measures should be 1 to 7!\n");
+                    break;
+            }
+        } else {
+            int i;
+            printf("# %d input columns with LABELS:", params);
+            for (i=0; i<params; i++) {
+                printf(" %c ", COLUMN_LABELS[i]);
             }
         }
+
+        if (m.flip_sample)
+            printf(" (sample flipped) ");
+
+        switch (m.method) {
+            case UNKNOWN:
+                printf(" using an unknown method.\n");
+                break;
+            case SUBSTITUTION:
+                printf(" using the substitution (single-beam) method.\n");
+                break;
+            case COMPARISON:
+                printf(" using the comparison (dual-beam) method.\n");
+        }
+
 
         switch (m.num_spheres) {
         case 0:
@@ -592,6 +612,15 @@ void remove_first_char(char *str) {
     }
 }
 
+@ @<Definition for |print_maybe|@>=
+void print_maybe(char c, char *format, double x) {
+    char *result = strchr(COLUMN_LABELS, c);
+    if (result == NULL) 
+        printf(format, x);
+    else
+        printf(" (varies with input row)\n");
+}
+
 @ @<Prototype for |Read_Data_Legend|@>=
     int Read_Data_Legend(FILE *fp)
 
@@ -599,22 +628,23 @@ void remove_first_char(char *str) {
     @<Prototype for |Read_Data_Legend|@>
 {
     int n=0;
+    char c;
+
     skip_white(fp);
-    if (fgets(LINE_LEGEND, MAX_LINE_LENGTH, fp) == NULL) {
+    if (fgets(COLUMN_LABELS, MAX_COLUMNS, fp) == NULL) {
         fprintf(stderr, "could not read Data Legend String in file\n");
         exit(EXIT_FAILURE);
     }
 
-    remove_whitespace(LINE_LEGEND);
-    remove_comment(LINE_LEGEND);
-
-    if (isdigit(LINE_LEGEND[0]) && LINE_LEGEND[0] != '0') {
-        n = LINE_LEGEND[0] - '0';
-        remove_first_char(LINE_LEGEND);
+    remove_whitespace(COLUMN_LABELS);
+    remove_comment(COLUMN_LABELS);
+    c = COLUMN_LABELS[0];
+    
+    if (c=='1' || c=='2' || c=='3' || c=='4' || c=='5' || c=='6' || c=='7') {
+        n = COLUMN_LABELS[0] - '0';
+        COLUMN_LABELS[0] = '\0';
     } else 
-        n = strlen(LINE_LEGEND);
-
-    fprintf(stderr, "n=%d LEGEND='%s'\n", n, LINE_LEGEND);
+        n = strlen(COLUMN_LABELS);
     return n;
 }
 
