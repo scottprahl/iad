@@ -716,14 +716,16 @@ measurements.
     Inverse_RT (m, &r);
 
     if (r.error == IAD_NO_ERROR) {
-        calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
-
         @<Improve result using Monte Carlo@>@;
     }
+
     calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
     print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
 
-    if (r.error != IAD_NO_ERROR) any_error = 1;
+    if (r.error != IAD_NO_ERROR) {
+        fprintf(stderr, "new error %d\n", r.error);
+        any_error = 1;
+    }
 
     if (Debug(DEBUG_ANY))
         print_long_error(r.error);
