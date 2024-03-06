@@ -1391,6 +1391,7 @@ int main(int argc, char **argv)
                 }
 
             }
+            calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
             print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);
 
             if (r.error != IAD_NO_ERROR)
@@ -1720,6 +1721,7 @@ int main(int argc, char **argv)
                     }
 
                 }
+                calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                 print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);
 
                 if (r.error != IAD_NO_ERROR)
