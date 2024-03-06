@@ -4,8 +4,12 @@ The special define below is to get Visual C to suppress silly warnings.
 
 @(iad_io.c@>=
 #define _CRT_SECURE_NO_WARNINGS
+#define MAX_LINE_LENGTH 256
+char LINE_LEGEND[MAX_LINE_LENGTH] = "";
+
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <math.h>
 #include "ad_globl.h"
@@ -17,6 +21,13 @@ The special define below is to get Visual C to suppress silly warnings.
 @<Definition for |skip_white|@>@;
 @<Definition for |read_number|@>@;
 @<Definition for |check_magic|@>@;
+
+@<Definition for |remove_whitespace|@>@;
+@<Definition for |remove_comment|@>@;
+@<Definition for |remove_first_char|@>@;
+@<Definition for |Read_Data_Legend|@>@;
+@<Definition for |Read_Data_Line_Per_Legend|@>@;
+
 @<Definition for |Read_Header|@>@;
 @<Definition for |Write_Header|@>@;
 @<Definition for |Read_Data_Line|@>@;
@@ -69,7 +80,7 @@ should do the trick.
 
     @<Read coefficients for transmission sphere@>@;
 
-    if (read_number(fp,&x))                            return 1;
+    x = Read_Data_Legend(fp);
     *params = (int) x;
     m->num_measures = (*params >= 3) ? 3 : *params;
 
@@ -117,11 +128,14 @@ test on the first value of the line.
 A non-zero value is returned upon a failure.
 
 @<Prototype for |Read_Data_Line|@>=
-        int Read_Data_Line(FILE *fp, struct measure_type *m, int params)
+        int Read_Data_Line(FILE *fp, struct measure_type *m, struct invert_type *r, int params)
 
 @ @<Definition for |Read_Data_Line|@>=
         @<Prototype for |Read_Data_Line|@>
 {
+    if (strlen(LINE_LEGEND)>0)
+        return Read_Data_Line_Per_Legend(fp, m, r, params);
+
     if (read_number(fp,&m->m_r)) return 1;
     if (m->m_r > 1) {
         m->lambda = m->m_r;
@@ -156,6 +170,94 @@ A non-zero value is returned upon a failure.
     return 0;
 }
 
+@ @<Definition for |Read_Data_Line_Per_Legend|@>=
+int Read_Data_Line_Per_Legend(FILE *fp, struct measure_type *m, struct invert_type *r, int params)
+{
+    int count=0;
+    double x;
+    while (count<params) {
+        if (read_number(fp,&x)) return 1;
+        char c = LINE_LEGEND[count];
+        if (FALSE)
+            fprintf(stderr, "count = %2d, option = %c, value = %10.5f\n", count, c, x);
+        switch (c) {
+            case 'a':
+                r->default_a = x;
+                break;
+            case 'b':
+                r->default_b = x;
+                break;
+            case 'B':
+                m->d_beam = x;
+                break;
+            case 'c':
+                m->fraction_of_rc_in_mr = x;
+                break;
+            case 'C':
+                m->fraction_of_tc_in_mt = x;
+                break;
+            case 'd':
+                m->slab_thickness = x;
+                break;
+            case 'D':
+                m->slab_top_slide_thickness = x;
+                m->slab_bottom_slide_thickness = x;
+                break;
+            case 'e':
+                r->tolerance = x;
+                r->MC_tolerance = x;
+                break;
+            case 'g':
+                r->default_g = x;
+                break;
+            case 'L':
+                m->lambda = x;
+                break;
+            case 'M':
+                m->num_spheres = (int) x;
+                break;
+            case 'n':
+                m->slab_index = x;
+                break;
+            case 'N':
+                m->slab_top_slide_index = x;
+                m->slab_bottom_slide_index = x;
+                break;
+            case 'q':
+                r->method.quad_pts = (int) x;
+                break;
+            case 'r':
+                m->m_r = x;
+                break;
+            case 'R':
+                m->rstd_r = x;
+                break;
+            case 't':
+                m->m_t = x;
+                break;
+            case 'S':
+                m->num_spheres = (int) x;
+                break;
+            case 'T':
+                m->rstd_t = x;
+                break;
+            case 'u':
+                m->m_u = x;
+                break;
+            case 'w':
+                m->rw_r = x;
+                break;
+            case 'W':
+                m->rw_t = x;
+                break;
+            default:
+                fprintf(stderr, "legend variable '%c' unimplemented", c);
+                return 1;
+        }
+        count++;
+    }
+    return 0;
+}
 
 @ Skip over white space and comments.  It is assumed that \# starts all
 comments and continues to the end of a line.  This routine should work on
@@ -453,3 +555,66 @@ int check_magic(FILE *fp)
                 r.method.quad_pts);
         printf("#             AD tolerance for success = %9.5f\n", r.tolerance );
         printf("#      MC tolerance for mu_a and mu_s' = %7.3f %%\n", r.MC_tolerance );
+
+@ Discard white space and dashes in the legend string
+
+@<Definition for |remove_whitespace|@>=
+
+void remove_whitespace(char *str) {
+    int i, j = 0;
+    for (i = 0; str[i] != '\0'; i++) {
+        if (!isspace(str[i]) && str[i] != '-') {
+            str[j++] = str[i];
+        }
+    }
+    str[j] = '\0';
+}
+
+@ @<Definition for |remove_comment|@>=
+
+void remove_comment(char *str) {
+    int i;
+    for (i = 0; str[i] != '\0'; i++) {
+        if (str[i] == '#') {
+            str[i] = '\0';
+            break;
+        }
+    }
+}
+
+@ @<Definition for |remove_first_char|@>=
+void remove_first_char(char *str) {
+    int len = strlen(str);
+    if (len > 0) {
+        for (int i = 0; i < len; i++) {
+            str[i] = str[i + 1];
+        }
+    }
+}
+
+@ @<Prototype for |Read_Data_Legend|@>=
+    int Read_Data_Legend(FILE *fp)
+
+@ @<Definition for |Read_Data_Legend|@>=
+    @<Prototype for |Read_Data_Legend|@>
+{
+    int n=0;
+    skip_white(fp);
+    if (fgets(LINE_LEGEND, MAX_LINE_LENGTH, fp) == NULL) {
+        fprintf(stderr, "could not read Data Legend String in file\n");
+        exit(EXIT_FAILURE);
+    }
+
+    remove_whitespace(LINE_LEGEND);
+    remove_comment(LINE_LEGEND);
+
+    if (isdigit(LINE_LEGEND[0]) && LINE_LEGEND[0] != '0') {
+        n = LINE_LEGEND[0] - '0';
+        remove_first_char(LINE_LEGEND);
+    } else 
+        n = strlen(LINE_LEGEND);
+
+    fprintf(stderr, "n=%d LEGEND='%s'\n", n, LINE_LEGEND);
+    return n;
+}
+

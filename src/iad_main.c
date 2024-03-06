@@ -105,6 +105,8 @@ static void print_usage(void)
     fprintf(stdout, "  -V 0             verbosity low --- no output to stdout\n");
     fprintf(stdout, "  -V 1             verbosity moderate \n");
     fprintf(stdout, "  -V 2             verbosity high\n");
+    fprintf(stdout, "  -w #             wall reflectivity for reflection sphere\n");
+    fprintf(stdout, "  -W #             wall reflectivity for transmission sphere\n");
     fprintf(stdout, "  -x #             set debugging level\n");
     fprintf(stdout, "  -X               dual beam configuration\n");
     fprintf(stdout, "  -z               do forward calculation\n");
@@ -485,6 +487,8 @@ int main(int argc, char **argv)
     double cl_rc_fraction = UNINITIALIZED;
     double cl_tc_fraction = UNINITIALIZED;
     double cl_lambda = UNINITIALIZED;
+    double cl_rwall_r = UNINITIALIZED;
+    double cl_rwall_t = UNINITIALIZED;
 
     double cl_search = UNINITIALIZED;
     double cl_mus0 = UNINITIALIZED;
@@ -866,6 +870,26 @@ int main(int argc, char **argv)
             cl_verbosity = my_strtod(optarg);
             break;
 
+        case 'w':
+            cl_rwall_r = my_strtod(optarg);
+            if (cl_rwall_r < 0 || cl_rwall_r > 1) {
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    refl sphere wall '-w %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
+                exit(EXIT_FAILURE);
+            }
+            break;
+
+        case 'W':
+            cl_rwall_t = my_strtod(optarg);
+            if (cl_rwall_t < 0 || cl_rwall_r > 1) {
+                fprintf(stderr, "Error in command-line\n");
+                fprintf(stderr, "    trans sphere wall '-w %s'\n", optarg);
+                fprintf(stderr, "    must be between 0 and 1\n");
+                exit(EXIT_FAILURE);
+            }
+            break;
+
         case 'x':
             Set_Debugging((int) my_strtod(optarg));
             break;
@@ -959,6 +983,12 @@ int main(int argc, char **argv)
 
     if (cl_rstd_r != UNINITIALIZED)
         m.rstd_r = cl_rstd_r;
+
+    if (cl_rwall_r != UNINITIALIZED)
+        m.rw_r = cl_rwall_r;
+
+    if (cl_rwall_t != UNINITIALIZED)
+        m.rw_t = cl_rwall_t;
 
     if (cl_sphere_one[0] != UNINITIALIZED) {
         double d_sample_r, d_empty_r, d_detector_r;
@@ -1377,7 +1407,7 @@ int main(int argc, char **argv)
 
     if (Read_Header(stdin, &m, &params) == 0) {
         start_time = clock();
-        while (Read_Data_Line(stdin, &m, params) == 0) {
+        while (Read_Data_Line(stdin, &m, &r, params) == 0) {
 
             if (cl_cos_angle != UNINITIALIZED) {
                 m.slab_cos_angle = cl_cos_angle;
@@ -1445,6 +1475,12 @@ int main(int argc, char **argv)
 
             if (cl_rstd_r != UNINITIALIZED)
                 m.rstd_r = cl_rstd_r;
+
+            if (cl_rwall_r != UNINITIALIZED)
+                m.rw_r = cl_rwall_r;
+
+            if (cl_rwall_t != UNINITIALIZED)
+                m.rw_t = cl_rwall_t;
 
             if (cl_sphere_one[0] != UNINITIALIZED) {
                 double d_sample_r, d_empty_r, d_detector_r;
