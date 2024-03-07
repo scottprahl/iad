@@ -63,11 +63,7 @@ void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double
         *rt = *rd + *rc;
     }
 
-    if (m.num_measures == 1) {
-        *tt = 0.0;
-        *td = 0.0;
-    }
-    else if (m.fraction_of_tc_in_mt) {
+    if (m.fraction_of_tc_in_mt) {
         *tt = m.m_t;
         *td = *tt - *tc;
         if (*td < 0) {
