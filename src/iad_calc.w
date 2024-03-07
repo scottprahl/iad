@@ -1350,7 +1350,7 @@ both.  The albedo stuff might be able to be take out.  We'll see.
 @<Print diagnostics@>=
 if ((Debug(DEBUG_ITERATIONS) && !CALCULATING_GRID) || @|
     (Debug(DEBUG_GRID_CALC)  &&  CALCULATING_GRID)) {
-    fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
+    fprintf(stderr, "%10.5f %10.4f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
     fprintf(stderr, " %10.5f %10.5f |", MM.m_r, *M_R);
     fprintf(stderr, " %10.5f %10.5f |", MM.m_t, *M_T);
     fprintf(stderr, "%10.3f\n", *dev);

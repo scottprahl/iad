@@ -483,7 +483,8 @@ for the optical thickness assuming the albedo is one.
         else
             search = FIND_B;
     }
-    else if (r.default_b  != UNINITIALIZED)
+
+    else if (r.default_b != UNINITIALIZED)
         search = FIND_A;
 
     else if (r.default_bs != UNINITIALIZED)
@@ -492,7 +493,7 @@ for the optical thickness assuming the albedo is one.
     else if (r.default_ba != UNINITIALIZED)
         search = FIND_Bs;
 
-    else if (td == 0)
+    else if (m.m_t == 0)
         search = FIND_A;
 
     else if (rd == 0)

@@ -270,6 +270,7 @@ search_type determine_search(struct measure_type m, struct invert_type r)
             else
                 search = FIND_B;
         }
+
         else if (r.default_b != UNINITIALIZED)
             search = FIND_A;
 
@@ -279,7 +280,7 @@ search_type determine_search(struct measure_type m, struct invert_type r)
         else if (r.default_ba != UNINITIALIZED)
             search = FIND_Bs;
 
-        else if (td == 0)
+        else if (m.m_t == 0)
             search = FIND_A;
 
         else if (rd == 0)

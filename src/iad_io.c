@@ -126,8 +126,10 @@ int Read_Data_Legend(FILE *fp)
         n = COLUMN_LABELS[0] - '0';
         COLUMN_LABELS[0] = '\0';
     }
-    else
+    else {
         n = strlen(COLUMN_LABELS);
+    }
+
     return n;
 }
 
@@ -263,6 +265,7 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
     if (read_number(fp, &x))
         return 1;
     m->num_spheres = (int) x;
+
     m->method = SUBSTITUTION;
 
     {
@@ -303,9 +306,24 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
         m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
     }
 
-    x = Read_Data_Legend(fp);
-    *params = (int) x;
-    m->num_measures = (*params >= 3) ? 3 : *params;
+    *params = Read_Data_Legend(fp);
+
+    if (COLUMN_LABELS[0] != '\0') {
+        m->num_measures = 0;
+        if (strchr(COLUMN_LABELS, 'r'))
+            m->num_measures++;
+        if (strchr(COLUMN_LABELS, 't'))
+            m->num_measures++;
+        if (strchr(COLUMN_LABELS, 'u'))
+            m->num_measures++;
+        if (m->num_measures == 0) {
+            fprintf(stderr, "Column labels must have at least one 'r', 't', or 'u'\n");
+            fprintf(stderr, "Column labels = '%s'\n", COLUMN_LABELS);
+            exit(EXIT_FAILURE);
+        }
+    }
+    else
+        m->num_measures = (*params >= 3) ? 3 : *params;
 
     return 0;
 }
@@ -532,12 +550,6 @@ int Read_Data_Line(FILE *fp, struct measure_type *m, struct invert_type *r, int 
         m->lambda = m->m_r;
         if (read_number(fp, &m->m_r))
             return 1;
-    }
-
-    if (params == -1) {
-        m->m_t = m->m_r;
-        m->m_r = 0;
-        return 0;
     }
 
     if (params == 1)

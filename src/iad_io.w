@@ -75,15 +75,12 @@ should do the trick.
 
     if (read_number(fp,&x))                            return 1;
     m->num_spheres = (int) x;
+
     m->method = SUBSTITUTION;
 
     @<Read coefficients for reflection sphere@>@;
-
     @<Read coefficients for transmission sphere@>@;
-
-    x = Read_Data_Legend(fp);
-    *params = (int) x;
-    m->num_measures = (*params >= 3) ? 3 : *params;
+    @<Read info about measurements@>@;
 
     return 0;
 }
@@ -118,6 +115,23 @@ should do the trick.
     m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
 }
 
+@ @<Read info about measurements@>=
+
+    *params = Read_Data_Legend(fp);
+    
+    if (COLUMN_LABELS[0] != '\0') {
+        m->num_measures = 0;
+        if ( strchr(COLUMN_LABELS, 'r') ) m->num_measures++;
+        if ( strchr(COLUMN_LABELS, 't') ) m->num_measures++;
+        if ( strchr(COLUMN_LABELS, 'u') ) m->num_measures++;
+        if (m->num_measures == 0) {
+            fprintf(stderr, "Column labels must have at least one 'r', 't', or 'u'\n");
+            fprintf(stderr, "Column labels = '%s'\n", COLUMN_LABELS);
+            exit(EXIT_FAILURE);
+        }
+    } else 
+        m->num_measures = (*params >= 3) ? 3 : *params;
+
 @*1 Reading just one line of a data file.
 
 This reads a line of data based on the value of |params|.
@@ -141,12 +155,6 @@ A non-zero value is returned upon a failure.
     if (m->m_r > 1) {
         m->lambda = m->m_r;
         if (read_number(fp,&m->m_r)) return 1;
-    }
-
-    if (params == -1) {
-        m->m_t = m->m_r;
-        m->m_r = 0;
-        return 0;
     }
 
     if (params == 1)       return 0;
@@ -643,8 +651,10 @@ void print_maybe(char c, char *format, double x) {
     if (c=='1' || c=='2' || c=='3' || c=='4' || c=='5' || c=='6' || c=='7') {
         n = COLUMN_LABELS[0] - '0';
         COLUMN_LABELS[0] = '\0';
-    } else 
+    } else {
         n = strlen(COLUMN_LABELS);
+    }
+
     return n;
 }
 
