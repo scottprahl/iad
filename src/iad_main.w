@@ -108,7 +108,7 @@ int main (int argc, char **argv)
     int c;
 
     long n_photons = 100000;
-    int MC_MAX_iterations = 19;
+    int MAX_MC_iterations = 19;
     int any_error = 0;
     int process_command_line = 0;
     int params = 0;
@@ -396,8 +396,8 @@ int main (int argc, char **argv)
                 break;
 
             case 'M':
-                MC_MAX_iterations = (int) my_strtod(optarg);
-                if (MC_MAX_iterations < 0 || MC_MAX_iterations > 50) {
+                MAX_MC_iterations = (int) my_strtod(optarg);
+                if (MAX_MC_iterations < 0 || MAX_MC_iterations > 50) {
                     fprintf(stderr, "Error in command-line\n");
                     fprintf(stderr, "    MC iterations '-M %s'\n", optarg);
                     exit(EXIT_FAILURE);
@@ -637,6 +637,14 @@ to calculate the optical thickness.
             Write_Header (m, r, -1);
             print_results_header(stdout);
         }
+
+        if (m.as_r !=0 && r.default_a != 0 && MAX_MC_iterations>0) {
+            double ur1, ut1, uru, utu;
+            MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu, 
+                    &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+            m_r -= m.ur1_lost;
+            m_t -= m.ut1_lost;
+        }
         print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0);
     }
 
@@ -722,10 +730,8 @@ measurements.
     calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
     print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
 
-    if (r.error != IAD_NO_ERROR) {
-        fprintf(stderr, "new error %d\n", r.error);
+    if (r.error != IAD_NO_ERROR)
         any_error = 1;
-    }
 
     if (Debug(DEBUG_ANY))
         print_long_error(r.error);
@@ -798,7 +804,7 @@ measurements.
 
 if (rt_total==1 && cl_verbosity>0) {
     Write_Header (m, r, params);
-    if (MC_MAX_iterations > 0) {
+    if (MAX_MC_iterations > 0) {
         if (n_photons>=0)
            fprintf(stdout,"#  Photons used to estimate lost light =   %ld\n",n_photons);
         else
@@ -828,7 +834,7 @@ if (m.as_r !=0 && r.default_a != 0) {
         print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
     }
 
-    while (r.MC_iterations < MC_MAX_iterations) {
+    while (r.MC_iterations < MAX_MC_iterations) {
 
         if (Debug(DEBUG_ITERATIONS))
             fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n", r.MC_iterations+1);
@@ -1048,6 +1054,7 @@ properties can be determined.
 @<Count command-line measurements@>=
 
     m.num_measures=3;
+    if (m.m_r == 0) m.num_measures--;
     if (m.m_t == 0) m.num_measures--;
     if (m.m_u == 0) m.num_measures--;
     params = m.num_measures;
