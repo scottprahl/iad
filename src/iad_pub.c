@@ -231,14 +231,20 @@ search_type determine_search(struct measure_type m, struct invert_type r)
     int search = 0;
     int independent = m.num_measures;
 
+    Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
+
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "SEARCH: starting with %d measurement(s)\n", m.num_measures);
         fprintf(stderr, "SEARCH: m_r = %8.5f ", m.m_r);
         fprintf(stderr, "m_t = %8.5f ", m.m_t);
         fprintf(stderr, "m_u = %8.5f\n", m.m_u);
+        fprintf(stderr, "SEARCH:  rt = %8.5f ", rt);
+        fprintf(stderr, " rd = %8.5f ", rd);
+        fprintf(stderr, " ru = %8.5f\n", rc);
+        fprintf(stderr, "SEARCH:  tt = %8.5f ", tt);
+        fprintf(stderr, " td = %8.5f ", td);
+        fprintf(stderr, " tu = %8.5f\n", tc);
     }
-
-    Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
     if (m.m_u == 0 && independent == 3) {
         if (Debug(DEBUG_SEARCH))
