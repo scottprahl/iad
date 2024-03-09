@@ -3,12 +3,15 @@ List of things that might or might not ever be done
 
 * revise manual
 
-* improve error handling
+* add section on debug search commands
 
-* alter stderr output so that errors in processing produce ? instead of *
+* add section on baffles
 
-* Use cos_angle consistently between main program and the cone programs
+* add section on trouble-shooting
 
-* think about a simple sanity test to check releases
+* add section on using free form input
 
-* add the ability to use the results of the last calculation
+* add section on command line options
+
+* add section on spheres
+
