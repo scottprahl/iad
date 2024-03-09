@@ -401,7 +401,11 @@ optical properties to determine.
 {
     double rt, tt, rd, td, tc, rc;
     int search=0;
-    int independent = m.num_measures;
+    int independent = 0;
+
+    if (m.m_r > 0) independent++;
+    if (m.m_t > 0) independent++;
+    if (m.m_u > 0) independent++;
 
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
