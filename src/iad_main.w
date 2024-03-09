@@ -32,6 +32,7 @@ int main (int argc, char **argv)
 {
     @<Declare variables for |main|@>@;
 
+    @<Save command-line for use later@>@;
     @<Handle options@>@;
 
     Initialize_Measure(&m);
@@ -163,7 +164,42 @@ int main (int argc, char **argv)
     clock_t start_time=clock();
     char command_line_options[] =
              "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
+    char *command_line = NULL;
 
+@ I want to add the command line to the output file.  To do this, we need to save
+the entire thing before the options get processed.  The extra |+1| in the total length 
+calculation is for the space character between options. Finally, we need to reset 
+|optind| to 1 to start |getopt()| processing from the beginning.  It should be noted
+that this strips any quotes from the command-line.
+
+@<Save command-line for use later@>=
+{
+    size_t command_line_length = 0;
+    for (int i = 0; i < argc; ++i) {
+        command_line_length += strlen(argv[i]) + 3;
+    }
+    
+    command_line = (char *)malloc(command_line_length);
+    if (command_line == NULL) {
+        fprintf(stderr, "Memory allocation failed\n");
+        return 1;
+    }
+
+    strcpy(command_line, "");
+    for (int i = 0; i < argc; ++i) {
+        if (strchr(argv[i], ' ') != NULL) {
+            strcat(command_line, "'");
+            strcat(command_line, argv[i]);
+            strcat(command_line, "' ");
+        } else {
+            strcat(command_line, argv[i]);
+            strcat(command_line, " ");
+        }
+    }
+
+    optind = 1; 
+}
+ 
 @ use the |getopt()| to process options.
 
 @<Handle options@>=
@@ -634,7 +670,7 @@ to calculate the optical thickness.
         Calculate_MR_MT(m, r, TRUE, TRUE, &m_r, &m_t);
         Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
         if (cl_verbosity>0) {
-            Write_Header (m, r, -1);
+            Write_Header (m, r, -1, command_line);
             print_results_header(stdout);
         }
 
@@ -804,7 +840,7 @@ measurements.
 @ @<Write Header @>=
 
 if (rt_total==1 && cl_verbosity>0) {
-    Write_Header (m, r, params);
+    Write_Header (m, r, params, command_line);
     if (MAX_MC_iterations > 0) {
         if (n_photons>=0)
            fprintf(stdout,"#  Photons used to estimate lost light =   %ld\n",n_photons);

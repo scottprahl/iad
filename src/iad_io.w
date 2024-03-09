@@ -349,7 +349,7 @@ int check_magic(FILE *fp)
 @*1 Formatting the header information.
 
 @<Prototype for |Write_Header|@>=
-        void Write_Header(struct measure_type m, struct invert_type r, int params)
+        void Write_Header(struct measure_type m, struct invert_type r, int params, char *cmd)
 
 @ @<Definition for |Write_Header|@>=
         @<Prototype for |Write_Header|@>
@@ -366,7 +366,7 @@ int check_magic(FILE *fp)
         double xx;
 
         printf("# Inverse Adding-Doubling %s \n",Version);
-        printf("# \n");
+        printf("# %s\n", cmd);
         printf("#                        Beam diameter = ");
         print_maybe('B', "%7.1f mm\n", m.d_beam);
         printf("#                     Sample thickness = ");
