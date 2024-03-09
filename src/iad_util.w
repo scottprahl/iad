@@ -289,7 +289,7 @@ transmission from the total transmission.
 @ Collect debugging info here
 
 @<Debug info for estimate RT@>=
-    if (Debug(DEBUG_SEARCH)) {
+    if (0 && Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"SEARCH: r_t = %8.5f ",*rt);
         fprintf(stderr,"r_d = %8.5f ",*rd);
         fprintf(stderr,"r_u = %8.5f\n",*rc);
