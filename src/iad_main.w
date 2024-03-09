@@ -692,8 +692,11 @@ to calculate the optical thickness.
 
 
 @ Need to explicitly reset |r.search| each time through the loop,
-because it will get altered by the calculation process.  We want to be
-able to let different lines have different constraints.  In particular
+because it will get altered by the calculation process.  This also allows the
+command line to overwrite the reflection or transmission value from the command-line
+with something like {\tt -r 0} or {\tt -t 0}.
+
+We also want to be able to let different lines have different constraints.  In particular
 consider the file \.{newton.tst}.  In that file the first two rows contain
 three real measurements and the last two have the collimated transmission
 explicitly set to zero --- in other words there are really only two
@@ -723,9 +726,7 @@ measurements.
 
     Inverse_RT (m, &r);
 
-    if (r.error == IAD_NO_ERROR) {
-        @<Improve result using Monte Carlo@>@;
-    }
+    @<Improve result using Monte Carlo@>@;
 
     calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
     print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
@@ -825,7 +826,7 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (m.as_r !=0 && r.default_a != 0) {
+if (r.error == IAD_NO_ERROR && m.num_spheres > 0 && r.default_a > 0) {
     double mu_sp_last = mu_sp;
     double mu_a_last  = mu_a;
 
