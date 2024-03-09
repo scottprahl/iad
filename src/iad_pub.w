@@ -264,6 +264,12 @@ no need to check \.{MR} because it is ignored.
         double mr,mt;
         Calculate_Minimum_MR(m,r,&mr,&mt);
 
+        if (m.m_r < 0)
+            return IAD_MR_TOO_SMALL;
+
+        if (m.m_r > 1)
+            return IAD_MR_TOO_BIG;
+
         /* one parameter search only needs one good measurement */
         if (r.search==FIND_A  || r.search==FIND_G || r.search==FIND_B ||
             r.search==FIND_Bs || r.search == FIND_Ba) {
@@ -293,6 +299,9 @@ if the number of spheres is more than zero.
 
     if (m.m_t < 0)
         return IAD_MT_TOO_SMALL;
+
+    if (m.m_t > 1)
+        return IAD_MR_TOO_BIG;
 
     Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide,
              r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
