@@ -3,8 +3,11 @@ Changelog
 
 v3.15.2 (xx Mar 2024)
 --------------------
-*   allow flexible input files
+*   flexible columns input files
 *   add -w and -W command line options
+*   include MC lost light in -z calculations
+*   include MC lost light in 1 parameter searches
+*   better support for overwriting r&t file data from command-line
 
 v3.15.1 (4 Mar 2024)
 --------------------
