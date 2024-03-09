@@ -397,7 +397,7 @@ optical properties to determine.
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr, "SEARCH: starting with %d measurement(s)\n",m.num_measures);
+        fprintf(stderr, "SEARCH: starting with %d measurement(s)\n",independent);
         fprintf(stderr, "SEARCH: m_r = %8.5f ",m.m_r);
         fprintf(stderr, "m_t = %8.5f ",m.m_t);
         fprintf(stderr, "m_u = %8.5f\n",m.m_u);
@@ -440,7 +440,7 @@ optical properties to determine.
     if (search == FIND_BG && m.m_u>0) search = FIND_G;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr,"SEARCH: ending with %d measurement(s)\n",m.num_measures);
+        fprintf(stderr,"SEARCH: ending with %d measurement(s)\n",independent);
         fprintf(stderr,"SEARCH: final choice for search = ");
         if (search==FIND_A)    fprintf(stderr,"FIND_A\n");
         if (search==FIND_B)    fprintf(stderr,"FIND_B\n");
