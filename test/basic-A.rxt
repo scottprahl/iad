@@ -27,9 +27,7 @@ IAD1   # Must be first four characters
 1.00   # [mm] Detector Port Diameter
 0.96   # Reflectivity of the sphere wall
 
-1      # Number of measurements, M_R, M_T
-
-#M_R 	            #mua  mus  g
+        r
 0.2992621379268361  #0.1  1.0  0.0
 0.1722475379306846  #0.3  1.0  0.0
 0.1308339701159747  #0.5  1.0  0.0
