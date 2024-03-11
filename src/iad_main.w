@@ -862,7 +862,7 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (r.error == IAD_NO_ERROR && m.num_spheres > 0 && r.default_a > 0) {
+if (r.error == IAD_NO_ERROR && m.num_spheres > 0 && r.default_a !=0) {
     double mu_sp_last = mu_sp;
     double mu_a_last  = mu_a;
 
