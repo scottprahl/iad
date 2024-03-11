@@ -199,6 +199,7 @@ clean:
 	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
 	rm -f libiad.dll src/libiad.dll
 	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost_test
+	rm -rf test/.jupyter test/.ipynb_checkpoints .jupyter .ipynb_checkpoints
 
 realclean:
 	make clean

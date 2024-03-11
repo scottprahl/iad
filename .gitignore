@@ -21,6 +21,10 @@ docs/*graffle
 src/ad.*
 src/iad.*
 src/lib_*
+test/.ipynb_checkpoints/*
+test/.jupyter/*
+.ipynb_checkpoints/*
+.jupyter/*
 
 # macOS cruft
 .DS_Store
