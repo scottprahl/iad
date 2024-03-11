@@ -4,10 +4,10 @@ IAD1   # Must be first four characters
 # The order of entries is important 
 # Anything after a '#' is ignored, blank lines are also ignored
  
-1.468   # Index of refraction of the sample
-1   # Index of refraction of the top and bottom slides
-3.72    # [mm] Thickness of sample
-0    # [mm] Thickness of slides
+1.468  # Index of refraction of the sample
+1      # Index of refraction of the top and bottom slides
+3.72   # [mm] Thickness of sample
+0      # [mm] Thickness of slides
 5.0    # [mm] Diameter of illumination beam
 0.98   # Reflectivity of the reflectance calibration standard
 
@@ -27,8 +27,7 @@ IAD1   # Must be first four characters
 1.00   # [mm] Detector Port Diameter
 0.96   # Reflectivity of the sphere wall
 
-2      # Number of measurements, M_R, M_T
-##Wavelength	M_R	M_T
+L         	r                 	t
 359.000000	0.0676598387337058	0.392955421066919
 360.000000	0.0539325842636031	0.518358531261516
 361.000000	0.043137255	0.65429687496624

@@ -8,14 +8,17 @@ IAD1
 0.0    # [mm] Thickness of slides
 5.0    # [mm] Diameter of illumination beam
 0.96   # Reflectivity of the reflectance calibration standard
+
 1      # Number of spheres used during each measurement
-       # Properties of sphere used for reflection measurements
+
+# Properties of sphere used for reflection measurements
 203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
 50.8   # [mm] Sample Port Diameter
 6.35   # [mm] Empty Port Diameter
 1.00   # [mm] Detector Port Diameter
 0.96   # Reflectivity of the sphere wall
-       # Properties of sphere used for transmission measurements
+
+# Properties of sphere used for transmission measurements
 203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
 50.8   # [mm] Sample Port Diameter
 6.35   # [mm] Empty Port Diameter
