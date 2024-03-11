@@ -86,6 +86,6 @@ $(OUT_FILES): %.txt: %.rxt
 	$(IAD_EXECUTABLE) $(OPTIONS) $<
 
 clean:
-	rm -f *.txt
+	rm -f *.txt *.svg *.ipynb
 
 .PHONY : clean
