@@ -1,0 +1,232 @@
+#!/usr/bin/env python3
+
+# pylint: disable=invalid-name
+# pylint: disable=too-many-locals
+# pylint: disable=consider-using-f-string
+
+from datetime import datetime
+import argparse
+import os
+import re
+import subprocess
+import shlex
+import numpy as np
+import matplotlib.pyplot as plt
+import nbformat
+from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
+
+def plot_good_and_bad(x, y, success, big_points=False):
+    plt.figure(figsize=(8, 4.5))
+    if big_points:
+        size = 7
+    else :
+        size =2
+    if any(success):
+        plt.plot(x[success], y[success], marker='o', markersize=size,
+                 markerfacecolor='none', markeredgecolor='blue', linestyle='None',
+                 label='fit')
+
+    if any(~success):
+        plt.plot(x[~success], y[~success], 'xr', label='failed')
+    plt.xlabel('Wavelength (nm)')
+
+def plot_r(lam, mr, cr, success, filename_base):
+    """Plot measured reflection and fitted reflection."""
+    out_filename = filename_base + '-R.svg'
+    plot_good_and_bad(lam, cr, success, True)
+    plt.plot(lam, mr, 'ok', markersize=2, label='measured')
+    plt.ylabel('Reflection')
+    plt.legend()
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+
+def plot_t(lam, mt, ct, success, filename_base):
+    """Plot measured reflection and fitted transmission."""
+    out_filename = filename_base + '-T.svg'
+    plot_good_and_bad(lam, ct, success, True)
+    plt.plot(lam, mt, 'ok', markersize=2, label='measured')
+    plt.ylabel('Transmission')
+    plt.legend()
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+
+def plot_mua(lam, mua, success, filename_base):
+    """Plot calculated absorption coefficient."""
+    out_filename = filename_base + '-mua.svg'
+    plot_good_and_bad(lam, mua, success)
+    plt.ylabel('Absorption Coefficient (mm⁻¹)')
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+
+def plot_musp(lam, musp, success, filename_base):
+    """Plot calculated reduced scattering coefficient."""
+    out_filename = filename_base + '-musp.svg'
+    plot_good_and_bad(lam, musp, success)
+    plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)')
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+
+def plot_mus(lam, mus, success, filename_base):
+    """Plot calculated scattering coefficient."""
+    out_filename = filename_base + '-mus.svg'
+    plot_good_and_bad(lam, mus, success)
+    plt.ylabel('Scattering Coefficient (mm⁻¹)')
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+
+def plot_g(lam, g, success, filename_base):
+    """Plot calculated scattering coefficient."""
+    out_filename = filename_base + '-g.svg'
+    plot_good_and_bad(lam, g, success)
+    plt.ylabel('Scattering Anisotropy')
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+def plot_a(lam, a, success, filename_base):
+    """Plot calculated albedo."""
+    out_filename = filename_base + '-a.svg'
+    plot_good_and_bad(lam, a, success)
+    plt.ylabel(r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$')
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+def plot_b(lam, b, success, filename_base):
+    """Plot calculated scattering coefficient."""
+    out_filename = filename_base + '-b.svg'
+    plot_good_and_bad(lam, b, success)
+    plt.ylabel(r'Optical Thickness $(\mu_a+\mu_s)d$')
+    plt.savefig(out_filename, dpi=300)
+    return os.path.basename(out_filename)
+
+def append_graph_cell(nb, header, graph):
+    cell_text = header + "\n"
+    cell_text += "<center>\n"
+    cell_text += '    <img src="' + graph + '" width="80%" />\n'
+    cell_text += "</center>\n"
+    nb.cells.append(new_markdown_cell(cell_text))
+
+
+def append_file_cell(nb, header, file):
+    base = os.path.basename(file)
+    cell_text = header + '\n'
+    cell_text += 'with open("' + base + '", "r", encoding="utf-8") as file:\n'
+    cell_text += '    file_contents = file.read()\n'
+    cell_text += '\n'
+    cell_text += 'print(file_contents)\n'
+    nb.cells.append(new_code_cell(cell_text))
+
+
+def append_header(nb, output_filename):
+    # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
+    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic-B.txt test/basic-B.rxt
+    with open(output_filename, 'r', encoding='utf-8') as file:
+        first_line = file.readline()
+        second_line = file.readline()
+        third_line = file.readline()
+        fourth_line = file.readline()
+
+    pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
+    match = re.search(pattern, first_line)
+    if not match:
+        raise ValueError('File %s contains bad contents' % output_filename)
+    version = match.group(1)
+    build = match.group(2)
+
+    today = datetime.today()
+    formatted_date = today.strftime('%d %b %Y')
+
+    cell_text = "# Inverse Adding-Doubling Analysis\n\n"
+    cell_text += "iad version %s built on %s\n\n" % (version,build)
+    cell_text += "This analysis was done on %s\n\n" % formatted_date
+    cell_text += "The command-line was\n\n"
+    cell_text += "    " + second_line + "\n"
+    nb.cells.append(new_markdown_cell(cell_text))
+
+    pattern = r'=\s*(\d+\.\d*)'
+    match = re.search(pattern, fourth_line)
+    d_str = match.group(1)
+    return float(d_str)
+    
+
+def main():
+    nb = new_notebook()
+    nb.metadata['kernelspec'] = {
+        'display_name': 'Python 3',
+        'language': 'python',
+        'name': 'python3'
+    }
+
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('input_filename', type=str, help='The input file name')
+    parser.add_argument('-options', metavar='OPTIONS', type=str, nargs='?',
+                        help='options to pass to iad program')
+    args = parser.parse_args()
+
+    folder = os.path.abspath(os.path.dirname(args.input_filename))
+    base = os.path.splitext(os.path.basename(args.input_filename))[0]
+
+    base_path = os.path.join(folder, base)
+    out_path = os.path.join(folder, base + '.txt')
+    ipynb_path = os.path.join(folder, base + '.ipynb')
+
+    # Building the command list in a safe manner
+    command = ['iad']
+    if args.options:
+        command.extend(shlex.split(args.options))
+    command.extend(['-o', shlex.quote(out_path), shlex.quote(args.input_filename)])
+
+    command_str = ' '.join(command)
+    print('running:', command_str)
+    subprocess.run(command, shell=False, check=True)
+
+    result = np.loadtxt(out_path, skiprows=44, usecols=range(8), delimiter='\t')
+    lam, mr, cr, mt, ct, mua, musp, g = result.T
+
+    converters = {8: lambda s: s.strip()}
+    status = np.loadtxt(out_path, usecols=[8], dtype=str, converters=converters)
+    success = status == '*'
+
+    d = append_header(nb, out_path)
+    mus = musp/(1-g)
+    b = (mua + mus)*d
+
+    denominator = mua + mus
+    safe_denominator = np.where(denominator == 0, np.inf, denominator)
+    a = mus / safe_denominator
+
+    r_graph = plot_r(lam, mr, cr, success, base_path)
+    t_graph = plot_t(lam, mt, ct, success, base_path)
+    mua_graph = plot_mua(lam, mua, success, base_path)
+    musp_graph = plot_musp(lam, musp, success, base_path)
+    mus_graph = plot_mus(lam, mus, success, base_path)
+    a_graph = plot_a(lam, a, success, base_path)
+    b_graph = plot_b(lam, b, success, base_path)
+    g_graph = plot_g(lam, g, success, base_path)
+
+    append_graph_cell(nb, '## Reflection', r_graph)
+    append_graph_cell(nb, '## Transmission', t_graph)
+    append_graph_cell(nb, '## Single Scattering Albedo', a_graph)
+    append_graph_cell(nb, '## Optical Thickness', b_graph)
+    append_graph_cell(nb, '## Scattering Anisotropy', g_graph)
+    append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
+    append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
+    append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
+
+    nb.cells.append(new_markdown_cell("## Input file\n"))
+    append_file_cell(nb, '# input file', args.input_filename)
+
+    nb.cells.append(new_markdown_cell("## Output file\n"))
+    append_file_cell(nb, '# output file', out_path)
+
+    # Save the notebook
+    with open(ipynb_path, "w", encoding="utf-8") as f:
+        nbformat.write(nb, f)
+
+
+if __name__ == "__main__":
+    main()
