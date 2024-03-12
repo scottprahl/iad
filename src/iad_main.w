@@ -163,7 +163,7 @@ int main (int argc, char **argv)
 
     clock_t start_time=clock();
     char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:x:Xz";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
     char *command_line = NULL;
 
 @ I want to add the command line to the output file.  To do this, we need to save
