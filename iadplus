@@ -13,6 +13,7 @@ import shlex
 import numpy as np
 import matplotlib.pyplot as plt
 import nbformat
+import urllib.parse
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
 def plot_good_and_bad(x, y, success, big_points=False):
@@ -38,6 +39,7 @@ def plot_r(lam, mr, cr, success, filename_base):
     plt.ylabel('Reflection')
     plt.legend()
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 
@@ -49,6 +51,7 @@ def plot_t(lam, mt, ct, success, filename_base):
     plt.ylabel('Transmission')
     plt.legend()
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 
@@ -58,6 +61,7 @@ def plot_mua(lam, mua, success, filename_base):
     plot_good_and_bad(lam, mua, success)
     plt.ylabel('Absorption Coefficient (mm⁻¹)')
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 
@@ -67,6 +71,7 @@ def plot_musp(lam, musp, success, filename_base):
     plot_good_and_bad(lam, musp, success)
     plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)')
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 
@@ -76,6 +81,7 @@ def plot_mus(lam, mus, success, filename_base):
     plot_good_and_bad(lam, mus, success)
     plt.ylabel('Scattering Coefficient (mm⁻¹)')
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 
@@ -85,6 +91,7 @@ def plot_g(lam, g, success, filename_base):
     plot_good_and_bad(lam, g, success)
     plt.ylabel('Scattering Anisotropy')
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 def plot_a(lam, a, success, filename_base):
@@ -93,6 +100,7 @@ def plot_a(lam, a, success, filename_base):
     plot_good_and_bad(lam, a, success)
     plt.ylabel(r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$')
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 def plot_b(lam, b, success, filename_base):
@@ -101,12 +109,14 @@ def plot_b(lam, b, success, filename_base):
     plot_good_and_bad(lam, b, success)
     plt.ylabel(r'Optical Thickness $(\mu_a+\mu_s)d$')
     plt.savefig(out_filename, dpi=300)
+    plt.close()
     return os.path.basename(out_filename)
 
 def append_graph_cell(nb, header, graph):
     cell_text = header + "\n"
+    url_encoded_filename = urllib.parse.quote(graph)
     cell_text += "<center>\n"
-    cell_text += '    <img src="' + graph + '" width="80%" />\n'
+    cell_text += '    <img src="' + url_encoded_filename + '" width="80%" />\n'
     cell_text += "</center>\n"
     nb.cells.append(new_markdown_cell(cell_text))
 
@@ -152,80 +162,99 @@ def append_header(nb, output_filename):
     d_str = match.group(1)
     return float(d_str)
     
+# This processes multiple .rxt files.  For each, it creates a .txt file in
+# the same directory as the .rxt file.  It also
 
 def main():
-    nb = new_notebook()
-    nb.metadata['kernelspec'] = {
-        'display_name': 'Python 3',
-        'language': 'python',
-        'name': 'python3'
-    }
-
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('input_filename', type=str, help='The input file name')
+    parser.add_argument('input_files', nargs='+', help='List of input files')
     parser.add_argument('-options', metavar='OPTIONS', type=str, nargs='?',
                         help='options to pass to iad program')
     args = parser.parse_args()
 
-    folder = os.path.abspath(os.path.dirname(args.input_filename))
-    base = os.path.splitext(os.path.basename(args.input_filename))[0]
+    # You can then iterate over this list to open and process each file
+    for file_name in args.input_files:
 
-    base_path = os.path.join(folder, base)
-    out_path = os.path.join(folder, base + '.txt')
-    ipynb_path = os.path.join(folder, base + '.ipynb')
+        abs_dir = os.path.abspath(os.path.dirname(file_name))
+        local_dir = os.path.dirname(file_name)
+        base = os.path.splitext(os.path.basename(file_name))[0]
+    
+        base_path = os.path.join(local_dir, base)
+        out_path = os.path.join(local_dir, base + '.txt')
+        ipynb_path = os.path.join(local_dir, base + '.ipynb')
+    
+        if not os.path.exists(base_path + '.rxt'):
+            raise ValueError('input file "%s" must end in ".rxt"' % file_name)
+    
+        # Building the command list in a safe manner
+        command = ['iad']
+        if args.options:
+            command.extend(shlex.split(args.options))
+#        command.extend(['-o', shlex.quote(out_path), shlex.quote(file_name)])
+        command.extend([shlex.quote(file_name)])
+    
+        command_str = ' '.join(command)
+        print('running:', command_str)
+        subprocess.run(command, shell=False, check=True)
+    
+        result = np.loadtxt(out_path, skiprows=44, usecols=range(8), delimiter='\t')
+        lam, mr, cr, mt, ct, mua, musp, g = result.T
+        lam = np.atleast_1d(lam)
+        mr = np.atleast_1d(mr)
+        cr = np.atleast_1d(cr)
+        mt = np.atleast_1d(mt)
+        ct = np.atleast_1d(ct)
+        mua = np.atleast_1d(mua)
+        musp = np.atleast_1d(musp)
+        g = np.atleast_1d(g)
+    
+        converters = {8: lambda s: s.strip()}
+        status = np.loadtxt(out_path, usecols=[8], dtype=str, converters=converters)
+        status = np.atleast_1d(status)
+        success = status == '*'
+    
+        nb = new_notebook()
+        nb.metadata['kernelspec'] = {
+            'display_name': 'Python 3',
+            'language': 'python',
+            'name': 'python3'
+        }
 
-    # Building the command list in a safe manner
-    command = ['iad']
-    if args.options:
-        command.extend(shlex.split(args.options))
-    command.extend(['-o', shlex.quote(out_path), shlex.quote(args.input_filename)])
-
-    command_str = ' '.join(command)
-    print('running:', command_str)
-    subprocess.run(command, shell=False, check=True)
-
-    result = np.loadtxt(out_path, skiprows=44, usecols=range(8), delimiter='\t')
-    lam, mr, cr, mt, ct, mua, musp, g = result.T
-
-    converters = {8: lambda s: s.strip()}
-    status = np.loadtxt(out_path, usecols=[8], dtype=str, converters=converters)
-    success = status == '*'
-
-    d = append_header(nb, out_path)
-    mus = musp/(1-g)
-    b = (mua + mus)*d
-
-    denominator = mua + mus
-    safe_denominator = np.where(denominator == 0, np.inf, denominator)
-    a = mus / safe_denominator
-
-    r_graph = plot_r(lam, mr, cr, success, base_path)
-    t_graph = plot_t(lam, mt, ct, success, base_path)
-    mua_graph = plot_mua(lam, mua, success, base_path)
-    musp_graph = plot_musp(lam, musp, success, base_path)
-    mus_graph = plot_mus(lam, mus, success, base_path)
-    a_graph = plot_a(lam, a, success, base_path)
-    b_graph = plot_b(lam, b, success, base_path)
-    g_graph = plot_g(lam, g, success, base_path)
-
-    append_graph_cell(nb, '## Reflection', r_graph)
-    append_graph_cell(nb, '## Transmission', t_graph)
-    append_graph_cell(nb, '## Single Scattering Albedo', a_graph)
-    append_graph_cell(nb, '## Optical Thickness', b_graph)
-    append_graph_cell(nb, '## Scattering Anisotropy', g_graph)
-    append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
-    append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
-    append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
-
-    nb.cells.append(new_markdown_cell("## Input file\n"))
-    append_file_cell(nb, '# input file', args.input_filename)
-
-    nb.cells.append(new_markdown_cell("## Output file\n"))
-    append_file_cell(nb, '# output file', out_path)
-
-    # Save the notebook
-    with open(ipynb_path, "w", encoding="utf-8") as f:
-        nbformat.write(nb, f)
+        d = append_header(nb, out_path)
+        mus = musp/(1-g)
+        b = (mua + mus)*d
+    
+        denominator = mua + mus
+        safe_denominator = np.where(denominator == 0, np.inf, denominator)
+        a = mus / safe_denominator
+    
+        r_graph = plot_r(lam, mr, cr, success, base_path)
+        t_graph = plot_t(lam, mt, ct, success, base_path)
+        mua_graph = plot_mua(lam, mua, success, base_path)
+        musp_graph = plot_musp(lam, musp, success, base_path)
+        mus_graph = plot_mus(lam, mus, success, base_path)
+        a_graph = plot_a(lam, a, success, base_path)
+        b_graph = plot_b(lam, b, success, base_path)
+        g_graph = plot_g(lam, g, success, base_path)
+    
+        append_graph_cell(nb, '## Reflection', r_graph)
+        append_graph_cell(nb, '## Transmission', t_graph)
+        append_graph_cell(nb, '## Single Scattering Albedo', a_graph)
+        append_graph_cell(nb, '## Optical Thickness', b_graph)
+        append_graph_cell(nb, '## Scattering Anisotropy', g_graph)
+        append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
+        append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
+        append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
+    
+        nb.cells.append(new_markdown_cell("## Input file\n"))
+        append_file_cell(nb, '# input file', base + '.rxt')
+    
+        nb.cells.append(new_markdown_cell("## Output file\n"))
+        append_file_cell(nb, '# output file', base + '.txt')
+    
+        # Save the notebook
+        with open(ipynb_path, "w", encoding="utf-8") as f:
+            nbformat.write(nb, f)
 
 
 if __name__ == "__main__":
