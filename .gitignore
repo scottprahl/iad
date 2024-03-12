@@ -21,10 +21,6 @@ docs/*graffle
 src/ad.*
 src/iad.*
 src/lib_*
-test/.ipynb_checkpoints/*
-test/.jupyter/*
-.ipynb_checkpoints/*
-.jupyter/*
 
 # macOS cruft
 .DS_Store
@@ -34,7 +30,11 @@ test/.jupyter/*
 *.zip
 
 # Ignore (generated) .txt files,
+test/.ipynb_checkpoints/*
+test/.jupyter/*
 test/*.txt
+test/*.svg
+test/*.ipynb
 
 # Ignore generated .o and .c and .h files
 src/*.o
