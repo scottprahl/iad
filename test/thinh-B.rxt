@@ -22,7 +22,7 @@ IAD1  # Must be first four characters
 0.6    # [mm] Detector Port Diameter
 0.94   # Reflectivity of the sphere wall (empirical value, 0.9885)
 
-  -L  	  -r   	  -t   	  -n  	  -R   	  -w   	  -W
+  L  	  r   	  t   	  n  	  R   	  w   	  W
 403.98	0.31384	0.36868	1.4071	0.46456	0.93091	0.93091
 412.24	0.36652	0.41727	1.4062	0.46571	0.93681	0.93681
 420.48	0.37742	0.42885	1.4055	0.46687	0.94392	0.94392
