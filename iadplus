@@ -221,7 +221,7 @@ def main():
 
         abs_dir = os.path.abspath(os.path.dirname(file_name))
         local_dir = os.path.dirname(file_name)
-        base = os.path.splitext(os.path.basename(fil*_name))[0]
+        base = os.path.splitext(os.path.basename(file_name))[0]
 
         base_path = os.path.join(local_dir, base)
         out_path = os.path.join(local_dir, base + '.txt')
