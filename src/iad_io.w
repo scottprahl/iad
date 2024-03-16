@@ -220,6 +220,10 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
                 r->tolerance = x;
                 r->MC_tolerance = x;
                 break;
+            case 'E':
+                m->slab_bottom_slide_b = x;
+                m->slab_top_slide_b = x;
+                break;
             case 'F':
                 r->default_mus = x;
                 r->default_bs = x * m->slab_thickness;
