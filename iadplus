@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import nbformat
 import urllib.parse
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
+from scipy.optimize import curve_fit
 
 def plot_good_and_bad(x, y, success, big_points=False):
     plt.figure(figsize=(8, 4.5))
@@ -78,21 +79,39 @@ def plot_mua(lam, mua, success, filename_base):
     plt.close()
     return os.path.basename(out_filename)
 
+# Define the function you want to fit
+def scattering_model(x, a, b):
+    return a * (x / 1000) ** (-b)
 
-def plot_musp(lam, musp, success, filename_base):
+def plot_musp(lam, musp, success, filename_base, fit=False):
     """Plot calculated reduced scattering coefficient."""
     out_filename = filename_base + '-musp.svg'
     plot_good_and_bad(lam, musp, success)
+    if fit:
+        popt, pcov = curve_fit(scattering_model, lam[success], musp[success])
+        a_opt, b_opt = popt
+        lamb = np.linspace(min(lam), max(lam))
+        fn_str = "musp=%g * (lamba_nm/1000)**(-%g)" % (a_opt, b_opt)
+        plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
+        plt.legend()
+
     plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)')
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
 
 
-def plot_mus(lam, mus, success, filename_base):
+def plot_mus(lam, mus, success, filename_base, fit=False):
     """Plot calculated scattering coefficient."""
     out_filename = filename_base + '-mus.svg'
     plot_good_and_bad(lam, mus, success)
+    if fit:
+        popt, pcov = curve_fit(scattering_model, lam[success], mus[success])
+        a_opt, b_opt = popt
+        lamb = np.linspace(min(lam), max(lam))
+        fn_str = "mus=%g * (lamba_nm/1000)**(-%g)" % (a_opt, b_opt)
+        plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
+        plt.legend()
     plt.ylabel('Scattering Coefficient (mm⁻¹)')
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -183,15 +202,18 @@ def append_header(nb, output_filename):
     cell_text += "The command-line was\n\n"
     cell_text += "    " + second_line + "\n"
     nb.cells.append(new_markdown_cell(cell_text))
-    
-# This processes multiple .rxt files.  For each, it creates a .txt file in
-# the same directory as the .rxt file.  It also
 
 def main():
-    parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('input_files', nargs='+', help='List of input files')
+    desc =  'A wrapper for the iad program that creates a Jupyter notebook with plots '
+    desc += 'of the input, the fitted results, and the derived optical properties.'
+    parser = argparse.ArgumentParser(description=desc)
+    parser.add_argument('input_files', nargs='+', help='List of .rxt files to process')
     parser.add_argument('-options', metavar='OPTIONS', type=str, nargs='?',
-                        help='options to pass to iad program')
+                        help='options to pass to iad program, e.g., "-c 0"')
+    parser.add_argument('--force', action='store_true',
+                        help='Force reanalysis of files')
+    parser.add_argument('--fit', action='store_true',
+                        help='Fit scattering data to a*(λ/1000nm)**(-b)')
     args = parser.parse_args()
 
     # You can then iterate over this list to open and process each file
@@ -199,26 +221,28 @@ def main():
 
         abs_dir = os.path.abspath(os.path.dirname(file_name))
         local_dir = os.path.dirname(file_name)
-        base = os.path.splitext(os.path.basename(file_name))[0]
-    
+        base = os.path.splitext(os.path.basename(fil*_name))[0]
+
         base_path = os.path.join(local_dir, base)
         out_path = os.path.join(local_dir, base + '.txt')
         ipynb_path = os.path.join(local_dir, base + '.ipynb')
-    
+
         if not os.path.exists(base_path + '.rxt'):
             raise ValueError('input file "%s" must end in ".rxt"' % file_name)
-    
-        # Building the command list in a safe manner
-        command = ['iad']
-        if args.options:
-            command.extend(shlex.split(args.options))
-#        command.extend(['-o', shlex.quote(out_path), shlex.quote(file_name)])
-        command.extend([shlex.quote(file_name)])
-    
-        command_str = ' '.join(command)
-        print('running:', command_str)
-        subprocess.run(command, shell=False, check=True)
-    
+
+        if not os.path.exists(base_path + '.txt') or args.force:
+            command = ['iad']
+            if args.options:
+                command.extend(shlex.split(args.options))
+            command.extend([shlex.quote(file_name)])
+            command_str = ' '.join(command)
+
+            print('running:', command_str)
+            subprocess.run(command, shell=False, check=True)
+
+        if os.path.exists(base_path + '.ipynb') and not args.force:
+            continue
+
         result = np.loadtxt(out_path, skiprows=44, usecols=range(8), delimiter='\t')
         lam, mr, cr, mt, ct, mua, musp, g = result.T
         lam = np.atleast_1d(lam)
@@ -229,30 +253,30 @@ def main():
         mua = np.atleast_1d(mua)
         musp = np.atleast_1d(musp)
         g = np.atleast_1d(g)
-    
+
         converters = {8: lambda s: s.strip()}
         status = np.loadtxt(out_path, usecols=[8], dtype=str, converters=converters)
         status = np.atleast_1d(status)
         success = status == '*'
-    
+
         d = get_thickness(out_path)
         mus = musp/(1-g)
         b = (mua + mus)*d
-    
+
         denominator = mua + mus
         safe_denominator = np.where(denominator == 0, np.inf, denominator)
         a = mus / safe_denominator
-    
+
         rt_graph = plot_rt(lam, mr, mt, base_path)
         r_graph = plot_r(lam, mr, cr, success, base_path)
         t_graph = plot_t(lam, mt, ct, success, base_path)
         mua_graph = plot_mua(lam, mua, success, base_path)
-        musp_graph = plot_musp(lam, musp, success, base_path)
-        mus_graph = plot_mus(lam, mus, success, base_path)
+        musp_graph = plot_musp(lam, musp, success, base_path, fit=args.fit)
+        mus_graph = plot_mus(lam, mus, success, base_path, fit=args.fit)
         a_graph = plot_a(lam, a, success, base_path)
         b_graph = plot_b(lam, b, success, base_path)
         g_graph = plot_g(lam, g, success, base_path)
-    
+
         nb = new_notebook()
         nb.metadata['kernelspec'] = {
             'display_name': 'Python 3',
@@ -270,13 +294,13 @@ def main():
         append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
         append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
         append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
-    
+
         nb.cells.append(new_markdown_cell("## Input file\n"))
         append_file_cell(nb, '# input file', base + '.rxt')
-    
+
         nb.cells.append(new_markdown_cell("## Output file\n"))
         append_file_cell(nb, '# output file', base + '.txt')
-    
+
         # Save the notebook
         with open(ipynb_path, "w", encoding="utf-8") as f:
             nbformat.write(nb, f)
