@@ -37,45 +37,14 @@ to translate the reflection and transmission measurements to optical properties 
 
 > For Windows, there are executable binaries `ad.exe` and `iad.exe` compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run using the `Command Prompt` application `cmd.exe`.  These binaries are packaged in a separate `iad-win` distributions on [github](https://github.com/scottprahl/iad/releases) or [omlc](https://omlc.org/software/iad/).
 
-### Changelog
+### Jupyter support
 
-This is located in the `doc/` directory.
+As of March 2024, there is now a python command-line script `iadplus` that will analyze an `.rxt` input file and graph the results.  Everything is assembled into a Jupyter notebook for convenience.  You may need to install some python modules to be able to use `iadplus`
 
-### Python support
+    iadplus -options '-i 8 -X ' file.rxt
 
-Once you have installed the shared library (`.dylib` under macOS) or (`.so` under linux) then you can install python bindings
-
-    pip install iadpython
-
-then in Jupyter 
-
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import iadpython as iad
-    
-    g = np.linspace(0.5,0.8,50)
-    plt.plot(g, iad.rt(1,1,0.5,1.0,g))
-    plt.show()
-
-### Shared library support.  
-
-Edit the `Makefile` to select the right type of shared library for your platform
-
-    make install-lib
-
-### Mathematica support.  
-
-If you have Mathematica, then (and only if you have installed the right
-tools and edited the Makefile for your platform) and have the libraries installed then you should be able to type
-
-    make mma
-	make install mma
-
-and then load the iad module and then type 
-
-    Plot[UR1[0.5,1.0,g], {g,0.5,0.8}]
-
-in Mathematica to get a graph.  Very cool.
+will produce `file.txt` as well as bunch of `.svg` files for the Jupyter notebook
+`file.ipynb`
 
 ## Author
 
