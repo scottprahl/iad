@@ -791,6 +791,11 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
     fprintf(stderr,"thick  top=%10.5f cos=%10.5f  bot=%10.5f\n",
         r.slab.b_top_slide, r.slab.cos_angle,r.slab.b_bottom_slide);
     fprintf(stderr,"search = %d quadrature points = %d\n", r.search,r.method.quad_pts );
+    fprintf(stderr,"default_a = %10.5f\n", r.default_a );
+    fprintf(stderr,"default_b = %10.5f\n", r.default_b );
+    fprintf(stderr,"default_g = %10.5f\n", r.default_g );
+    fprintf(stderr,"default_mua = %10.5f\n", r.default_mua );
+    fprintf(stderr,"default_mus = %10.5f\n", r.default_mus );
 }
 
 @
