@@ -38,7 +38,7 @@ int main (int argc, char **argv)
     Initialize_Measure(&m);
     @<Command-line changes to |m|@>@;
 
-    Initialize_Result(m, &r);
+    Initialize_Result(m, &r, TRUE);
     @<Command-line changes to |r|@>@;
 
     if (cl_forward_calc != UNINITIALIZED) {
@@ -749,7 +749,7 @@ measurements.
         fprintf(stderr, "MR=%8.5f MT=%8.5f\n\n", m.m_r, m.m_t);
     }
 
-    Initialize_Result(m, &r);
+    Initialize_Result(m, &r, FALSE);
 
     @<Command-line changes to |r|@>@;
     @<Warn and quit for bad options@>@;
@@ -801,7 +801,7 @@ measurements.
     if (cl_default_a != UNINITIALIZED)
         r.default_a = cl_default_a;
 
-    if (cl_default_mua != UNINITIALIZED) {
+    if (cl_default_mua != UNINITIALIZED && r.default_mua != UNINITIALIZED) {
         r.default_mua = cl_default_mua;
         if (cl_sample_d != UNINITIALIZED)
             r.default_ba = cl_default_mua * cl_sample_d;
