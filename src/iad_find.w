@@ -117,7 +117,7 @@ made in the analagous code for |a| and |b|.
     /* distance to last result */
     abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 
-    if (!Valid_Grid(m, r->search)) Fill_Grid(m,*r,1);
+    if (!Valid_Grid(m, *r)) Fill_Grid(m,*r,1);
 
     /* distance to nearest grid point */
     Near_Grid_Points(m.m_r,m.m_t,r->search, &i_best, &j_best);

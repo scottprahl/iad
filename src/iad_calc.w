@@ -445,11 +445,12 @@ If this routine returns true, then it is a pretty good bet that the values
 in the current grid can be used to guess the next starting set of values.
 
 @<Prototype for |Valid_Grid|@>=
-boolean_type Valid_Grid(struct measure_type m, search_type s)
+boolean_type Valid_Grid(struct measure_type m, struct invert_type r)
 
 @ @<Definition for |Valid_Grid|@>=
     @<Prototype for |Valid_Grid|@>
 {
+    int s = r.search;
     @<Tests for invalid grid@>@;
 
     return(TRUE);
@@ -511,6 +512,11 @@ boolean_type Valid_Grid(struct measure_type m, search_type s)
     if (m.slab_bottom_slide_index != MGRID.slab_bottom_slide_index) {
         if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because bottom slide index changed\n");
+        return(FALSE);
+    }
+    if (r.slab.g                  != RGRID.slab.g) {
+        if (Debug(DEBUG_GRID))
+            fprintf(stderr,"GRID: Fill because anisotropy changed\n");
         return(FALSE);
     }
 
