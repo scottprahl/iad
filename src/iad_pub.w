@@ -194,7 +194,9 @@ if (Debug(DEBUG_A_LITTLE)) {
     fprintf(stderr, " ( +++ MC loss, +++ sphere effects)\n");
 
     fprintf(stderr, "    M_R measured %8.5f  M_T measured %8.5f", m.m_r, m.m_t);
-    fprintf(stderr, " (  target values)\n\n");
+    fprintf(stderr, " (  target values)\n");
+
+    fprintf(stderr, "Final distance %8.5f\n\n", r->final_distance);
 }
 
 
@@ -402,15 +404,23 @@ optical properties to determine.
     double rt, tt, rd, td, tc, rc;
     int search=0;
     int independent = 0;
+    int constraints = 0;
 
     if (m.m_r > 0) independent++;
     if (m.m_t > 0) independent++;
     if (m.m_u > 0) independent++;
 
+    if (r.default_a != UNINITIALIZED) constraints++;
+    if (r.default_b != UNINITIALIZED) constraints++;
+    if (r.default_g != UNINITIALIZED) constraints++;
+    if (r.default_mua != UNINITIALIZED) constraints++;
+    if (r.default_mus != UNINITIALIZED) constraints++;
+
     Estimate_RT(m, r, &rt, &tt, &rd, &rc, &td, &tc);
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "SEARCH: starting with %d measurement(s)\n",independent);
+        fprintf(stderr, "SEARCH:      and with %d constraint(s)\n",constraints);
         fprintf(stderr, "SEARCH: m_r = %8.5f ",m.m_r);
         fprintf(stderr, "m_t = %8.5f ",m.m_t);
         fprintf(stderr, "m_u = %8.5f\n",m.m_u);
@@ -437,6 +447,14 @@ optical properties to determine.
         independent--;
     }
 
+    if (independent == -1) {
+        fprintf(stderr, "Something is wrong, independent should not be -1\n");
+    }
+
+    if (constraints + independent > 3) {
+        fprintf(stderr, "Too many constraints!\n");
+    }
+
     if (independent == 1 || independent == -1) {
         @<One parameter search@>@;
     }
@@ -453,8 +471,9 @@ optical properties to determine.
     if (search == FIND_BG && m.m_u>0) search = FIND_G;
 
     if (Debug(DEBUG_SEARCH)) {
-        fprintf(stderr,"SEARCH: ending with %d measurement(s)\n",independent);
-        fprintf(stderr,"SEARCH: final choice for search = ");
+        fprintf(stderr, "SEARCH: ending with %d measurement(s)\n",independent);
+        fprintf(stderr, "SEARCH:    and with %d constraint(s)\n",constraints);
+        fprintf(stderr, "SEARCH: final choice for search = ");
         if (search==FIND_A)    fprintf(stderr,"FIND_A\n");
         if (search==FIND_B)    fprintf(stderr,"FIND_B\n");
         if (search==FIND_AB)   fprintf(stderr,"FIND_AB\n");
@@ -538,6 +557,8 @@ anisotropy.
             search =  FIND_B;
         else if (r.default_g  != UNINITIALIZED)
             search =  FIND_B;
+        else if (r.default_b  != UNINITIALIZED)
+            search =  FIND_G;
         else
             search =  FIND_BG;
 
@@ -547,6 +568,10 @@ anisotropy.
             search =  FIND_A;
         else
             search =  FIND_AG;
+
+    } else if (r.default_g  != UNINITIALIZED) {
+
+        search =  FIND_AB;
 
     } else if (r.default_ba != UNINITIALIZED) {
 
@@ -575,7 +600,7 @@ the values for |r.default_g| nor for |r.method.quad_pts|.  Presumably
 these have been set correctly elsewhere.
 
 @<Prototype for |Initialize_Result|@>=
-void Initialize_Result(struct measure_type m, struct invert_type *r)
+void Initialize_Result(struct measure_type m, struct invert_type *r, int overwrite_defaults)
 
 @ @<Definition for |Initialize_Result|@>=
     @<Prototype for |Initialize_Result|@>
@@ -604,13 +629,15 @@ void Initialize_Result(struct measure_type m, struct invert_type *r)
 @ The defaults might be handy
 
 @<Fill |r| with reasonable values@>=
-    r->default_a=UNINITIALIZED;
-    r->default_b=UNINITIALIZED;
-    r->default_g=UNINITIALIZED;
-    r->default_ba=UNINITIALIZED;
-    r->default_bs=UNINITIALIZED;
-    r->default_mua=UNINITIALIZED;
-    r->default_mus=UNINITIALIZED;
+    if (overwrite_defaults) {
+        r->default_a=UNINITIALIZED;
+        r->default_b=UNINITIALIZED;
+        r->default_g=UNINITIALIZED;
+        r->default_ba=UNINITIALIZED;
+        r->default_bs=UNINITIALIZED;
+        r->default_mua=UNINITIALIZED;
+        r->default_mus=UNINITIALIZED;
+    }
 
 
 @ It is necessary to set up the slab correctly so, I stuff reasonable
@@ -674,7 +701,7 @@ no sphere parameters are included.
   m.m_t = UT1;
   m.m_u = Tc;
 
-  Initialize_Result(m,&r);
+  Initialize_Result(m,&r,TRUE);
   r.method.quad_pts=8;
 
   Inverse_RT (m, &r);
@@ -781,7 +808,7 @@ results.
     @<handle transmission sphere @>@;
     @<handle measurement @>@;
 
-    Initialize_Result(m,&r);
+    Initialize_Result(m,&r,TRUE);
     results[0]=0;
     results[1]=0;
     results[2]=0;
@@ -909,7 +936,7 @@ void Calculate_MR_MT(struct measure_type m,
         m.uru_lost = 0;
         m.utu_lost = 0;
     }
-    
+
     if (!include_spheres) {
         m.num_spheres = 0;
     }
@@ -932,13 +959,13 @@ void Calculate_Minimum_MR(struct measure_type m,
 @ @<Definition for |Calculate_Minimum_MR|@>=
     @<Prototype for |Calculate_Minimum_MR|@>
 {
-    if (m.m_u > 0) 
+    if (m.m_u > 0)
         r.slab.b = What_Is_B(r.slab, m.m_u);
 
-    else if (r.default_b != UNINITIALIZED) 
+    else if (r.default_b != UNINITIALIZED)
         r.slab.b = r.default_b;
-    
-    else 
+
+    else
         r.slab.b = HUGE_VAL;
 
     r.slab.a = 0;
@@ -1041,7 +1068,7 @@ int MinMax_MR_MT(struct measure_type m,
     @<handle2 analysis @>@;
     @<handle2 measurement @>@;
 
-    Initialize_Result(m,&r);
+    Initialize_Result(m,&r,TRUE);
 
     Inverse_RT (m, &r);
     for (i=0; i<mc_runs; i++) {
