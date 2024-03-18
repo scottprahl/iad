@@ -775,7 +775,7 @@ simplex for later use if needed.
     }
 
 @*1 Fixed Absorption.
-Here I assume that a constant $b_a$,
+Here I assume that we have a constant $b_a$,
 $$
 b_a = \mu_a d
 $$
