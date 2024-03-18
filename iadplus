@@ -17,8 +17,36 @@ import urllib.parse
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 from scipy.optimize import curve_fit
 
+def scattered_light(g=0, n=1, quad_pts=4):
+    """Max scattered light for all optical thicknesses.""" 
+    b = np.logspace(-5,5,200)
+    r_white, t_white, _, _ = iad.Sample(a=1, b=b, g=g, n=n, quad_pts=quad_pts).rt()
+    r_black, t_black, _, _ = iad.Sample(a=0, b=b, g=g, n=n, quad_pts=quad_pts).rt()
+
+    xy = np.array([r_white-r_black, t_white-t_black]).T
+    return xy
+
+def unscattered_polygon(g=0, n=1, quad_pts=4):
+    """Unscattered light for all optical thicknesses.""" 
+    xy = scattered_light(g, n, quad_pts)
+    xy = np.append(xy, np.array([[1,0]]), axis=0)
+    xy = np.append(xy, np.array([[0,1]]), axis=0)
+    xy = np.append(xy, np.array([[0,0]]), axis=0)
+    
+    return plt.Polygon(xy, facecolor='b', alpha=0.2)
+
+def active_polygon():
+    """Unscattered light for all optical thicknesses.""" 
+    xy = np.array([[1,0], [0,1], [0,0]])
+    return plt.Polygon(xy, closed=True, facecolor='b', alpha=0.2)
+
+def scattered_polygon(g=0,n=1,quad_pts=4):
+    xy = scattered_light(g, n, quad_pts)
+    xy = np.append(xy, np.array([[0,0]]), axis=0)
+
+    return plt.Polygon(xy, facecolor='r', alpha=0.3)
+
 def plot_good_and_bad(x, y, success, big_points=False):
-    plt.figure(figsize=(8, 4.5))
     if big_points:
         size = 7
     else :
@@ -33,9 +61,32 @@ def plot_good_and_bad(x, y, success, big_points=False):
         plt.legend()
     plt.xlabel('Wavelength (nm)')
 
+def plot_grid(mr, cr, mt, ct, success, filename_base):
+
+    out_filename = filename_base + '-grid.svg'
+    plt.figure(figsize=(8,8))
+    plt.gca().set_aspect(1)
+    plt.xlim(-0.05,1.05)
+    plt.ylim(-0.05,1.05)
+    
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plot_good_and_bad(cr, ct, success, True)
+    plt.plot(mr, mt, 'ok', markersize=2, label='measured')
+    plt.gca().add_patch(active_polygon())
+    plt.xlabel('Total Reflection',fontsize=12)
+    plt.ylabel('Total Transmission',fontsize=12)
+    plt.legend()
+    plt.grid(True)
+    plt.savefig(out_filename, dpi=300)
+    plt.close()
+    return os.path.basename(out_filename)
+
+
 def plot_rt(lam, mr, mt, filename_base):
     """Plot measured r, t, and u."""
     out_filename = filename_base + '-RTU.svg'
+    plt.figure(figsize=(8, 4.5))
     plt.plot(lam, mr, 'ob', markersize=2, label='r')
     plt.plot(lam, mt, 'or', markersize=2, label='t')
     plt.plot(lam, mr+mt, 'ok', markersize=2, label='r+t')
@@ -49,6 +100,7 @@ def plot_rt(lam, mr, mt, filename_base):
 def plot_r(lam, mr, cr, success, filename_base):
     """Plot measured reflection and fitted reflection."""
     out_filename = filename_base + '-R.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, cr, success, True)
     plt.plot(lam, mr, 'ok', markersize=2, label='measured')
     plt.ylabel('Reflection')
@@ -61,6 +113,7 @@ def plot_r(lam, mr, cr, success, filename_base):
 def plot_t(lam, mt, ct, success, filename_base):
     """Plot measured reflection and fitted transmission."""
     out_filename = filename_base + '-T.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, ct, success, True)
     plt.plot(lam, mt, 'ok', markersize=2, label='measured')
     plt.ylabel('Transmission')
@@ -73,6 +126,7 @@ def plot_t(lam, mt, ct, success, filename_base):
 def plot_mua(lam, mua, success, filename_base):
     """Plot calculated absorption coefficient."""
     out_filename = filename_base + '-mua.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mua, success)
     plt.ylabel('Absorption Coefficient (mm⁻¹)')
     plt.savefig(out_filename, dpi=300)
@@ -86,6 +140,7 @@ def scattering_model(x, a, b):
 def plot_musp(lam, musp, success, filename_base, fit=False):
     """Plot calculated reduced scattering coefficient."""
     out_filename = filename_base + '-musp.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, musp, success)
     if fit:
         popt, pcov = curve_fit(scattering_model, lam[success], musp[success])
@@ -104,6 +159,7 @@ def plot_musp(lam, musp, success, filename_base, fit=False):
 def plot_mus(lam, mus, success, filename_base, fit=False):
     """Plot calculated scattering coefficient."""
     out_filename = filename_base + '-mus.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mus, success)
     if fit:
         popt, pcov = curve_fit(scattering_model, lam[success], mus[success])
@@ -121,6 +177,7 @@ def plot_mus(lam, mus, success, filename_base, fit=False):
 def plot_g(lam, g, success, filename_base):
     """Plot calculated scattering coefficient."""
     out_filename = filename_base + '-g.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, g, success)
     plt.ylabel('Scattering Anisotropy')
     plt.savefig(out_filename, dpi=300)
@@ -130,6 +187,7 @@ def plot_g(lam, g, success, filename_base):
 def plot_a(lam, a, success, filename_base):
     """Plot calculated albedo."""
     out_filename = filename_base + '-a.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, a, success)
     plt.ylabel(r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$')
     plt.savefig(out_filename, dpi=300)
@@ -139,6 +197,7 @@ def plot_a(lam, a, success, filename_base):
 def plot_b(lam, b, success, filename_base):
     """Plot calculated scattering coefficient."""
     out_filename = filename_base + '-b.svg'
+    plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, b, success)
     plt.ylabel(r'Optical Thickness $(\mu_a+\mu_s)d$')
     plt.savefig(out_filename, dpi=300)
@@ -276,6 +335,7 @@ def main():
         a_graph = plot_a(lam, a, success, base_path)
         b_graph = plot_b(lam, b, success, base_path)
         g_graph = plot_g(lam, g, success, base_path)
+        grid_graph = plot_grid(mr, cr, mt, ct, success, base_path)
 
         nb = new_notebook()
         nb.metadata['kernelspec'] = {
@@ -285,6 +345,7 @@ def main():
         }
 
         append_header(nb, out_path)
+        append_graph_cell(nb, '## Grid Graph', grid_graph)
         append_graph_cell(nb, '## Original Measurements', rt_graph)
         append_graph_cell(nb, '## Reflection', r_graph)
         append_graph_cell(nb, '## Transmission', t_graph)
