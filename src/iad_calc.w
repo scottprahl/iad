@@ -32,7 +32,7 @@
 #define UT1_COLUMN 7
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
-#define GRID_SIZE 101
+#define GRID_SIZE 201
 #define T_TRUST_FACTOR 1
 #define MAX_ABS_G 0.999999
 
@@ -514,9 +514,16 @@ boolean_type Valid_Grid(struct measure_type m, struct invert_type r)
             fprintf(stderr,"GRID: Fill because bottom slide index changed\n");
         return(FALSE);
     }
-    if (r.slab.g                  != RGRID.slab.g) {
+
+    if (s == FIND_AB && r.slab.g != RGRID.slab.g) {
         if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because anisotropy changed\n");
+        return(FALSE);
+    }
+
+    if (s == FIND_BsG && r.default_ba != RGRID.default_ba) {
+        if (Debug(DEBUG_GRID))
+            fprintf(stderr,"GRID: Fill because mu_a changed\n");
         return(FALSE);
     }
 
@@ -691,8 +698,8 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
 {
     int i,j;
     double a;
-    double min_b = -8;  /* exp(-10) is smallest thickness */
-    double max_b = +8;   /* exp(+8) is greatest thickness */
+    double min_log_b = -8;  /* exp(-10) is smallest thickness */
+    double max_log_b = +8;   /* exp(+8) is greatest thickness */
 
     if (Debug(DEBUG_GRID))
         fprintf(stderr, "GRID: Filling AB grid\n");
@@ -705,7 +712,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     GG_g = RR.slab.g;
     for(i=0; i<GRID_SIZE; i++){
         double x = (double) i/(GRID_SIZE-1.0);
-        RR.slab.b = exp(min_b + (max_b-min_b) *x);
+        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
         for(j=0; j<GRID_SIZE; j++){
             @<Generate next albedo using j@>@;
             fill_grid_entry(i,j);
@@ -776,8 +783,9 @@ void Fill_AG_Grid(struct measure_type m, struct invert_type r)
 @ @<Definition for |Fill_AG_Grid|@>=
     @<Prototype for |Fill_AG_Grid|@>
 {
-int i,j;
-double a;
+    int i,j;
+    double max_a = -10;
+    double min_a = 10;
 
     if (Debug(DEBUG_GRID))
         fprintf(stderr, "GRID: Filling AG grid\n");
@@ -790,14 +798,23 @@ double a;
     for(i=0; i<GRID_SIZE; i++){
         RR.slab.g =MAX_ABS_G*(2.0*i/(GRID_SIZE-1.0)-1.0);
         for(j=0; j<GRID_SIZE; j++){
-
+            double a;
             @<Generate next albedo using j@>@;
             fill_grid_entry(i,j);
+            if (a < 0) RR.slab.a = 0;
+            if (a < min_a) min_a = a;
+            if (a > max_a) max_a = a;
         }
     }
 
-The_Grid_Initialized=TRUE;
-The_Grid_Search = FIND_AG;
+    if (Debug(DEBUG_GRID)) {
+        fprintf(stderr, "GRID: a        = %9.7f to %9.7f \n", min_a, max_a);
+        fprintf(stderr, "GRID: b        = %9.5f \n", r.slab.b);
+        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
+    }
+
+    The_Grid_Initialized=TRUE;
+    The_Grid_Search = FIND_AG;
 }
 
 @   @<Zero \\{GG}@>=
@@ -821,7 +838,9 @@ void Fill_BG_Grid(struct measure_type m, struct invert_type r)
 @ @<Definition for |Fill_BG_Grid|@>=
     @<Prototype for |Fill_BG_Grid|@>
 {
-int i,j;
+    int i,j;
+    double min_log_b = -8;  /* exp(-10) is smallest thickness */
+    double max_log_b = +10;  /* exp(+8)  is greatest thickness */
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
@@ -830,26 +849,32 @@ int i,j;
         fprintf(stderr, "GRID: Filling BG grid\n");
 
     Set_Calc_State(m,r);
-    RR.slab.b = 1.0/32.0;
     RR.slab.a = RR.default_a;
     GG_a = RR.slab.a;
 
     for(i=0; i<GRID_SIZE; i++){
-        RR.slab.b *=2;
+        double x = (double) i/(GRID_SIZE-1.0);
+        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
         for(j=0; j<GRID_SIZE; j++){
             RR.slab.g =MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
             fill_grid_entry(i,j);
         }
     }
 
-The_Grid_Initialized=TRUE;
-The_Grid_Search = FIND_BG;
+    if (Debug(DEBUG_GRID)) {
+        fprintf(stderr, "GRID: a        = %9.7f \n", RR.default_a);
+        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
+        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
+    }
+
+    The_Grid_Initialized=TRUE;
+    The_Grid_Search = FIND_BG;
 }
 
 @ This is quite similar to |Fill_BG_Grid|, with the exception of the
 that the $b_s=\mu_s d$ is held fixed.  Here $b$ and $g$ are varied
 on the usual grid, but the albedo is forced to take whatever value
-is needed to ensure that the scattering constant remains fixed.
+is needed to ensure that the scattering remains fixed.
 
 @<Prototype for |Fill_BaG_Grid|@>=
 void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
@@ -857,38 +882,56 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
 @ @<Definition for |Fill_BaG_Grid|@>=
     @<Prototype for |Fill_BaG_Grid|@>
 {
-int i,j;
-double bs, ba;
+    int i,j;
+    double max_a = -10;
+    double min_a = 10;
+    double bs = r.default_bs;
+    double log_bs = log(bs);
+    double min_log_b = -8;  /* exp(-10) is smallest thickness */
+    double max_log_b = +10;  /* exp(+8)  is greatest thickness */
+    if (min_log_b < log_bs) min_log_b = log_bs;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
 
-    if (Debug(DEBUG_GRID))
+    if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: Filling BaG grid\n");
+        fprintf(stderr, "GRID:       bs = %9.5f\n", bs);
+        fprintf(stderr, "GRID: ba range = %9.6f to %9.3f \n", exp(min_log_b)-bs, exp(max_log_b)-bs);
+    }
 
     Set_Calc_State(m,r);
-    ba = 1.0/32.0;
-    bs = RR.default_bs;
     GG_bs = bs;
     for(i=0; i<GRID_SIZE; i++){
-        ba *=2;
-        ba = exp((double) i/(GRID_SIZE-1.0)*log(1024.0))/16.0;
-        RR.slab.b = ba+bs;
-        if (RR.slab.b>0)
-            RR.slab.a = bs/RR.slab.b;
+        double x = (double) i/(GRID_SIZE-1.0);
+        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
+        if (RR.slab.b > 0)
+            RR.slab.a = bs / RR.slab.b;
         else
             RR.slab.a = 0;
+        if (RR.slab.a < 0) RR.slab.a = 0;
+        if (RR.slab.a < min_a) min_a = RR.slab.a;
+        if (RR.slab.a > max_a) max_a = RR.slab.a;
+
         for(j=0; j<GRID_SIZE; j++){
             RR.slab.g = MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
             fill_grid_entry(i,j);
         }
     }
 
-The_Grid_Initialized=TRUE;
-The_Grid_Search = FIND_BaG;
+    if (Debug(DEBUG_GRID)) {
+        fprintf(stderr, "GRID: a        = %9.7f to %9.7f \n", min_a, max_a);
+        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
+        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
+    }
+
+    The_Grid_Initialized=TRUE;
+    The_Grid_Search = FIND_BaG;
 }
 
-@ Very similiar to the above routine.  The value of $b_a=\mu_a d$ is held constant.
+@ Very similiar to the above routine, but holding $b_a=\mu_a d$ fixed.
+Here $b$ and $g$ are varied on the usual grid, but the albedo is forced 
+to take whatever value is needed to ensure that the absorption remains fixed.
 
 @<Prototype for |Fill_BsG_Grid|@>=
 void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
@@ -896,27 +939,48 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
 @ @<Definition for |Fill_BsG_Grid|@>=
     @<Prototype for |Fill_BsG_Grid|@>
 {
-int i,j;
-double bs, ba;
+    int i,j;
+    double max_a = -10;
+    double min_a = 10;
+    double ba = r.default_ba;
+    double log_ba = log(ba);
+    double min_log_b = -8;  /* exp(-10) is smallest thickness */
+    double max_log_b = +10;  /* exp(+8)  is greatest thickness */
+
+    if (min_log_b < log_ba) min_log_b = log_ba;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
 
+    if (Debug(DEBUG_GRID)) {
+        fprintf(stderr, "GRID: Filling BsG grid\n");
+        fprintf(stderr, "GRID:       ba = %9.5f\n", ba);
+        fprintf(stderr, "GRID: bs range = %9.6f to %9.3f \n", exp(min_log_b)-ba, exp(max_log_b)-ba);
+    }
+
     Set_Calc_State(m,r);
-    bs = 1.0/32.0;
-    ba = RR.default_ba;
-    GG_ba = ba;
+    GG_ba = RR.default_ba;
     for(i=0; i<GRID_SIZE; i++){
-        bs *=2;
-        RR.slab.b = ba+bs;
-        if (RR.slab.b>0)
-            RR.slab.a = bs/RR.slab.b;
+        double x = (double) i/(GRID_SIZE-1.0);
+        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
+        if (RR.slab.b > 0)
+            RR.slab.a = 1-RR.default_ba/RR.slab.b;
         else
             RR.slab.a = 0;
+        if (RR.slab.a < 0) RR.slab.a = 0;
+        if (RR.slab.a < min_a) min_a = RR.slab.a;
+        if (RR.slab.a > max_a) max_a = RR.slab.a;
+
         for(j=0; j<GRID_SIZE; j++){
             RR.slab.g = MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
             fill_grid_entry(i,j);
         }
+    }
+
+    if (Debug(DEBUG_GRID)) {
+        fprintf(stderr, "GRID: a  range = %9.7f to %9.7f \n", min_a, max_a);
+        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
+        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
     }
 
 The_Grid_Initialized=TRUE;
