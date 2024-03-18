@@ -521,9 +521,21 @@ boolean_type Valid_Grid(struct measure_type m, struct invert_type r)
         return(FALSE);
     }
 
+    if (s == FIND_AG && r.slab.b != RGRID.slab.b) {
+        if (Debug(DEBUG_GRID))
+            fprintf(stderr,"GRID: Fill because optical depth changed\n");
+        return(FALSE);
+    }
+
     if (s == FIND_BsG && r.default_ba != RGRID.default_ba) {
         if (Debug(DEBUG_GRID))
             fprintf(stderr,"GRID: Fill because mu_a changed\n");
+        return(FALSE);
+    }
+
+    if (s == FIND_BaG && r.default_bs != RGRID.default_bs) {
+        if (Debug(DEBUG_GRID))
+            fprintf(stderr,"GRID: Fill because mu_s changed\n");
         return(FALSE);
     }
 
