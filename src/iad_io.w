@@ -1,4 +1,4 @@
-@** IAD Input Output.
+thirdthird@** IAD Input Output.
 
 The special define below is to get Visual C to suppress silly warnings.
 
@@ -87,30 +87,30 @@ should do the trick.
 
 @ @<Read coefficients for reflection sphere@>=
 {
-    double d_sample_r, d_empty_r, d_detector_r;
+    double d_sample_r, d_third_r, d_detector_r;
     if (read_number(fp,&m->d_sphere_r))   return 1;
     if (read_number(fp,&d_sample_r))      return 1;
-    if (read_number(fp,&d_empty_r))    return 1;
+    if (read_number(fp,&d_third_r))    return 1;
     if (read_number(fp,&d_detector_r))    return 1;
     if (read_number(fp,&m->rw_r))         return 1;
 
     m->as_r = (d_sample_r   / m->d_sphere_r / 2.0) * (d_sample_r   / m->d_sphere_r / 2.0);
-    m->ae_r = (d_empty_r    / m->d_sphere_r / 2.0) * (d_empty_r    / m->d_sphere_r / 2.0);
+    m->ae_r = (d_third_r    / m->d_sphere_r / 2.0) * (d_third_r    / m->d_sphere_r / 2.0);
     m->ad_r = (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r / m->d_sphere_r / 2.0);
     m->aw_r = 1.0 - m->as_r - m->ae_r - m->ad_r;
 }
 
 @ @<Read coefficients for transmission sphere@>=
 {
-    double d_sample_t, d_empty_t, d_detector_t;
+    double d_sample_t, d_third_t, d_detector_t;
     if (read_number(fp,&m->d_sphere_t))   return 1;
     if (read_number(fp,&d_sample_t))     return 1;
-    if (read_number(fp,&d_empty_t)) return 1;
+    if (read_number(fp,&d_third_t)) return 1;
     if (read_number(fp,&d_detector_t)) return 1;
     if (read_number(fp,&m->rw_t))         return 1;
 
     m->as_t = (d_sample_t   / m->d_sphere_t / 2.0) * (d_sample_t   / m->d_sphere_t / 2.0);
-    m->ae_t = (d_empty_t    / m->d_sphere_t / 2.0) * (d_empty_t    / m->d_sphere_t / 2.0);
+    m->ae_t = (d_third_t    / m->d_sphere_t / 2.0) * (d_third_t    / m->d_sphere_t / 2.0);
     m->ad_t = (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t / m->d_sphere_t / 2.0);
     m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
 }
@@ -410,7 +410,7 @@ int check_magic(FILE *fp)
         printf("#                      sphere diameter = %7.1f mm\n", m.d_sphere_r );
         printf("#                 sample port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.as_r) );
-        printf("#                  empty port diameter = %7.1f mm\n",
+        printf("#               entrance port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ae_r) );
         printf("#               detector port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ad_r) );
@@ -435,7 +435,7 @@ int check_magic(FILE *fp)
         m.d_sphere_t );
         printf("#                 sample port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.as_t) );
-        printf("#                  empty port diameter = %7.1f mm\n",
+        printf("#                  third port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ae_t) );
         printf("#               detector port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ad_t) );
