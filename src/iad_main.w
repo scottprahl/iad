@@ -216,7 +216,7 @@ that this strips any quotes from the command-line.
                 if (cl_sphere_one[4] == UNINITIALIZED) {
                     fprintf(stderr, "Error in command-line argument for -1\n");
                     fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
-                    fprintf(stderr, "'d_sphere d_sample d_empty d_detector r_wall'\n");
+                    fprintf(stderr, "'d_sphere d_sample d_entrance d_detector r_wall'\n");
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -227,7 +227,7 @@ that this strips any quotes from the command-line.
                 if (cl_sphere_two[4] == UNINITIALIZED) {
                     fprintf(stderr, "Error in command-line argument for -2\n");
                     fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
-                    fprintf(stderr, "'d_sphere d_sample d_empty d_detector r_wall'\n");
+                    fprintf(stderr, "'d_sphere d_sample d_third d_detector r_wall'\n");
                     exit(EXIT_FAILURE);
                 }
                 break;
@@ -985,16 +985,16 @@ properties can be determined.
         m.rw_t = cl_rwall_t;
 
     if (cl_sphere_one[0] != UNINITIALIZED) {
-        double d_sample_r, d_empty_r, d_detector_r;
+        double d_sample_r, d_third_r, d_detector_r;
 
         m.d_sphere_r     = cl_sphere_one[0];
         d_sample_r       = cl_sphere_one[1];
-        d_empty_r        = cl_sphere_one[2];
+        d_third_r        = cl_sphere_one[2];
         d_detector_r     = cl_sphere_one[3];
         m.rw_r           = cl_sphere_one[4];
 
         m.as_r = (d_sample_r   / m.d_sphere_r / 2) * (d_sample_r   / m.d_sphere_r / 2);
-        m.ae_r = (d_empty_r    / m.d_sphere_r / 2) * (d_empty_r    / m.d_sphere_r / 2);
+        m.ae_r = (d_third_r    / m.d_sphere_r / 2) * (d_third_r    / m.d_sphere_r / 2);
         m.ad_r = (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r / 2);
 
         m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
@@ -1011,16 +1011,16 @@ properties can be determined.
     }
 
     if (cl_sphere_two[0] != UNINITIALIZED) {
-        double d_sample_t, d_empty_t, d_detector_t;
+        double d_sample_t, d_third_t, d_detector_t;
 
         m.d_sphere_t     = cl_sphere_two[0];
         d_sample_t       = cl_sphere_two[1];
-        d_empty_t        = cl_sphere_two[2];
+        d_third_t        = cl_sphere_two[2];
         d_detector_t     = cl_sphere_two[3];
         m.rw_t           = cl_sphere_two[4];
 
         m.as_t = (d_sample_t   / m.d_sphere_t / 2) * (d_sample_t   / m.d_sphere_t / 2);
-        m.ae_t = (d_empty_t    / m.d_sphere_t / 2) * (d_empty_t    / m.d_sphere_t / 2);
+        m.ae_t = (d_third_t    / m.d_sphere_t / 2) * (d_third_t    / m.d_sphere_t / 2);
         m.ad_t = (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t / 2);
         m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
 
@@ -1132,9 +1132,9 @@ fprintf(stdout, "iad finds optical properties from measurements\n\n");
 fprintf(stdout, "Usage:  iad [options] input\n\n");
 fprintf(stdout, "Options:\n");
 fprintf(stdout, "  -1 '# # # # #'   reflection sphere parameters \n");
-fprintf(stdout, "                   'd_sphere d d_sample_port d_empty_port d_detector_port r_wall'\n");
+fprintf(stdout, "                   'd_sphere d d_sample_port d_entrance_port d_detector_port r_wall'\n");
 fprintf(stdout, "  -2 '# # # # #'   transmission sphere parameters \n");
-fprintf(stdout, "                   'd_sphere d d_sample_port d_empty_port d_detector_port r_wall'\n");
+fprintf(stdout, "                   'd_sphere d d_sample_port d_third_port d_detector_port r_wall'\n");
 fprintf(stdout, "  -a #             use this albedo \n");
 fprintf(stdout, "  -A #             use this absorption coefficient \n");
 fprintf(stdout, "  -b #             use this optical thickness \n");
