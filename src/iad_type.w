@@ -124,8 +124,8 @@ typedef struct measure_type {
     double m_r, m_t, m_u;
 
     double lambda;
-    double as_r, ad_r, ae_r, aw_r, rd_r, rw_r, rstd_r, f_r;
-    double as_t, ad_t, ae_t, aw_t, rd_t, rw_t, rstd_t;
+    double as_r, ad_r, at_r, aw_r, rd_r, rw_r, rstd_r, f_r;
+    double as_t, ad_t, at_t, aw_t, rd_t, rw_t, rstd_t;
     double ur1_lost, uru_lost, ut1_lost, utu_lost;
     double d_sphere_r, d_sphere_t;
 } IAD_measure_type;
