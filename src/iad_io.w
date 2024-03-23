@@ -95,9 +95,9 @@ should do the trick.
     if (read_number(fp,&m->rw_r))         return 1;
 
     m->as_r = (d_sample_r   / m->d_sphere_r / 2.0) * (d_sample_r   / m->d_sphere_r / 2.0);
-    m->ae_r = (d_third_r    / m->d_sphere_r / 2.0) * (d_third_r    / m->d_sphere_r / 2.0);
+    m->at_r = (d_third_r    / m->d_sphere_r / 2.0) * (d_third_r    / m->d_sphere_r / 2.0);
     m->ad_r = (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r / m->d_sphere_r / 2.0);
-    m->aw_r = 1.0 - m->as_r - m->ae_r - m->ad_r;
+    m->aw_r = 1.0 - m->as_r - m->at_r - m->ad_r;
 }
 
 @ @<Read coefficients for transmission sphere@>=
@@ -110,9 +110,9 @@ should do the trick.
     if (read_number(fp,&m->rw_t))         return 1;
 
     m->as_t = (d_sample_t   / m->d_sphere_t / 2.0) * (d_sample_t   / m->d_sphere_t / 2.0);
-    m->ae_t = (d_third_t    / m->d_sphere_t / 2.0) * (d_third_t    / m->d_sphere_t / 2.0);
+    m->at_t = (d_third_t    / m->d_sphere_t / 2.0) * (d_third_t    / m->d_sphere_t / 2.0);
     m->ad_t = (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t / m->d_sphere_t / 2.0);
-    m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
+    m->aw_t = 1.0 - m->as_t - m->at_t - m->ad_t;
 }
 
 @ @<Read info about measurements@>=
@@ -411,7 +411,7 @@ int check_magic(FILE *fp)
         printf("#                 sample port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.as_r) );
         printf("#               entrance port diameter = %7.1f mm\n",
-        2*m.d_sphere_r*sqrt(m.ae_r) );
+        2*m.d_sphere_r*sqrt(m.at_r) );
         printf("#               detector port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ad_r) );
         printf("#                 detector reflectance = %7.1f %%\n", m.rd_r*100 );
@@ -436,17 +436,17 @@ int check_magic(FILE *fp)
         printf("#                 sample port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.as_t) );
         printf("#                  third port diameter = %7.1f mm\n",
-        2*m.d_sphere_r*sqrt(m.ae_t) );
+        2*m.d_sphere_r*sqrt(m.at_t) );
         printf("#               detector port diameter = %7.1f mm\n",
         2*m.d_sphere_r*sqrt(m.ad_t) );
         printf("#                 detector reflectance = %7.1f %%\n", m.rd_t*100 );
-        if (m.ae_t == 0)
+        if (m.at_t == 0)
             printf("#    wall reflectance and cal standard = ");
         else
             printf("#                     wall reflectance = ");
         print_maybe('w', "%7.1f %%\n", m.rw_t*100);
         printf("#                 calibration standard = %7.1f %%", m.rstd_t*100 );
-        if (m.ae_t == 0)
+        if (m.at_t == 0)
             printf(" (ignored)");
         printf("\n");
 
