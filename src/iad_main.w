@@ -801,7 +801,7 @@ measurements.
     if (cl_default_a != UNINITIALIZED)
         r.default_a = cl_default_a;
 
-    if (cl_default_mua != UNINITIALIZED && r.default_mua != UNINITIALIZED) {
+    if (cl_default_mua != UNINITIALIZED) {
         r.default_mua = cl_default_mua;
         if (cl_sample_d != UNINITIALIZED)
             r.default_ba = cl_default_mua * cl_sample_d;
@@ -994,14 +994,14 @@ properties can be determined.
         m.rw_r           = cl_sphere_one[4];
 
         m.as_r = (d_sample_r   / m.d_sphere_r / 2) * (d_sample_r   / m.d_sphere_r / 2);
-        m.ae_r = (d_third_r    / m.d_sphere_r / 2) * (d_third_r    / m.d_sphere_r / 2);
+        m.at_r = (d_third_r    / m.d_sphere_r / 2) * (d_third_r    / m.d_sphere_r / 2);
         m.ad_r = (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r / 2);
 
-        m.aw_r = 1.0 - m.as_r - m.ae_r - m.ad_r;
+        m.aw_r = 1.0 - m.as_r - m.at_r - m.ad_r;
 
         m.d_sphere_t = m.d_sphere_r;
         m.as_t       = m.as_r;
-        m.ae_t       = m.ae_r;
+        m.at_t       = m.at_r;
         m.ad_t       = m.ad_r;
         m.aw_t       = m.aw_r;
         m.rw_t       = m.rw_r;
@@ -1020,9 +1020,9 @@ properties can be determined.
         m.rw_t           = cl_sphere_two[4];
 
         m.as_t = (d_sample_t   / m.d_sphere_t / 2) * (d_sample_t   / m.d_sphere_t / 2);
-        m.ae_t = (d_third_t    / m.d_sphere_t / 2) * (d_third_t    / m.d_sphere_t / 2);
+        m.at_t = (d_third_t    / m.d_sphere_t / 2) * (d_third_t    / m.d_sphere_t / 2);
         m.ad_t = (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t / 2);
-        m.aw_t = 1.0 - m.as_t - m.ae_t - m.ad_t;
+        m.aw_t = 1.0 - m.as_t - m.at_t - m.ad_t;
 
         if (cl_num_spheres == UNINITIALIZED)
             m.num_spheres = 2;
@@ -1105,7 +1105,6 @@ properties can be determined.
         s.b_top_slide=m.slab_top_slide_b;
         s.b_bottom_slide=m.slab_bottom_slide_b;
         s.cos_angle=m.slab_cos_angle;
-        cl_default_b = What_Is_B(s, m.m_u);
      }
 
 @ @<print version function@>=
