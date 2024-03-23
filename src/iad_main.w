@@ -862,7 +862,7 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (r.error == IAD_NO_ERROR && m.num_spheres > 0 && r.default_a !=0) {
+if (r.found && m.num_spheres > 0 && r.default_a !=0) {
     double mu_sp_last = mu_sp;
     double mu_a_last  = mu_a;
 
@@ -896,7 +896,7 @@ if (r.error == IAD_NO_ERROR && m.num_spheres > 0 && r.default_a !=0) {
         else
             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
 
-        if (r.error != IAD_NO_ERROR)
+        if (r.found == FALSE)
             break;
     }
 }
@@ -1513,6 +1513,7 @@ static void print_long_error(int err)
     if (err == IAD_MU_TOO_BIG)          fprintf(stderr, "Failed Search, M_U is too big\n");
     if (err == IAD_MU_TOO_SMALL)        fprintf(stderr, "Failed Search, M_U is too snall\n");
     if (err == IAD_TOO_MUCH_LIGHT)      fprintf(stderr, "Failed Search, Total light bigger than 1\n");
+    if (err == IAD_NO_ERROR)            fprintf(stderr, "Successful Search\n");
     fprintf(stderr,"\n");
 }
 
