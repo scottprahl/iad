@@ -9,7 +9,7 @@
 
 double 
 brent (double ax, double bx, double cx, double (*f) (double), double tol,
-       double *xmin)
+       double *xmin, int *iterations)
 {
   int iter;
   double a, b, d, etemp, fu, fv, fw, fx, p, q, r, tol1, tol2, u, v, w,
@@ -21,6 +21,7 @@ brent (double ax, double bx, double cx, double (*f) (double), double tol,
   d = 1;
   x = w = v = bx;
   fw = fv = fx = (*f) (x);
+  (*iterations)++;
   for (iter = 1; iter <= ITMAX; iter++)
     {
       xm = 0.5 * (a + b);
@@ -57,6 +58,7 @@ brent (double ax, double bx, double cx, double (*f) (double), double tol,
         }
       u = (fabs (d) >= tol1 ? x + d : x + SIGN (tol1, d));
       fu = (*f) (u);
+      (*iterations)++;
       if (fu <= fx)
         {
           if (u >= x)
