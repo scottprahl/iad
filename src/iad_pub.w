@@ -75,10 +75,13 @@ that are appropriate for your experiment.
 @ @<Definition for |Inverse_RT|@>=
     @<Prototype for |Inverse_RT|@>
 {
-    r->found = FALSE;
+    if (m.m_u > 0 && r->default_b == UNINITIALIZED) {
+        r->default_b = What_Is_B(r->slab, m.m_u);
+    }
 
-    if (r->search == FIND_AUTO)
+    if (r->search == FIND_AUTO) {
         r->search = determine_search(m,*r);
+    }
 
     if (r->search == FIND_B_WITH_NO_ABSORPTION) {
         r->default_a = 1;
@@ -95,8 +98,6 @@ that are appropriate for your experiment.
     @<Find the optical properties@>@;
 
     @<Print basic sphere and MC effects@>@;
-
-    if ( r->final_distance <= r->tolerance) r->found=TRUE;
 }
 
 @ There is no sense going to all the trouble to try a multivariable
@@ -157,7 +158,7 @@ switch (r->search){
 }
 
 if (Debug(DEBUG_ITERATIONS))
-    fprintf(stderr, "Final amoeba result after AD_iterations = %d\n", r->AD_iterations);
+    fprintf(stderr, "Final amoeba/brent result after %d iterations\n", r->AD_iterations);
 
 if (r->AD_iterations>=IAD_MAX_ITERATIONS)
     r->error=IAD_TOO_MANY_ITERATIONS;
@@ -408,7 +409,6 @@ optical properties to determine.
 
     if (m.m_r > 0) independent++;
     if (m.m_t > 0) independent++;
-    if (m.m_u > 0) independent++;
 
     if (r.default_a != UNINITIALIZED) constraints++;
     if (r.default_b != UNINITIALIZED) constraints++;
@@ -432,11 +432,6 @@ optical properties to determine.
         fprintf(stderr, " tu = %8.5f\n",tc);
     }
 
-    if (m.m_u==0 && independent == 3) {
-        if (Debug(DEBUG_SEARCH)) fprintf(stderr,"SEARCH: no information in tc\n");
-        independent--;
-    }
-
     if (rd==0 && independent >= 2) {
         if (Debug(DEBUG_SEARCH)) fprintf(stderr,"SEARCH: no information in rd\n");
         independent--;
@@ -445,10 +440,6 @@ optical properties to determine.
     if (td==0 && independent >= 2) {
         if (Debug(DEBUG_SEARCH)) fprintf(stderr,"SEARCH: no information in td\n");
         independent--;
-    }
-
-    if (independent == -1) {
-        fprintf(stderr, "Something is wrong, independent should not be -1\n");
     }
 
     if (constraints + independent > 3) {
