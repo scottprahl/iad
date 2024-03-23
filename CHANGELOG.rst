@@ -1,6 +1,16 @@
 Changelog
 =========
 
+v3.16.1 (16 Mar 2024)
+--------------------
+*   improve handling of sphere effects on M_T
+*   avoid MC for 1D failed searches
+*   change 'empty' -> 'entrance' or 'empty' -> 'third' as appropriate
+*   enable constraints in rxt files
+*   fix command line regression of constraints
+*   improve -x 2 debugging for grid generation
+*   improve Valid_Grid
+
 v3.16.0 (16 Mar 2024)
 --------------------
 *   flexible columns input files!
