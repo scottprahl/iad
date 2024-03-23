@@ -215,7 +215,7 @@ made in the analagous code for |a| and |b|.
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 @ Since we allocated these puppies, we got to get rid of them.
@@ -275,8 +275,8 @@ value of |ba| or $d \cdot \mu_a$ when the |Find_Bs_fn| is used.
 
     ax = b2bcalc(0.1);      /* first try for bs */
     bx = b2bcalc(1.0);
-    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_Bs_fn);
-    r->final_distance=brent(ax,bx,cx,Find_Bs_fn,r->tolerance,&bs);
+    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_Bs_fn, &r->AD_iterations);
+    r->final_distance=brent(ax,bx,cx,Find_Bs_fn,r->tolerance,&bs, &r->AD_iterations);
 
     /* recover true values */
     r->slab.a = bcalc2b(bs)/(bcalc2b(bs)+r->slab.b);
@@ -326,8 +326,8 @@ value of |bs| or $d \cdot \mu_s$ when the |Find_Ba_fn| is used.
 
     ax = b2bcalc(0.1);      /* first try for ba */
     bx = b2bcalc(1.0);
-    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_Ba_fn);
-    r->final_distance=brent(ax,bx,cx,Find_Ba_fn,r->tolerance,&ba);
+    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_Ba_fn, &r->AD_iterations);
+    r->final_distance=brent(ax,bx,cx,Find_Ba_fn,r->tolerance,&ba, &r->AD_iterations);
 
     /* recover true values */
     r->slab.a = (r->slab.b)/(bcalc2b(ba)+r->slab.b);
@@ -379,8 +379,8 @@ is no sense even using it because the slab is not infinitely thick.
         ax=a2acalc(0.3);
         bx=a2acalc(0.5);
 
-        mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_A_fn);
-        r->final_distance=brent(ax,bx,cx,Find_A_fn,r->tolerance,&x);
+        mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_A_fn, &r->AD_iterations);
+        r->final_distance=brent(ax,bx,cx,Find_A_fn,r->tolerance,&x, &r->AD_iterations);
         r->slab.a = acalc2a(x);
     }
 
@@ -424,8 +424,8 @@ is no sense even using it because the slab is not infinitely thick.
     ax=g2gcalc(-0.99);
     bx=g2gcalc(0.99);
 
-    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_G_fn);
-    r->final_distance=brent(ax,bx,cx,Find_G_fn,r->tolerance,&x);
+    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_G_fn, &r->AD_iterations);
+    r->final_distance=brent(ax,bx,cx,Find_G_fn,r->tolerance,&x, &r->AD_iterations);
 
     r->slab.g = gcalc2g(x);
     Set_Calc_State(m,*r);
@@ -480,8 +480,8 @@ mess with it at the moment.
     ax=b2bcalc(0.1);
     bx=b2bcalc(10);
 
-    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_B_fn);
-    r->final_distance=brent(ax,bx,cx,Find_B_fn,r->tolerance,&x);
+    mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_B_fn, &r->AD_iterations);
+    r->final_distance=brent(ax,bx,cx,Find_B_fn,r->tolerance,&x, &r->AD_iterations);
     r->slab.b = bcalc2b(x);
     Set_Calc_State(m,*r);
 }
