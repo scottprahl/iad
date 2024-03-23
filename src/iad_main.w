@@ -5,9 +5,6 @@ the iad and ad subroutines might be called.  It suffers because
 it is written in \.{CWEB} and I used the macro expansion feature
 instead of creating separate functions.  Oh well.
 
-I create an empty file \.{iad\_main.h} to simplify the Makefile
-@(iad_main.h@>=
-
 @ All the actual output for this web file goes into \.{iad\_main.c}
 
 @(iad_main.c@>=

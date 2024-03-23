@@ -10,16 +10,8 @@ of the slab.  The output file will have the same name, but appended
 by ``.out'' and contain the change in the reflection and transmission 
 calculated for normal irradiance using 8 quadrature points.
 
-Note
-that the streams get redirected so that I can use the standard
-streams for reading, writing, and error messages.  This makes
-interactive stuff problematic, but this whole thing is a batch
-sort of problem.
-
-All the output for this web file goes into \.{ad\_main.c}
-but to simplify the Makefile, I create an empty \.{ad\_main.h}.
-
-@(ad_main.h@>=
+Note that the streams get redirected so that I can use the standard
+streams for reading, writing, and error messages.
 
 @ The program begins here  
 
