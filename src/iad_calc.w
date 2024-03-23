@@ -5,6 +5,8 @@
 \def\rdiffuse{r_s^{\hbox{\sevenrm{}}}}
 \def\tdiffuse{t_s^{\hbox{\sevenrm{}}}}
 \def\std{{\hbox{\sevenrm{}std}}}
+\def\third{{\hbox{\sevenrm{}third}}}
+\def\first{{\hbox{\sevenrm{}first}}}
 
 
 @(iad_calc.c@>=
@@ -156,35 +158,36 @@ G_{\rm no\ baffle}(\rdiffuse) = {1 \over 1 - a_w r_w - a_d r_d - a_s \rdiffuse}
 $$
 or with a baffle as
 $$
-G_{\rm baffle}(\rdiffuse) = {1 \over 1- a_w r_w - r_w (1-a_e) (a_d r_d + a_s \rdiffuse)}
+G_{\rm baffle}(\rdiffuse) = {1 \over 1- a_w r_w - r_w (1-a_t) (a_d r_d + a_s \rdiffuse)}
 $$
 For a black sphere the gain does not depend on the diffuse reflectivity of the sample
 and is unity.  $G(\rdiffuse) = 1$, which is easily verified by setting $r_w=0$.
 
 @ @<Prototype for |Gain|@>=
-double Gain(int sphere, struct measure_type m, double URU)
+double Gain(int sphere, struct measure_type m, double URU, double r_third)
 
 @ @<Definition for |Gain|@>=
     @<Prototype for |Gain|@>
 {
-double G, denom;
+double inv_gain;
 
 if (sphere == REFLECTION_SPHERE) {
-    if (m.baffle_r)
-        denom = 1.0 - m.rw_r * (m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r + m.as_r * URU));
-    else
-        denom = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * URU;
-
-} else {
-    if (m.baffle_t)
-        denom = 1.0 - m.rw_t * (m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t + m.as_t * URU));
-    else
-        denom = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * URU;
-}
-
-G = 1.0 / denom;
-
-return G;
+    if (m.baffle_r) {
+        inv_gain = m.rw_r + (m.at_r / m.aw_r) * r_third;
+        inv_gain *= m.aw_r + (1 - m.at_r) * (m.ad_r * m.rd_r + m.as_r * URU);
+        inv_gain = 1.0 - inv_gain;
+    } else {
+        inv_gain = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * URU - m.at_r * r_third;
+    }
+} else
+    if (m.baffle_t) {
+        inv_gain = m.rw_t + (m.at_t / m.aw_t) * r_third;
+        inv_gain *= m.aw_t + (1 - m.at_t) * (m.ad_t * m.rd_t + m.as_t * URU);
+        inv_gain = 1.0 - inv_gain;
+    } else {
+        inv_gain = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * URU - m.at_t * r_third;
+    }
+return 1.0 / inv_gain;
 }
 
 @ The gain for light on the detector in the first sphere for diffuse light starting
@@ -196,7 +199,7 @@ $$
 then the full expression for the gain is
 $$
 G_{1\rightarrow1}(r_s,t_s) =
-{G(r_s) \over 1-a_s a_s' r_w r_w' (1-a_e)(1-a_e') G(r_s) G'(r_s)t_s^2  }
+{G(r_s) \over 1-a_s a_s' r_w r_w' (1-a_t)(1-a_t') G(r_s) G'(r_s)t_s^2  }
 $$
 
 
@@ -208,10 +211,10 @@ double Gain_11(struct measure_type m, double URU, double tdiffuse)
 {
     double G, GP, G11;
 
-    G        = Gain(REFLECTION_SPHERE, m, URU );
-    GP       = Gain(TRANSMISSION_SPHERE, m, URU );
+    G        = Gain(REFLECTION_SPHERE, m, URU, 0);
+    GP       = Gain(TRANSMISSION_SPHERE, m, URU, 0);
 
-    G11 = G / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.ae_r) * (1-m.ae_t)
+    G11 = G / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.at_r) * (1-m.at_t)
                * G * GP * tdiffuse * tdiffuse);
 
     return G11;
@@ -222,7 +225,7 @@ on the detector in the second sphere $G_{2\rightarrow2}$ is found by switching
 all primed variables to unprimed.  Thus $G_{2\rightarrow1}(r_s,t_s)$ is
 $$
 G_{2\rightarrow2}(r_s,t_s) = {G'(r_s) \over 1-a_s a_s' r_w r_w'
-                              (1-a_e)(1-a_e') G(r_s) G'(r_s)t_s^2  }
+                              (1-a_t)(1-a_t') G(r_s) G'(r_s)t_s^2  }
 $$
 
 @<Prototype for |Gain_22|@>=
@@ -233,10 +236,10 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
 {
     double G, GP, G22;
 
-    G        = Gain(REFLECTION_SPHERE, m, URU );
-    GP       = Gain(TRANSMISSION_SPHERE, m, URU );
+    G        = Gain(REFLECTION_SPHERE, m, URU, 0);
+    GP       = Gain(TRANSMISSION_SPHERE, m, URU, 0);
 
-    G22 = GP / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.ae_r) * (1-m.ae_t)
+    G22 = GP / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.at_r) * (1-m.at_t)
                * G * GP * tdiffuse * tdiffuse);
 
     return G22;
@@ -248,24 +251,24 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
 The light
 on the detector in the reflection (first) sphere arises from three
 sources: the fraction of light directly reflected off the sphere wall $f
-r_w^2 (1-a_e) P$, the fraction of light reflected by the sample $(1-f)
-\rdirect r_w^2 (1-a_e) P$, and the light transmitted through the sample
-$(1-f) \tdirect r_w' (1-a_e') P$,
+r_w^2 (1-a_t) P$, the fraction of light reflected by the sample $(1-f)
+\rdirect r_w^2 (1-a_t) P$, and the light transmitted through the sample
+$(1-f) \tdirect r_w' (1-a_t') P$,
 $$
 \eqalign{
 R(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
-&= G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_e) r_w^2 f  P \cr
-&+ G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_e) r_w (1-f) \rdirect  P \cr
-&+ G_{2\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_e') r_w' (1-f) \tdirect  P \cr
+&= G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_t) r_w^2 f  P \cr
+&+ G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_t) r_w (1-f) \rdirect  P \cr
+&+ G_{2\rightarrow1}(\rdiffuse,\tdiffuse) \cdot a_d (1-a_t') r_w' (1-f) \tdirect  P \cr
 }
 $$
 which simplifies slightly to
 $$
 \eqalign{
 R(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
-&= a_d (1-a_e) r_w P \cdot G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cr
+&= a_d (1-a_t) r_w P \cdot G_{1\rightarrow1}(\rdiffuse,\tdiffuse) \cr
 &\times \bigg[(1-f)\rdirect + f r_w +
-(1-f)a_s'(1-a_e')r_w'\tdirect\tdiffuse G'(\rdiffuse)\bigg] \cr
+(1-f)a_s'(1-a_t')r_w'\tdirect\tdiffuse G'(\rdiffuse)\bigg] \cr
 }
 $$
 
@@ -277,10 +280,10 @@ double Two_Sphere_R(struct measure_type m,
     @<Prototype for |Two_Sphere_R|@>
 {
     double x, GP;
-    GP = Gain(TRANSMISSION_SPHERE, m, URU );
+    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
 
-    x = m.ad_r*(1-m.ae_r)*m.rw_r*Gain_11(m,URU,UTU);
-    x *= (1-m.f_r)*UR1+m.rw_r*m.f_r+(1-m.f_r)*m.as_t*(1-m.ae_t)*m.rw_t*UT1*UTU*GP;
+    x = m.ad_r*(1-m.at_r)*m.rw_r*Gain_11(m,URU,UTU);
+    x *= (1-m.f_r)*UR1+m.rw_r*m.f_r+(1-m.f_r)*m.as_t*(1-m.at_t)*m.rw_t*UT1*UTU*GP;
     return x;
 }
 
@@ -291,18 +294,18 @@ sphere
 $$
 \eqalign{
 T(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
-&= G_{1\rightarrow2}(\rdiffuse,\tdiffuse)  \cdot a_d' (1-a_e) r_w^2 f P \cr
-&+ G_{1\rightarrow2}(\rdiffuse,\tdiffuse) \cdot a_d' (1-a_e) r_w (1-f) \rdirect P  \cr
-&+ G_{2\rightarrow2}(\rdiffuse,\tdiffuse) \cdot a_d' (1-a_e') r_w' (1-f) \tdirect  P \cr
+&= G_{1\rightarrow2}(\rdiffuse,\tdiffuse)  \cdot a_d' (1-a_t) r_w^2 f P \cr
+&+ G_{1\rightarrow2}(\rdiffuse,\tdiffuse) \cdot a_d' (1-a_t) r_w (1-f) \rdirect P  \cr
+&+ G_{2\rightarrow2}(\rdiffuse,\tdiffuse) \cdot a_d' (1-a_t') r_w' (1-f) \tdirect  P \cr
 }
 $$
 or
 $$
 \eqalign{
 T(\rdirect,\rdiffuse,\tdirect,\tdiffuse)
-&= a_d' (1-a_e') r_w' P\cdot G_{2\rightarrow2}(\rdiffuse,\tdiffuse) \cr
+&= a_d' (1-a_t') r_w' P\cdot G_{2\rightarrow2}(\rdiffuse,\tdiffuse) \cr
 &\times \bigg[(1-f)\tdirect
- + (1-a_e)r_w a_s \tdiffuse (f r_w+(1-f) \rdirect)G(\rdiffuse) \bigg] \cr
+ + (1-a_t)r_w a_s \tdiffuse (f r_w+(1-f) \rdirect)G(\rdiffuse) \bigg] \cr
 }
 $$
 
@@ -314,9 +317,9 @@ double Two_Sphere_T(struct measure_type m,
     @<Prototype for |Two_Sphere_T|@>
 {
     double x, G;
-    G = Gain(REFLECTION_SPHERE, m, URU );
-    x = m.ad_t*(1-m.ae_t)*m.rw_t*Gain_22(m,URU,UTU);
-    x *= (1-m.f_r)*UT1+(1-m.ae_r)*m.rw_r*m.as_r*UTU*(m.f_r*m.rw_r+(1-m.f_r)*UR1)*G;
+    G = Gain(REFLECTION_SPHERE, m, URU, 0);
+    x = m.ad_t*(1-m.at_t)*m.rw_t*Gain_22(m,URU,UTU);
+    x *= (1-m.f_r)*UT1+(1-m.at_r)*m.rw_r*m.as_r*UTU*(m.f_r*m.rw_r+(1-m.f_r)*UR1)*G;
     return x;
 }
 
@@ -898,10 +901,8 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
     double max_a = -10;
     double min_a = 10;
     double bs = r.default_bs;
-    double log_bs = log(bs);
-    double min_log_b = -8;  /* exp(-10) is smallest thickness */
-    double max_log_b = +10;  /* exp(+8)  is greatest thickness */
-    if (min_log_b < log_bs) min_log_b = log_bs;
+    double min_log_ba = -8;  /* exp(-10) is smallest thickness */
+    double max_log_ba = +10;  /* exp(+8)  is greatest thickness */
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
@@ -909,14 +910,15 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: Filling BaG grid\n");
         fprintf(stderr, "GRID:       bs = %9.5f\n", bs);
-        fprintf(stderr, "GRID: ba range = %9.6f to %9.3f \n", exp(min_log_b)-bs, exp(max_log_b)-bs);
+        fprintf(stderr, "GRID: ba range = %9.6f to %9.3f \n", exp(min_log_ba), exp(max_log_ba));
     }
 
     Set_Calc_State(m,r);
     GG_bs = bs;
     for(i=0; i<GRID_SIZE; i++){
         double x = (double) i/(GRID_SIZE-1.0);
-        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
+        double ba = exp(min_log_ba + (max_log_ba-min_log_ba) *x);
+        RR.slab.b = ba + bs;
         if (RR.slab.b > 0)
             RR.slab.a = bs / RR.slab.b;
         else
@@ -933,7 +935,7 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
 
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: a        = %9.7f to %9.7f \n", min_a, max_a);
-        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
+        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_ba)+bs, exp(max_log_ba)+bs);
         fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
     }
 
@@ -942,7 +944,7 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
 }
 
 @ Very similiar to the above routine, but holding $b_a=\mu_a d$ fixed.
-Here $b$ and $g$ are varied on the usual grid, but the albedo is forced 
+Here $b$ and $g$ are varied on the usual grid, but the albedo is forced
 to take whatever value is needed to ensure that the absorption remains fixed.
 
 @<Prototype for |Fill_BsG_Grid|@>=
@@ -955,11 +957,8 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
     double max_a = -10;
     double min_a = 10;
     double ba = r.default_ba;
-    double log_ba = log(ba);
-    double min_log_b = -8;  /* exp(-10) is smallest thickness */
-    double max_log_b = +10;  /* exp(+8)  is greatest thickness */
-
-    if (min_log_b < log_ba) min_log_b = log_ba;
+    double min_log_bs = -8;  /* exp(-10) is smallest thickness */
+    double max_log_bs = +10;  /* exp(+8)  is greatest thickness */
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
@@ -967,14 +966,15 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: Filling BsG grid\n");
         fprintf(stderr, "GRID:       ba = %9.5f\n", ba);
-        fprintf(stderr, "GRID: bs range = %9.6f to %9.3f \n", exp(min_log_b)-ba, exp(max_log_b)-ba);
+        fprintf(stderr, "GRID: bs range = %9.6f to %9.3f \n", exp(min_log_bs), exp(max_log_bs));
     }
 
     Set_Calc_State(m,r);
     GG_ba = RR.default_ba;
     for(i=0; i<GRID_SIZE; i++){
         double x = (double) i/(GRID_SIZE-1.0);
-        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
+        double bs = exp(min_log_bs + (max_log_bs-min_log_bs) *x);
+        RR.slab.b = ba + bs;
         if (RR.slab.b > 0)
             RR.slab.a = 1-RR.default_ba/RR.slab.b;
         else
@@ -991,7 +991,7 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
 
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: a  range = %9.7f to %9.7f \n", min_a, max_a);
-        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
+        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_bs)+ba, exp(max_log_bs)+ba);
         fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
     }
 
@@ -1201,32 +1201,43 @@ entering the sphere depends on the presence of a baffle.
 
 If a baffle is present then
 $$
-P_d = [a_d (1-a_e) r_w P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s)
+P_d = [a_d ((1-a_t) r_w + a_t r_t) P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s,0)
 $$
-and when there is no baffle
+If we define $r_\first=(1-a_t) r_w + a_t r_t$ then we have
 $$
-P_d = [a_d P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s)
+P_d = [a_d r_\first P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s,0)
 $$
+
+When there is no baffle
+$$
+P_d = [a_d P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s,0)
+$$
+
+The standard measurement is
+$$
+P_d = [a_d (1-a_t) r_w  P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_\std,0)
+$$
+
 Since the quantities in square brackets are identical for
-$R(\rdirect,r_s)$, $R(0,0)$, and $R(r_\std,r_\std)$. Consequently they cancel out
+$R(\rdirect,r_s,0)$, $R(0,0,0)$, and $R(r_\std,r_\std,0)$. Consequently they cancel out
 when calculating the normalized reflection measurement
 $$
-M_R = r_\std\cdot{R(\rdirect,r_s)-R(0,0) \over R(r_\std,r_\std)-R(0,0)}
+M_R = r_\std\cdot{R(\rdirect,r_s,0)-R(0,0.0) \over R(0.0,r_\std,0)-R(0,0.0)}
 $$
 This leads to the following code for |M_R|
 
 @<Calc |M_R| and |M_T| for single beam sphere@>=
     double P_std, P, P_0, G, G_0, G_std;
-    int tmp;
 
-    G_0      = Gain(REFLECTION_SPHERE, MM, 0.0);
-    G        = Gain(REFLECTION_SPHERE, MM, URU_calc);
-    G_std    = Gain(REFLECTION_SPHERE, MM, MM.rstd_r);
+    G_0      = Gain(REFLECTION_SPHERE, MM, 0.0, 0.0);
+    G        = Gain(REFLECTION_SPHERE, MM, URU_calc, 0.0);
+    G_std    = Gain(REFLECTION_SPHERE, MM, MM.rstd_r, 0.0);
 
     P        = G     * (UR1_calc  * (1-MM.f_r) + MM.f_r * MM.rw_r);
     P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r * MM.rw_r);
     P_0      = G_0   * (                         MM.f_r * MM.rw_r);
     *M_R     = MM.rstd_r * (P - P_0)/(P_std - P_0);
+
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
         fprintf(stderr, "SPHERE: REFLECTION\n");
         fprintf(stderr, "SPHERE:      G0 = %7.3f      G  = %7.3f G_std = %7.3f\n", G_0, G, G_std);
@@ -1235,55 +1246,45 @@ This leads to the following code for |M_R|
     }
 
 @ In a transmission experiment, the calculations are simpler and harder.  First,
-the value of $T(0,0) = 0$ because computationally, there is no dark noise in
+the value of $T(0,0,r_\std) = 0$ because computationally, there is no dark noise in
 the detector nor any possible light leakage from the outside into the
 sphere.  This simplifies
 $$
-M_T = r_0 \cdot{T(\tdirect,r_s)-T(0,0) \over T(t_\std,r_\std)-T(0,0)}
+M_T = r_\std \cdot{T(\tdirect,r_s,r_\third)-T(0,0,0) \over T(t_\std,0,r_\std)-T(0,0)}
 $$
 to
 $$
-M_T = r_0 \cdot {T(\tdirect,r_s) \over T(t_\std,r_\std)}
+M_T = r_\std \cdot {T(\tdirect,r_s,r_\third) \over T(t_\std,0,r_\std)}
 $$
-where $r_0$ might be $r_\std$ or $r_w$ for the transmission sphere.
 
 We do not need to worry about some fraction of the incident light $P_i$
-hitting the sphere wall before interacting with the sample.
+hitting the sphere wall before interacting with the sample like in the reflectance
+case.
 
-Finally, if the transmission sphere has a baffle present for the sample measurement,
-then it is no longer in the right place and diffuse light entering the sphere is
-just $[a_d P_i] r_0$
-
-When a baffle is present then the light falling on the detector in a transmission
-experiment is
+If the total transmission can be written in terms of the unscattered transmission and
+the scattered transmission,
 $$
-P_d = T(\tdirect,r_s) = [a_d P_i] (1-a_e) r_w \tdirect G(r_s)
-$$
-and with no baffle present
-$$
-P_d = T(\tdirect,r_s) = [a_d P_i] \tdirect G(r_s)
+UT1=T_u+T_s
 $$
 
-@ The normalization $T(t_\std,r_\std)$ can be measured in two ways.
-
-When transmission measurements are made, typically the empty port (the one that
-let the light into the sphere for the reflection measurement) is filled with a white
-port cover whose reflectance matches the rest of the sphere. In this case, the
-natural way to make the standard transmission measurement is to shine the beam through
-the empty sample port onto the back side of the sphere.  If the baffle was properly
-placed for the transmission experiment (between the sample port and the detector) then
+When transmission measurements are made, typically the third port (the one that
+let the light into the sphere for the reflection measurement) is filled with a known
+standard. In this case, the natural way to make the 100\% transmission measurement
+is to shine the beam through the empty sample port onto the known standard.
+If the baffle is between the sample port and the detector (or the acceptance
+angle of the detector prevents it from seeing the sample port) then
 the calibration transmission measurement is now made in a sphere without a baffle. In addition,
 the beam is diffused only after bouncing off the sphere wall.  Therefore the power falling
 on the detector is
 $$
-P_\std = T(1.0, r_w) = [a_d P_i] r_w G(0)
+P_\std = T(1.0, 0, r_\std) = [a_d P_i] r_w G(0)
 $$
 
-An alternate method is when there is an empty port in the sphere (perhaps to allow
+An alternate method is when there is an third port in the sphere (perhaps to allow
 the unscattered light to leave).  In any case, the calibration measurement is done
-by removing the sample and placing the calibration standare in what used to be the empty
-port.  In this case, the roles of the sample and empty ports have switched.  Consequently,
-the areas of the sample and empty ports must be swapped before the gain is calculated.
+by removing the sample and placing the calibration standare in what used to be the third
+port.  In this case, the roles of the sample and third ports have switched.  Consequently,
+the areas of the sample and third ports must be swapped before the gain is calculated.
 $$
 P_\std = T(1.0, r_\std) = [a_d P_i] r_\std G(r_\std)
 $$
@@ -1291,33 +1292,82 @@ $$
 Note that $r_w$ or $r_\std$ in $P_\std$ term cancel with $r_0$ when calculating $M_T$.
 Further, the quantities $a_d P_i$ also cancel.
 
+@ The no baffle case.
+
+We note that none of the unscattered light reaches
+the detector directly.  It must bounce once off the cap in the third port.  Thus
+the light falling on the detector will be
+$$
+P_d = T(\tdirect,r_s, r_\third) = a_d [r_\third T_u + T_s] G(r_s, r_\third) P_i
+$$
+
+The calibration measurement will have a known standard place in the third port and the
+sample port will be empty
+$$
+P_d^{100} = a_d r_\std G(0, r_\std) P_i
+$$
+and so
+$$
+M_T = r_\std {P_d \over P_d^{100}}
+= r_\std {a_d [r_\third T_u + T_s] G(r_s, r_\third) P_i \over a_d r_\std G(0, r_\std) P_i}
+= (r_\third T_u + T_s) \cdot {G(r_s, r_\third) \over G(0, r_\std)}
+$$
+
+We might mention that the program assume $r_\third=r_\std$ as long as all the light
+is included in the transmittance measurement.  Conversely if none of the light is
+included in the transmittance measurement, then $r_\third=0$.
+
+@ The baffling case.
+
+With a baffle, then light cannot reach the detector without a bounce. The first
+bounce is
+$$
+{\rm first\ bounce} = r_\third T_u + r_w (1-a_\third) T_s + r_\third a_\third T_s
+$$
+or
+$$
+{\rm first\ bounce} = r_\third T_u + r_\first T_s, \qquad {\rm where}\qquad r_\first =
+r_w (1-a_\third) + r_\third a_\third
+$$
+
+The light for a sample measurement on the detector is
+$$
+P_d = T(\tdirect, r_s, r_\third) = a_d [r_\third T_u + r_\first T_s] G(r_s, r_\third) P_i
+$$
+The calibration measurement is the same as above, so
+$$
+M_T = r_\std {P_d \over P_d^{100}}
+= r_\std {a_d [r_\third T_u + r_\first T_s] G(r_s, r_\third) P_i \over a_d r_\std G(0, r_\std) P_i}
+= (r_\third T_u + r_w T_s) \cdot {G(r_s, r_\third) \over G(0, r_\std)}
+$$
+
+Note that this is exactly the same as the no baffle case except there $r_\first=1$.
+
+@ The normalization $T(t_\std,r_\std)$ can be measured in two ways.
+
 @<Calc |M_R| and |M_T| for single beam sphere@>=
+{
+    double r_first = 1;
+    double r_third = 0;
+    double T_s = UT1_calc - MM.fraction_of_tc_in_mt * Tc;
+    
+    if (MM.fraction_of_tc_in_mt == 1) r_third = MM.rstd_t;
 
-    G = Gain(TRANSMISSION_SPHERE, MM, URU_calc);
-    P = UT1_calc * G;
-    if (MM.baffle_t)
-        P *= (1-MM.ae_t) * MM.rw_t;
+    if (MM.baffle_t) r_first = MM.rw_t * (1-MM.at_t) + MM.rstd_t * MM.at_t;
 
-    tmp = MM.baffle_t;
-    MM.baffle_t = FALSE;
-    if (MM.ae_t == 0) {
-        G_std = Gain(TRANSMISSION_SPHERE, MM, 0);
-    } else {
-        SWAP(MM.ae_t, MM.as_t);
-        G_std = Gain(TRANSMISSION_SPHERE, MM, MM.rstd_t);
-        SWAP(MM.ae_t, MM.as_t);
-    }
-    P_std = G_std;
-    MM.baffle_t = tmp;
-    *M_T  = P / P_std;
+    G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
+    G_std = Gain(TRANSMISSION_SPHERE, MM, 0, MM.rstd_t);
+
+    *M_T  = (r_third * Tc + r_first * T_s) * G/G_std;
 
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
         fprintf(stderr, "SPHERE: TRANSMISSION\n");
-        fprintf(stderr, "SPHERE:                        G  = %7.3f G_std = %7.3f\n", G, G_std);
-        fprintf(stderr, "SPHERE:                        P  = %7.3f P_std = %7.3f\n", P, P_std);
-        fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f   M_T = %7.3f\n", UT1, UT1_calc, *M_T);
+        fprintf(stderr, "SPHERE:      G  = %7.3f   G_std = %7.3f\n", G, G_std);
+        fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f T_s = %7.3f\n", UT1, UT1_calc, T_s);
+        fprintf(stderr, "SPHERE:     M_T = %7.3f\n", *M_T);
         fprintf(stderr, "\n");
     }
+}
 
 @ The dual beam case is different because the sphere efficiency
 is equivalent for measurement of light hitting the sample first or
