@@ -1,4 +1,8 @@
 IAD1  # Must be first four characters
+
+# Data from Thanh Phan, Beckman Laser Institute
+# adapted from bw_biopix_Rs0_g0_iad3150a_v12.xlsx
+
 1.38   # Index of refraction of the sample 
 1.00   # Index of refraction of the top and bottom slides 
 1.62   # [mm] Thickness of sample 
@@ -9,14 +13,14 @@ IAD1  # Must be first four characters
 1      # Number of spheres used for the measurement
 
 # Properties of sphere used for reflectance measurements
-100   # [mm] Sphere Diameter  (in * 25.4 mm/in)
+101.6  # [mm] Sphere Diameter
 12.7   # [mm] Sample Port Diameter
 12.7   # [mm] Entrance Port Diameter
 0.6    # [mm] Detector Port Diameter
 0.94   # Reflectivity of the sphere wall (empirical value, 0.9885)
 
 # Properties of sphere for transmittance measurements
-100   # [mm] Sphere Diameter  (in * 25.4 mm/in)
+101.6  # [mm] Sphere Diameter
 12.7   # [mm] Sample Port Diameter
 0.0    # [mm] Entrance Port Diameter
 0.6    # [mm] Detector Port Diameter
