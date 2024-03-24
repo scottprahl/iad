@@ -7,6 +7,10 @@
 \def\std{{\hbox{\sevenrm{}std}}}
 \def\third{{\hbox{\sevenrm{}third}}}
 \def\first{{\hbox{\sevenrm{}first}}}
+\def\lost{{\hbox{\sevenrm{}lost}}}
+\def\scat{{\hbox{\sevenrm{}scat}}}
+\def\unscat{{\hbox{\sevenrm{}unscat}}}
+\def\miss{{\hbox{\sevenrm{}miss}}}
 
 
 @(iad_calc.c@>=
@@ -149,22 +153,29 @@ as well as the number of quadrature points.
 Assume that a sphere is illuminated with diffuse light having a power
 $P$. This light will undergo multiple reflections in the sphere walls that
 will increase the power falling on the detector.
-
 The gain on the detector due to integrating sphere effects varies with
 the presence of a baffle between the sample and the detector.  If a baffle is
 present then
 $$
-G_{\rm no\ baffle}(\rdiffuse) = {1 \over 1 - a_w r_w - a_d r_d - a_s \rdiffuse}
+G_{\rm no\ baffle}(\rdiffuse, r_t) = {1 \over 1 - a_w r_w - a_d r_d - a_s \rdiffuse - a_s r_t}
 $$
 or with a baffle as
 $$
-G_{\rm baffle}(\rdiffuse) = {1 \over 1- a_w r_w - r_w (1-a_t) (a_d r_d + a_s \rdiffuse)}
+G_{\rm baffle}(\rdiffuse, r_t) = {1 \over 1- a_w r_w' - r_w' (1-a_t) (a_d r_d + a_s \rdiffuse)}
+$$
+where
+$$
+r_w' = r_w + (a_t/a_w) r_t
 $$
 For a black sphere the gain does not depend on the diffuse reflectivity of the sample
 and is unity.  $G(\rdiffuse) = 1$, which is easily verified by setting $r_w=0$.
 
+The value |uru_sample| is the total reflectance from the sample for diffuse incident light
+and |uru_third| is the total reflectance from the third port for diffuse incident light.
+For a reflection sphere, the third port is the entrance port and |uru_third=0|.
+
 @ @<Prototype for |Gain|@>=
-double Gain(int sphere, struct measure_type m, double URU, double r_third)
+double Gain(int sphere, struct measure_type m, double uru_sample, double uru_third)
 
 @ @<Definition for |Gain|@>=
     @<Prototype for |Gain|@>
@@ -173,19 +184,19 @@ double inv_gain;
 
 if (sphere == REFLECTION_SPHERE) {
     if (m.baffle_r) {
-        inv_gain = m.rw_r + (m.at_r / m.aw_r) * r_third;
-        inv_gain *= m.aw_r + (1 - m.at_r) * (m.ad_r * m.rd_r + m.as_r * URU);
+        inv_gain = m.rw_r + (m.at_r / m.aw_r) * uru_third;
+        inv_gain *= m.aw_r + (1 - m.at_r) * (m.ad_r * m.rd_r + m.as_r * uru_sample);
         inv_gain = 1.0 - inv_gain;
     } else {
-        inv_gain = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * URU - m.at_r * r_third;
+        inv_gain = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * uru_sample - m.at_r * uru_third;
     }
 } else
     if (m.baffle_t) {
-        inv_gain = m.rw_t + (m.at_t / m.aw_t) * r_third;
-        inv_gain *= m.aw_t + (1 - m.at_t) * (m.ad_t * m.rd_t + m.as_t * URU);
+        inv_gain = m.rw_t + (m.at_t / m.aw_t) * uru_third;
+        inv_gain *= m.aw_t + (1 - m.at_t) * (m.ad_t * m.rd_t + m.as_t * uru_sample);
         inv_gain = 1.0 - inv_gain;
     } else {
-        inv_gain = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * URU - m.at_t * r_third;
+        inv_gain = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * uru_sample - m.at_t * uru_third;
     }
 return 1.0 / inv_gain;
 }
@@ -1045,7 +1056,7 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
 @ @<Definition for |Calculate_Distance|@>=
     @<Prototype for |Calculate_Distance|@>
 {
-    double Rc, Tc, ur1, ut1, uru, utu;
+    double Ru, Tu, ur1, ut1, uru, utu;
 
     if (RR.slab.b <= 1e-6 )
         RR.slab.b = 1e-6;
@@ -1055,13 +1066,13 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
     Sp_mu_RT_Flip(MM.flip_sample,
              RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
              RR.slab.b_top_slide, RR.slab.b,      RR.slab.b_bottom_slide,
-             RR.slab.cos_angle, &Rc, &Tc);
+             RR.slab.cos_angle, &Ru, &Tu);
 
     if ((!CALCULATING_GRID && Debug(DEBUG_ITERATIONS)) ||
         ( CALCULATING_GRID && Debug(DEBUG_GRID_CALC)))
             fprintf(stderr, "        ");
 
-    Calculate_Distance_With_Corrections(ur1,ut1,Rc,Tc,uru,utu,M_R,M_T,deviation);
+    Calculate_Distance_With_Corrections(ur1,ut1,Ru,Tu,uru,utu,M_R,M_T,deviation);
 }
 
 @ @<Prototype for |Calculate_Grid_Distance|@>=
@@ -1070,7 +1081,7 @@ double Calculate_Grid_Distance(int i, int j)
 @ @<Definition for |Calculate_Grid_Distance|@>=
     @<Prototype for |Calculate_Grid_Distance|@>
 {
-    double ur1,ut1,uru,utu,Rc,Tc,b,dev,LR,LT;
+    double ur1,ut1,uru,utu,Ru,Tu,b,dev,LR,LT;
 
     if (Debug(DEBUG_GRID_CALC) && i==0 && j==0) {
         fprintf(stderr, "+   i   j ");
@@ -1094,10 +1105,10 @@ double Calculate_Grid_Distance(int i, int j)
     Sp_mu_RT_Flip(MM.flip_sample,
              RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
              RR.slab.b_top_slide, b,      RR.slab.b_bottom_slide,
-             RR.slab.cos_angle, &Rc, &Tc);
+             RR.slab.cos_angle, &Ru, &Tu);
 
     CALCULATING_GRID = 1;
-    Calculate_Distance_With_Corrections(ur1,ut1,Rc,Tc,uru,utu,&LR,&LT,&dev);
+    Calculate_Distance_With_Corrections(ur1,ut1,Ru,Tu,uru,utu,&LR,&LT,&dev);
     CALCULATING_GRID = 0;
 
     return dev;
@@ -1106,7 +1117,7 @@ double Calculate_Grid_Distance(int i, int j)
 @ This is the routine that actually finds the distance.  I have factored
 this part out so that it can be used in the |Near_Grid_Points| routine.
 
-|Rc| and |Tc| refer to the unscattered (collimated) reflection and transmission.
+|Ru| and |Tu| refer to the unscattered (collimated) reflection and transmission.
 
 The only tricky part is to remember that the we are trying to match the
 measured values.  The measured values are affected by sphere parameters
@@ -1118,7 +1129,7 @@ modified |UR1| and |UT1| to values for |*M_R| and |*M_T|.
 @<Prototype for |Calculate_Distance_With_Corrections|@>=
 void Calculate_Distance_With_Corrections(
                 double UR1, double UT1,
-                double Rc,  double Tc,
+                double Ru,  double Tu,
                 double URU, double UTU,
                 double *M_R, double *M_T, double *dev)
 
@@ -1173,14 +1184,11 @@ misses the detector either because it is intentionally not collected
 that leaks out could be unscattered light, these two are independent
 of one another.
 
-The code allows for some of the light to hit the sphere wall first; these effects
-are accounted for in the sphere code below.
-
 @<Determine calculated light to be used@>=
-    UR1_calc = UR1 - (1.0 - MM.fraction_of_rc_in_mr) * Rc - MM.ur1_lost;
+    UR1_calc = UR1 - (1.0 - MM.fraction_of_rc_in_mr) * Ru - MM.ur1_lost;
     if (UR1_calc < 0) UR1_calc = 0;
 
-    UT1_calc = UT1 - (1.0 - MM.fraction_of_tc_in_mt) * Tc - MM.ut1_lost;
+    UT1_calc = UT1 - (1.0 - MM.fraction_of_tc_in_mt) * Tu - MM.ut1_lost;
     if (UT1_calc < 0) UT1_calc = 0;
 
 @ When no spheres are used, then no corrections can or need to
@@ -1194,48 +1202,139 @@ properly account for the presence or absence of unscattered light.
     *M_T = UT1_calc;
 }
 
-@ In a reflection experiment, some fraction $f$ of the incident light $P_i$ might
-hit the wall first.  Thus the incident power on the sample is $(1-f) P_i$ and
-the incident power on the sphere wall will be $f P_i$.  The diffuse reflection
-entering the sphere depends on the presence of a baffle.
+@*2 Reflectance measurement for one sphere.
 
-If a baffle is present then
+The total reflection from a slab may be broken down into light that has and has
+not been scattered.  The total reflectance for normal incidence on an infinite slab is
+denoted by van de Hulst by {\tt UR1}.  To track integrating sphere corrections, this
+is separated into scattered and  unscattered parts.
 $$
-P_d = [a_d ((1-a_t) r_w + a_t r_t) P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s,0)
+{\tt UR1} = R_\unscat + R_\scat
 $$
-If we define $r_\first=(1-a_t) r_w + a_t r_t$ then we have
+{\tt UR1} is calculated from the current guess of optical properties, but we can also
+calculate $R_\unscat$ by setting $\mu_s=0$ which means that the albedo is zero. Assuming
+the incident power is $P_i$ then the scattered light in the sphere $P_{ss}$ and the
+unscattered light in the sphere $P_{su}$ start as
 $$
-P_d = [a_d r_\first P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s,0)
-$$
-
-When there is no baffle
-$$
-P_d = [a_d P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_s,0)
-$$
-
-The standard measurement is
-$$
-P_d = [a_d (1-a_t) r_w  P_i] \cdot (\rdirect * (1-f) + r_w f) \cdot G(r_\std,0)
+P_{ss} = ({\tt UR1} - R_\unscat) P_i
+    \qquad\hbox{\it and}\qquad
+P_{su} =  R_\unscat P_i
 $$
 
-Since the quantities in square brackets are identical for
-$R(\rdirect,r_s,0)$, $R(0,0,0)$, and $R(r_\std,r_\std,0)$. Consequently they cancel out
-when calculating the normalized reflection measurement
+@ Light that is lost.
+
+In an experiment, the scattered light in the sphere will be reduced by any light that
+leaks out.  This is determined by doing a Monte Carlo simulation to determine ${\tt UR1}_\lost$
+or how much light is scattered within the sample and escapes outside the sphere. Since
+the only way that light may be lost is through scattering, this does not affect the
+unscattered fraction.
+
+The fraction of unscattered light collected by the sphere $f_\unscat$ is
+determined by the experimentalist. The unscattered reflected light can aligned so that
+it bounces off the sample and exits completely through the entrance port so that
+$f_\unscat=0$.  Alternatively, the beam may be incident on the sample at an
+angle so that the unscattered light will bounce and remain completely within
+the sphere so that $f_\unscat=1$.
 $$
-M_R = r_\std\cdot{R(\rdirect,r_s,0)-R(0,0.0) \over R(0.0,r_\std,0)-R(0,0.0)}
+P_{ss} = ({\tt UR1} - {\tt UR1}_\unscat-R_\lost) P_i
+    \qquad\hbox{\it and}\qquad
+P_{su} =  f_\unscat R_\unscat P_i
 $$
-This leads to the following code for |M_R|
+
+@ Incident light that misses the sample.
+
+In an experiment, a fraction $f_\miss$ of the incident beam might miss the sample
+and hit the sphere wall instead.  In this case, both $R_{ss}$ and $R_{su}$ are affected.
+Typically the beam is much smaller than the sample and $f_\miss=0$, however sometimes
+the beam diverges too much and some of the beam hits the wall. After hitting the sphere
+wall then $f_\miss r_w$ will be added to the scattered light in the sphere. However,
+now only $(1-f_\miss)$ hits the sample directly, both the scattered and
+unscattered light in the sphere must be adjusted accordingly.  So in the
+unusual case of non-zero $f_\miss$, we have
+$$
+R_{ss} = (1-f_\miss) ({\tt UR1} - R_\unscat - {\tt UR1}_\lost)P_i + f_\miss r_w P_i
+    \qquad\hbox{\it and}\qquad
+R_{su} = (1-f_\miss) f_\unscat R_\unscat P_i
+$$
+
+@ Reflectance with baffle.
+
+When a baffle blocks light from passing directly between the sample to the detector then
+the light reflected by the sample must bounce once.  Some of the light will be
+reflected by the sphere walls, but some may be reflected by the third port. The
+weighted reflectance of the first bounce is
+$$
+r_\first=(1-a_t) r_w + a_t r_t
+$$
+We can safely assume that the fraction of light generated by $f_\miss$ will
+originate close enough to the sample that a baffle, if present, will prevent light
+from directly reaching the detector.  The scattered light in the sphere after
+the first bounce will be
+$$
+P_{ss} = r_\first \left[(1-f_\miss) ({\tt UR1} - R_\unscat - R_\lost) + f_\miss r_w\right] P_i
+$$
+All unscattered reflectance that is collected must hit the sphere wall (otherwise it
+would exit through the entrance port and not be collected!).  This means
+that the correction in $r_\first$ for the entrance port is not needed and the
+unreflected light can just be multiplied by $r_w$
+$$
+P_{su} =  r_w (1-f_\miss) f_\unscat R_\unscat P_i
+$$
+The last step is to account for the sphere gain. The sample is held in the sample port
+and the entrance port is empty.  The total reflection for diffuse illumination of the
+sample is {\tt URU}.  This quantity must also be corrected for light that is not
+collected by the sphere ${\tt UR1}_\lost$.  The gain for such a sphere is
+$G({\tt URU}-{\tt URU}_\lost,0)$.  Finally,
+$$
+P_s = [a_d (1-r_d)] \cdot G({\tt URU}-{\tt URU}_\lost,0)\left[P_{ss}+P_{su}\right]
+$$
+
+@ The reflection standard.
+
+We let ${\tt UR1}={\tt URU}=r_\std$, $R_\unscat=0$, $R_\lost=0$ to get
+$$
+P_\std = [a_d (1-r_d)] \cdot r_\first \left[(1-f_\miss) r_\std + f_\miss r_w\right] G(r_\std,0) P_i
+$$
+
+@ The open port.
+
+We let ${\tt UR1}={\tt URU}=0$, $R_\unscat=0$, $R_\lost=0$ to get
+$$
+P_0 = [a_d (1-r_d)] \cdot r_\first f_\miss r_w G(0,0) P_i
+$$
+
+@ The unbaffled reflectance sphere.
+
+In this case, light can reach the detector from the sample.  The first bounce is
+not needed which can be accommodated by letting $r_\first=1$.  We, of course,
+assume that the gain is calculated assuming that no baffle is present.
+The incident power $P_i$ and the quantities in square brackets are identical for
+$P_s$, $P_\std$, and $P_0$ and cancel in the normalized reflection fraction
+$$
+M_R = r_\std\cdot{P_s-P_0 \over P_\std - P_0}
+$$
+In addition, the entrance port is empty and therefore $r_t=0$ and can be omitted
+from the $r_\first$ calculation.  This leads to the following code for |M_R|
 
 @<Calc |M_R| and |M_T| for single beam sphere@>=
-    double P_std, P, P_0, G, G_0, G_std;
+    double P_std, P, P_0, G, G_0, G_std, r_first, P_ss, P_su;
+    r_first = 1;
+
+    if (MM.baffle_r) r_first = MM.rw_r * (1 - MM.at_r);
+
+    UR1_calc = UR1 - Ru - MM.ur1_lost;
+    if (UR1_calc < 0) UR1_calc = 0;
 
     G_0      = Gain(REFLECTION_SPHERE, MM, 0.0, 0.0);
     G        = Gain(REFLECTION_SPHERE, MM, URU_calc, 0.0);
     G_std    = Gain(REFLECTION_SPHERE, MM, MM.rstd_r, 0.0);
 
-    P        = G     * (UR1_calc  * (1-MM.f_r) + MM.f_r * MM.rw_r);
     P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r * MM.rw_r);
     P_0      = G_0   * (                         MM.f_r * MM.rw_r);
+    P_ss = r_first * (UR1_calc * (1-MM.f_r) + MM.f_r * MM.rw_r);
+    P_su = MM.rw_r * (1-MM.f_r) * MM.fraction_of_rc_in_mr * Ru;
+    P = G * (P_ss + P_su);
+
     *M_R     = MM.rstd_r * (P - P_0)/(P_std - P_0);
 
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
@@ -1245,129 +1344,108 @@ This leads to the following code for |M_R|
         fprintf(stderr, "SPHERE:     UR1 = %7.3f UR1calc = %7.3f   M_R = %7.3f\n", UR1, UR1_calc, *M_R);
     }
 
-@ In a transmission experiment, the calculations are simpler and harder.  First,
-the value of $T(0,0,r_\std) = 0$ because computationally, there is no dark noise in
-the detector nor any possible light leakage from the outside into the
-sphere.  This simplifies
+@*2 Transmittance measurement for one sphere.
+
+Like in the reflection case, the total transmission can be split into unscattered transmission and
+scattered transmission,
 $$
-M_T = r_\std \cdot{T(\tdirect,r_s,r_\third)-T(0,0,0) \over T(t_\std,0,r_\std)-T(0,0)}
+UT1=T_u + T_s
 $$
-to
+We define $P_{ss}$ as the scattered light in the sphere and $P_{su}$ as the unscattered
+light in the sphere for an incident power $P_i$
 $$
-M_T = r_\std \cdot {T(\tdirect,r_s,r_\third) \over T(t_\std,0,r_\std)}
+P_{ss} = ({\tt UT1} - T_u)P_i
+    \qquad\hbox{\it and}\qquad
+P_{su} = f_\unscat T_u P_i
 $$
 
-We do not need to worry about some fraction of the incident light $P_i$
-hitting the sphere wall before interacting with the sample like in the reflectance
-case.
+@ Transmitted light not collected.
 
-If the total transmission can be written in terms of the unscattered transmission and
-the scattered transmission,
+The scattered light will be reduced by {\tt UT1}$_\lost$. The unscattered light
+will be affected by the fraction of unscattered light collected by the sphere.
+When transmission measurements are made, the third port (opposite the sample port
+in the sphere) is typically filled with a known standard. However, the third port
+might also be left open so that all the scattered light might exit and only scattered
+light is collected.  In the former case $f_\unscat=1$ and in the latter case $f_\unscat=0$.
+So including these effects gives
 $$
-UT1=T_u+T_s
+P_{ss} = ({\tt UT1} - T_u - T_\lost)P_i
+    \qquad\hbox{\it and}\qquad
+P_{su} = f_\unscat T_u
 $$
+
+@ The baffling case of transmission.
+
+With a baffle, then scattered light from the sample cannot reach
+the detector without a bounce.  This weighted reflection is given by
+$$
+r_\first= (1-a_t) r_w + a_t r_t
+$$
+The unscattered light will be reflected by the standard $r_t$ in the third port
+and so
+$$
+P_{ss} = r_\first ({\tt UT1} - T_u - T_\lost) P_i
+    \qquad\hbox{\it and}\qquad
+P_{su} = r_t f_\unscat T_u
+$$
+The last step is to account for the sphere gain. The sample is held in the sample port
+and the third port reflects $r_t$.  The total reflection for diffuse illumination of the
+sample is {\tt URU}.  This quantity must also be corrected for light that is not
+collected by the sphere ${\tt UR1}_\lost$.  The gain for such a sphere is
+$G({\tt URU}-{\tt URU}_\lost,r_t)$.  Finally,
+$$
+P_s = G({\tt URU}- {\tt URU}_\lost, r_t) (P_{ss}+P_{su})
+$$
+
+@ No baffle.
+
+Here $r_\first=1$ and the gain should be calculated assuming no baffle.
+
+@ The standard measurement.
 
 When transmission measurements are made, typically the third port (the one that
 let the light into the sphere for the reflection measurement) is filled with a known
 standard. In this case, the natural way to make the 100\% transmission measurement
 is to shine the beam through the empty sample port onto the known standard.
-If the baffle is between the sample port and the detector (or the acceptance
-angle of the detector prevents it from seeing the sample port) then
-the calibration transmission measurement is now made in a sphere without a baffle. In addition,
-the beam is diffused only after bouncing off the sphere wall.  Therefore the power falling
-on the detector is
+
+We let ${\tt UT1}=T_u=1$, $T_\lost=0$, ${\tt URU} =0$, $r_t=r_\std$, and $f_\unscat=1$ so
 $$
-P_\std = T(1.0, 0, r_\std) = [a_d P_i] r_w G(0)
+P_\std = G(0, r_\std) r_\std P_i
 $$
 
-An alternate method is when there is an third port in the sphere (perhaps to allow
-the unscattered light to leave).  In any case, the calibration measurement is done
-by removing the sample and placing the calibration standare in what used to be the third
-port.  In this case, the roles of the sample and third ports have switched.  Consequently,
-the areas of the sample and third ports must be swapped before the gain is calculated.
+The estimate for the measured transmittance is
 $$
-P_\std = T(1.0, r_\std) = [a_d P_i] r_\std G(r_\std)
+M_T = r_\std {P_s \over P_\std}
+= {P_{ss}+P_{su}\over P_i} \cdot {G({\tt URU}- {\tt URU}_\lost, r_\third)\over G(0, r_\std)}
 $$
-
-Note that $r_w$ or $r_\std$ in $P_\std$ term cancel with $r_0$ when calculating $M_T$.
-Further, the quantities $a_d P_i$ also cancel.
-
-@ The no baffle case.
-
-We note that none of the unscattered light reaches
-the detector directly.  It must bounce once off the cap in the third port.  Thus
-the light falling on the detector will be
-$$
-P_d = T(\tdirect,r_s, r_\third) = a_d [r_\third T_u + T_s] G(r_s, r_\third) P_i
-$$
-
-The calibration measurement will have a known standard place in the third port and the
-sample port will be empty
-$$
-P_d^{100} = a_d r_\std G(0, r_\std) P_i
-$$
-and so
-$$
-M_T = r_\std {P_d \over P_d^{100}}
-= r_\std {a_d [r_\third T_u + T_s] G(r_s, r_\third) P_i \over a_d r_\std G(0, r_\std) P_i}
-= (r_\third T_u + T_s) \cdot {G(r_s, r_\third) \over G(0, r_\std)}
-$$
-
-We might mention that the program assume $r_\third=r_\std$ as long as all the light
-is included in the transmittance measurement.  Conversely if none of the light is
-included in the transmittance measurement, then $r_\third=0$.
-
-@ The baffling case.
-
-With a baffle, then light cannot reach the detector without a bounce. The first
-bounce is
-$$
-{\rm first\ bounce} = r_\third T_u + r_w (1-a_\third) T_s + r_\third a_\third T_s
-$$
-or
-$$
-{\rm first\ bounce} = r_\third T_u + r_\first T_s, \qquad {\rm where}\qquad r_\first =
-r_w (1-a_\third) + r_\third a_\third
-$$
-
-The light for a sample measurement on the detector is
-$$
-P_d = T(\tdirect, r_s, r_\third) = a_d [r_\third T_u + r_\first T_s] G(r_s, r_\third) P_i
-$$
-The calibration measurement is the same as above, so
-$$
-M_T = r_\std {P_d \over P_d^{100}}
-= r_\std {a_d [r_\third T_u + r_\first T_s] G(r_s, r_\third) P_i \over a_d r_\std G(0, r_\std) P_i}
-= (r_\third T_u + r_w T_s) \cdot {G(r_s, r_\third) \over G(0, r_\std)}
-$$
-
-Note that this is exactly the same as the no baffle case except there $r_\first=1$.
-
-@ The normalization $T(t_\std,r_\std)$ can be measured in two ways.
 
 @<Calc |M_R| and |M_T| for single beam sphere@>=
 {
     double r_first = 1;
-    double r_third = 0;
-    double T_s = UT1_calc - MM.fraction_of_tc_in_mt * Tc;
-    
-    if (MM.fraction_of_tc_in_mt == 1) r_third = MM.rstd_t;
+    double r_third = MM.rstd_t;
+
+    if (MM.fraction_of_tc_in_mt == 0) r_third = 0;
 
     if (MM.baffle_t) r_first = MM.rw_t * (1-MM.at_t) + MM.rstd_t * MM.at_t;
+
+    UT1_calc = UT1 - Tu - MM.ut1_lost;
+    if (UT1_calc < 0) UT1_calc = 0;
 
     G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
     G_std = Gain(TRANSMISSION_SPHERE, MM, 0, MM.rstd_t);
 
-    *M_T  = (r_third * Tc + r_first * T_s) * G/G_std;
+    *M_T  = (r_third * Tu * MM.fraction_of_tc_in_mt + r_first * UT1_calc) * G/G_std;
 
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
         fprintf(stderr, "SPHERE: TRANSMISSION\n");
         fprintf(stderr, "SPHERE:      G  = %7.3f   G_std = %7.3f\n", G, G_std);
-        fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f T_s = %7.3f\n", UT1, UT1_calc, T_s);
+        fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f T_c = %7.3f\n", UT1, UT1_calc, Tu);
         fprintf(stderr, "SPHERE:     M_T = %7.3f\n", *M_T);
         fprintf(stderr, "\n");
     }
 }
+
+@*2 Dual beam case for one sphere.
 
 @ The dual beam case is different because the sphere efficiency
 is equivalent for measurement of light hitting the sample first or
@@ -1389,6 +1467,8 @@ no sense to try and account for it.
     *M_R     = UR1_calc;
     *M_T     = UT1_calc;
 }
+
+@*2 Double integrating spheres.
 
 @ When two integrating spheres are present then the
 double integrating sphere formulas are slightly more complicated.
