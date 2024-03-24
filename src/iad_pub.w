@@ -669,7 +669,7 @@ index of refraction, that the illumination is collimated.  Of course
 no sphere parameters are included.
 
 @<Prototype for |ez_Inverse_RT|@>=
-    void ez_Inverse_RT(double n, double nslide, double UR1, double UT1, double Tc,
+    void ez_Inverse_RT(double n, double nslide, double UR1, double UT1, double Tu,
                        double *a, double *b, double *g, int *error)
 
 @ @<Definition for |ez_Inverse_RT|@>=
@@ -690,11 +690,11 @@ no sphere parameters are included.
 
   m.num_measures=3;
   if (UT1 == 0) m.num_measures--;
-  if (Tc  == 0) m.num_measures--;
+  if (Tu  == 0) m.num_measures--;
 
   m.m_r = UR1;
   m.m_t = UT1;
-  m.m_u = Tc;
+  m.m_u = Tu;
 
   Initialize_Result(m,&r,TRUE);
   r.method.quad_pts=8;
