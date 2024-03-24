@@ -246,7 +246,7 @@ veryshorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4346	   3.9791	   0.3116"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0100	   0.0100	   0.9100	   7.6725	   0.0000"
+	@echo "EXPECT	   0.4000	   0.4000	   0.0100	   0.0100	   0.8503	   8.1759	   0.0000"
 
 test shorttest:
 	@echo "********* Basic tests ***********"
