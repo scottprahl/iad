@@ -287,7 +287,8 @@ def main():
         ipynb_path = os.path.join(local_dir, base + '.ipynb')
 
         if not os.path.exists(base_path + '.rxt'):
-            raise ValueError('input file "%s" must end in ".rxt"' % file_name)
+            print('missing file "%s"' % (base_path + '.rxt'))
+            exit()
 
         if not os.path.exists(base_path + '.txt') or args.force:
             command = ['iad']
