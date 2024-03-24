@@ -1,4 +1,4 @@
-@** \.{iad} program.
+@** iad command-line program.
 
 Here is a relatively robust command-line utility that shows how
 the iad and ad subroutines might be called.  It suffers because
@@ -197,7 +197,7 @@ that this strips any quotes from the command-line.
     optind = 1; 
 }
  
-@ use the |getopt()| to process options.
+@*1 Handling command-line options.
 
 @<Handle options@>=
     while ((c = getopt(argc, argv, command_line_options)) != EOF) {
@@ -601,7 +601,9 @@ that this strips any quotes from the command-line.
     argc -= optind;
     argv += optind;
 
-@ We are doing a forward calculation.  We still need to set the albedo
+@*1 The forward calculation.
+
+We are doing a forward calculation.  We still need to set the albedo
 and optical depth appropriately.  Obviously when the -a switch is used
 then the albedo should be fixed as a constant equal to |cl_default_a|.
 The other cases are less clear.  If scattering and absorption are both
@@ -851,7 +853,8 @@ if (rt_total==1 && cl_verbosity>0) {
     print_results_header(stdout);
 }
 
-@ Use Monte Carlo to figure out how much light leaks out.  We use
+@*1 Monte Carlo light loss.
+Use Monte Carlo to figure out how much light leaks out.  We use
 the sphere corrected values as the starting values and only do try
 Monte Carlo when spheres are used, the albedo unknown or non-zero, and
 there has been no error.  The sphere parameters must be known because
