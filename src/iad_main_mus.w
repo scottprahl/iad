@@ -43,7 +43,7 @@ exit(EXIT_SUCCESS);
 struct measure_type m;
 struct invert_type r;
 int lines;
-char *format1 = "    R    \t    T    \t    Tc    \t     a    \
+char *format1 = "    R    \t    T    \t    Tu    \t     a    \
 \t     b    \t     g    \t    !/?\n";
 char *format2 = " %9.5f\t %9.5f\t %9.5f\t %9.5f\t %9.5f\t %9.5f\t %9c\n";
 char found = '?';
