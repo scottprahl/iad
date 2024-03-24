@@ -75,7 +75,7 @@ included cases involving absorption in the boundaries.
 @d SMALL_A_VALUE 0.000001
 
 @<Prototype for |What_Is_B|@>=
-double What_Is_B(struct AD_slab_type slab, double Tc)
+double What_Is_B(struct AD_slab_type slab, double Tu)
 
 @ @<Definition for |What_Is_B|@>=
     @<Prototype for |What_Is_B|@>
@@ -84,7 +84,7 @@ double What_Is_B(struct AD_slab_type slab, double Tc)
     double r1, r2, t1, t2, mu_in_slab;
 
     @<Calculate specular reflection and transmission@>@;
-    @<Check for bad values of |Tc|@>@;
+    @<Check for bad values of |Tu|@>@;
     @<Solve if multiple internal reflections are not present@>@;
     @<Find thickness when multiple internal reflections are present@>@;
 }
@@ -115,11 +115,11 @@ $$
 Since this routine has no way to report errors, I just set the
 optical thickness to the natural values in these cases.
 
-@<Check for bad values of |Tc|@>=
-    if (Tc <= 0)
+@<Check for bad values of |Tu|@>=
+    if (Tu <= 0)
         return (HUGE_VAL);
 
-    if (Tc >= t1 * t2 / (1 - r1 * r2))
+    if (Tu >= t1 * t2 / (1 - r1 * r2))
         return (0.001);
 
 @ If either |r1| or |r2==0| then things are very simple
@@ -135,7 +135,7 @@ $$
 
 @<Solve if multiple internal reflections are not present@>=
     if (r1 == 0 || r2 == 0)
-            return (-slab.cos_angle*log(Tc / t1 / t2));
+            return (-slab.cos_angle*log(Tu / t1 / t2));
 
 
 @ Well I kept putting it off, but now comes the time to solve
@@ -190,7 +190,7 @@ $$
 double B;
 
     B = t1 * t2;
-    return (-slab.cos_angle*log(2 * Tc /(B+sqrt(B*B+ 4*Tc * Tc * r1 * r2))));
+    return (-slab.cos_angle*log(2 * Tu /(B+sqrt(B*B+ 4*Tu * Tu * r1 * r2))));
 }
 
 @*1 Estimating R and T.
@@ -204,7 +204,7 @@ Good values are only really obtainable when |num_measures==3|, otherwise
 we need to make pretty strong assumptions about the reflection and transmission
 values.  If |num_measures<3|, then we will assume that no collimated light makes it all
 the way through the sample.  The specular reflection is then just that for a
-semi-infinite sample and $Tc=0$. If |num_measures==1|, then |Td| is also set
+semi-infinite sample and $Tu=0$. If |num_measures==1|, then |Td| is also set
 to zero.
 
 {\settabs\+\qquad\qquad&variable&\qquad description of variable&\cr%sample line
