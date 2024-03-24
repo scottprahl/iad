@@ -350,7 +350,7 @@ is no sense even using it because the slab is not infinitely thick.
 
 @ @<Definition for |U_Find_A|@>=
 @<Prototype for |U_Find_A|@> {
-    double Rt, Tt, Rd, Rc, Td, Tc;
+    double Rt, Tt, Rd, Ru, Td, Tu;
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"SEARCH: Using U_Find_A()");
@@ -362,7 +362,7 @@ is no sense even using it because the slab is not infinitely thick.
         fprintf(stderr,"\n");
     }
 
-    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Rc, &Td, &Tc);
+    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Ru, &Td, &Tu);
 
     r->slab.g = (r->default_g == UNINITIALIZED) ? 0        : r->default_g;
     r->slab.b = (r->default_b == UNINITIALIZED) ? HUGE_VAL : r->default_b;
@@ -394,7 +394,7 @@ is no sense even using it because the slab is not infinitely thick.
 
 @ @<Definition for |U_Find_G|@>=
 @<Prototype for |U_Find_G|@> {
-    double Rt, Tt, Rd, Rc, Td, Tc;
+    double Rt, Tt, Rd, Ru, Td, Tu;
     double x, ax, bx, cx, fa, fb, fc;
 
     if (Debug(DEBUG_SEARCH)) {
@@ -407,7 +407,7 @@ is no sense even using it because the slab is not infinitely thick.
         fprintf(stderr,"\n");
     }
 
-    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Rc, &Td, &Tc);
+    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Ru, &Td, &Tu);
 
     r->slab.a = (r->default_a == UNINITIALIZED) ? 0.5      : r->default_a;
     if (r->default_b != UNINITIALIZED)
@@ -446,7 +446,7 @@ which of these cases we happen to have.
 
 @ @<Definition for |U_Find_B|@>=
 @<Prototype for |U_Find_B|@> {
-    double Rt, Tt, Rd, Rc, Td, Tc;
+    double Rt, Tt, Rd, Ru, Td, Tu;
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"SEARCH: Using U_Find_B()");
@@ -458,7 +458,7 @@ which of these cases we happen to have.
         fprintf(stderr,"\n");
     }
 
-    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Rc, &Td, &Tc);
+    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Ru, &Td, &Tu);
 
     r->slab.g = (r->default_g == UNINITIALIZED) ? 0 : r->default_g;
     r->slab.a = (r->default_a == UNINITIALIZED) ? 0 : r->default_a;
