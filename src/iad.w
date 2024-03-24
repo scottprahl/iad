@@ -42,7 +42,6 @@ under the terms of a permission notice identical to this one.
 @s AD_slab_type int
 
 @i "iad_main.w"
-@i "iad_main_mus.w"
 @i "iad_type.w"
 @i "iad_pub.w"
 @i "iad_io.w"
