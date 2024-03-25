@@ -64,7 +64,10 @@ def plot_gridlines(filename_base):
         r = [mr[i] for i in range(N) if a[i] == aa]
         t = [mt[i] for i in range(N) if a[i] == aa]
         plt.plot(r, t, 'k', lw=0.5)
-        plt.text(r[-1],t[-1], 'a=%g' % aa, ha='center', va='top')
+        if aa>=0.9:
+            plt.text(r[-1],t[-1]-0.01, 'a=%g' % aa, ha='center', va='top')
+        else:
+            plt.text(r[-1],t[-1]-0.01, '%g' % aa, ha='center', va='top')
 
     b_list = list(set(b))
     for bb in b_list:
@@ -84,7 +87,6 @@ def plot_gridlines(filename_base):
     plt.gca().add_patch(poly)
     
     plt.plot(r, t, 'k', lw=0.5)
-    plt.text(r[-1],t[-1], 'a=%g' % aa, ha='center', va='top')
     plt.title(cmd)
     plt.grid(False)
 
