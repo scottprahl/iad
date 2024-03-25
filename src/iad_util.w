@@ -255,9 +255,9 @@ not and then just adding or subtracting the specular reflection as
 appropriate.
 
 @<Estimate the backscattered reflection@>=
-    if (m.fraction_of_rc_in_mr) {
+    if (m.fraction_of_ru_in_mr) {
         *rt = m.m_r;
-        *rd = *rt - m.fraction_of_rc_in_mr * (*rc);
+        *rd = *rt - m.fraction_of_ru_in_mr * (*rc);
         if (*rd < 0 ) {
             *rd = 0;
             *rc = *rt;
@@ -273,7 +273,7 @@ diffuse reflection values --- just subtract the specular
 transmission from the total transmission.
 
 @<Estimate the scattered transmission@>=
-    if (m.fraction_of_tc_in_mt) {
+    if (m.fraction_of_tu_in_mt) {
         *tt = m.m_t;
         *td = *tt - *tc;
         if (*td < 0) {
@@ -821,9 +821,9 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
     fprintf(stderr,"#     Bottom slide index of refraction = %7.3f\n",
             m.slab_bottom_slide_index );
     fprintf(stderr,"#    Fraction unscattered light in M_R = %7.1f %%\n",
-    m.fraction_of_rc_in_mr*100);
+    m.fraction_of_ru_in_mr*100);
     fprintf(stderr,"#    Fraction unscattered light in M_T = %7.1f %%\n",
-    m.fraction_of_tc_in_mt*100);
+    m.fraction_of_tu_in_mt*100);
     fprintf(stderr,"# \n");
     fprintf(stderr,"# Reflection sphere\n");
     fprintf(stderr,"#                      sphere diameter = %7.1f mm\n",

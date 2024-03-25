@@ -735,8 +735,8 @@ void Initialize_Measure(struct measure_type *m)
     m->num_measures=1;
     m->method = UNKNOWN;
 
-    m->fraction_of_rc_in_mr=1.0;
-    m->fraction_of_tc_in_mt=1.0;
+    m->fraction_of_ru_in_mr=1.0;
+    m->fraction_of_tu_in_mt=1.0;
 
     m->baffle_r=1;
     m->baffle_t=1;

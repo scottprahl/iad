@@ -143,7 +143,7 @@ test on the first value of the line.
 A non-zero value is returned upon a failure.
 
 @<Prototype for |Read_Data_Line|@>=
-        int Read_Data_Line(FILE *fp, struct measure_type *m, struct invert_type *r, int params)
+int Read_Data_Line(FILE *fp, struct measure_type *m, struct invert_type *r, int params)
 
 @ @<Definition for |Read_Data_Line|@>=
         @<Prototype for |Read_Data_Line|@>
@@ -204,10 +204,10 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
                 m->d_beam = x;
                 break;
             case 'c':
-                m->fraction_of_rc_in_mr = x;
+                m->fraction_of_ru_in_mr = x;
                 break;
             case 'C':
-                m->fraction_of_tc_in_mt = x;
+                m->fraction_of_tu_in_mt = x;
                 break;
             case 'd':
                 m->slab_thickness = x;
@@ -353,7 +353,7 @@ int check_magic(FILE *fp)
 @*1 Formatting the header information.
 
 @<Prototype for |Write_Header|@>=
-        void Write_Header(struct measure_type m, struct invert_type r, int params, char *cmd)
+void Write_Header(struct measure_type m, struct invert_type r, int params, char *cmd)
 
 @ @<Definition for |Write_Header|@>=
         @<Prototype for |Write_Header|@>
@@ -392,9 +392,9 @@ int check_magic(FILE *fp)
 @ @<Write general sphere info@>=
 
         printf("#  Percentage unscattered refl. in M_R = ");
-        print_maybe('c', "%7.1f %%\n", m.fraction_of_rc_in_mr*100);
+        print_maybe('c', "%7.1f %%\n", m.fraction_of_ru_in_mr*100);
         printf("# Percentage unscattered trans. in M_T = ");
-        print_maybe('C', "%7.1f %%\n", m.fraction_of_tc_in_mt*100);
+        print_maybe('C', "%7.1f %%\n", m.fraction_of_tu_in_mt*100);
         printf("# \n");
 
 @ @<Write first sphere info@>=

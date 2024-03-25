@@ -1185,10 +1185,10 @@ that leaks out could be unscattered light, these two are independent
 of one another.
 
 @<Determine calculated light to be used@>=
-    UR1_calc = UR1 - (1.0 - MM.fraction_of_rc_in_mr) * Ru - MM.ur1_lost;
+    UR1_calc = UR1 - (1.0 - MM.fraction_of_ru_in_mr) * Ru - MM.ur1_lost;
     if (UR1_calc < 0) UR1_calc = 0;
 
-    UT1_calc = UT1 - (1.0 - MM.fraction_of_tc_in_mt) * Tu - MM.ut1_lost;
+    UT1_calc = UT1 - (1.0 - MM.fraction_of_tu_in_mt) * Tu - MM.ut1_lost;
     if (UT1_calc < 0) UT1_calc = 0;
 
 @ When no spheres are used, then no corrections can or need to
@@ -1332,7 +1332,7 @@ from the $r_\first$ calculation.  This leads to the following code for |M_R|
     P_std    = G_std * (MM.rstd_r * (1-MM.f_r) + MM.f_r * MM.rw_r);
     P_0      = G_0   * (                         MM.f_r * MM.rw_r);
     P_ss = r_first * (UR1_calc * (1-MM.f_r) + MM.f_r * MM.rw_r);
-    P_su = MM.rw_r * (1-MM.f_r) * MM.fraction_of_rc_in_mr * Ru;
+    P_su = MM.rw_r * (1-MM.f_r) * MM.fraction_of_ru_in_mr * Ru;
     P = G * (P_ss + P_su);
 
     *M_R     = MM.rstd_r * (P - P_0)/(P_std - P_0);
@@ -1424,7 +1424,7 @@ $$
     double r_first = 1;
     double r_third = MM.rstd_t;
 
-    if (MM.fraction_of_tc_in_mt == 0) r_third = 0;
+    if (MM.fraction_of_tu_in_mt == 0) r_third = 0;
 
     if (MM.baffle_t) r_first = MM.rw_t * (1-MM.at_t) + MM.rstd_t * MM.at_t;
 
@@ -1434,7 +1434,7 @@ $$
     G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
     G_std = Gain(TRANSMISSION_SPHERE, MM, 0, MM.rstd_t);
 
-    *M_T  = (r_third * Tu * MM.fraction_of_tc_in_mt + r_first * UT1_calc) * G/G_std;
+    *M_T  = (r_third * Tu * MM.fraction_of_tu_in_mt + r_first * UT1_calc) * G/G_std;
 
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
         fprintf(stderr, "SPHERE: TRANSMISSION\n");
