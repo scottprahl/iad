@@ -1078,10 +1078,10 @@ properties can be determined.
     }
 
     if (cl_rc_fraction != UNINITIALIZED)
-        m.fraction_of_rc_in_mr = cl_rc_fraction;
+        m.fraction_of_ru_in_mr = cl_rc_fraction;
 
     if (cl_tc_fraction != UNINITIALIZED)
-        m.fraction_of_tc_in_mt = cl_tc_fraction;
+        m.fraction_of_tu_in_mt = cl_tc_fraction;
 
     if (cl_UR1 != UNINITIALIZED)
         m.m_r = cl_UR1;
