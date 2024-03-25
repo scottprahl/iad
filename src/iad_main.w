@@ -57,6 +57,7 @@ int main (int argc, char **argv)
             @<Command-line changes to |m|@>@;
             @<Calculate and write optical properties@>@;
         }
+        @<Generate and write grid@>@;
     }
     if (cl_verbosity>0) fprintf(stderr,"\n\n");
     if (any_error && cl_verbosity>1) print_error_legend();
@@ -103,6 +104,7 @@ int main (int argc, char **argv)
     struct measure_type m;
     struct invert_type r;
     char *g_out_name = NULL;
+    char *g_grid_name = NULL;
     int c;
 
     long n_photons = 100000;
@@ -115,6 +117,7 @@ int main (int argc, char **argv)
     int cl_verbosity = 2;
 
     double cl_forward_calc= UNINITIALIZED;
+    double cl_grid_calc   = UNINITIALIZED;
     double cl_default_a   = UNINITIALIZED;
     double cl_default_g   = UNINITIALIZED;
     double cl_default_b   = UNINITIALIZED;
@@ -160,7 +163,7 @@ int main (int argc, char **argv)
 
     clock_t start_time=clock();
     char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:JL:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
     char *command_line = NULL;
 
 @ I want to add the command line to the output file.  To do this, we need to save
@@ -424,6 +427,10 @@ that this strips any quotes from the command-line.
                 cl_cos_angle = cos(cl_cos_angle*M_PI/180.0);
                 break;
 
+            case 'J':
+                cl_grid_calc = 1;
+                break;
+
             case 'L':
                 cl_lambda = my_strtod(optarg);
                 break;
@@ -683,6 +690,39 @@ to calculate the optical thickness.
         print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0);
     }
 
+@*1 Calculating a grid for graphing.
+
+We will start simple.  Just vary a and b.
+
+@<Generate and write grid@>=
+if (cl_grid_calc != UNINITIALIZED) {
+    double m_r, m_t;
+    double aa[] = {0, 0.7, 0.9, 0.95, 0.98, 0.99, 1.0};
+    double bb[] = {0, 0.2, 0.5, 1.0,  3.0, 10.0, 100};
+    int i, j;
+
+    FILE *grid;
+    
+    grid = fopen(g_grid_name, "w");
+    if (grid == NULL) {
+        fprintf(stderr, "Could not open grid file '%s' for output\n", g_out_name);
+        exit(EXIT_FAILURE);
+    }
+
+    fprintf(grid, "# %s\n", command_line);
+    fprintf(grid, "#    a           b           g           M_R         M_T\n");
+    for (i=0; i<7; i++) {
+        r.slab.a = aa[i];
+        for (j=0; j<7; j++) {
+            r.slab.b = bb[j];
+            Calculate_MR_MT(m, r, TRUE, TRUE, &m_r, &m_t);
+            fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", \
+                    r.slab.a, r.slab.b, r.slab.g, m_r, m_t);
+        }
+    }
+    fclose(grid);
+}
+
 @ Make sure that the file is not named '-' and warn about too many files
 
 @<prepare file for reading@>=
@@ -712,6 +752,9 @@ to calculate the optical thickness.
 
         if (g_out_name==NULL)
             g_out_name=strdup_together(base_name,".txt");
+
+        if (g_grid_name==NULL)
+            g_grid_name=strdup_together(base_name,"-grid.txt");
 
         free(rt_name);
         free(base_name);
