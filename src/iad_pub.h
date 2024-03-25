@@ -8,7 +8,7 @@ search_type determine_search(struct measure_type m, struct invert_type r);
 
 void Initialize_Result(struct measure_type m, struct invert_type *r, int overwrite_defaults);
 
-void ez_Inverse_RT(double n, double nslide, double UR1, double UT1, double Tc,
+void ez_Inverse_RT(double n, double nslide, double UR1, double UT1, double Tu,
     double *a, double *b, double *g, int *error);
 
 void Initialize_Measure(struct measure_type *m);

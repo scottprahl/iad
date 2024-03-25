@@ -58,8 +58,8 @@ void U_Find_Ba(struct measure_type m, struct invert_type *r)
 
     ax = b2bcalc(0.1);
     bx = b2bcalc(1.0);
-    mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_Ba_fn);
-    r->final_distance = brent(ax, bx, cx, Find_Ba_fn, r->tolerance, &ba);
+    mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_Ba_fn, &r->AD_iterations);
+    r->final_distance = brent(ax, bx, cx, Find_Ba_fn, r->tolerance, &ba, &r->AD_iterations);
 
     r->slab.a = (r->slab.b) / (bcalc2b(ba) + r->slab.b);
     r->slab.b = bcalc2b(ba) + r->slab.b;
@@ -67,7 +67,7 @@ void U_Find_Ba(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
@@ -100,8 +100,8 @@ void U_Find_Bs(struct measure_type m, struct invert_type *r)
 
     ax = b2bcalc(0.1);
     bx = b2bcalc(1.0);
-    mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_Bs_fn);
-    r->final_distance = brent(ax, bx, cx, Find_Bs_fn, r->tolerance, &bs);
+    mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_Bs_fn, &r->AD_iterations);
+    r->final_distance = brent(ax, bx, cx, Find_Bs_fn, r->tolerance, &bs, &r->AD_iterations);
 
     r->slab.a = bcalc2b(bs) / (bcalc2b(bs) + r->slab.b);
     r->slab.b = bcalc2b(bs) + r->slab.b;
@@ -109,14 +109,14 @@ void U_Find_Bs(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
 
 void U_Find_A(struct measure_type m, struct invert_type *r)
 {
-    double Rt, Tt, Rd, Rc, Td, Tc;
+    double Rt, Tt, Rd, Ru, Td, Tu;
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "SEARCH: Using U_Find_A()");
@@ -128,7 +128,7 @@ void U_Find_A(struct measure_type m, struct invert_type *r)
         fprintf(stderr, "\n");
     }
 
-    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Rc, &Td, &Tc);
+    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Ru, &Td, &Tu);
 
     r->slab.g = (r->default_g == UNINITIALIZED) ? 0 : r->default_g;
     r->slab.b = (r->default_b == UNINITIALIZED) ? HUGE_VAL : r->default_b;
@@ -146,22 +146,22 @@ void U_Find_A(struct measure_type m, struct invert_type *r)
         ax = a2acalc(0.3);
         bx = a2acalc(0.5);
 
-        mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_A_fn);
-        r->final_distance = brent(ax, bx, cx, Find_A_fn, r->tolerance, &x);
+        mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_A_fn, &r->AD_iterations);
+        r->final_distance = brent(ax, bx, cx, Find_A_fn, r->tolerance, &x, &r->AD_iterations);
         r->slab.a = acalc2a(x);
     }
 
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
 
 void U_Find_B(struct measure_type m, struct invert_type *r)
 {
-    double Rt, Tt, Rd, Rc, Td, Tc;
+    double Rt, Tt, Rd, Ru, Td, Tu;
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "SEARCH: Using U_Find_B()");
@@ -173,7 +173,7 @@ void U_Find_B(struct measure_type m, struct invert_type *r)
         fprintf(stderr, "\n");
     }
 
-    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Rc, &Td, &Tc);
+    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Ru, &Td, &Tu);
 
     r->slab.g = (r->default_g == UNINITIALIZED) ? 0 : r->default_g;
     r->slab.a = (r->default_a == UNINITIALIZED) ? 0 : r->default_a;
@@ -187,8 +187,8 @@ void U_Find_B(struct measure_type m, struct invert_type *r)
         ax = b2bcalc(0.1);
         bx = b2bcalc(10);
 
-        mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_B_fn);
-        r->final_distance = brent(ax, bx, cx, Find_B_fn, r->tolerance, &x);
+        mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_B_fn, &r->AD_iterations);
+        r->final_distance = brent(ax, bx, cx, Find_B_fn, r->tolerance, &x, &r->AD_iterations);
         r->slab.b = bcalc2b(x);
         Set_Calc_State(m, *r);
     }
@@ -196,14 +196,14 @@ void U_Find_B(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
 
 void U_Find_G(struct measure_type m, struct invert_type *r)
 {
-    double Rt, Tt, Rd, Rc, Td, Tc;
+    double Rt, Tt, Rd, Ru, Td, Tu;
     double x, ax, bx, cx, fa, fb, fc;
 
     if (Debug(DEBUG_SEARCH)) {
@@ -216,7 +216,7 @@ void U_Find_G(struct measure_type m, struct invert_type *r)
         fprintf(stderr, "\n");
     }
 
-    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Rc, &Td, &Tc);
+    Estimate_RT(m, *r, &Rt, &Tt, &Rd, &Ru, &Td, &Tu);
 
     r->slab.a = (r->default_a == UNINITIALIZED) ? 0.5 : r->default_a;
     if (r->default_b != UNINITIALIZED)
@@ -233,8 +233,8 @@ void U_Find_G(struct measure_type m, struct invert_type *r)
     ax = g2gcalc(-0.99);
     bx = g2gcalc(0.99);
 
-    mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_G_fn);
-    r->final_distance = brent(ax, bx, cx, Find_G_fn, r->tolerance, &x);
+    mnbrak(&ax, &bx, &cx, &fa, &fb, &fc, Find_G_fn, &r->AD_iterations);
+    r->final_distance = brent(ax, bx, cx, Find_G_fn, r->tolerance, &x, &r->AD_iterations);
 
     r->slab.g = gcalc2g(x);
     Set_Calc_State(m, *r);
@@ -242,7 +242,7 @@ void U_Find_G(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
@@ -378,7 +378,7 @@ void U_Find_AG(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
@@ -509,7 +509,7 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
@@ -639,7 +639,7 @@ void U_Find_BG(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
@@ -732,7 +732,7 @@ void U_Find_BaG(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }
@@ -827,7 +827,7 @@ void U_Find_BsG(struct measure_type m, struct invert_type *r)
     r->a = r->slab.a;
     r->b = r->slab.b;
     r->g = r->slab.g;
-    r->found = (r->tolerance <= r->final_distance);
+    r->found = (r->tolerance > r->final_distance);
     Set_Calc_State(m, *r);
 
 }

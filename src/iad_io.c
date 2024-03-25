@@ -158,10 +158,10 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
             m->d_beam = x;
             break;
         case 'c':
-            m->fraction_of_rc_in_mr = x;
+            m->fraction_of_ru_in_mr = x;
             break;
         case 'C':
-            m->fraction_of_tc_in_mt = x;
+            m->fraction_of_tu_in_mt = x;
             break;
         case 'd':
             m->slab_thickness = x;
@@ -273,12 +273,12 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
     m->method = SUBSTITUTION;
 
     {
-        double d_sample_r, d_empty_r, d_detector_r;
+        double d_sample_r, d_third_r, d_detector_r;
         if (read_number(fp, &m->d_sphere_r))
             return 1;
         if (read_number(fp, &d_sample_r))
             return 1;
-        if (read_number(fp, &d_empty_r))
+        if (read_number(fp, &d_third_r))
             return 1;
         if (read_number(fp, &d_detector_r))
             return 1;
@@ -286,18 +286,18 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
             return 1;
 
         m->as_r = (d_sample_r / m->d_sphere_r / 2.0) * (d_sample_r / m->d_sphere_r / 2.0);
-        m->ae_r = (d_empty_r / m->d_sphere_r / 2.0) * (d_empty_r / m->d_sphere_r / 2.0);
+        m->at_r = (d_third_r / m->d_sphere_r / 2.0) * (d_third_r / m->d_sphere_r / 2.0);
         m->ad_r = (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r / m->d_sphere_r / 2.0);
-        m->aw_r = 1.0 - m->as_r - m->ae_r - m->ad_r;
+        m->aw_r = 1.0 - m->as_r - m->at_r - m->ad_r;
     }
 
     {
-        double d_sample_t, d_empty_t, d_detector_t;
+        double d_sample_t, d_third_t, d_detector_t;
         if (read_number(fp, &m->d_sphere_t))
             return 1;
         if (read_number(fp, &d_sample_t))
             return 1;
-        if (read_number(fp, &d_empty_t))
+        if (read_number(fp, &d_third_t))
             return 1;
         if (read_number(fp, &d_detector_t))
             return 1;
@@ -305,9 +305,9 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
             return 1;
 
         m->as_t = (d_sample_t / m->d_sphere_t / 2.0) * (d_sample_t / m->d_sphere_t / 2.0);
-        m->ae_t = (d_empty_t / m->d_sphere_t / 2.0) * (d_empty_t / m->d_sphere_t / 2.0);
+        m->at_t = (d_third_t / m->d_sphere_t / 2.0) * (d_third_t / m->d_sphere_t / 2.0);
         m->ad_t = (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t / m->d_sphere_t / 2.0);
-        m->aw_t = 1.0 - m->as_t - m->ae_t - m->ad_t;
+        m->aw_t = 1.0 - m->as_t - m->at_t - m->ad_t;
     }
 
     *params = Read_Data_Legend(fp);
@@ -357,9 +357,9 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
     printf("# \n");
 
     printf("#  Percentage unscattered refl. in M_R = ");
-    print_maybe('c', "%7.1f %%\n", m.fraction_of_rc_in_mr * 100);
+    print_maybe('c', "%7.1f %%\n", m.fraction_of_ru_in_mr * 100);
     printf("# Percentage unscattered trans. in M_T = ");
-    print_maybe('C', "%7.1f %%\n", m.fraction_of_tc_in_mt * 100);
+    print_maybe('C', "%7.1f %%\n", m.fraction_of_tu_in_mt * 100);
     printf("# \n");
 
     printf("# Reflection sphere");
@@ -373,7 +373,7 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
         printf(" (ignored since no spheres used)\n");
     printf("#                      sphere diameter = %7.1f mm\n", m.d_sphere_r);
     printf("#                 sample port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.as_r));
-    printf("#                  empty port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ae_r));
+    printf("#               entrance port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.at_r));
     printf("#               detector port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ad_r));
     printf("#                 detector reflectance = %7.1f %%\n", m.rd_r * 100);
     printf("#                     wall reflectance = ");
@@ -393,16 +393,16 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
         printf(" (ignored since no spheres used)\n");
     printf("#                      sphere diameter = %7.1f mm\n", m.d_sphere_t);
     printf("#                 sample port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.as_t));
-    printf("#                  empty port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ae_t));
+    printf("#                  third port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.at_t));
     printf("#               detector port diameter = %7.1f mm\n", 2 * m.d_sphere_r * sqrt(m.ad_t));
     printf("#                 detector reflectance = %7.1f %%\n", m.rd_t * 100);
-    if (m.ae_t == 0)
+    if (m.at_t == 0)
         printf("#    wall reflectance and cal standard = ");
     else
         printf("#                     wall reflectance = ");
     print_maybe('w', "%7.1f %%\n", m.rw_t * 100);
     printf("#                 calibration standard = %7.1f %%", m.rstd_t * 100);
-    if (m.ae_t == 0)
+    if (m.at_t == 0)
         printf(" (ignored)");
     printf("\n");
 

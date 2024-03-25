@@ -177,9 +177,21 @@ boolean_type Valid_Grid(struct measure_type m, struct invert_type r)
         return (FALSE);
     }
 
+    if (s == FIND_AG && r.slab.b != RGRID.slab.b) {
+        if (Debug(DEBUG_GRID))
+            fprintf(stderr, "GRID: Fill because optical depth changed\n");
+        return (FALSE);
+    }
+
     if (s == FIND_BsG && r.default_ba != RGRID.default_ba) {
         if (Debug(DEBUG_GRID))
             fprintf(stderr, "GRID: Fill because mu_a changed\n");
+        return (FALSE);
+    }
+
+    if (s == FIND_BaG && r.default_bs != RGRID.default_bs) {
+        if (Debug(DEBUG_GRID))
+            fprintf(stderr, "GRID: Fill because mu_s changed\n");
         return (FALSE);
     }
 
@@ -427,11 +439,8 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
     double max_a = -10;
     double min_a = 10;
     double bs = r.default_bs;
-    double log_bs = log(bs);
-    double min_log_b = -8;
-    double max_log_b = +10;
-    if (min_log_b < log_bs)
-        min_log_b = log_bs;
+    double min_log_ba = -8;
+    double max_log_ba = +10;
 
     if (The_Grid == NULL)
         Allocate_Grid(r.search);
@@ -445,14 +454,15 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: Filling BaG grid\n");
         fprintf(stderr, "GRID:       bs = %9.5f\n", bs);
-        fprintf(stderr, "GRID: ba range = %9.6f to %9.3f \n", exp(min_log_b) - bs, exp(max_log_b) - bs);
+        fprintf(stderr, "GRID: ba range = %9.6f to %9.3f \n", exp(min_log_ba), exp(max_log_ba));
     }
 
     Set_Calc_State(m, r);
     GG_bs = bs;
     for (i = 0; i < GRID_SIZE; i++) {
         double x = (double) i / (GRID_SIZE - 1.0);
-        RR.slab.b = exp(min_log_b + (max_log_b - min_log_b) * x);
+        double ba = exp(min_log_ba + (max_log_ba - min_log_ba) * x);
+        RR.slab.b = ba + bs;
         if (RR.slab.b > 0)
             RR.slab.a = bs / RR.slab.b;
         else
@@ -472,7 +482,7 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
 
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: a        = %9.7f to %9.7f \n", min_a, max_a);
-        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
+        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_ba) + bs, exp(max_log_ba) + bs);
         fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
     }
 
@@ -486,12 +496,8 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
     double max_a = -10;
     double min_a = 10;
     double ba = r.default_ba;
-    double log_ba = log(ba);
-    double min_log_b = -8;
-    double max_log_b = +10;
-
-    if (min_log_b < log_ba)
-        min_log_b = log_ba;
+    double min_log_bs = -8;
+    double max_log_bs = +10;
 
     if (The_Grid == NULL)
         Allocate_Grid(r.search);
@@ -505,14 +511,15 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: Filling BsG grid\n");
         fprintf(stderr, "GRID:       ba = %9.5f\n", ba);
-        fprintf(stderr, "GRID: bs range = %9.6f to %9.3f \n", exp(min_log_b) - ba, exp(max_log_b) - ba);
+        fprintf(stderr, "GRID: bs range = %9.6f to %9.3f \n", exp(min_log_bs), exp(max_log_bs));
     }
 
     Set_Calc_State(m, r);
     GG_ba = RR.default_ba;
     for (i = 0; i < GRID_SIZE; i++) {
         double x = (double) i / (GRID_SIZE - 1.0);
-        RR.slab.b = exp(min_log_b + (max_log_b - min_log_b) * x);
+        double bs = exp(min_log_bs + (max_log_bs - min_log_bs) * x);
+        RR.slab.b = ba + bs;
         if (RR.slab.b > 0)
             RR.slab.a = 1 - RR.default_ba / RR.slab.b;
         else
@@ -532,7 +539,7 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
 
     if (Debug(DEBUG_GRID)) {
         fprintf(stderr, "GRID: a  range = %9.7f to %9.7f \n", min_a, max_a);
-        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
+        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_bs) + ba, exp(max_log_bs) + ba);
         fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
     }
 
@@ -556,37 +563,39 @@ void Grid_ABG(int i, int j, guess_type *guess)
     }
 }
 
-double Gain(int sphere, struct measure_type m, double URU)
+double Gain(int sphere, struct measure_type m, double uru_sample, double uru_third)
 {
-    double G, denom;
+    double inv_gain;
 
     if (sphere == REFLECTION_SPHERE) {
-        if (m.baffle_r)
-            denom = 1.0 - m.rw_r * (m.aw_r + (1 - m.ae_r) * (m.ad_r * m.rd_r + m.as_r * URU));
-        else
-            denom = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * URU;
-
+        if (m.baffle_r) {
+            inv_gain = m.rw_r + (m.at_r / m.aw_r) * uru_third;
+            inv_gain *= m.aw_r + (1 - m.at_r) * (m.ad_r * m.rd_r + m.as_r * uru_sample);
+            inv_gain = 1.0 - inv_gain;
+        }
+        else {
+            inv_gain = 1.0 - m.aw_r * m.rw_r - m.ad_r * m.rd_r - m.as_r * uru_sample - m.at_r * uru_third;
+        }
+    }
+    else if (m.baffle_t) {
+        inv_gain = m.rw_t + (m.at_t / m.aw_t) * uru_third;
+        inv_gain *= m.aw_t + (1 - m.at_t) * (m.ad_t * m.rd_t + m.as_t * uru_sample);
+        inv_gain = 1.0 - inv_gain;
     }
     else {
-        if (m.baffle_t)
-            denom = 1.0 - m.rw_t * (m.aw_t + (1 - m.ae_t) * (m.ad_t * m.rd_t + m.as_t * URU));
-        else
-            denom = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * URU;
+        inv_gain = 1.0 - m.aw_t * m.rw_t - m.ad_t * m.rd_t - m.as_t * uru_sample - m.at_t * uru_third;
     }
-
-    G = 1.0 / denom;
-
-    return G;
+    return 1.0 / inv_gain;
 }
 
 double Gain_11(struct measure_type m, double URU, double tdiffuse)
 {
     double G, GP, G11;
 
-    G = Gain(REFLECTION_SPHERE, m, URU);
-    GP = Gain(TRANSMISSION_SPHERE, m, URU);
+    G = Gain(REFLECTION_SPHERE, m, URU, 0);
+    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
 
-    G11 = G / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.ae_r) * (1 - m.ae_t)
+    G11 = G / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.at_r) * (1 - m.at_t)
         * G * GP * tdiffuse * tdiffuse);
 
     return G11;
@@ -596,10 +605,10 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
 {
     double G, GP, G22;
 
-    G = Gain(REFLECTION_SPHERE, m, URU);
-    GP = Gain(TRANSMISSION_SPHERE, m, URU);
+    G = Gain(REFLECTION_SPHERE, m, URU, 0);
+    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
 
-    G22 = GP / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.ae_r) * (1 - m.ae_t)
+    G22 = GP / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.at_r) * (1 - m.at_t)
         * G * GP * tdiffuse * tdiffuse);
 
     return G22;
@@ -608,24 +617,24 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
 double Two_Sphere_R(struct measure_type m, double UR1, double URU, double UT1, double UTU)
 {
     double x, GP;
-    GP = Gain(TRANSMISSION_SPHERE, m, URU);
+    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
 
-    x = m.ad_r * (1 - m.ae_r) * m.rw_r * Gain_11(m, URU, UTU);
-    x *= (1 - m.f_r) * UR1 + m.rw_r * m.f_r + (1 - m.f_r) * m.as_t * (1 - m.ae_t) * m.rw_t * UT1 * UTU * GP;
+    x = m.ad_r * (1 - m.at_r) * m.rw_r * Gain_11(m, URU, UTU);
+    x *= (1 - m.f_r) * UR1 + m.rw_r * m.f_r + (1 - m.f_r) * m.as_t * (1 - m.at_t) * m.rw_t * UT1 * UTU * GP;
     return x;
 }
 
 double Two_Sphere_T(struct measure_type m, double UR1, double URU, double UT1, double UTU)
 {
     double x, G;
-    G = Gain(REFLECTION_SPHERE, m, URU);
-    x = m.ad_t * (1 - m.ae_t) * m.rw_t * Gain_22(m, URU, UTU);
-    x *= (1 - m.f_r) * UT1 + (1 - m.ae_r) * m.rw_r * m.as_r * UTU * (m.f_r * m.rw_r + (1 - m.f_r) * UR1) * G;
+    G = Gain(REFLECTION_SPHERE, m, URU, 0);
+    x = m.ad_t * (1 - m.at_t) * m.rw_t * Gain_22(m, URU, UTU);
+    x *= (1 - m.f_r) * UT1 + (1 - m.at_r) * m.rw_r * m.as_r * UTU * (m.f_r * m.rw_r + (1 - m.f_r) * UR1) * G;
     return x;
 }
 
 void Calculate_Distance_With_Corrections(double UR1, double UT1,
-    double Rc, double Tc, double URU, double UTU, double *M_R, double *M_T, double *dev)
+    double Ru, double Tu, double URU, double UTU, double *M_R, double *M_T, double *dev)
 {
 
     double UR1_calc, UT1_calc, URU_calc, UTU_calc;
@@ -638,11 +647,11 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
     if (UTU_calc < 0)
         UTU_calc = 0;
 
-    UR1_calc = UR1 - (1.0 - MM.fraction_of_rc_in_mr) * Rc - MM.ur1_lost;
+    UR1_calc = UR1 - (1.0 - MM.fraction_of_ru_in_mr) * Ru - MM.ur1_lost;
     if (UR1_calc < 0)
         UR1_calc = 0;
 
-    UT1_calc = UT1 - (1.0 - MM.fraction_of_tc_in_mt) * Tc - MM.ut1_lost;
+    UT1_calc = UT1 - (1.0 - MM.fraction_of_tu_in_mt) * Tu - MM.ut1_lost;
     if (UT1_calc < 0)
         UT1_calc = 0;
 
@@ -667,17 +676,28 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
         }
         else {
 
-            double P_std, P, P_0, G, G_0, G_std;
-            int tmp;
+            double P_std, P, P_0, G, G_0, G_std, r_first, P_ss, P_su;
+            r_first = 1;
 
-            G_0 = Gain(REFLECTION_SPHERE, MM, 0.0);
-            G = Gain(REFLECTION_SPHERE, MM, URU_calc);
-            G_std = Gain(REFLECTION_SPHERE, MM, MM.rstd_r);
+            if (MM.baffle_r)
+                r_first = MM.rw_r * (1 - MM.at_r);
 
-            P = G * (UR1_calc * (1 - MM.f_r) + MM.f_r * MM.rw_r);
+            UR1_calc = UR1 - Ru - MM.ur1_lost;
+            if (UR1_calc < 0)
+                UR1_calc = 0;
+
+            G_0 = Gain(REFLECTION_SPHERE, MM, 0.0, 0.0);
+            G = Gain(REFLECTION_SPHERE, MM, URU_calc, 0.0);
+            G_std = Gain(REFLECTION_SPHERE, MM, MM.rstd_r, 0.0);
+
             P_std = G_std * (MM.rstd_r * (1 - MM.f_r) + MM.f_r * MM.rw_r);
             P_0 = G_0 * (MM.f_r * MM.rw_r);
+            P_ss = r_first * (UR1_calc * (1 - MM.f_r) + MM.f_r * MM.rw_r);
+            P_su = MM.rw_r * (1 - MM.f_r) * MM.fraction_of_ru_in_mr * Ru;
+            P = G * (P_ss + P_su);
+
             *M_R = MM.rstd_r * (P - P_0) / (P_std - P_0);
+
             if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
                 fprintf(stderr, "SPHERE: REFLECTION\n");
                 fprintf(stderr, "SPHERE:      G0 = %7.3f      G  = %7.3f G_std = %7.3f\n", G_0, G, G_std);
@@ -685,31 +705,32 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
                 fprintf(stderr, "SPHERE:     UR1 = %7.3f UR1calc = %7.3f   M_R = %7.3f\n", UR1, UR1_calc, *M_R);
             }
 
-            G = Gain(TRANSMISSION_SPHERE, MM, URU_calc);
-            P = UT1_calc * G;
-            if (MM.baffle_t)
-                P *= (1 - MM.ae_t) * MM.rw_t;
+            {
+                double r_first = 1;
+                double r_third = MM.rstd_t;
 
-            tmp = MM.baffle_t;
-            MM.baffle_t = FALSE;
-            if (MM.ae_t == 0) {
-                G_std = Gain(TRANSMISSION_SPHERE, MM, 0);
-            }
-            else {
-                SWAP(MM.ae_t, MM.as_t);
-                G_std = Gain(TRANSMISSION_SPHERE, MM, MM.rstd_t);
-                SWAP(MM.ae_t, MM.as_t);
-            }
-            P_std = G_std;
-            MM.baffle_t = tmp;
-            *M_T = P / P_std;
+                if (MM.fraction_of_tu_in_mt == 0)
+                    r_third = 0;
 
-            if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
-                fprintf(stderr, "SPHERE: TRANSMISSION\n");
-                fprintf(stderr, "SPHERE:                        G  = %7.3f G_std = %7.3f\n", G, G_std);
-                fprintf(stderr, "SPHERE:                        P  = %7.3f P_std = %7.3f\n", P, P_std);
-                fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f   M_T = %7.3f\n", UT1, UT1_calc, *M_T);
-                fprintf(stderr, "\n");
+                if (MM.baffle_t)
+                    r_first = MM.rw_t * (1 - MM.at_t) + MM.rstd_t * MM.at_t;
+
+                UT1_calc = UT1 - Tu - MM.ut1_lost;
+                if (UT1_calc < 0)
+                    UT1_calc = 0;
+
+                G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
+                G_std = Gain(TRANSMISSION_SPHERE, MM, 0, MM.rstd_t);
+
+                *M_T = (r_third * Tu * MM.fraction_of_tu_in_mt + r_first * UT1_calc) * G / G_std;
+
+                if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
+                    fprintf(stderr, "SPHERE: TRANSMISSION\n");
+                    fprintf(stderr, "SPHERE:      G  = %7.3f   G_std = %7.3f\n", G, G_std);
+                    fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f T_c = %7.3f\n", UT1, UT1_calc, Tu);
+                    fprintf(stderr, "SPHERE:     M_T = %7.3f\n", *M_T);
+                    fprintf(stderr, "\n");
+                }
             }
 
         }
@@ -780,7 +801,7 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
 
 double Calculate_Grid_Distance(int i, int j)
 {
-    double ur1, ut1, uru, utu, Rc, Tc, b, dev, LR, LT;
+    double ur1, ut1, uru, utu, Ru, Tu, b, dev, LR, LT;
 
     if (Debug(DEBUG_GRID_CALC) && i == 0 && j == 0) {
         fprintf(stderr, "+   i   j ");
@@ -803,10 +824,10 @@ double Calculate_Grid_Distance(int i, int j)
 
     Sp_mu_RT_Flip(MM.flip_sample,
         RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
-        RR.slab.b_top_slide, b, RR.slab.b_bottom_slide, RR.slab.cos_angle, &Rc, &Tc);
+        RR.slab.b_top_slide, b, RR.slab.b_bottom_slide, RR.slab.cos_angle, &Ru, &Tu);
 
     CALCULATING_GRID = 1;
-    Calculate_Distance_With_Corrections(ur1, ut1, Rc, Tc, uru, utu, &LR, &LT, &dev);
+    Calculate_Distance_With_Corrections(ur1, ut1, Ru, Tu, uru, utu, &LR, &LT, &dev);
     CALCULATING_GRID = 0;
 
     return dev;
@@ -814,7 +835,7 @@ double Calculate_Grid_Distance(int i, int j)
 
 void Calculate_Distance(double *M_R, double *M_T, double *deviation)
 {
-    double Rc, Tc, ur1, ut1, uru, utu;
+    double Ru, Tu, ur1, ut1, uru, utu;
 
     if (RR.slab.b <= 1e-6)
         RR.slab.b = 1e-6;
@@ -823,12 +844,12 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
 
     Sp_mu_RT_Flip(MM.flip_sample,
         RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
-        RR.slab.b_top_slide, RR.slab.b, RR.slab.b_bottom_slide, RR.slab.cos_angle, &Rc, &Tc);
+        RR.slab.b_top_slide, RR.slab.b, RR.slab.b_bottom_slide, RR.slab.cos_angle, &Ru, &Tu);
 
     if ((!CALCULATING_GRID && Debug(DEBUG_ITERATIONS)) || (CALCULATING_GRID && Debug(DEBUG_GRID_CALC)))
         fprintf(stderr, "        ");
 
-    Calculate_Distance_With_Corrections(ur1, ut1, Rc, Tc, uru, utu, M_R, M_T, deviation);
+    Calculate_Distance_With_Corrections(ur1, ut1, Ru, Tu, uru, utu, M_R, M_T, deviation);
 }
 
 void abg_distance(double a, double b, double g, guess_type *guess)
