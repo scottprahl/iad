@@ -7,13 +7,14 @@
 from datetime import datetime
 import argparse
 import os
+import sys
 import re
 import subprocess
 import shlex
+import urllib.parse
 import numpy as np
 import matplotlib.pyplot as plt
 import nbformat
-import urllib.parse
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 from scipy.optimize import curve_fit
 
@@ -26,31 +27,16 @@ def scattered_light(g=0, n=1, quad_pts=4):
     xy = np.array([r_white-r_black, t_white-t_black]).T
     return xy
 
-def unscattered_polygon(g=0, n=1, quad_pts=4):
-    """Unscattered light for all optical thicknesses.""" 
-    xy = scattered_light(g, n, quad_pts)
-    xy = np.append(xy, np.array([[1,0]]), axis=0)
-    xy = np.append(xy, np.array([[0,1]]), axis=0)
-    xy = np.append(xy, np.array([[0,0]]), axis=0)
-    
-    return plt.Polygon(xy, facecolor='b', alpha=0.2)
-
 def active_polygon():
     """Unscattered light for all optical thicknesses.""" 
     xy = np.array([[1,0], [0,1], [0,0]])
     return plt.Polygon(xy, closed=True, facecolor='b', alpha=0.2)
 
-def scattered_polygon(g=0,n=1,quad_pts=4):
-    xy = scattered_light(g, n, quad_pts)
-    xy = np.append(xy, np.array([[0,0]]), axis=0)
-
-    return plt.Polygon(xy, facecolor='r', alpha=0.3)
-
 def plot_good_and_bad(x, y, success, big_points=False):
     if big_points:
-        size = 7
+        size = 5
     else :
-        size =2
+        size = 1
     if any(success):
         plt.plot(x[success], y[success], marker='o', markersize=size,
                  markerfacecolor='none', markeredgecolor='blue', linestyle='None',
@@ -60,24 +46,63 @@ def plot_good_and_bad(x, y, success, big_points=False):
         plt.plot(x[~success], y[~success], 'xr', label='failed')
         plt.legend()
     plt.xlabel('Wavelength (nm)')
+    plt.grid(True)
+
+def plot_gridlines(filename_base):
+    gridname = filename_base + '-grid.txt'
+    a,b,g,mr,mt = np.loadtxt(gridname, skiprows=2, delimiter=',').T
+
+    with open(gridname, 'r') as file:
+        cmd = file.readline()
+    cmd = cmd[2:]
+    cmd = cmd.replace('-J ', '')
+
+    N = len(a)
+
+    a_list = list(set(a))
+    for aa in a_list:
+        r = [mr[i] for i in range(N) if a[i] == aa]
+        t = [mt[i] for i in range(N) if a[i] == aa]
+        plt.plot(r, t, 'k', lw=0.5)
+        plt.text(r[-1],t[-1], 'a=%g' % aa, ha='center', va='top')
+
+    b_list = list(set(b))
+    for bb in b_list:
+        r = [mr[i] for i in range(N) if b[i] == bb]
+        t = [mt[i] for i in range(N) if b[i] == bb]
+        plt.plot(r, t, 'k', lw=0.5)
+        plt.text(r[-1],t[-1], 'b=%g' % bb)
+
+    r = [mr[i] for i in range(N) if a[i] == 1]
+    t = [mt[i] for i in range(N) if a[i] == 1]
+    r1 = [mr[i] for i in range(N) if b[i] == 100]
+    t1 = [mt[i] for i in range(N) if b[i] == 100]
+    r = r + r1[::-1]
+    t = t + t1[::-1]
+    rt = np.array([r,t]).T
+    poly = plt.Polygon(rt, closed=True, facecolor='y', alpha=0.2)
+    plt.gca().add_patch(poly)
+    
+    plt.plot(r, t, 'k', lw=0.5)
+    plt.text(r[-1],t[-1], 'a=%g' % aa, ha='center', va='top')
+    plt.title(cmd)
+    plt.grid(False)
 
 def plot_grid(mr, cr, mt, ct, success, filename_base):
-
     out_filename = filename_base + '-grid.svg'
     plt.figure(figsize=(8,8))
     plt.gca().set_aspect(1)
     plt.xlim(-0.05,1.05)
     plt.ylim(-0.05,1.05)
-    
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plot_good_and_bad(cr, ct, success, True)
     plt.plot(mr, mt, 'ok', markersize=2, label='measured')
-    plt.gca().add_patch(active_polygon())
-    plt.xlabel('Total Reflection',fontsize=12)
-    plt.ylabel('Total Transmission',fontsize=12)
+#    plt.gca().add_patch(active_polygon())
+    plot_gridlines(filename_base)
+    plt.xlabel('MR',fontsize=12)
+    plt.ylabel('MT',fontsize=12)
     plt.legend()
-    plt.grid(True)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
@@ -91,6 +116,7 @@ def plot_rt(lam, mr, mt, filename_base):
     plt.plot(lam, mt, 'or', markersize=2, label='t')
     plt.plot(lam, mr+mt, 'ok', markersize=2, label='r+t')
     plt.ylabel('Measurement')
+    plt.xlabel('Wavelength (nm)')
     plt.legend()
     plt.grid(True)
     plt.savefig(out_filename, dpi=300)
@@ -288,12 +314,13 @@ def main():
 
         if not os.path.exists(base_path + '.rxt'):
             print('missing file "%s"' % (base_path + '.rxt'))
-            exit()
+            sys.exit()
 
         if not os.path.exists(base_path + '.txt') or args.force:
             command = ['iad']
             if args.options:
                 command.extend(shlex.split(args.options))
+            command.append('-J')
             command.extend([shlex.quote(file_name)])
             command_str = ' '.join(command)
 
@@ -346,16 +373,16 @@ def main():
         }
 
         append_header(nb, out_path)
-        append_graph_cell(nb, '## Grid Graph', grid_graph)
-        append_graph_cell(nb, '## Original Measurements', rt_graph)
         append_graph_cell(nb, '## Reflection', r_graph)
         append_graph_cell(nb, '## Transmission', t_graph)
+        append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
+        append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
         append_graph_cell(nb, '## Single Scattering Albedo', a_graph)
         append_graph_cell(nb, '## Optical Thickness', b_graph)
         append_graph_cell(nb, '## Scattering Anisotropy', g_graph)
-        append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
         append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
-        append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
+        append_graph_cell(nb, '## Original Measurements', rt_graph)
+        append_graph_cell(nb, '## Grid Graph', grid_graph)
 
         nb.cells.append(new_markdown_cell("## Input file\n"))
         append_file_cell(nb, '# input file', base + '.rxt')
