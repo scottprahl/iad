@@ -138,8 +138,8 @@ int main (int argc, char **argv)
     double cl_rstd_r      = UNINITIALIZED;
     double cl_baffle_r    = UNINITIALIZED;
     double cl_baffle_t    = UNINITIALIZED;
-    double cl_rc_fraction = UNINITIALIZED;
-    double cl_tc_fraction = UNINITIALIZED;
+    double cl_ru_fraction = UNINITIALIZED;
+    double cl_tu_fraction = UNINITIALIZED;
     double cl_lambda      = UNINITIALIZED;
     double cl_rwall_r     = UNINITIALIZED;
     double cl_rwall_t     = UNINITIALIZED;
@@ -269,8 +269,8 @@ that this strips any quotes from the command-line.
                 break;
 
             case 'c':
-                cl_rc_fraction = my_strtod(optarg);
-                if (cl_rc_fraction<0.0 || cl_rc_fraction>1.0) {
+                cl_ru_fraction = my_strtod(optarg);
+                if (cl_ru_fraction<0.0 || cl_ru_fraction>1.0) {
                     fprintf(stderr, "Error in command-line\n");
                     fprintf(stderr, "    unscattered refl fraction '-c %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
@@ -279,8 +279,8 @@ that this strips any quotes from the command-line.
                 break;
 
             case 'C':
-                cl_tc_fraction = my_strtod(optarg);
-                if (cl_tc_fraction < 0.0 || cl_tc_fraction > 1.0) {
+                cl_tu_fraction = my_strtod(optarg);
+                if (cl_tu_fraction < 0.0 || cl_tu_fraction > 1.0) {
                     fprintf(stderr, "Error in command-line\n");
                     fprintf(stderr, "    unscattered trans fraction '-C %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
@@ -1077,11 +1077,11 @@ properties can be determined.
             m.method = SUBSTITUTION;
     }
 
-    if (cl_rc_fraction != UNINITIALIZED)
-        m.fraction_of_ru_in_mr = cl_rc_fraction;
+    if (cl_ru_fraction != UNINITIALIZED)
+        m.fraction_of_ru_in_mr = cl_ru_fraction;
 
-    if (cl_tc_fraction != UNINITIALIZED)
-        m.fraction_of_tu_in_mt = cl_tc_fraction;
+    if (cl_tu_fraction != UNINITIALIZED)
+        m.fraction_of_tu_in_mt = cl_tu_fraction;
 
     if (cl_UR1 != UNINITIALIZED)
         m.m_r = cl_UR1;
