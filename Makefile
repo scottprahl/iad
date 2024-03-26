@@ -103,9 +103,9 @@ install-lib: lib libiad$(LIB_EXT) libiad.h
 	cp libiad.h $(INC_INSTALL)
 	cp libiad$(LIB_EXT) $(LIB_INSTALL)
 
-dists: unixdist windist
+dists: dist windist
 
-unixdist:
+dist:
 	touch src/version.h
 	cd src && ./version.pl
 	make docs
@@ -262,7 +262,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4346	   3.9791	   0.3116"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.049787
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6221	   3.9701	  -0.6696"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6221	   3.9686	  -0.6688"
 	@echo "********* Specify sample index ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.5
@@ -492,12 +492,11 @@ help::
 	echo "  ad            compile forward Adding-Doubling program";\
 	echo "  iad           compile inverse Adding-Doubling program";\
 	echo "  dist          create a unix distribution";\
-	echo "  dists         make uniz zip file and windows dist";\
+	echo "  dists         make unix and windows distributions";\
 	echo "  docs          generate TEX out of all files";\
 	echo "  install       install ad and iad programs";\
 	echo "  install-lib   install interface and library programs";\
 	echo "  lib           create library binary and interface files";\
-	echo "  win           generate ad.exe and iad.exe using MingGW-w64";\
 	echo "  windist       create a windows distribution";\
 	echo "TESTING";\
 	echo "  longtest      run iad program on a bunch of test files";\
@@ -512,6 +511,6 @@ help::
 
 .SECONDARY: $(HSRC) $(CSRC)
 
-.PHONY: clean realclean dists docs test lib install tidy unixdist win windist \
+.PHONY: clean realclean dists docs test lib install tidy dist windist \
         test veryshorttest shorttest longtest layertest wintest
 
