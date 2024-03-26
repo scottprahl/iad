@@ -1,7 +1,7 @@
 Changelog
 =========
 
-v3.16.1 (24 Mar 2024)
+v3.16.1 (25 Mar 2024)
 --------------------
 *   clarify and revise single sphere effects
 *   avoid MC for failed 1 parameter searches
