@@ -1,7 +1,7 @@
 IAD1
 #
-# Newton's Data 	          {ignored}
-# by Scott Prahl            {also ignored}
+# Newton's Data
+# by Scott Prahl 
 #
 1.33         # Index of refraction of sample
 1.0          # Index of refraction of top slide
@@ -12,26 +12,24 @@ IAD1
 
 0            # [mm] Number of spheres used during each measurement
 
-             # Refection sphere properties (unused because n_spheres=0)
+# Refection sphere properties (unused because n_spheres=0)
 203.2        # [mm] Sphere Diameter
 25.4         # [mm] Sample Port Diameter
-12.7         # [mm] Empty Port Diameter
+12.7         # [mm] Entrance Port Diameter
 12.7         # [mm] Detector Port Diameter
 0.96         # Reflectivity of the sphere wall
 
-             # Transmission sphere properties (unused because n_spheres=0)
+# Transmission sphere properties (unused because n_spheres=0)
 203.2        # [mm] Sphere Diameter
 25.4         # [mm] Sample Port Diameter
-12.7         # [mm] Empty Port Diameter
+12.7         # [mm] Third Port Diameter
 12.7         # [mm] Detector Port Diameter
 0.96         # Reflectivity of the sphere wall
 
-3            # [mm] Number of measurements
-
-#Rt	Tt	a	tau	g	{ignored}
-.223	.126	.002
-.166	.132	.01
-.223	.126	0
-.166	.132	0
-.223	0.0	0
-.166	.132	.01
+ r        t       u
+0.223	0.126	0.002
+0.166	0.132	0.010
+0.223	0.126	0.000
+0.166	0.132	0.000
+0.223	0.000	0.000
+0.166	0.132	0.010

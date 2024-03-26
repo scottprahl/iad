@@ -22,16 +22,14 @@ IAD1
         # Transmission sphere properties
 203.2   # [mm] Sphere Diameter
 20.3    # [mm] Sample Port Diameter
-0       # [mm] Empty Port Diameter
+47.2    # [mm] Empty Port Diameter
 1.0     # [mm] Detector Port Diameter
 0.88644 # Reflectivity of the sphere wall
 
-3       # [mm] Number of measurements
-
-#Vr	Vt	Vcol
+    r      t       u
+0.04768	0.01845	0.01711
 0.04847	0.02251	0.02082
 0.04813	0.05407	0.05134
 0.04911	0.12403	0.11471
 0.05241	0.31370	0.30708
 0.06383	0.58174	0.57600
-0.04768	0.01845	0.01711
