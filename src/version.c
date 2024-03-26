@@ -2,5 +2,5 @@
          The version number obtained from       <../Makefile>
          The date is the last change to         <version.h>
 */
-char *Version = "3-16-1 (24 Mar 2024)";
+char *Version = "3-16-1 (25 Mar 2024)";
 char *VersionShort = "3-16-1";

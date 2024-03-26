@@ -79,6 +79,11 @@
 #define COMPARISON 1
 #define SUBSTITUTION 2 \
 
+#define MC_NONE 0
+#define MC_USE_EXISTING 1
+#define MC_REDO 2 \
+ \
+
 typedef struct measure_type {
     double slab_index;
     double slab_thickness;

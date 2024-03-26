@@ -1197,18 +1197,17 @@ int main(int argc, char **argv)
 
         {
             double mu_sp, mu_a, m_r, m_t;
-            Calculate_MR_MT(m, r, TRUE, TRUE, &m_r, &m_t);
+            if (MAX_MC_iterations == 0) {
+                Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
+            }
+            else {
+                Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
+            }
+
             Calculate_Mua_Musp(m, r, &mu_sp, &mu_a);
             if (cl_verbosity > 0) {
                 Write_Header(m, r, -1, command_line);
                 print_results_header(stdout);
-            }
-
-            if (m.as_r != 0 && r.default_a != 0 && MAX_MC_iterations > 0) {
-                double ur1, ut1, uru, utu;
-                MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu, &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
-                m_r -= m.ur1_lost;
-                m_t -= m.ut1_lost;
             }
             print_optical_property_result(stdout, m, r, m_r, m_t, mu_a, mu_sp, 0);
         }
@@ -1242,7 +1241,7 @@ int main(int argc, char **argv)
             g_out_name = strdup_together(base_name, ".txt");
 
         if (g_grid_name == NULL)
-            g_grid_name = strdup_together(base_name, "-grid.txt");
+            g_grid_name = strdup_together(base_name, ".grid");
 
         free(rt_name);
         free(base_name);
@@ -1302,6 +1301,12 @@ int main(int argc, char **argv)
             }
 
             Initialize_Result(m, &r, FALSE);
+
+            r.default_a = UNINITIALIZED;
+            r.default_b = UNINITIALIZED;
+            r.default_g = UNINITIALIZED;
+            r.default_mua = UNINITIALIZED;
+            r.default_mus = UNINITIALIZED;
 
             if (cl_quadrature_points != UNINITIALIZED)
                 r.method.quad_pts = cl_quadrature_points;
@@ -1394,7 +1399,7 @@ int main(int argc, char **argv)
 
             Inverse_RT(m, &r);
 
-            if (r.found && m.num_spheres > 0 && r.default_a != 0) {
+            if (r.found && m.num_spheres > 0) {
                 double mu_sp_last = mu_sp;
                 double mu_a_last = mu_a;
 
@@ -1629,6 +1634,12 @@ int main(int argc, char **argv)
 
                 Initialize_Result(m, &r, FALSE);
 
+                r.default_a = UNINITIALIZED;
+                r.default_b = UNINITIALIZED;
+                r.default_g = UNINITIALIZED;
+                r.default_mua = UNINITIALIZED;
+                r.default_mus = UNINITIALIZED;
+
                 if (cl_quadrature_points != UNINITIALIZED)
                     r.method.quad_pts = cl_quadrature_points;
                 else
@@ -1720,7 +1731,7 @@ int main(int argc, char **argv)
 
                 Inverse_RT(m, &r);
 
-                if (r.found && m.num_spheres > 0 && r.default_a != 0) {
+                if (r.found && m.num_spheres > 0) {
                     double mu_sp_last = mu_sp;
                     double mu_a_last = mu_a;
 
@@ -1776,8 +1787,8 @@ int main(int argc, char **argv)
         }
 
         if (cl_grid_calc != UNINITIALIZED) {
-            double m_r, m_t;
-            double aa[] = { 0, 0.7, 0.9, 0.95, 0.98, 0.99, 1.0 };
+            double m_r, m_t, aprime, bprime, g;
+            double aa[] = { 0, 0.8, 0.9, 0.95, 0.98, 0.99, 1.0 };
             double bb[] = { 0, 0.2, 0.5, 1.0, 3.0, 10.0, 100 };
             int i, j;
 
@@ -1789,17 +1800,42 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
 
-            fprintf(grid, "# %s\n", command_line);
-            fprintf(grid, "#    a           b           g           M_R         M_T\n");
+            m.ur1_lost = 0;
+            m.uru_lost = 0;
+            m.ut1_lost = 0;
+            m.utu_lost = 0;
+
+            if (r.default_g != UNINITIALIZED) {
+                g = r.default_g;
+            }
+            else if (r.found) {
+                g = r.slab.g;
+            }
+            else {
+                g = 0;
+            }
+            fprintf(grid, "# %s (g=%6.4f)\n", command_line, g);
+            fprintf(grid, "#    a'          b'          g           M_R         M_T\n");
+            fprintf(stderr, "\ndoing grid calculation\n");
             for (i = 0; i < 7; i++) {
-                r.slab.a = aa[i];
+                aprime = aa[i];
                 for (j = 0; j < 7; j++) {
-                    r.slab.b = bb[j];
-                    Calculate_MR_MT(m, r, TRUE, TRUE, &m_r, &m_t);
-                    fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", r.slab.a, r.slab.b, r.slab.g, m_r, m_t);
+                    bprime = bb[j];
+                    r.slab.a = aprime / (1 - g + aprime * g);
+                    r.slab.b = bprime / (1 - r.slab.a * g);
+                    if (MAX_MC_iterations == 0) {
+                        Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
+                    }
+                    else {
+                        Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
+                    }
+                    fprintf(stderr, "*");
+
+                    fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", aprime, bprime, g, m_r, m_t);
                 }
             }
             fclose(grid);
+            fprintf(stderr, "\n");
         }
 
     }

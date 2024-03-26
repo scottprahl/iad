@@ -106,19 +106,19 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         else
             fprintf(stderr, " ( MC loss calculation)\n");
 
-        Calculate_MR_MT(m, *r, FALSE, FALSE, &M_R, &M_T);
+        Calculate_MR_MT(m, *r, MC_NONE, FALSE, &M_R, &M_T);
         fprintf(stderr, "    M_R bare     %8.5f  M_T bare     %8.5f", M_R, M_T);
         fprintf(stderr, " ( --- MC loss, --- sphere effects)\n");
 
-        Calculate_MR_MT(m, *r, FALSE, TRUE, &M_R, &M_T);
+        Calculate_MR_MT(m, *r, MC_NONE, TRUE, &M_R, &M_T);
         fprintf(stderr, "    M_R sphere   %8.5f  M_T sphere   %8.5f", M_R, M_T);
         fprintf(stderr, " ( --- MC loss, +++ sphere effects)\n");
 
-        Calculate_MR_MT(m, *r, TRUE, FALSE, &M_R, &M_T);
+        Calculate_MR_MT(m, *r, MC_USE_EXISTING, FALSE, &M_R, &M_T);
         fprintf(stderr, "    M_R mc       %8.5f  M_T mc       %8.5f", M_R, M_T);
         fprintf(stderr, " ( +++ MC loss, --- sphere effects)\n");
 
-        Calculate_MR_MT(m, *r, TRUE, TRUE, &M_R, &M_T);
+        Calculate_MR_MT(m, *r, MC_USE_EXISTING, TRUE, &M_R, &M_T);
         fprintf(stderr, "    M_R both     %8.5f  M_T both     %8.5f", M_R, M_T);
         fprintf(stderr, " ( +++ MC loss, +++ sphere effects)\n");
 
@@ -433,7 +433,7 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
     r->tolerance = 0.0001;
     r->MC_tolerance = 0.01;
     r->search = FIND_AUTO;
-    r->metric = RELATIVE;
+    r->metric = ABSOLUTE;
     r->final_distance = 10;
     r->AD_iterations = 0;
     r->MC_iterations = 0;
@@ -765,11 +765,17 @@ void Calculate_MR_MT(struct measure_type m,
     struct measure_type old_mm;
     struct invert_type old_rr;
 
-    if (!include_MC) {
+    if (include_MC == MC_NONE) {
         m.ur1_lost = 0;
         m.ut1_lost = 0;
         m.uru_lost = 0;
         m.utu_lost = 0;
+    }
+
+    if (include_MC == MC_REDO) {
+        double ur1, ut1, uru, utu;
+        long n_photons = 100000;
+        MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu, &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
     }
 
     if (!include_spheres) {
