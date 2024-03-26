@@ -21,11 +21,11 @@ OUT_FILES =  basic-A.txt    basic-B.txt    basic-C.txt    basic-D.txt    double.
              royston3-B.txt royston3-D.txt royston3-E.txt royston9-B.txt royston9-D.txt \
              sample-A.txt   sample-B.txt   sample-C.txt   sample-D.txt   sample-E.txt   \
              sample-F.txt   sample-G.txt   terse-A.txt    terse-B.txt    vio-A.txt      \
-             vio-B.txt      x_bad_data.txt 
+             vio-B.txt      x_bad_data.txt il-B.txt       il-C.txt       basic-E.txt
 
 SPECIAL_FILES = basic-E.txt ville1.txt 
 
-NO_MC_FILES = il-B.txt      ink-C.txt      royston1.txt    royston3-C.txt royston9-A.txt \
+NO_MC_FILES =       royston1.txt    royston3-C.txt royston9-A.txt \
               royston9-C.txt tio2_vis.txt
 
 NO_RC_FILES = fairway-A.txt fairway-B.txt fairway-C.txt fairway-E.txt ink-A.txt
@@ -36,9 +36,6 @@ all: $(OUT_FILES) $(SPECIAL_FILES) $(NO_MC_FILES) $(NO_RC_FILES)
 
 ville1.txt: ville1.rxt
 	$(IAD_EXECUTABLE) -a 0 $<
-
-basic-E.txt: basic-E.rxt
-	$(IAD_EXECUTABLE) -g 0.9 $<
 
 # These files all have too little reflected light collected
 fairway-A.txt: fairway-A.rxt
@@ -54,18 +51,12 @@ fairway-E.txt: fairway-E.rxt
 	$(IAD_EXECUTABLE) -c 0 -M 0 $<
 
 ink-A.txt: ink-A.rxt
-	$(IAD_EXECUTABLE) -c 0 -M 0 $<
+	$(IAD_EXECUTABLE) -e 0.001 $<
 
 # These files fail when lost light is calculated
 ink-C.txt: ink-C.rxt
 	$(IAD_EXECUTABLE) -M 0 $<
 
-il-B.txt: il-B.rxt
-	$(IAD_EXECUTABLE) -M 0 $<
-
-il-C.txt: il-B.rxt
-	$(IAD_EXECUTABLE) -M 0 $<
-	
 royston1.txt: royston1.rxt
 	$(IAD_EXECUTABLE) -M 0 $<
 
@@ -86,6 +77,6 @@ $(OUT_FILES): %.txt: %.rxt
 	$(IAD_EXECUTABLE) $(OPTIONS) $<
 
 clean:
-	rm -f *.txt *.svg *.ipynb
+	rm -f *.txt *.svg *.ipynb *.grid
 
 .PHONY : clean
