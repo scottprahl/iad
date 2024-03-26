@@ -12,14 +12,10 @@ archives/*
 script/*
 docs/iad_src.pdf
 docs/ad_src.pdf
-docs/manual.aux
-docs/manual.bbl
-docs/manual.blg
-docs/manual.log
-docs/manual.out
-docs/manual.toc
+docs/manual.*
 docs/jupyter
 docs/*graffle
+docs/*png
 src/ad.*
 src/iad.*
 src/lib_*
