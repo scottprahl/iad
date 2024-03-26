@@ -10,6 +10,8 @@ src/oblique_test
 src/mc_lost_test
 archives/*
 script/*
+docs/iad_src.pdf
+docs/ad_src.pdf
 docs/manual.aux
 docs/manual.bbl
 docs/manual.blg
