@@ -15,20 +15,18 @@ IAD1   # Must be first four characters
        # Properties of sphere used for reflection measurements
 508    # [mm] Sphere Diameter  
 50.8   # [mm] Sample Port Diameter
-12.7   # [mm] Empty Port Diameter
+12.7   # [mm] Entrance Port Diameter
 3.00   # [mm] Detector Port Diameter
 0.894  # Reflectivity of the sphere wall
 
        # Properties of sphere used for transmission measurements
 508    # [mm] Sphere Diameter  
 50.8   # [mm] Sample Port Diameter
-12.7   # [mm] Empty Port Diameter
+12.7   # [mm] Third Port Diameter
 3.00   # [mm] Detector Port Diameter
 0.894  # Reflectivity of the sphere wall
 
-3      # Number of measurements, M_R, M_T
-
-#  M_R	  M_T	  M_U
+    r       t      u
 0.05198	0.28633	0.27936
 0.04877	0.08945	0.08579
 0.04717	0.00379	0.00328
