@@ -143,7 +143,7 @@ int main (int argc, char **argv)
     double cl_lambda      = UNINITIALIZED;
     double cl_rwall_r     = UNINITIALIZED;
     double cl_rwall_t     = UNINITIALIZED;
-    
+
     double cl_search      = UNINITIALIZED;
     double cl_mus0        = UNINITIALIZED;
     double cl_musp0       = UNINITIALIZED;
@@ -167,8 +167,8 @@ int main (int argc, char **argv)
     char *command_line = NULL;
 
 @ I want to add the command line to the output file.  To do this, we need to save
-the entire thing before the options get processed.  The extra |+1| in the total length 
-calculation is for the space character between options. Finally, we need to reset 
+the entire thing before the options get processed.  The extra |+1| in the total length
+calculation is for the space character between options. Finally, we need to reset
 |optind| to 1 to start |getopt()| processing from the beginning.  It should be noted
 that this strips any quotes from the command-line.
 
@@ -178,7 +178,7 @@ that this strips any quotes from the command-line.
     for (int i = 0; i < argc; ++i) {
         command_line_length += strlen(argv[i]) + 3;
     }
-    
+
     command_line = (char *)malloc(command_line_length);
     if (command_line == NULL) {
         fprintf(stderr, "Memory allocation failed\n");
@@ -197,9 +197,9 @@ that this strips any quotes from the command-line.
         }
     }
 
-    optind = 1; 
+    optind = 1;
 }
- 
+
 @*1 Handling command-line options.
 
 @<Handle options@>=
@@ -673,54 +673,67 @@ to calculate the optical thickness.
 
     {
         double mu_sp, mu_a, m_r, m_t;
-        Calculate_MR_MT(m, r, TRUE, TRUE, &m_r, &m_t);
+        if (MAX_MC_iterations==0) {
+            Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
+        } else {
+            Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
+        }
+
         Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
         if (cl_verbosity>0) {
             Write_Header (m, r, -1, command_line);
             print_results_header(stdout);
-        }
-
-        if (m.as_r !=0 && r.default_a != 0 && MAX_MC_iterations>0) {
-            double ur1, ut1, uru, utu;
-            MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu, 
-                    &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
-            m_r -= m.ur1_lost;
-            m_t -= m.ut1_lost;
         }
         print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0);
     }
 
 @*1 Calculating a grid for graphing.
 
-We will start simple.  Just vary a and b.
+We will start simple.  Just vary $a'$ and $b'$.
 
 @<Generate and write grid@>=
 if (cl_grid_calc != UNINITIALIZED) {
-    double m_r, m_t;
-    double aa[] = {0, 0.7, 0.9, 0.95, 0.98, 0.99, 1.0};
+    double m_r, m_t, aprime, bprime, g;
+    double aa[] = {0, 0.8, 0.9, 0.95, 0.98, 0.99, 1.0};
     double bb[] = {0, 0.2, 0.5, 1.0,  3.0, 10.0, 100};
     int i, j;
 
     FILE *grid;
-    
+
     grid = fopen(g_grid_name, "w");
     if (grid == NULL) {
         fprintf(stderr, "Could not open grid file '%s' for output\n", g_out_name);
         exit(EXIT_FAILURE);
     }
 
-    fprintf(grid, "# %s\n", command_line);
-    fprintf(grid, "#    a           b           g           M_R         M_T\n");
+    m.ur1_lost = 0;
+    m.uru_lost = 0;
+    m.ut1_lost = 0;
+    m.utu_lost = 0;
+
+    g=r.slab.g;
+    fprintf(grid, "# %s (g=%6.4f)\n", command_line, g);
+    fprintf(grid, "#    a'          b'          g           M_R         M_T\n");
+    fprintf(stderr, "\ndoing grid calculation\n");
     for (i=0; i<7; i++) {
-        r.slab.a = aa[i];
+        aprime = aa[i];
         for (j=0; j<7; j++) {
-            r.slab.b = bb[j];
-            Calculate_MR_MT(m, r, TRUE, TRUE, &m_r, &m_t);
+            bprime = bb[j];
+            r.slab.a = aprime / (1 - g + aprime * g);
+            r.slab.b = bprime / (1 - r.slab.a * g);
+            if (MAX_MC_iterations==0) {
+                Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
+            } else {
+                Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
+            }
+            fprintf(stderr, "*");
+
             fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", \
-                    r.slab.a, r.slab.b, r.slab.g, m_r, m_t);
+                    aprime, bprime, g, m_r, m_t);
         }
     }
     fclose(grid);
+    fprintf(stderr, "\n");
 }
 
 @ Make sure that the file is not named '-' and warn about too many files
@@ -754,7 +767,7 @@ if (cl_grid_calc != UNINITIALIZED) {
             g_out_name=strdup_together(base_name,".txt");
 
         if (g_grid_name==NULL)
-            g_grid_name=strdup_together(base_name,"-grid.txt");
+            g_grid_name=strdup_together(base_name,".grid");
 
         free(rt_name);
         free(base_name);
@@ -792,13 +805,13 @@ measurements.
     }
 
     Initialize_Result(m, &r, FALSE);
-    
+
     r.default_a = UNINITIALIZED;
     r.default_b = UNINITIALIZED;
     r.default_g = UNINITIALIZED;
     r.default_mua = UNINITIALIZED;
     r.default_mus = UNINITIALIZED;
-    
+
     @<Command-line changes to |r|@>@;
     @<Warn and quit for bad options@>@;
     @<Write Header @>@;
@@ -911,7 +924,7 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (r.found && m.num_spheres > 0 && r.default_a !=0) {
+if (r.found && m.num_spheres > 0) {
     double mu_sp_last = mu_sp;
     double mu_a_last  = mu_a;
 
