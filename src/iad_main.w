@@ -711,7 +711,13 @@ if (cl_grid_calc != UNINITIALIZED) {
     m.ut1_lost = 0;
     m.utu_lost = 0;
 
-    g=r.slab.g;
+    if (r.default_g != UNINITIALIZED) {
+        g = r.default_g;
+    } else if (r.found) {
+        g = r.slab.g;
+    } else {
+        g = 0;
+    }
     fprintf(grid, "# %s (g=%6.4f)\n", command_line, g);
     fprintf(grid, "#    a'          b'          g           M_R         M_T\n");
     fprintf(stderr, "\ndoing grid calculation\n");
