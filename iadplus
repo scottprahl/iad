@@ -18,6 +18,10 @@ import nbformat
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 from scipy.optimize import curve_fit
 
+skyblue = '#00bfff'
+ocean= '#009dc4'
+azure = '#1520a6'
+
 def scattered_light(g=0, n=1, quad_pts=4):
     """Max scattered light for all optical thicknesses.""" 
     b = np.logspace(-5,5,200)
@@ -32,24 +36,49 @@ def active_polygon():
     xy = np.array([[1,0], [0,1], [0,0]])
     return plt.Polygon(xy, closed=True, facecolor='b', alpha=0.2)
 
-def plot_good_and_bad(x, y, success, big_points=False):
+def add_x_label(lambda0):
+    if lambda0[0] > 300:
+        plt.xlabel('Wavelength (nm)')
+    else:
+        plt.xlabel('Measurement Number')
+
+def plot_good(x, y, success, big_points=False):
     if big_points:
-        size = 5
+        size = 7
+        fc = 'none'
     else :
-        size = 1
+        size = 2
+        fc = 'blue'
     if any(success):
         plt.plot(x[success], y[success], marker='o', markersize=size,
-                 markerfacecolor='none', markeredgecolor='blue', linestyle='None',
+                 markerfacecolor=fc, markeredgecolor='blue', linestyle='None',
+                 label='fit')
+    plt.grid(True)
+
+def plot_good_and_bad(x, y, success, big_points=False):
+    if big_points:
+        size = 7
+        fc = 'none'
+    else :
+        size = 2
+        fc = 'blue'
+    if any(success):
+        plt.plot(x[success], y[success], marker='o', markersize=size,
+                 markerfacecolor=fc, markeredgecolor='blue', linestyle='None',
                  label='fit')
 
     if any(~success):
         plt.plot(x[~success], y[~success], 'xr', label='failed')
         plt.legend()
-    plt.xlabel('Wavelength (nm)')
     plt.grid(True)
 
 def plot_gridlines(filename_base):
-    gridname = filename_base + '-grid.txt'
+    gridname = filename_base + '.grid'
+
+    if not os.path.exists(gridname):
+        print('no grid file "%s"' % gridname)
+        return
+
     a,b,g,mr,mt = np.loadtxt(gridname, skiprows=2, delimiter=',').T
 
     with open(gridname, 'r') as file:
@@ -64,26 +93,28 @@ def plot_gridlines(filename_base):
         r = [mr[i] for i in range(N) if a[i] == aa]
         t = [mt[i] for i in range(N) if a[i] == aa]
         plt.plot(r, t, 'k', lw=0.5)
-        if aa>=0.9:
-            plt.text(r[-1],t[-1]-0.01, 'a=%g' % aa, ha='center', va='top')
+        if aa==0:
+            plt.text(r[-1],t[-1]-0.01, "a'=%4.2f" % aa, ha='center', va='top')
         else:
-            plt.text(r[-1],t[-1]-0.01, '%g' % aa, ha='center', va='top')
+            plt.text(r[-1],t[-1]-0.01, '%4.2f' % aa, ha='center', va='top')
 
     b_list = list(set(b))
     for bb in b_list:
         r = [mr[i] for i in range(N) if b[i] == bb]
         t = [mt[i] for i in range(N) if b[i] == bb]
         plt.plot(r, t, 'k', lw=0.5)
-        plt.text(r[-1],t[-1], 'b=%g' % bb)
+        plt.text(r[-1],t[-1], "b'=%g" % bb)
 
     r = [mr[i] for i in range(N) if a[i] == 1]
     t = [mt[i] for i in range(N) if a[i] == 1]
     r1 = [mr[i] for i in range(N) if b[i] == 100]
     t1 = [mt[i] for i in range(N) if b[i] == 100]
-    r = r + r1[::-1]
-    t = t + t1[::-1]
+    r2 = [mr[i] for i in range(N) if a[i] == 0]
+    t2 = [mt[i] for i in range(N) if a[i] == 0]
+    r = r + r1[::-1] + r2[::-1]
+    t = t + t1[::-1] + t2[::-1]
     rt = np.array([r,t]).T
-    poly = plt.Polygon(rt, closed=True, facecolor='y', alpha=0.2)
+    poly = plt.Polygon(rt, closed=True, facecolor=ocean, edgecolor='none')
     plt.gca().add_patch(poly)
     
     plt.plot(r, t, 'k', lw=0.5)
@@ -98,9 +129,12 @@ def plot_grid(mr, cr, mt, ct, success, filename_base):
     plt.ylim(-0.05,1.05)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
-    plot_good_and_bad(cr, ct, success, True)
-    plt.plot(mr, mt, 'ok', markersize=2, label='measured')
-#    plt.gca().add_patch(active_polygon())
+    plot_good(cr, ct, success, True)
+    plt.plot(mr[success], mt[success], 'o', markersize=2, color=azure, label='measured')
+    if any(~success):
+        plt.plot(mr[~success], mt[~success], 'x', markersize=5, color='red', label='failed')
+    poly = plt.Polygon([[0,0],[0,1],[1,0]], closed=True, facecolor=skyblue, edgecolor='none', alpha=1)
+    plt.gca().add_patch(poly)
     plot_gridlines(filename_base)
     plt.xlabel('MR',fontsize=12)
     plt.ylabel('MT',fontsize=12)
@@ -118,7 +152,7 @@ def plot_rt(lam, mr, mt, filename_base):
     plt.plot(lam, mt, 'or', markersize=2, label='t')
     plt.plot(lam, mr+mt, 'ok', markersize=2, label='r+t')
     plt.ylabel('Measurement')
-    plt.xlabel('Wavelength (nm)')
+    add_x_label(lam)
     plt.legend()
     plt.grid(True)
     plt.savefig(out_filename, dpi=300)
@@ -131,6 +165,7 @@ def plot_r(lam, mr, cr, success, filename_base):
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, cr, success, True)
     plt.plot(lam, mr, 'ok', markersize=2, label='measured')
+    add_x_label(lam)
     plt.ylabel('Reflection')
     plt.legend()
     plt.savefig(out_filename, dpi=300)
@@ -144,6 +179,7 @@ def plot_t(lam, mt, ct, success, filename_base):
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, ct, success, True)
     plt.plot(lam, mt, 'ok', markersize=2, label='measured')
+    add_x_label(lam)
     plt.ylabel('Transmission')
     plt.legend()
     plt.savefig(out_filename, dpi=300)
@@ -156,6 +192,7 @@ def plot_mua(lam, mua, success, filename_base):
     out_filename = filename_base + '-mua.svg'
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mua, success)
+    add_x_label(lam)
     plt.ylabel('Absorption Coefficient (mm⁻¹)')
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -170,7 +207,7 @@ def plot_musp(lam, musp, success, filename_base, fit=False):
     out_filename = filename_base + '-musp.svg'
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, musp, success)
-    if fit:
+    if fit and lam[0]>300:
         popt, pcov = curve_fit(scattering_model, lam[success], musp[success])
         a_opt, b_opt = popt
         lamb = np.linspace(min(lam), max(lam))
@@ -179,6 +216,7 @@ def plot_musp(lam, musp, success, filename_base, fit=False):
         plt.legend()
 
     plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)')
+    add_x_label(lam)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
@@ -189,7 +227,7 @@ def plot_mus(lam, mus, success, filename_base, fit=False):
     out_filename = filename_base + '-mus.svg'
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mus, success)
-    if fit:
+    if fit and lam[0]>300:
         popt, pcov = curve_fit(scattering_model, lam[success], mus[success])
         a_opt, b_opt = popt
         lamb = np.linspace(min(lam), max(lam))
@@ -197,6 +235,7 @@ def plot_mus(lam, mus, success, filename_base, fit=False):
         plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
         plt.legend()
     plt.ylabel('Scattering Coefficient (mm⁻¹)')
+    add_x_label(lam)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
@@ -207,6 +246,7 @@ def plot_g(lam, g, success, filename_base):
     out_filename = filename_base + '-g.svg'
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, g, success)
+    add_x_label(lam)
     plt.ylabel('Scattering Anisotropy')
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -217,6 +257,7 @@ def plot_a(lam, a, success, filename_base):
     out_filename = filename_base + '-a.svg'
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, a, success)
+    add_x_label(lam)
     plt.ylabel(r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$')
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -227,6 +268,7 @@ def plot_b(lam, b, success, filename_base):
     out_filename = filename_base + '-b.svg'
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, b, success)
+    add_x_label(lam)
     plt.ylabel(r'Optical Thickness $(\mu_a+\mu_s)d$')
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -305,6 +347,10 @@ def main():
 
     # You can then iterate over this list to open and process each file
     for file_name in args.input_files:
+
+        if not os.path.exists(file_name) and not os.path.exists(file_name + '.rxt'):
+            print('missing rxt file "%s"' % file_name)
+            sys.exit()
 
         abs_dir = os.path.abspath(os.path.dirname(file_name))
         local_dir = os.path.dirname(file_name)
