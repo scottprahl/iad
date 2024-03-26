@@ -89,6 +89,11 @@ the header file \.{iad\_type.h} and nothing else.
 @d COMPARISON                     1
 @d SUBSTITUTION                   2
 
+@d MC_NONE                        0
+@d MC_USE_EXISTING                1
+@d MC_REDO                        2
+
+
 @ The idea of the structure |measure_type| is collect
 all the information regarding a single measurement together
 in one spot.    No information regarding how the inversion
