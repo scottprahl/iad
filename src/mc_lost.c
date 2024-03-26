@@ -12,8 +12,8 @@
 
 unsigned long photon_seed = 12345678;
 
-/* 
- * `kiss_rand_max` represents the maximum value that `kiss_rand` can return, 
+/*
+ * `kiss_rand_max` represents the maximum value that `kiss_rand` can return,
  * corresponding to ULONG_MAX, ensuring compatibility across different platforms.
  *
  * Variables kiss_x, kiss_y, kiss_z, and kiss_c are state variables that must be
@@ -26,14 +26,14 @@ unsigned long kiss_y = 362436000;
 unsigned long kiss_z = 521288629;
 unsigned long kiss_c = 7654321;
 
-/* 
+/*
  * KISS (Keep It Simple Stupid) Random Number Generator
- * 
+ *
  * This RNG combines multiple algorithms for a balanced approach to randomness:
  * - Two Multiply-With-Carry (MWC) generators
  * - A 3-shift register (SHR3)
  * - A Congruential generator (CONG)
- * 
+ *
  * Operations involve addition, exclusive-or, and bit shifts to produce a sequence
  * with a long period (~2^123), designed by George Marsaglia. This makes the KISS
  * generator suitable for simulations requiring high-quality randomness.
@@ -59,7 +59,7 @@ static unsigned long kiss_rand(void)
  * Knuth's suggestions for generating initial states. The seed influences
  * the initial values of kiss_x, kiss_y, kiss_z, and kiss_c, ensuring that
  * different seeds produce different sequences of random numbers.
- * 
+ *
  * Each state variable is initialized in a chained manner, where each depends
  * on the previous one, starting with 'kiss_c' based directly on the provided
  * 'seed'. This method helps in dispersing the seed's influence throughout
@@ -92,7 +92,7 @@ static void kiss_rand_seed(unsigned long seed)
 
 /*
  * Configures the KISS random number generator.
- * This allows consistent random number sequences for each simulation and 
+ * This allows consistent random number sequences for each simulation and
  * therefore minimizes variation between runs due to small changes in the
  * optical properties arising in successive runs.
  */
@@ -107,7 +107,7 @@ static inline void set_photon_seed(unsigned long new_seed)
  * photon path. `next_photon_seed` updates the seed for the next photon,
  * maintaining the sequence's continuity and resetting the KISS generator
  * with a new seed derived from the previous one. This setup guarantees
- * that each photon, such as photon number 1001, consistently starts with 
+ * that each photon, such as photon number 1001, consistently starts with
  * the same initial conditions in the random number sequence, allowing for
  * repeatable and comparable simulations across different photon paths.
  */
@@ -288,9 +288,9 @@ static void launch_direction(double *u, double *v, double *w, int collimated, do
  * Implements the Russian roulette technique to unbiasedly terminate a photon's path.
  * If the photon's weight is below MIN_WEIGHT (but not zero), it has a chance to be terminated
  * or to have its weight amplified and continue its path. This decision is made stochastically,
- * giving the photon a 10% chance to survive (weight multiplied by 10) and a 90% chance 
- * to be terminated (weight set to 0). This approach ensures unbiased termination by 
- * conserving energy: the residual weight is adjusted to account for the absorbed or 
+ * giving the photon a 10% chance to survive (weight multiplied by 10) and a 90% chance
+ * to be terminated (weight set to 0). This approach ensures unbiased termination by
+ * conserving energy: the residual weight is adjusted to account for the absorbed or
  * scattered light, to maintain an exact overall energy balance.
  */
 static void roulette(double *weight, double *residual_weight)
@@ -314,7 +314,7 @@ static void roulette(double *weight, double *residual_weight)
  * updated according to this step, based on its current direction cosines
  * (u, v, w).
  */
-static void move_in_sample(double mu_t, double *x, double *y, double *z, 
+static void move_in_sample(double mu_t, double *x, double *y, double *z,
                            double u, double v, double w)
 {
     double step = -log(rand_zero_one()) / mu_t;
@@ -323,7 +323,7 @@ static void move_in_sample(double mu_t, double *x, double *y, double *z,
     *z += step * w;
 }
 
-/* 
+/*
  * On entry the photon is on one boundary of the slide and the direction is
  * into the slide.  On exit, x and y will be the location that the photon
  * leaves the slide and the direction w should be correct.
@@ -422,6 +422,13 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     *t_lost = 0;
     *r_total = 0;
     *t_total = 0;
+
+    if (a==0 && collimated)
+        return; /* no possible lost light (some diffuse utu losses possible tho) */
+
+    if (dr_port == 0 && dt_port == 0)  /* no port, no loss! */
+        return;
+
     total_weight = 0.0;
 
     for (i = 1; i <= total_photons; i++) {
@@ -562,7 +569,7 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
         mua_slide = 0;
     else
         mua_slide = m.slab_top_slide_b / t_slide;
-        
+
     // fprintf(stderr, "  reflection port diameter = %8.3f mm\n", dr_port);
     // fprintf(stderr, "transmission port diameter = %8.3f mm\n", dt_port);
 
