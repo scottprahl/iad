@@ -78,5 +78,6 @@ $(OUT_FILES): %.txt: %.rxt
 
 clean:
 	rm -f *.txt *.svg *.ipynb *.grid
+	rm -rf *notebook
 
 .PHONY : clean
