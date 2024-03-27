@@ -51,14 +51,17 @@ int main (int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    if (Read_Header (stdin, &m, &params) == 0) {
-        start_time = clock();
-        while (Read_Data_Line (stdin, &m, &r, params) == 0) {
-            @<Command-line changes to |m|@>@;
-            @<Calculate and write optical properties@>@;
-        }
-        @<Generate and write grid@>@;
+    if (Read_Header (stdin, &m, &params) != 0) 
+        exit(EXIT_FAILURE);
+        
+    start_time = clock();
+    while (Read_Data_Line (stdin, &m, &r, params) == 0) {
+        @<Command-line changes to |m|@>@;
+        @<Calculate and write optical properties@>@;
     }
+    
+    @<Generate and write grid@>@;
+
     if (cl_verbosity>0) fprintf(stderr,"\n\n");
     if (any_error && cl_verbosity>1) print_error_legend();
     exit(EXIT_SUCCESS);

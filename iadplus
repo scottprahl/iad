@@ -11,6 +11,7 @@ import sys
 import re
 import subprocess
 import shlex
+import shutil
 import urllib.parse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -332,6 +333,51 @@ def append_header(nb, output_filename):
     cell_text += "    " + second_line + "\n"
     nb.cells.append(new_markdown_cell(cell_text))
 
+def create_notebook_directory(file_name):
+    """Create a notebook directory and copy the .rxt file into it."""
+    
+    # ensure that file.rxt exists and support omitting .rxt
+    if not os.path.exists(file_name):
+        file_name += '.rxt'
+        if not os.path.exists(file_name):
+            print('missing rxt file "%s"' % file_name)
+            return ''
+#    print('working with ', file_name);
+    
+    local_dir = os.path.dirname(file_name)
+#    print('local dir is ', local_dir);
+    
+    # extract the 'name' from 'path/to/name.rxt'
+    base = os.path.splitext(os.path.basename(file_name))[0]
+#    print('base is ', base);
+
+    # notebook directory will be in same directory as file_name
+    notebook_dir = os.path.join(local_dir, base + '-notebook')
+    if not os.path.exists(notebook_dir):
+        os.makedirs(notebook_dir)
+
+    # copy file.rxt to notebook directory
+    shutil.copy(file_name, notebook_dir)
+#    print('copied ', file_name, ' to ', notebook_dir)
+
+    # if file.txt exists, copy it to the notebook directory
+    txt_name = os.path.join(local_dir, base + '.txt')
+#    print('txt name =', txt_name)
+    if os.path.exists(txt_name):
+        shutil.copy(txt_name, notebook_dir)
+#        print('copied ', txt_name, ' to ', notebook_dir)
+
+    # if file.grid exists, copy it to the notebook directory
+    grid_name = os.path.join(local_dir, base + '.grid')
+#    print('grid name =', grid_name)
+    if os.path.exists(grid_name):
+        shutil.copy(grid_name, notebook_dir)
+
+    # the base name for all created files
+    base_path = os.path.join(notebook_dir, base)
+#    print('base_path is ', base_path);
+    return base, base_path
+
 def main():
     desc =  'A wrapper for the iad program that creates a Jupyter notebook with plots '
     desc += 'of the input, the fitted results, and the derived optical properties.'
@@ -348,37 +394,28 @@ def main():
     # You can then iterate over this list to open and process each file
     for file_name in args.input_files:
 
-        if not os.path.exists(file_name) and not os.path.exists(file_name + '.rxt'):
-            print('missing rxt file "%s"' % file_name)
-            sys.exit()
+        base, base_path = create_notebook_directory(file_name)
+        if base_path == '':
+            continue
 
-        abs_dir = os.path.abspath(os.path.dirname(file_name))
-        local_dir = os.path.dirname(file_name)
-        base = os.path.splitext(os.path.basename(file_name))[0]
-
-        base_path = os.path.join(local_dir, base)
-        out_path = os.path.join(local_dir, base + '.txt')
-        ipynb_path = os.path.join(local_dir, base + '.ipynb')
-
-        if not os.path.exists(base_path + '.rxt'):
-            print('missing file "%s"' % (base_path + '.rxt'))
-            sys.exit()
-
+        # doing the iad analysis can be slow, avoid it if needed
         if not os.path.exists(base_path + '.txt') or args.force:
             command = ['iad']
             if args.options:
                 command.extend(shlex.split(args.options))
             command.append('-J')
-            command.extend([shlex.quote(file_name)])
+            command.extend([shlex.quote(base_path+'.rxt')])
             command_str = ' '.join(command)
 
             print('running:', command_str)
-            subprocess.run(command, shell=False, check=True)
+            try:
+                subprocess.run(command, shell=False, check=True)
+            except subprocess.CalledProcessError:
+                print("Sorry, iad failed.  check header maybe?")
+                continue
 
-        if os.path.exists(base_path + '.ipynb') and not args.force:
-            continue
-
-        result = np.loadtxt(out_path, skiprows=44, usecols=range(8), delimiter='\t')
+        txt_path = base_path + '.txt'
+        result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
         lam, mr, cr, mt, ct, mua, musp, g = result.T
         lam = np.atleast_1d(lam)
         mr = np.atleast_1d(mr)
@@ -389,12 +426,12 @@ def main():
         musp = np.atleast_1d(musp)
         g = np.atleast_1d(g)
 
-        converters = {8: lambda s: s.strip()}
-        status = np.loadtxt(out_path, usecols=[8], dtype=str, converters=converters)
+        converters = {8: lambda s: s.lstrip(b'#').strip()}
+        status = np.loadtxt(txt_path, usecols=[8], dtype=str, converters=converters)
         status = np.atleast_1d(status)
         success = status == '*'
 
-        d = get_thickness(out_path)
+        d = get_thickness(txt_path)
         mus = musp/(1-g)
         b = (mua + mus)*d
 
@@ -420,7 +457,7 @@ def main():
             'name': 'python3'
         }
 
-        append_header(nb, out_path)
+        append_header(nb, txt_path)
         append_graph_cell(nb, '## Reflection', r_graph)
         append_graph_cell(nb, '## Transmission', t_graph)
         append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
@@ -439,6 +476,7 @@ def main():
         append_file_cell(nb, '# output file', base + '.txt')
 
         # Save the notebook
+        ipynb_path = base_path + '.ipynb'
         with open(ipynb_path, "w", encoding="utf-8") as f:
             nbformat.write(nb, f)
 
