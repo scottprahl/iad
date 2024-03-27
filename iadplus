@@ -338,10 +338,11 @@ def create_notebook_directory(file_name):
     
     # ensure that file.rxt exists and support omitting .rxt
     if not os.path.exists(file_name):
-        file_name += '.rxt'
+        if not file_name.endswith('.rxt') :
+            file_name += '.rxt'
         if not os.path.exists(file_name):
-            print('missing rxt file "%s"' % file_name)
-            return ''
+            print('input file "%s" not found' % file_name)
+            return '', ''
 #    print('working with ', file_name);
     
     local_dir = os.path.dirname(file_name)
@@ -399,22 +400,24 @@ def main():
             continue
 
         # doing the iad analysis can be slow, avoid it if needed
-        if not os.path.exists(base_path + '.txt') or args.force:
+        txt_path = base_path + '.txt'
+        exists_and_is_non_zero = os.path.exists(txt_path) and os.path.getsize(txt_path) > 0
+        if args.force or not exists_and_is_non_zero:
             command = ['iad']
             if args.options:
                 command.extend(shlex.split(args.options))
             command.append('-J')
             command.extend([shlex.quote(base_path+'.rxt')])
             command_str = ' '.join(command)
-
             print('running:', command_str)
             try:
                 subprocess.run(command, shell=False, check=True)
             except subprocess.CalledProcessError:
                 print("Sorry, iad failed.  check header maybe?")
                 continue
+        else:
+            print('Skipping %s.rxt' % base_path)
 
-        txt_path = base_path + '.txt'
         result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
         lam, mr, cr, mt, ct, mua, musp, g = result.T
         lam = np.atleast_1d(lam)
