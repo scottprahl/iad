@@ -18,6 +18,7 @@ char COLUMN_LABELS[MAX_COLUMNS] = "";
 #include "iad_pub.h"
 #include "version.h"
 
+@<Definition for |get_current_line_number|@>@;
 @<Definition for |skip_white|@>@;
 @<Definition for |read_number|@>@;
 @<Definition for |check_magic|@>@;
@@ -303,7 +304,8 @@ int skip_white(FILE *fp)
             break;
     }
 
-    if (feof(fp)) return 1;
+    if (feof(fp)) 
+        return 1;
 
     ungetc(c,fp);
     return 0;
@@ -316,13 +318,17 @@ int read_number(FILE *fp, double *x)
 @ @<Definition for |read_number|@>=
 @<Prototype for |read_number|@>@;
 {
-    if (skip_white(fp))
+    long line_no = 0;
+    
+    if (skip_white(fp)) 
         return 1;
 
     if (fscanf(fp, "%lf", x))
         return 0;
-    else
-        return 1;
+
+    line_no = get_current_line_number(fp);
+    fprintf(stderr, "\nIAD ERROR: Bad number on line %ld in input file.", line_no);
+    return 1;
 }
 
 @ Ensure that the data file is actually in the right form.  Return 0 if
@@ -587,6 +593,25 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
                 r.method.quad_pts);
         printf("#             AD tolerance for success = %9.5f\n", r.tolerance );
         printf("#      MC tolerance for mu_a and mu_s' = %7.3f %%\n", r.MC_tolerance );
+
+
+@ Get the current line number by counting.
+
+@<Definition for |get_current_line_number|@>=
+
+long get_current_line_number(FILE *file) {
+    long line_number = 0;
+    long current_position = ftell(file); 
+    fseek(file, 0, SEEK_SET);
+    int c;
+    while ((c = fgetc(file)) != EOF && ftell(file) < current_position) {
+        if (c == '\n') {
+            line_number++; 
+        }
+    }
+    fseek(file, current_position, SEEK_SET); 
+    return line_number + 1; 
+}
 
 @ Discard white space and dashes in the legend string
 

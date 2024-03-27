@@ -15,6 +15,21 @@ char COLUMN_LABELS[MAX_COLUMNS] = "";
 #include "iad_pub.h"
 #include "version.h"
 
+long get_current_line_number(FILE *file)
+{
+    long line_number = 0;
+    long current_position = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    int c;
+    while ((c = fgetc(file)) != EOF && ftell(file) < current_position) {
+        if (c == '\n') {
+            line_number++;
+        }
+    }
+    fseek(file, current_position, SEEK_SET);
+    return line_number + 1;
+}
+
 int skip_white(FILE *fp)
 {
     int c = fgetc(fp);
@@ -39,13 +54,17 @@ int skip_white(FILE *fp)
 
 int read_number(FILE *fp, double *x)
 {
+    long line_no = 0;
+
     if (skip_white(fp))
         return 1;
 
     if (fscanf(fp, "%lf", x))
         return 0;
-    else
-        return 1;
+
+    line_no = get_current_line_number(fp);
+    fprintf(stderr, "\nIAD ERROR: Bad number on line %ld in input file.", line_no);
+    return 1;
 }
 
 int check_magic(FILE *fp)
