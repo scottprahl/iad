@@ -333,50 +333,51 @@ def append_header(nb, output_filename):
     cell_text += "    " + second_line + "\n"
     nb.cells.append(new_markdown_cell(cell_text))
 
-def create_notebook_directory(file_name):
+def create_notebook_directory(input_name, directory):
     """Create a notebook directory and copy the .rxt file into it."""
     
     # ensure that file.rxt exists and support omitting .rxt
-    if not os.path.exists(file_name):
-        if not file_name.endswith('.rxt') :
-            file_name += '.rxt'
-        if not os.path.exists(file_name):
-            print('input file "%s" not found' % file_name)
+    if not os.path.exists(input_name):
+        if not input_name.endswith('.rxt') :
+            input_name += '.rxt'
+        if not os.path.exists(input_name):
+            print('input file "%s" not found' % input_name)
             return '', ''
-#    print('working with ', file_name);
     
-    local_dir = os.path.dirname(file_name)
-#    print('local dir is ', local_dir);
-    
-    # extract the 'name' from 'path/to/name.rxt'
-    base = os.path.splitext(os.path.basename(file_name))[0]
-#    print('base is ', base);
+    local_dir = os.path.dirname(input_name)
 
-    # notebook directory will be in same directory as file_name
-    notebook_dir = os.path.join(local_dir, base + '-notebook')
+    # extract the 'name' from 'path/to/name.rxt'
+    base = os.path.splitext(os.path.basename(input_name))[0]
+
+    if directory is None:
+        # notebook directory will be in same directory as file_name
+        notebook_dir = os.path.join(local_dir, base + '-notebook')
+    else:
+        notebook_dir = os.path.join(local_dir, directory)
+        if os.path.exists(notebook_dir) and os.path.isfile(notebook_dir):
+            print("Sorry, but '%s' is an existing file!" % notebook_dir)
+            print("Use a new or existing directory with --dir option.")
+            sys.exit()
+
     if not os.path.exists(notebook_dir):
         os.makedirs(notebook_dir)
 
     # copy file.rxt to notebook directory
-    shutil.copy(file_name, notebook_dir)
-#    print('copied ', file_name, ' to ', notebook_dir)
+    shutil.copy(input_name, notebook_dir)
 
     # if file.txt exists, copy it to the notebook directory
     txt_name = os.path.join(local_dir, base + '.txt')
-#    print('txt name =', txt_name)
     if os.path.exists(txt_name):
         shutil.copy(txt_name, notebook_dir)
-#        print('copied ', txt_name, ' to ', notebook_dir)
 
     # if file.grid exists, copy it to the notebook directory
     grid_name = os.path.join(local_dir, base + '.grid')
-#    print('grid name =', grid_name)
     if os.path.exists(grid_name):
         shutil.copy(grid_name, notebook_dir)
 
     # the base name for all created files
     base_path = os.path.join(notebook_dir, base)
-#    print('base_path is ', base_path);
+
     return base, base_path
 
 def main():
@@ -384,8 +385,10 @@ def main():
     desc += 'of the input, the fitted results, and the derived optical properties.'
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('input_files', nargs='+', help='List of .rxt files to process')
-    parser.add_argument('-options', metavar='OPTIONS', type=str, nargs='?',
+    parser.add_argument('--options', metavar='OPTIONS', type=str, nargs='?',
                         help='options to pass to iad program, e.g., "-c 0"')
+    parser.add_argument('--dir',  metavar='DIRECTORY', default=None,
+                        help='name of directory to store notebook and files')
     parser.add_argument('--force', action='store_true',
                         help='Force reanalysis of files')
     parser.add_argument('--fit', action='store_true',
@@ -395,7 +398,7 @@ def main():
     # You can then iterate over this list to open and process each file
     for file_name in args.input_files:
 
-        base, base_path = create_notebook_directory(file_name)
+        base, base_path = create_notebook_directory(file_name, args.dir)
         if base_path == '':
             continue
 
