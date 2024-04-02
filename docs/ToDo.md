@@ -3,6 +3,10 @@ List of things that might or might not ever be done
 
 * revise manual
 
+* carefully review all the weird slide configurations
+
+* add slide configurations to mc_lost.c
+
 * add section on debug search commands
 
 * add section on baffles
