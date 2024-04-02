@@ -8,26 +8,27 @@ src/layer_test
 src/mc_test
 src/oblique_test
 src/mc_lost_test
-archives/*
-script/*
+src/ad
+src/iad
+src/ad.exe
+src/iad.exe
+
+# ignore generated docs
 docs/iad_src.pdf
 docs/ad_src.pdf
 docs/manual.*
 docs/jupyter
 docs/*graffle
 docs/*png
-src/ad.*
-src/iad.*
-src/lib_*
+
+# ignore archives
+archives/*
 
 # macOS cruft
 .DS_Store
 .#*
 
-# Ignore archives
-*.zip
-
-# Ignore (generated) .txt files,
+# Ignore (generated) test files,
 test/.ipynb_checkpoints/*
 test/.jupyter/*
 test/*.txt
@@ -43,11 +44,3 @@ src/libiad.dll
 libiad.dylib
 libiad.so
 libiad.dll
-
-# Don't ignore these files
-!src/version.h
-!src/nr*.[ch]
-!src/mc_lost.[ch]
-!src/mygetopt.[ch]
-!src/ad.w
-!src/iad.w
