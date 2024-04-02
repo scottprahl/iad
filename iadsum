@@ -1,0 +1,289 @@
+#!/usr/bin/env python3
+
+# pylint: disable=invalid-name
+# pylint: disable=too-many-locals
+# pylint: disable=consider-using-f-string
+
+from datetime import datetime
+import argparse
+import os
+import re
+import urllib.parse
+from enum import Enum
+import numpy as np
+import matplotlib.pyplot as plt
+import nbformat
+from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
+
+skyblue = '#00bfff'
+ocean= '#009dc4'
+azure = '#1520a6'
+
+class Column(Enum):
+    LAM = (0,"")
+    MR = (1,"-mr.svg")
+    CR = (2,"-cr.svg")
+    MT = (3,"-mt.svg")
+    CT = (4,"-ct.svg")
+    MUA = (5,"-mua.svg")
+    MUSP = (6,"-musp.svg")
+    G = (7,"-g.svg")
+    MUS = (8,"-mus.svg")
+    B = (9,"-b.svg")
+    A = (10,"-a.svg")
+    SUCCESS = (11,"")
+
+    def __new__(cls, position, value):
+        obj = object.__new__(cls)
+        obj._value_ = value
+        obj.position = position
+        return obj
+
+def add_x_label(lambda0):
+    if lambda0[0] > 300:
+        plt.xlabel('Wavelength (nm)')
+    else:
+        plt.xlabel('Measurement Number')
+
+def plot_good(x, y, success, big_points=False):
+    if big_points:
+        size = 7
+        fc = 'none'
+    else :
+        size = 2
+        fc = 'blue'
+    if any(success):
+        plt.plot(x[success], y[success], marker='o', markersize=size,
+                 markerfacecolor=fc, markeredgecolor='blue', linestyle='None',
+                 label='fit')
+    plt.grid(True)
+
+def plot_good_and_bad(x, y, success, big_points=False):
+    if big_points:
+        size = 7
+        fc = 'none'
+    else :
+        size = 2
+        fc = 'blue'
+    if any(success):
+        plt.plot(x[success], y[success], marker='o', markersize=size,
+                 markerfacecolor=fc, markeredgecolor='blue', linestyle='None',
+                 label='fit')
+
+    if any(~success):
+        plt.plot(x[~success], y[~success], 'xr', label='failed')
+        plt.legend()
+    plt.grid(True)
+
+
+def plot_results(results, item, bp, ylabel):
+    """lam,mr,cr,mt,ct,mua,musp,g,mus,b,a,success = r."""
+    plt.figure(figsize=(8, 4.5))
+    the_column = item.position
+    out_filename = bp + item.value
+
+    for key in sorted(results.keys()):
+        r = results[key]
+        success = r[-1]
+        lam = r[0]
+        y = r[the_column]
+        plt.plot(lam[success], y[success], label=key)
+
+    add_x_label(lam)
+    plt.ylabel(ylabel)
+    plt.legend()
+    plt.savefig(out_filename)
+    plt.close()
+    return os.path.basename(out_filename)
+
+def append_graph_cell(nb, header, graph):
+    cell_text = header + "\n"
+    url_encoded_filename = urllib.parse.quote(graph)
+    cell_text += "<center>\n"
+    cell_text += '    <img src="' + url_encoded_filename + '" width="80%" />\n'
+    cell_text += "</center>\n"
+    nb.cells.append(new_markdown_cell(cell_text))
+
+
+def append_file_cell(nb, header, file):
+    base = os.path.basename(file)
+    cell_text = header + '\n'
+    cell_text += 'with open("' + base + '", "r", encoding="utf-8") as file:\n'
+    cell_text += '    file_contents = file.read()\n'
+    cell_text += '\n'
+    cell_text += 'print(file_contents)\n'
+    nb.cells.append(new_code_cell(cell_text))
+
+
+def get_thickness(output_filename):
+    # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
+    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic-B.txt test/basic-B.rxt
+    with open(output_filename, 'r', encoding='utf-8') as file:
+        file.readline()
+        file.readline()
+        file.readline()
+        fourth_line = file.readline()
+
+    pattern = r'=\s*(\d+\.?\d*)'
+    match = re.search(pattern, fourth_line)
+    d_str = match.group(1)
+    return float(d_str)
+
+
+def append_header(nb, txts):
+    # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
+    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic-B.txt test/basic-B.rxt
+
+    commands = []
+    for txt in txts:
+        with open(txt, 'r', encoding='utf-8') as file:
+            first_line = file.readline()
+            second_line = file.readline()
+            commands.append('    ' + second_line)
+
+    pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
+    match = re.search(pattern, first_line)
+    if not match:
+        raise ValueError('File %s contains bad contents' % output_filename)
+    version = match.group(1)
+    build = match.group(2)
+
+    today = datetime.today()
+    formatted_date = today.strftime('%d %b %Y')
+
+    cell_text = "# Summary of Inverse Adding-Doubling Analysis\n\n"
+    cell_text += "iad version %s built on %s\n\n" % (version,build)
+    cell_text += "This analysis was done on %s\n\n" % formatted_date
+    cell_text += "The command-lines for each file was\n\n"
+    for c in commands:
+        cell_text += c
+    nb.cells.append(new_markdown_cell(cell_text))
+
+def create_summary_directory(directory):
+    """Create a notebook directory."""
+    base='summary'
+    notebook_dir = os.path.join(directory, base)
+
+    if not os.path.exists(notebook_dir):
+        os.makedirs(notebook_dir)
+
+    return os.path.join(notebook_dir, base)
+
+
+def find_notebooks_in_dir(directory):
+    print('looking in', directory)
+    notebook_paths = []
+    for root, dirs, files in os.walk(directory):
+        if '.ipynb_checkpoints' in dirs:
+            dirs.remove('.ipynb_checkpoints')  # Skip .ipynb_checkpoints directory
+        if 'summary' in dirs:
+            dirs.remove('summary')  # Skip summary directory
+        for file in files:
+            if file.endswith('.ipynb'):
+                notebook_paths.append(os.path.join(root, file))
+    return notebook_paths
+
+def read_txt(txt_path):
+    result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
+    lam, mr, cr, mt, ct, mua, musp, g = result.T
+    lam = np.atleast_1d(lam)
+    mr = np.atleast_1d(mr)
+    cr = np.atleast_1d(cr)
+    mt = np.atleast_1d(mt)
+    ct = np.atleast_1d(ct)
+    mua = np.atleast_1d(mua)
+    musp = np.atleast_1d(musp)
+    g = np.atleast_1d(g)
+
+    converters = {8: lambda s: s.lstrip(b'#').strip()}
+    status = np.loadtxt(txt_path, usecols=[8], dtype=str, converters=converters)
+    status = np.atleast_1d(status)
+    success = status == '*'
+
+    d = get_thickness(txt_path)
+    mus = musp/(1-g)
+    b = (mua + mus)*d
+
+    denominator = mua + mus
+    safe_denominator = np.where(denominator == 0, np.inf, denominator)
+    a = mus / safe_denominator
+
+    return [lam, mr,cr,mt,ct,mua,musp,g,mus,b,a,success]
+
+def get_directory_list(path):
+    directories = []
+    while True:
+        path, directory = os.path.split(path)
+        if directory != "":
+            directories.append(directory)
+        else:
+            if path != "":
+                directories.append(path)
+            break
+    return list(reversed(directories))
+
+def main():
+    desc =  'A wrapper for the iad program that creates a Jupyter notebook with plots '
+    desc += 'of the input, the fitted results, and the derived optical properties.'
+    parser = argparse.ArgumentParser(description='Your script description here')
+    parser.add_argument('directory', metavar='DIRECTORY',
+                        help='single directory path')
+    args = parser.parse_args()
+
+    abs_dir = os.path.abspath(args.directory)
+    notebooks = find_notebooks_in_dir(abs_dir)
+
+    txts = [s.replace(".ipynb", ".txt") for s in notebooks]
+
+    bp = create_summary_directory(args.directory)
+
+    results={}
+    for txt_path in txts:
+
+        if os.path.exists(txt_path) and os.path.getsize(txt_path) > 0:
+            print('reading ', txt_path)
+            key = get_directory_list(txt_path)[-2]
+            print(key)
+            results[key] = read_txt(txt_path)
+
+
+    r_graph = plot_results(results, Column.MR, bp, 'M_R')
+    t_graph = plot_results(results, Column.MT, bp, 'M_T')
+    mua_graph = plot_results(results, Column.MUA, bp, 'Absorption Coefficient (mm⁻¹)')
+    musp_graph = plot_results(results, Column.MUSP, bp, 'Reduced Scattering Coefficient (mm⁻¹)')
+    g_graph = plot_results(results, Column.G, bp, 'Scattering Anisotropy')
+    mus_graph = plot_results(results, Column.MUS, bp, 'Scattering Coefficient (mm⁻¹)')
+    a_graph = plot_results(results, Column.A, bp, r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$')
+    b_graph = plot_results(results, Column.B, bp, r'Optical Thickness $(\mu_a+\mu_s)d$')
+
+
+    nb = new_notebook()
+    nb.metadata['kernelspec'] = {
+        'display_name': 'Python 3',
+        'language': 'python',
+        'name': 'python3'
+    }
+
+    append_header(nb, txts)
+    append_graph_cell(nb, '## Reflection', r_graph)
+    append_graph_cell(nb, '## Transmission', t_graph)
+    append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
+    append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
+    append_graph_cell(nb, '## Single Scattering Albedo', a_graph)
+    append_graph_cell(nb, '## Optical Thickness', b_graph)
+    append_graph_cell(nb, '## Scattering Anisotropy', g_graph)
+    append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
+
+#     nb.cells.append(new_markdown_cell("## Input files\n"))
+#     append_file_cell(nb, '# input file', base + '.rxt')
+#
+#     nb.cells.append(new_markdown_cell("## Output file\n"))
+#     append_file_cell(nb, '# output file', base + '.txt')
+
+    # Save the notebook
+    ipynb_path = bp + '.ipynb'
+    with open(ipynb_path, "w", encoding="utf-8") as f:
+        nbformat.write(nb, f)
+
+if __name__ == "__main__":
+    main()
