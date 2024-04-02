@@ -700,6 +700,7 @@ if (cl_grid_calc != UNINITIALIZED) {
     double aa[] = {0, 0.8, 0.9, 0.95, 0.98, 0.99, 1.0};
     double bb[] = {0, 0.2, 0.5, 1.0,  3.0, 10.0, 100};
     int i, j;
+    int count=0;
 
     FILE *grid;
 
@@ -727,6 +728,8 @@ if (cl_grid_calc != UNINITIALIZED) {
     for (i=0; i<7; i++) {
         aprime = aa[i];
         for (j=0; j<7; j++) {
+            fprintf(stderr, "*");
+            fprintf(stderr, "%10.5f, %10.5f, %10.5f, ", aprime, bprime, g);
             bprime = bb[j];
             r.slab.a = aprime / (1 - g + aprime * g);
             r.slab.b = bprime / (1 - r.slab.a * g);
@@ -735,10 +738,15 @@ if (cl_grid_calc != UNINITIALIZED) {
             } else {
                 Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
             }
-            fprintf(stderr, "*");
+            count++;
+            if (count % 10 == 0)
+                fprintf(stderr, " ");
+            if (count % 50 == 0)
+                fprintf(stderr, "\n");
 
             fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", \
                     aprime, bprime, g, m_r, m_t);
+            fprintf(stderr, "%10.5f, %10.5f\n", m_r, m_t);
         }
     }
     fclose(grid);
