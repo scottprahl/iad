@@ -120,7 +120,7 @@ None of the input matrices are changed
  
 The critical quantites are
 $$
- T_{02}=T_{12} (E-R_{10}R_{12} )^{-1} T_{01} 
+T_{02}=T_{12} (E-R_{10}R_{12} )^{-1} T_{01} 
 $$
 and
 $$
@@ -135,16 +135,16 @@ double **atemp, double **btemp)
 @ @<Definition for |A_Add_Slide|@>=
     @<Prototype for |A_Add_Slide|@>
 {
-  double **ctemp;
-
-  ctemp = R20;
-  Left_Diagonal_Multiply(n, R10, R12, atemp);
-  One_Minus(n, atemp);
-  Left_Inverse_Multiply(n, atemp, T12, ctemp);
-  Right_Diagonal_Multiply(n, ctemp, T01, T02);
-  Right_Diagonal_Multiply(n, ctemp, R10, btemp);
-  Matrix_Multiply(n, btemp, T21, atemp);
-  Matrix_Sum(n, R21, atemp, R20);
+    double **ctemp;
+    
+    ctemp = R20;
+    Left_Diagonal_Multiply(n, R10, R12, atemp);
+    One_Minus(n, atemp);
+    Left_Inverse_Multiply(n, atemp, T12, ctemp);
+    Right_Diagonal_Multiply(n, ctemp, T01, T02);
+    Right_Diagonal_Multiply(n, ctemp, R10, btemp);
+    Matrix_Multiply(n, btemp, T21, atemp);
+    Matrix_Sum(n, R21, atemp, R20);
 }
 
 @ |B_Add_Slide| computes the resulting |R02| and |T20| matrices for a glass slide
@@ -173,19 +173,19 @@ double **atemp, double **btemp)
 @ @<Definition for |B_Add_Slide|@>=
     @<Prototype for |B_Add_Slide|@>
 {
-  double **ctemp;
-  int i;
-  ctemp = R02;
- 
-  Right_Diagonal_Multiply(n, R12, R10, atemp);
-  One_Minus(n, atemp);
-  Diagonal_To_Matrix(n, T10, btemp);
-  Left_Inverse_Multiply(n, atemp, btemp, ctemp);
-  Matrix_Multiply(n, ctemp, T21, T20);
-  Matrix_Multiply(n, ctemp, R12, btemp);
-  Right_Diagonal_Multiply(n, btemp, T01, R02);
-  for (i=1;i<=n;i++) 
-    R02[i][i] += R01[i]/twoaw[i]/twoaw[i];
+    double **ctemp;
+    int i;
+    ctemp = R02;
+    
+    Right_Diagonal_Multiply(n, R12, R10, atemp);
+    One_Minus(n, atemp);
+    Diagonal_To_Matrix(n, T10, btemp);
+    Left_Inverse_Multiply(n, atemp, btemp, ctemp);
+    Matrix_Multiply(n, ctemp, T21, T20);
+    Matrix_Multiply(n, ctemp, R12, btemp);
+    Right_Diagonal_Multiply(n, btemp, T01, R02);
+    for (i=1;i<=n;i++) 
+        R02[i][i] += R01[i]/twoaw[i]/twoaw[i];
 }
 
 @*1 Routines to incorporate slides.
@@ -236,8 +236,8 @@ void Add_Bottom(int n, double **R01, double **R10, double **T01, double **T10, @
 @<Definition for |Add_Bottom|@>=
         @<Prototype for |Add_Bottom|@>
 {
-  A_Add_Slide(n, R10, R01, T10, T01, R12, T21, R02, T20, atemp, btemp);
-  B_Add_Slide(n, R10, T01, R21, R12, T21, T12, R20, T02, atemp, btemp);
+    A_Add_Slide(n, R10, R01, T10, T01, R12, T21, R02, T20, atemp, btemp);
+    B_Add_Slide(n, R10, T01, R21, R12, T21, T12, R20, T02, atemp, btemp);
 }
 
 @*1 Including identical slides.
@@ -304,33 +304,33 @@ void Add_Slides(int n, double *R01, double *R10, double *T01, double *T10, @|
 @<Definition for |Add_Slides|@>=
     @<Prototype for |Add_Slides|@>
 {
-  int i;
-  double **R12, **R21, **T12, **T21;
-  double temp;
-
-  R12 = R;
-  R21 = R;
-  T21 = T;
-  T12 = T;
-  Left_Diagonal_Multiply(n, R10, R12, atemp);
-  One_Minus(n, atemp);
-  Left_Inverse_Multiply(n, atemp, T12, T_total);
-  Right_Diagonal_Multiply(n, T_total, R10, btemp);
-  Matrix_Multiply(n, btemp, T21, R_total);
-  Matrix_Sum(n, R_total, R21, R_total);
-
-  Right_Diagonal_Multiply(n, R_total, R10, atemp);
-  One_Minus(n, atemp);
-  Matrix_Inverse(n, atemp, btemp);
-  Left_Diagonal_Multiply(n, T10, btemp, atemp);
-  Matrix_Multiply(n, atemp, T_total, btemp);
-  Right_Diagonal_Multiply(n, btemp, T01, T_total);
-  Matrix_Multiply(n, atemp, R_total, btemp);
-  Right_Diagonal_Multiply(n, btemp, T01, R_total);
-  for (i = 1; i <= n; i++) {
-    temp = twoaw[i];
-    R_total[i][i] += R01[i] / (temp * temp);
-  }
+    int i;
+    double **R12, **R21, **T12, **T21;
+    double temp;
+    
+    R12 = R;
+    R21 = R;
+    T21 = T;
+    T12 = T;
+    Left_Diagonal_Multiply(n, R10, R12, atemp);
+    One_Minus(n, atemp);
+    Left_Inverse_Multiply(n, atemp, T12, T_total);
+    Right_Diagonal_Multiply(n, T_total, R10, btemp);
+    Matrix_Multiply(n, btemp, T21, R_total);
+    Matrix_Sum(n, R_total, R21, R_total);
+    
+    Right_Diagonal_Multiply(n, R_total, R10, atemp);
+    One_Minus(n, atemp);
+    Matrix_Inverse(n, atemp, btemp);
+    Left_Diagonal_Multiply(n, T10, btemp, atemp);
+    Matrix_Multiply(n, atemp, T_total, btemp);
+    Right_Diagonal_Multiply(n, btemp, T01, T_total);
+    Matrix_Multiply(n, atemp, R_total, btemp);
+    Right_Diagonal_Multiply(n, btemp, T01, R_total);
+    for (i = 1; i <= n; i++) {
+        temp = twoaw[i];
+        R_total[i][i] += R01[i] / (temp * temp);
+    }
 }
 
 @*1 Specular R and T.
@@ -382,6 +382,6 @@ void Sp_RT(int n, struct AD_slab_type slab, double *urx, double *utx, double *ur
     Sp_mu_RT(slab.n_top_slide, slab.n_slab, slab.n_bottom_slide, slab.b_top_slide,
              slab.b, slab.b_bottom_slide, slab.cos_angle, urx, utx);
 
-  *uru *= slab.n_slab * slab.n_slab;
-  *utu *= slab.n_slab * slab.n_slab;
+    *uru *= slab.n_slab * slab.n_slab;
+    *utu *= slab.n_slab * slab.n_slab;
 }
