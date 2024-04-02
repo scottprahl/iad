@@ -37,7 +37,7 @@ extern double angle[MAX_QUAD_PTS + 1];
 extern double weight[MAX_QUAD_PTS + 1];
 extern double twoaw[MAX_QUAD_PTS + 1];
 extern int Martin_Hammer;
-
+extern int twoaw_changed;
 #endif
 
 void Zero_Layer(int n, double **r, double **t);

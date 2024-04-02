@@ -29,6 +29,8 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
 
 void Set_Debugging(unsigned long debug_level);
 
+void Calculate_Mua_Musp(struct measure_type m, struct invert_type r, double *mus, double *musp, double *mua);
+
 int Debug(unsigned long mask);
 
 void Print_Invert_Type(struct invert_type r);

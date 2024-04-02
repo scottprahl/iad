@@ -91,7 +91,7 @@ void RT(int n, struct AD_slab_type *slab, double *UR1, double *UT1, double *URU,
         URU_and_UR1(n, slab->n_slab, T, UTU, UT1);
 
     }
-    else if (slab->n_top_slide == slab->n_bottom_slide && slab->b_top_slide == 0 && slab->b_bottom_slide == 0) {
+    else if (slab->n_top_slide == slab->n_bottom_slide && slab->b_top_slide == slab->b_bottom_slide) {
 
         R01 = dvector(1, n);
         R10 = dvector(1, n);

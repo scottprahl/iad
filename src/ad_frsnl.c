@@ -63,6 +63,7 @@ static double Fresnel(double n_i, double n_t, double mu_i)
     temp1 = (mu_i - temp) / (mu_i + temp);
     temp = ratio * mu_i;
     temp = (mu_t - temp) / (mu_t + temp);
+
     return ((temp1 * temp1 + temp * temp) / 2);
 }
 

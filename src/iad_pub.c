@@ -95,10 +95,13 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         r->error = IAD_TOO_MANY_ITERATIONS;
 
     if (Debug(DEBUG_A_LITTLE)) {
-        double M_R, M_T;
+        double M_R, M_T, mua, mus, musp;
+        Calculate_Mua_Musp(m, *r, &mus, &musp, &mua);
 
         fprintf(stderr, "AD iterations= %3d   MC iterations=%3d", r->AD_iterations, r->MC_iterations);
-        fprintf(stderr, "            a=%6.4f b=%8.4f g=%6.4f\n", r->slab.a, r->slab.b, r->slab.g);
+        fprintf(stderr, "            a   =%6.4f b   =%8.4f g   =%6.4f\n", r->slab.a, r->slab.b, r->slab.g);
+        fprintf(stderr, "                                      ");
+        fprintf(stderr, "            mu_a=%6.4f mu_s=%8.4f mus'=%6.4f\n", mua, mus, musp);
 
         fprintf(stderr, "    M_R loss     %8.5f  M_T loss     %8.5f", m.ur1_lost, m.ut1_lost);
         if (r->MC_iterations == 0)

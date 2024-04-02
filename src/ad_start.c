@@ -3,6 +3,7 @@
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "ad_frsnl.h"
 #include "ad_globl.h"
@@ -58,6 +59,11 @@ void Choose_Method(struct AD_slab_type *slab, struct AD_method_type *method)
     double af;
     int i, n;
 
+    if (slab->cos_angle < 0) {
+        fprintf(stderr, "cone angle %8.5f < 0.00000", slab->cos_angle);
+        exit(EXIT_FAILURE);
+    }
+
     if (0 < slab->cos_angle && slab->cos_angle < 1) {
         Choose_Cone_Method(slab, method);
         return;
@@ -73,6 +79,8 @@ void Choose_Method(struct AD_slab_type *slab, struct AD_method_type *method)
 
     for (i = 1; i <= n; i++)
         twoaw[i] = 2 * angle[i] * weight[i];
+
+    twoaw_changed = 1;
 
     method->b_thinnest = Get_Start_Depth(angle[1], method->b_calc);
 }
@@ -111,6 +119,7 @@ void Choose_Cone_Method(struct AD_slab_type *slab, struct AD_method_type *method
 
         for (i = 1; i <= n; i++)
             twoaw[i] = 2 * angle[i] * weight[i];
+        twoaw_changed = 1;
 
         method->b_thinnest = Get_Start_Depth(angle[1], method->b_calc);
 
@@ -140,6 +149,7 @@ void Choose_Cone_Method(struct AD_slab_type *slab, struct AD_method_type *method
 
     for (i = 1; i <= n; i++)
         twoaw[i] = 2 * angle[i] * weight[i];
+    twoaw_changed = 1;
 
     method->b_thinnest = Get_Start_Depth(angle[1], method->b_calc);
 
@@ -307,8 +317,9 @@ void Init_Layer(struct AD_slab_type slab, struct AD_method_type method, double *
     if (h == NULL)
         h = dmatrix(-n, n, -n, n);
 
-    if (current_g != method.g_calc) {
+    if (current_g != method.g_calc || twoaw_changed) {
         current_g = method.g_calc;
+        twoaw_changed = 0;
         Get_Phi(n, slab.phase_function, method.g_calc, h);
     }
 

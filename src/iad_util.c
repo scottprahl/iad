@@ -190,16 +190,13 @@ void abgb2ag(double a1, double b1, double b2, double *a2, double *g2)
 
     if (a1 == 0)
         *a2 = 0.0;
-    else {
-        if (a1 == 1)
-            *a2 = 1.0;
-        else {
-            if (b1 == 0 || b2 == HUGE_VAL)
-                *a2 = a1;
-            else
-                *a2 = 1 + b1 / b2 * (a1 - 1);
-        }
-    }
+    else if (a1 == 1)
+        *a2 = 1.0;
+    else if (b1 == 0 || b2 == HUGE_VAL)
+        *a2 = a1;
+    else
+        *a2 = 1 + b1 / b2 * (a1 - 1);
+
     if (*a2 == 0 || b2 == 0 || b2 == HUGE_VAL)
         *g2 = 0.5;
     else
@@ -278,7 +275,6 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
         case FIND_AB:
 
             *g = r.default_g;
-
             if (*g == 1)
                 *a = 0.0;
             else
@@ -364,6 +360,42 @@ int Debug(unsigned long mask)
         return 1;
     else
         return 0;
+}
+
+void Calculate_Mua_Musp(struct measure_type m, struct invert_type r, double *mus, double *musp, double *mua)
+{
+    if (r.b == HUGE_VAL || isinf(r.b)) {
+
+        if (r.a <= 1e-5) {
+            *mus = 0.0;
+            *musp = 0.0;
+            *mua = 1.0;
+            return;
+        }
+
+        if (r.default_mus != UNINITIALIZED) {
+            *mus = r.default_mus;
+            *musp = r.default_mus * (1 - r.g);
+            *mua = r.default_mus / r.a - r.default_mus;
+            return;
+        }
+
+        if (r.default_mua != UNINITIALIZED) {
+            *mus = r.default_mua / (1 - r.a) - r.default_mua;
+            *musp = (*mus) * (1 - r.g);
+            *mua = r.default_mua;
+            return;
+        }
+
+        *mus = 1.0;
+        *musp = (*mus) * (1 - r.g);
+        *mua = (1.0 - r.a) / r.a;
+        return;
+    }
+
+    *mus = r.a * r.b / m.slab_thickness;
+    *musp = (*mus) * (1 - r.g);
+    *mua = (1 - r.a) * r.b / m.slab_thickness;
 }
 
 void Print_Invert_Type(struct invert_type r)

@@ -20,8 +20,8 @@
 #define RELATIVE 0
 #define ABSOLUTE 1 \
 
-#define COLLIMATED 0
-#define DIFFUSE 1 \
+#define COLLIMATED 1
+#define DIFFUSE 0 \
 
 #define FALSE 0
 #define TRUE 1 \
