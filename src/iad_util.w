@@ -33,6 +33,7 @@ unsigned long g_util_debugging = 0;
     @<Definition for |quick_guess|@>@;
     @<Definition for |Set_Debugging|@>@;
     @<Definition for |Debug|@>@;
+    @<Definition for |Calculate_Mua_Musp|@>@;
     @<Definition for |Print_Invert_Type|@>@;
     @<Definition for |Print_Measure_Type|@>@;
 
@@ -52,6 +53,7 @@ unsigned long g_util_debugging = 0;
     @<Prototype for |abgb2ag|@>;
     @<Prototype for |quick_guess|@>;
     @<Prototype for |Set_Debugging|@>;
+    @<Prototype for |Calculate_Mua_Musp|@>;
     @<Prototype for |Debug|@>;
     @<Prototype for |Print_Invert_Type|@>;
     @<Prototype for |Print_Measure_Type|@>;
@@ -135,7 +137,7 @@ $$
 
 @<Solve if multiple internal reflections are not present@>=
     if (r1 == 0 || r2 == 0)
-            return (-slab.cos_angle*log(Tu / t1 / t2));
+        return (-slab.cos_angle*log(Tu / t1 / t2));
 
 
 @ Well I kept putting it off, but now comes the time to solve
@@ -187,7 +189,7 @@ $$
 @<Find thickness when multiple internal reflections are present@>=
 
 {
-double B;
+    double B;
 
     B = t1 * t2;
     return (-slab.cos_angle*log(2 * Tu /(B+sqrt(B*B+ 4*Tu * Tu * r1 * r2))));
@@ -293,7 +295,7 @@ transmission from the total transmission.
         fprintf(stderr,"SEARCH: r_t = %8.5f ",*rt);
         fprintf(stderr,"r_d = %8.5f ",*rd);
         fprintf(stderr,"r_u = %8.5f\n",*rc);
-        
+
         fprintf(stderr,"SEARCH: t_t = %8.5f ",*tt);
         fprintf(stderr,"t_d = %8.5f ",*td);
         fprintf(stderr,"t_u = %8.5f\n",*tc);
@@ -522,17 +524,15 @@ void abgb2ag(double a1, double b1, double b2, double *a2, double *g2)
     if (b2 < b1)
         b2 = b1;
 
-    if (a1 == 0) *a2 = 0.0;
-    else {
-        if (a1 == 1)
-            *a2 = 1.0;
-        else {
-                if (b1 == 0 || b2 == HUGE_VAL)
-                    *a2 = a1;
-                else
-                    *a2 = 1 + b1 / b2 * (a1 - 1);
-        }
-    }
+    if (a1 == 0)
+        *a2 = 0.0;
+    else if (a1 == 1)
+        *a2 = 1.0;
+    else if (b1 == 0 || b2 == HUGE_VAL)
+        *a2 = a1;
+    else
+        *a2 = 1 + b1 / b2 * (a1 - 1);
+
     if (*a2 == 0 || b2 == 0 || b2 == HUGE_VAL)
         *g2 = 0.5;
     else
@@ -577,9 +577,12 @@ double *x;
     r->slab.g = r->default_g;
 
     Set_Calc_State(m,*r);
-    for(r->slab.a=0.0; r->slab.a<=1.0; r->slab.a+=0.1){
-            fval = Find_A_fn(a2acalc(r->slab.a));
-            if (fval<fmin) {r->a = r->slab.a; fmin = fval;}
+    for (r->slab.a = 0.0; r->slab.a <= 1.0; r->slab.a += 0.1) {
+        fval = Find_A_fn(a2acalc(r->slab.a));
+        if (fval<fmin) {
+            r->a = r->slab.a;
+            fmin = fval;
+        }
     }
     r->slab.a=r->a;
 
@@ -591,14 +594,17 @@ now, I'll just assume that it is one.
     r->slab.g = r->default_g;
 
     Set_Calc_State(m,*r);
-    for(r->slab.b=1/32.0; r->slab.b<=32; r->slab.b *= 2){
-            fval = Find_B_fn(b2bcalc(r->slab.b));
-            if (fval<fmin) {r->b = r->slab.b; fmin = fval;}
+    for(r->slab.b = 1/32.0; r->slab.b <= 32; r->slab.b *= 2) {
+        fval = Find_B_fn(b2bcalc(r->slab.b));
+        if (fval<fmin) {
+            r->b = r->slab.b;
+            fmin = fval;
+        }
     }
     r->slab.b=r->b;
 
 @ @<Slow guess for |a| and |b| or |a| and |g|@>=
-    {
+{
     double min_a, min_b, min_g;
 
     if (!Valid_Grid(m, r->search)) Fill_Grid(m,*r);
@@ -607,7 +613,7 @@ now, I'll just assume that it is one.
     r->slab.a=min_a;
     r->slab.b=min_b;
     r->slab.g=min_g;
-    }
+}
 
 @ @<Prototype for |quick_guess|@>=
 void quick_guess(struct measure_type m, struct invert_type r, double *a, double *b, double *g)
@@ -655,18 +661,18 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
 
 @ @<Estimate |bprime|@>=
     if (rd < 0.01) {
-      bprime = What_Is_B(r.slab, UT1);
+        bprime = What_Is_B(r.slab, UT1);
         fprintf(stderr,"low rd<0.01! ut1=%f aprime=%f bprime=%f\n",UT1,aprime,bprime);
     } else if (UT1 <= 0)
-      bprime = HUGE_VAL;
+        bprime = HUGE_VAL;
     else if (UT1 > 0.1)
-      bprime = 2 * exp(5 * (rd - UT1) * log(2.0));
+        bprime = 2 * exp(5 * (rd - UT1) * log(2.0));
     else {
-      alpha = 1 / log(0.05 / 1.0);
-      beta = log(1.0) / log(0.05 / 1.0);
-      logr = log(UR1);
-      bprime = log(UT1) - beta * log(0.05) + beta * logr;
-      bprime /= alpha * log(0.05) - alpha * logr - 1;
+        alpha = 1 / log(0.05 / 1.0);
+        beta = log(1.0) / log(0.05 / 1.0);
+        logr = log(UR1);
+        bprime = log(UT1) - beta * log(0.05) + beta * logr;
+        bprime /= alpha * log(0.05) - alpha * logr - 1;
     }
 
 @  @<Guess when only reflection is known@>=
@@ -713,39 +719,38 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
 @   @<Guess when finding the albedo and optical depth@>=
 
     *g = r.default_g;
-
     if (*g == 1)
         *a = 0.0;
     else
         *a = aprime / (1 - *g + aprime * *g);
 
   @<Estimate |bprime|@>@;
-  if (bprime == HUGE_VAL || *a * *g == 1)
-    *b = HUGE_VAL;
-  else
-    *b = bprime / (1 - *a * *g);
+    if (bprime == HUGE_VAL || *a * *g == 1)
+        *b = HUGE_VAL;
+    else
+        *b = bprime / (1 - *a * *g);
 
 @   @<Guess when finding anisotropy and albedo@>=
-  *b = What_Is_B(r.slab, m.m_u);
-  if (*b == HUGE_VAL || *b == 0) {
-    *a = aprime;
-    *g = r.default_g;
-  } else{
+    *b = What_Is_B(r.slab, m.m_u);
+    if (*b == HUGE_VAL || *b == 0) {
+        *a = aprime;
+        *g = r.default_g;
+    } else {
     @<Estimate |bprime|@>@;
     *a = 1 + bprime * (aprime - 1) / (*b);
     if (*a < 0.1)
         *g = 0.0;
     else
         *g = (1 - bprime / (*b)) / (*a);
-  }
+    }
 
 @   @<Clean up guesses@>=
-  if (*a < 0)
-    *a = 0.0;
-  if (*g < 0)
-    *g = 0.0;
-  else if (*g >= 1)
-    *g = 0.5;
+    if (*a < 0)
+        *a = 0.0;
+    if (*g < 0)
+        *g = 0.0;
+    else if (*g >= 1)
+        *g = 0.5;
 
 @*1 Some debugging stuff.
 
@@ -772,6 +777,52 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
     else
         return 0;
 }
+
+@ Just figure out the damn scattering and absorption.  This is a nuisance because
+|b| may be infinite.
+
+@<Prototype for |Calculate_Mua_Musp|@>=
+void Calculate_Mua_Musp(struct measure_type m, struct invert_type r,
+                        double *mus, double *musp, double *mua)
+
+@
+@<Definition for |Calculate_Mua_Musp|@>=
+    @<Prototype for |Calculate_Mua_Musp|@>
+{
+    if (r.b == HUGE_VAL || isinf(r.b)) {
+
+        if (r.a <= 1e-5) {
+            *mus = 0.0;
+            *musp = 0.0;
+            *mua  = 1.0;
+            return;
+        }
+
+        if (r.default_mus != UNINITIALIZED) {
+            *mus = r.default_mus ;
+            *musp = r.default_mus * (1-r.g);
+            *mua  = r.default_mus/r.a - r.default_mus;
+            return;
+        }
+
+        if (r.default_mua != UNINITIALIZED) {
+            *mus = r.default_mua / (1-r.a) - r.default_mua;
+            *musp = (*mus) * (1-r.g);
+            *mua  = r.default_mua;
+            return;
+        }
+
+        *mus = 1.0;
+        *musp = (*mus) * (1-r.g);
+        *mua  = (1.0 - r.a) / r.a;
+        return;
+    }
+
+    *mus  = r.a * r.b / m.slab_thickness;
+    *musp = (*mus) * (1 - r.g);
+    *mua  = (1 - r.a) * r.b / m.slab_thickness;
+}
+
 
 @
 @<Prototype for |Print_Invert_Type|@>=
