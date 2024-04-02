@@ -1,4 +1,4 @@
-thirdthird@** IAD Input Output.
+@** IAD Input Output.
 
 The special define below is to get Visual C to suppress silly warnings.
 
