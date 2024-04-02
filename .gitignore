@@ -10,8 +10,6 @@ src/oblique_test
 src/mc_lost_test
 src/ad
 src/iad
-src/ad.exe
-src/iad.exe
 
 # ignore generated docs
 docs/iad_src.pdf
@@ -36,11 +34,11 @@ test/*.svg
 test/*.ipynb
 test/*.grid
 
-# Ignore generated .o and .c and .h files
+# Ignore generated .o and .c and .h and .tex and .log and ... files
 src/*.o
-src/libiad.dylib
-src/libiad.so
-src/libiad.dll
+src/ad.*
+src/iad.*
+src/lib*
 libiad.dylib
 libiad.so
 libiad.dll
