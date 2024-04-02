@@ -167,10 +167,15 @@ if (r->AD_iterations>=IAD_MAX_ITERATIONS)
 
 @<Print basic sphere and MC effects@>=
 if (Debug(DEBUG_A_LITTLE)) {
-    double M_R, M_T;
+    double M_R, M_T, mua, mus, musp;
+    mua = (1 - r->slab.a) * r->slab.b / m.slab_thickness;
+    mus = r->slab.a * r->slab.b / m.slab_thickness;
+    musp = mus * (1 - r->slab.g);
 
     fprintf(stderr, "AD iterations= %3d   MC iterations=%3d", r->AD_iterations, r->MC_iterations);
-    fprintf(stderr, "            a=%6.4f b=%8.4f g=%6.4f\n", r->slab.a, r->slab.b, r->slab.g);
+    fprintf(stderr, "            a   =%6.4f b   =%8.4f g   =%6.4f\n", r->slab.a, r->slab.b, r->slab.g);
+    fprintf(stderr, "                                      ");
+    fprintf(stderr, "            mu_a=%6.4f mu_s=%8.4f mus'=%6.4f\n", mua, mus, musp);
 
     fprintf(stderr, "    M_R loss     %8.5f  M_T loss     %8.5f", m.ur1_lost, m.ut1_lost);
     if (r->MC_iterations == 0)
