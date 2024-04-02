@@ -66,7 +66,8 @@ NRSRC = src/nr_amoeb.c      src/nr_amotr.h       src/nr_gaulg.c        src/nr_mn
         src/nr_amoeb.h      src/nr_brent.c       src/nr_gaulg.h        src/nr_rtsaf.c  \
         src/nr_amotr.c      src/nr_brent.h       src/nr_mnbrk.c        src/nr_rtsaf.h  \
         src/nr_hj.c         src/nr_hj.h          src/nr_zbrent.h       src/nr_zbrent.c \
-        src/mc_lost_test.c  src/version.h        src/mc_lost.c         src/mc_lost.h
+        src/mc_lost_test.c  src/version.h        src/mc_lost.c         src/mc_lost.h   \
+        src/mc_test.c
 
 CSRC  = src/ad_frsnl.c      src/ad_globl.c       src/ad_matrx.c        src/ad_start.c        \
         src/iad_main.c      src/ad_doubl.c       src/iad_util.c        src/ad_radau.c        \
@@ -213,15 +214,34 @@ realclean:
 tidy:
 	cd src ; make tidy
 
+mc_lost_test:
+	cd src; make mc_lost_test
+
 mctest:
 	cd src ; make mc_test
 	src/mc_test
-	src/mc_test -P 0
-	src/mc_test -i 0 -n 1.0
-	src/mc_test -i 0 -n 2
-	src/mc_test -n 1.4
-	src/mc_test -n 1.4 -N 1.5
-	src/mc_test -n 1.4 -N 1.5 -g 0.9
+
+mclosttest: mc_lost_test
+	cd src ; make mc_lost_test
+	src/mc_lost_test
+	src/mc_lost_test -P 0
+	src/mc_lost_test -i 0 -n 1.0
+	src/mc_lost_test -i 0 -n 2
+	src/mc_lost_test -n 1.4
+	src/mc_lost_test -n 1.4 -N 1.5
+	src/mc_lost_test -n 1.4 -N 1.5 -g 0.9
+
+layer_test:
+	cd src ; make layer_test
+	src/mc_test
+
+cone_test:
+	cd src ; make cone_test
+	src/cone_test
+
+oblique_test:
+	cd src ; make oblique_test
+	src/oblique_test
 
 executables:
 	cd src; make ad
