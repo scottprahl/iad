@@ -8,6 +8,7 @@ Added printing of intermediate results for Martin Hammer.
 #include <math.h>
 #include <float.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "ad_frsnl.h"
 #include "ad_globl.h"
@@ -152,7 +153,13 @@ to
     double af;
     int i, n;
 
-    if (0<slab->cos_angle && slab->cos_angle < 1) {
+    if (slab->cos_angle < 0) {
+        fprintf(stderr, "cone angle %8.5f < 0.00000", slab->cos_angle);
+        exit(EXIT_FAILURE);
+    }
+
+    /* use regular quadrature for the two extremes */
+    if (0 < slab->cos_angle && slab->cos_angle < 1) {
         Choose_Cone_Method(slab,method);
         return;
     }
@@ -167,6 +174,8 @@ to
 
     for (i = 1; i <=n; i++)
         twoaw[i] = 2 * angle[i] * weight[i];
+
+    twoaw_changed = 1;
 
     method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
 }
@@ -249,7 +258,8 @@ perpendicular angles are included.
     
         for (i = 1; i <=n; i++)
             twoaw[i] = 2 * angle[i] * weight[i];
-    
+        twoaw_changed = 1;
+
         method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
         
         @<print angles@>@;
@@ -298,6 +308,7 @@ quadrature so that 1 will be included).
 
     for (i = 1; i <=n; i++)
         twoaw[i] = 2 * angle[i] * weight[i];
+    twoaw_changed = 1;
 
     method->b_thinnest = Get_Start_Depth(angle[1],method->b_calc);
 
@@ -656,8 +667,9 @@ Space must previously been allocated for |R| and |T|.
     if (h == NULL)
         h = dmatrix(-n, n, -n, n);
 
-    if (current_g != method.g_calc) {
+    if (current_g != method.g_calc || twoaw_changed) {
         current_g = method.g_calc;
+        twoaw_changed = 0;
         Get_Phi(n, slab.phase_function, method.g_calc, h);
     }
     
