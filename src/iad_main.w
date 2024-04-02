@@ -675,14 +675,14 @@ to calculate the optical thickness.
     r.slab.g = r.g;
 
     {
-        double mu_sp, mu_a, m_r, m_t;
+        double mu_s, mu_sp, mu_a, m_r, m_t;
         if (MAX_MC_iterations==0) {
             Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
         } else {
             Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
         }
 
-        Calculate_Mua_Musp(m, r,&mu_sp,&mu_a);
+        Calculate_Mua_Musp(m, r, &mu_s, &mu_sp, &mu_a);
         if (cl_verbosity>0) {
             Write_Header (m, r, -1, command_line);
             print_results_header(stdout);
@@ -729,10 +729,10 @@ if (cl_grid_calc != UNINITIALIZED) {
         aprime = aa[i];
         for (j=0; j<7; j++) {
             fprintf(stderr, "*");
-            fprintf(stderr, "%10.5f, %10.5f, %10.5f, ", aprime, bprime, g);
             bprime = bb[j];
-            r.slab.a = aprime / (1 - g + aprime * g);
-            r.slab.b = bprime / (1 - r.slab.a * g);
+            r.a = aprime / (1 - g + aprime * g);
+            r.b = bprime / (1 - r.slab.a * g);
+            r.g = g;
             if (MAX_MC_iterations==0) {
                 Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
             } else {
@@ -746,7 +746,6 @@ if (cl_grid_calc != UNINITIALIZED) {
 
             fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", \
                     aprime, bprime, g, m_r, m_t);
-            fprintf(stderr, "%10.5f, %10.5f\n", m_r, m_t);
         }
     }
     fclose(grid);
@@ -1302,38 +1301,6 @@ fprintf(stdout, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
 fprintf(stdout, "Report bugs to <scott.prahl@@oit.edu>\n\n");
 }
 
-@ Just figure out the damn scattering and absorption
-
-@<calculate coefficients function@>=
-static void Calculate_Mua_Musp(struct measure_type m,
-                 struct invert_type r, double *musp, double *mua)
-{
-    if (r.b == HUGE_VAL) {
-        if (r.a <= 1e-5) {
-            *musp = 0.0;
-            *mua  = 1.0;
-            return;
-        }
-        if (r.default_mus != UNINITIALIZED) {
-            *musp = r.default_mus * (1-r.g);
-            *mua  = r.default_mus/r.a - r.default_mus;
-            return;
-        }
-        if (r.default_mua != UNINITIALIZED) {
-            *musp = (r.default_mua/(1-r.a) - r.default_mua) * (1-r.g);
-            *mua  = r.default_mua;
-            return;
-        }
-
-        *musp = 1.0-r.g;
-        *mua  = (1.0-r.a)/r.a;
-        return;
-    }
-
-    *musp  = r.a*r.b/m.slab_thickness*(1.0-r.g);
-    *mua   = (1-r.a)*r.b/m.slab_thickness;
-}
-
 @ This can only be called immediately after |Inverse_RT|
 You have been warned!  Notice that |Calculate_Distance|
 does not pass any slab properties.
@@ -1343,11 +1310,11 @@ static void calculate_coefficients(struct measure_type m,
                             struct invert_type r,
                             double *LR, double *LT, double *musp, double *mua)
 {
-    double delta;
+    double delta, mus;
     *LR = 0;
     *LT = 0;
     Calculate_Distance(LR, LT, &delta);
-    Calculate_Mua_Musp(m, r, musp, mua);
+    Calculate_Mua_Musp(m, r, &mus, musp, mua);
 }
 
 @ @<print results header function@>=
