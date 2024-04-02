@@ -126,7 +126,7 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
                           && slab->b_top_slide == 0 && slab->b_bottom_slide == 0) {
         @<Do slab with no boundaries@>@;
     } else if (slab->n_top_slide == slab->n_bottom_slide &&
-               slab->b_top_slide == 0 && slab->b_bottom_slide == 0) {
+               slab->b_top_slide == slab->b_bottom_slide) {
         @<Allocate and generate top boundary@>@;
         @<Do slab with matched top and bottom boundaries@>@;
         @<Free top boundary@>@;
