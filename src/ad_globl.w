@@ -10,11 +10,11 @@ Revision May 1996 to remove uninitialized tfluence
 Revision May 1998 to improve |wrarray|.
 
 @(ad_globl.c@>=
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "ad_globl.h"
-#include "ad_frsnl.h"
+    #include <math.h>
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include "ad_globl.h"
+    #include "ad_frsnl.h"
 
     @<Global variables for adding-doubling@>@;
     @<Definition for |Zero_Layer|@>@;
@@ -38,24 +38,24 @@ Revision May 1998 to improve |wrarray|.
     @<Prototype for |UFU_and_UF1|@>;
     @<Prototype for |wrmatrix|@>;
     @<Prototype for |wrarray|@>;
-    
+
 @*1 Constants.
 
-This is Version 2.0.0 of the adding-doubling code.  (The inverse adding-doubling 
+This is Version 2.0.0 of the adding-doubling code.  (The inverse adding-doubling
 code may have a different version number.)
 
 @ The number of quadrature points determines how accurately the integrals
 are performed.  Larger numbers of quadrature points lead to more accurate
 solutions.  Fewer points yield much faster computations since the computation
-time is proportional to $n^3$ or $n^2\ln n$ because an $n\times n$ matrix 
-must be inverted.  
+time is proportional to $n^3$ or $n^2\ln n$ because an $n\times n$ matrix
+must be inverted.
 
 For most practical
 purposes four quadrature points is plenty.  However, if you need very accurate reflection and
 transmission values, then increase the number of quadrature points.  For example,
 if you want to verify a Monte Carlo implementation, then just crank the number
 up to 16 or 32 and you are almost certain to get 5 significant digits in your
-answer.  
+answer.
 
 The number of quadrature points does not need to be a power of 2, but it should
 be an even number.  If it isn't then somewhere in the bowels of this program
@@ -64,7 +64,7 @@ increase the number of quadrature points and repeat the algorithm.
 
 There is no intrinsic reason that the maximum number of quadrature points is limited
 to 128.  If you have enough memory then this number can be increased.  But if
-you have read the stuff above, my feeling is, why bother?  
+you have read the stuff above, my feeling is, why bother?
 
 @d MAX_QUAD_PTS     128
 @d DEFAULT_QUAD_PTS  4
@@ -110,23 +110,23 @@ phase functions at the moment.
 
 @<Types to export from AD Globals@>=
 
-typedef struct AD_slab_type {
-    double a; 
-    double b; 
-    double g; 
-    int phase_function; 
-    double n_slab;  
-    double n_top_slide; 
-    double n_bottom_slide; 
-    double b_top_slide;
-    double b_bottom_slide;
-    double cos_angle;
-} slab_type;
+    typedef struct AD_slab_type {
+        double a;
+        double b;
+        double g;
+        int phase_function;
+        double n_slab;
+        double n_top_slide;
+        double n_bottom_slide;
+        double b_top_slide;
+        double b_bottom_slide;
+        double cos_angle;
+    } slab_type;
 
 @ @<Types to export from AD Globals@>=
 typedef struct AD_method_type {
-  int quad_pts;
-  double a_calc, b_calc, g_calc, b_thinnest;
+    int quad_pts;
+    double a_calc, b_calc, g_calc, b_thinnest;
 } method_type;
 
 @ The |Martin_Hammer| variable only exists to print internal
@@ -134,56 +134,57 @@ results when testing.  Its only a integer and doesn't take
 up much space so here it is.
 
 @<Global variables for adding-doubling@>=
-#define AD_GLOBAL_SOURCE
-double angle[MAX_QUAD_PTS+1];
-double weight[MAX_QUAD_PTS+1];
-double twoaw[MAX_QUAD_PTS+1];
-int Martin_Hammer=0;
+    #define AD_GLOBAL_SOURCE
+    double angle[MAX_QUAD_PTS+1];
+    double weight[MAX_QUAD_PTS+1];
+    double twoaw[MAX_QUAD_PTS+1];
+    int twoaw_changed=1;
+    int Martin_Hammer=0;
 
 @ @<External variables to export from AD Globals@>=
-#ifndef AD_GLOBAL_SOURCE
-extern double angle[MAX_QUAD_PTS+1];
-extern double weight[MAX_QUAD_PTS+1];
-extern double twoaw[MAX_QUAD_PTS+1];
-extern int Martin_Hammer;
-
-#endif
+    #ifndef AD_GLOBAL_SOURCE
+    extern double angle[MAX_QUAD_PTS+1];
+    extern double weight[MAX_QUAD_PTS+1];
+    extern double twoaw[MAX_QUAD_PTS+1];
+    extern int Martin_Hammer;
+    extern int twoaw_changed;
+    #endif
 
 @*1 Global routines.
 My standard error handler
 @<Prototype for |AD_error|@>=
-void AD_error(char error_text[])
+    void AD_error(char error_text[])
 
 @ @<Definition for |AD_error|@>=
     @<Prototype for |AD_error|@>
-{
-    fprintf(stderr,"Adding-Doubling error\n");
-    fprintf(stderr,"%s\n",error_text);
-    fprintf(stderr,"...now exiting to system...\n");
-    exit(EXIT_FAILURE);
-}
+    {
+        fprintf(stderr,"Adding-Doubling error\n");
+        fprintf(stderr,"%s\n",error_text);
+        fprintf(stderr,"...now exiting to system...\n");
+        exit(EXIT_FAILURE);
+    }
 
 @ @<Prototype for |Zero_Layer|@>=
 void Zero_Layer(int n, double **r, double **t)
-    
+
 @ @<Definition for |Zero_Layer|@>=
     @<Prototype for |Zero_Layer|@>
 {
     int i, j;
-    
-    for (i = 1; i <= n; i++) 
+
+    for (i = 1; i <= n; i++)
         for (j = 1; j <= n; j++) {
-          t[i][j] = 0.0;
-          r[i][j] = 0.0;
+            t[i][j] = 0.0;
+            r[i][j] = 0.0;
         }
-    
-    for (i = 1; i <= n; i++) 
+
+    for (i = 1; i <= n; i++)
         t[i][i] = 1 / twoaw[i];
 }
 
 @ Figure out the reflection for collimated irradiance returning within
-a right angle cone whose cosine of the half-apex angle is |mu|.  Thus when 
-|mu == 0| then the total light over all angles is returned.  Furthermore |mu| is defined 
+a right angle cone whose cosine of the half-apex angle is |mu|.  Thus when
+|mu == 0| then the total light over all angles is returned.  Furthermore |mu| is defined
 on the air side of the slab,
 $$
 \hbox{UR1} \equiv \int_\mu^1 R(\nu',1) \,2\nu'd\nu'
@@ -206,9 +207,9 @@ void URU_and_UR1_Cone(int n, double n_slab, double mu, double **R, double *URU, 
     double mu_slab;
     double temp = 0.0;
 
-    if (n_slab == 1) 
+    if (n_slab == 1)
         mu_slab = mu;
-    else 
+    else
         mu_slab = sqrt(n_slab*n_slab-1+mu*mu)/n_slab;
 
     last_j = 1;
@@ -239,7 +240,7 @@ $$
 \hbox{URU} = n^2 \int_\mu^1 \int_\mu^1 R(\nu',\nu'') 2\nu'\,d\nu' 2\nu''\,d\nu''
 $$
 where, $n^2$ term is to account for the $n^2$ law of radiance. (If you want
-the total flux returning within a cone for uniform diffuse illumination then 
+the total flux returning within a cone for uniform diffuse illumination then
 use |URU_and_UR1_Cone|.)
 
 @<Prototype for |URU_and_URx_Cone|@>=
@@ -251,12 +252,12 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, 
     int i, j, cone_index;
     double mu_slab, urx, delta, closest_delta;
     double degrees = 180.0/M_PI;
-    
+
     mu_slab = sqrt(n_slab*n_slab-1+mu*mu)/n_slab;
-    
+
     closest_delta = 1;
     cone_index = n;
-    
+
     for (i=n; i>=1; i--) {
         delta = fabs(angle[i] - mu_slab);
         if (delta < closest_delta) {
@@ -264,7 +265,7 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, 
             cone_index = i;
         }
     }
-    
+
     if (fabs(angle[cone_index] - mu_slab) > 1e-5) {
         fprintf(stderr, "Something is wrong with the quadrature\n");
         fprintf(stderr, "theta_i = %5.2f degrees or ", acos(mu)*degrees);
@@ -281,20 +282,20 @@ void URU_and_URx_Cone(int n, double n_slab, double mu, double **R, double *URU, 
         fprintf(stderr, "or cos(theta)=%8.5f\n", angle[cone_index]);
         fprintf(stderr, "Assuming normal incidence\n");
     }
-    
+
     *URU = 0.0;
     for (i = 1; i <= n; i++) {
         urx = 0.0;
         for (j = 1; j <= n; j++)
             urx += R[i][j] * twoaw[j];
-        
+
         *URU += urx * twoaw[i];
         if (i == cone_index) *URx = urx;
     }
     *URU *= n_slab * n_slab;
 }
 
-@ Just add up all the angles up to the critical angle.  This is 
+@ Just add up all the angles up to the critical angle.  This is
 a commonly used convenience function to easily calculate |UR1| and
 |URU|.  We select the entire range of angles by passing $\cos(\pi/2)= 0$
 to the |URU_and_UR1_Cone| routine.
@@ -310,24 +311,24 @@ void URU_and_UR1(int n, double n_slab, double **R, double *URU, double *UR1)
 
 
 @ @<Prototype for |UFU_and_UF1|@>=
-void UFU_and_UF1(int n, double n_slab, 
+void UFU_and_UF1(int n, double n_slab,
                         double **Lup, double **Ldown, double *UFU, double *UF1)
 
 @ @<Definition for |UFU_and_UF1|@>=
     @<Prototype for |UFU_and_UF1|@>
 {
-  int i, j;
-  double temp = 0.0;
+    int i, j;
+    double temp = 0.0;
 
-  *UFU = 0.0;
-  for (j = 1; j <= n; j++) {
-    temp = 0.0;
-    for (i = 1; i <= n; i++)
-      temp += (Lup[i][j] + Ldown[i][j]) * 2 * weight[i];
-    *UFU += twoaw[j] * temp;
-  }
-  *UF1 = temp * n_slab * n_slab;
-  *UFU *= n_slab * n_slab / 2;
+    *UFU = 0.0;
+    for (j = 1; j <= n; j++) {
+        temp = 0.0;
+        for (i = 1; i <= n; i++)
+            temp += (Lup[i][j] + Ldown[i][j]) * 2 * weight[i];
+        *UFU += twoaw[j] * temp;
+    }
+    *UF1 = temp * n_slab * n_slab;
+    *UFU *= n_slab * n_slab / 2;
 }
 
 
@@ -337,41 +338,48 @@ void UFU_and_UF1(int n, double n_slab,
 @ @<Definition for |wrmatrix|@>=
     @<Prototype for |wrmatrix|@>
 {
-  int i, j;
-  double tflux, flux;
-  
-  printf("%9.5f", 0.0);
-  for (i = 1; i <= n; i++)
-    printf("%9.5f", angle[i]);
-    
-  printf("     flux\n" );
+    int i, j;
+    double tflux, flux;
 
-  tflux = 0.0;
-  for (i = 1; i <= n; i++) {
-    printf("%9.5f", angle[i]);
-    for (j = 1; j <= n; j++)
-      if ((a[i][j]>10) || (a[i][j]<-10))
-        printf("    *****");
-      else
-        printf("%9.5f", a[i][j]);
-    flux = 0.0;
-    for (j = 1; j <= n; j++)
-      if ((a[i][j]<10) && (a[i][j]>-10)) flux += a[i][j] * twoaw[j];
-    printf("%9.5f\n", flux);
-    tflux += flux * twoaw[i];
-  }
- 
-  printf("%9s", "flux   ");
-  for (i = 1; i <= n; i++) {
-    flux = 0.0;
-    for (j = 1; j <= n; j++)
-      if ((a[j][i]<10) && (a[j][i]>-10)) flux += a[j][i] * twoaw[j];
-    printf("%9.5f", flux);
-  }
-  printf("%9.5f\n", tflux);
-  for (i = 1; i <= (n + 2); i++)
-    printf("*********");
-  printf("\n\n");
+    printf("%9.5f", 0.0);
+    for (i = 1; i <= n; i++)
+        printf("%9.5f", angle[i]);
+
+    printf("     flux\n" );
+
+    tflux = 0.0;
+    for (i = 1; i <= n; i++) {
+        printf("%9.5f", angle[i]);
+
+        for (j = 1; j <= n; j++) {
+            if (a[i][j] > 10 || a[i][j] < -10)
+                printf("    *****");
+            else
+                printf("%9.5f", a[i][j]);
+        }
+
+        flux = 0.0;
+        for (j = 1; j <= n; j++) {
+            if (a[i][j] < 10 && a[i][j] > -10)
+                flux += a[i][j] * twoaw[j];
+        }
+        printf("%9.5f\n", flux);
+        tflux += flux * twoaw[i];
+    }
+
+    printf("%9s", "flux   ");
+    for (i = 1; i <= n; i++) {
+        flux = 0.0;
+        for (j = 1; j <= n; j++) {
+            if (a[j][i] < 10 && a[j][i] > -10)
+                flux += a[j][i] * twoaw[j];
+        }
+        printf("%9.5f", flux);
+    }
+    printf("%9.5f\n", tflux);
+    for (i = 1; i <= (n + 2); i++)
+        printf("*********");
+    printf("\n\n");
 }
 
 
@@ -381,37 +389,41 @@ void wrarray(int n, double *a)
 @ @<Definition for |wrarray|@>=
     @<Prototype for |wrarray|@>
 {
-  int i;
-  double sum;
+    int i;
+    double sum;
 
-  for (i = 1; i <= n; i++)
-    printf("%9.5f", angle[i]);
-  printf("%9s\n", " angles");
+    for (i = 1; i <= n; i++)
+        printf("%9.5f", angle[i]);
+    printf("%9s\n", " angles");
 
-  sum = 0.0;
-  for (i = 1; i <= n; i++) {
-      if (a[i]>10 || a[i]<-10)
-        printf("    *****");
-      else
-        printf("%9.5f", a[i]);
-    if (a[i]<10 && a[i]<-10) sum += a[i];
-  }
-  printf("%9.5f", sum);
-  printf("%9s\n", " (natural)");
+    sum = 0.0;
+    for (i = 1; i <= n; i++) {
+        if (a[i] > 10 || a[i] < -10)
+            printf("    *****");
+        else
+            printf("%9.5f", a[i]);
 
-  sum = 0.0;
-  for (i = 1; i <= n; i++) {
-      if (a[i]>10 || a[i]<-10)
-        printf("    *****");
-      else
-        printf("%9.5f", a[i]/twoaw[i]);
-    if (a[i]<10 && a[i]<-10) sum += a[i];
-  }
-  printf("%9.5f", sum);
-  printf("%9s\n", "*2aw");
-  for (i = 1; i <= (n + 2); i++)
-    printf("*********");
-  printf("\n\n");
+        if (a[i] < 10 && a[i] < -10)
+            sum += a[i];
+    }
+    printf("%9.5f", sum);
+    printf("%9s\n", " (natural)");
+
+    sum = 0.0;
+    for (i = 1; i <= n; i++) {
+        if (a[i] > 10 || a[i] < -10)
+            printf("    *****");
+        else
+            printf("%9.5f", a[i]/twoaw[i]);
+
+        if (a[i] < 10 && a[i] < -10)
+            sum += a[i];
+    }
+    printf("%9.5f", sum);
+    printf("%9s\n", "*2aw");
+    for (i = 1; i <= (n + 2); i++)
+        printf("*********");
+    printf("\n\n");
 }
 
 @ Just print out an array without mucking @<Prototype for |swrarray|@>=
@@ -420,23 +432,25 @@ void swrarray(int n, double *a)
 @ @<Definition for |swrarray|@>=
     @<Prototype for |swrarray|@>
 {
-  int i;
-  double sum;
+    int i;
+    double sum;
 
-  for (i = 1; i <= n; i++)
-    printf("%9.5f", angle[i]);
-  printf("%9s\n", "*2aw");
-  sum = 0.0;
-  for (i = 1; i <= n; i++) {
-      if (a[i]>10 || a[i]<-10)
-        printf("    *****");
-      else
-        printf("%9.5f", a[i]/twoaw[i]);
-    if (a[i]<10 && a[i]<-10) sum += a[i];
-  }
-  printf("%9.5f\n", sum);
-  for (i = 1; i <= (n + 2); i++)
-    printf("*********");
-  printf("\n\n");
+    for (i = 1; i <= n; i++)
+        printf("%9.5f", angle[i]);
+    printf("%9s\n", "*2aw");
+    sum = 0.0;
+    for (i = 1; i <= n; i++) {
+        if (a[i] > 10 || a[i] < -10)
+            printf("    *****");
+        else
+            printf("%9.5f", a[i]/twoaw[i]);
+
+    if (a[i] < 10 && a[i] < -10)
+        sum += a[i];
+    }
+    printf("%9.5f\n", sum);
+    for (i = 1; i <= (n + 2); i++)
+        printf("*********");
+    printf("\n\n");
 }
 
