@@ -76,7 +76,7 @@ def plot_good_and_bad(x, y, success, big_points=False):
 def plot_gridlines(filename_base):
     gridname = filename_base + '.grid'
 
-    if not os.path.exists(gridname):
+    if not os.path.exists(gridname) or os.path.getsize(gridname) == 0:
         print('no grid file "%s"' % gridname)
         return
 
@@ -396,6 +396,7 @@ def main():
     args = parser.parse_args()
 
     # You can then iterate over this list to open and process each file
+    notebooks = []
     for file_name in args.input_files:
 
         base, base_path = create_notebook_directory(file_name, args.dir)
@@ -419,7 +420,7 @@ def main():
                 print("Sorry, iad failed.  check header maybe?")
                 continue
         else:
-            print('Skipping %s.rxt' % base_path)
+            print('Skipping...')
 
         result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
         lam, mr, cr, mt, ct, mua, musp, g = result.T
@@ -485,6 +486,8 @@ def main():
         ipynb_path = base_path + '.ipynb'
         with open(ipynb_path, "w", encoding="utf-8") as f:
             nbformat.write(nb, f)
+
+        notebooks.append(ipynb_path)
 
 
 if __name__ == "__main__":
