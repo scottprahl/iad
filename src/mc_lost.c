@@ -573,9 +573,6 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     if (n_slide == 1.0)
         t_slide = 0.0;
 
-    // fprintf(stderr, "  reflection port diameter = %8.3f mm\n", dr_port);
-    // fprintf(stderr, "transmission port diameter = %8.3f mm\n", dt_port);
-
     set_photon_seed(12345);
     MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
               COLLIMATED, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam,
@@ -590,15 +587,10 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
                   DIFFUSE, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam,
                   uru, utu, uru_lost, utu_lost);
 
-    /* None of these should be possible */
-    if (*ur1_lost < 0)
-        *ur1_lost = 0;
-    if (*ut1_lost < 0)
-        *ut1_lost = 0;
-    if (*uru_lost < 0)
-        *uru_lost = 0;
-    if (*utu_lost < 0)
-        *utu_lost = 0;
+    if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
+        fprintf(stderr, "One or more of MC lost light calculations is negative!\n");
+        exit(EXIT_FAILURE);
+    }
 }
 
 void MC_RT(struct AD_slab_type s, long n_photons, double t_sample, double t_slide,
