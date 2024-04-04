@@ -87,7 +87,10 @@ def plot_results(results, item, bp, ylabel):
         success = r[-1]
         lam = r[0]
         y = r[the_column]
-        plt.plot(lam[success], y[success], label=key)
+        if the_column in [Column.MR.position, Column.MT.position]:
+            plt.plot(lam, y, label=key)
+        else:
+            plt.plot(lam[success], y[success], label=key)
 
     add_x_label(lam)
     plt.ylabel(ylabel)
