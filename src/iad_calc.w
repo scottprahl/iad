@@ -40,7 +40,6 @@
 #define TRANSMISSION_SPHERE 0
 #define GRID_SIZE 201
 #define T_TRUST_FACTOR 1
-#define MAX_ABS_G 0.999999
 
 #define SWAP(a,b) {double swap=(a);(a)=(b);(b)=swap;}
 

@@ -373,6 +373,8 @@ that this strips any quotes from the command-line.
                     fprintf(stderr, "    anisotropy '-g %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
+                if (cl_default_g == -1) cl_default_g=-MAX_ABS_G;
+                if (cl_default_g == 1) cl_default_g= MAX_ABS_G;
                 break;
 
             case 'G':

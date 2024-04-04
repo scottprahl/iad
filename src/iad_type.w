@@ -93,6 +93,7 @@ the header file \.{iad\_type.h} and nothing else.
 @d MC_USE_EXISTING                1
 @d MC_REDO                        2
 
+@d MAX_ABS_G                      0.999999
 
 @ The idea of the structure |measure_type| is collect
 all the information regarding a single measurement together

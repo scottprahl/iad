@@ -112,10 +112,10 @@ double acalc2a(double acalc)
 
 double g2gcalc(double g)
 {
-    if (g <= -0.99999)
+    if (g <= -MAX_ABS_G)
         return (-HUGE_VAL);
 
-    if (g >= 0.99999)
+    if (g >= MAX_ABS_G)
         return (HUGE_VAL);
 
     return (g / (1 - fabs(g)));
@@ -124,9 +124,9 @@ double g2gcalc(double g)
 double gcalc2g(double gcalc)
 {
     if (gcalc == -HUGE_VAL)
-        return -0.99999;
+        return -MAX_ABS_G;
     if (gcalc == HUGE_VAL)
-        return 0.99999;
+        return MAX_ABS_G;
     return (gcalc / (1 + fabs(gcalc)));
 }
 
