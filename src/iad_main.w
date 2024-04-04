@@ -29,7 +29,7 @@ int main (int argc, char **argv)
 {
     @<Declare variables for |main|@>@;
 
-    @<Save command-line for use later@>@;
+    @<Save the command line for use later@>@;
     @<Handle options@>@;
 
     Initialize_Measure(&m);
@@ -163,19 +163,20 @@ int main (int argc, char **argv)
                              UNINITIALIZED, UNINITIALIZED };
     double cl_sphere_two[5] = {UNINITIALIZED, UNINITIALIZED, UNINITIALIZED,
                              UNINITIALIZED, UNINITIALIZED };
+    double cl_wave_limit[2] = {UNINITIALIZED, UNINITIALIZED};
 
     clock_t start_time=clock();
     char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:JL:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
     char *command_line = NULL;
 
-@ I want to add the command line to the output file.  To do this, we need to save
+@ I want to include the command line to the output file.  To do this, we need to save
 the entire thing before the options get processed.  The extra |+1| in the total length
 calculation is for the space character between options. Finally, we need to reset
 |optind| to 1 to start |getopt()| processing from the beginning.  It should be noted
-that this strips any quotes from the command-line.
+that this strips any quotes from the command line.
 
-@<Save command-line for use later@>=
+@<Save the command line for use later@>=
 {
     size_t command_line_length = 0;
     for (int i = 0; i < argc; ++i) {
@@ -203,7 +204,7 @@ that this strips any quotes from the command-line.
     optind = 1;
 }
 
-@*1 Handling command-line options.
+@*1 Handling the command-line options.
 
 @<Handle options@>=
     while ((c = getopt(argc, argv, command_line_options)) != EOF) {
@@ -217,7 +218,7 @@ that this strips any quotes from the command-line.
                 tmp_str = strdup(optarg);
                 parse_string_into_array(optarg, cl_sphere_one, 5);
                 if (cl_sphere_one[4] == UNINITIALIZED) {
-                    fprintf(stderr, "Error in command-line argument for -1\n");
+                    fprintf(stderr, "Error in the command-line argument for -1\n");
                     fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
                     fprintf(stderr, "'d_sphere d_sample d_entrance d_detector r_wall'\n");
                     exit(EXIT_FAILURE);
@@ -228,7 +229,7 @@ that this strips any quotes from the command-line.
                 tmp_str = strdup(optarg);
                 parse_string_into_array(optarg, cl_sphere_two, 5);
                 if (cl_sphere_two[4] == UNINITIALIZED) {
-                    fprintf(stderr, "Error in command-line argument for -2\n");
+                    fprintf(stderr, "Error in the command-line argument for -2\n");
                     fprintf(stderr, "    the current argument is '%s' but it must have 5 terms: ", tmp_str);
                     fprintf(stderr, "'d_sphere d_sample d_third d_detector r_wall'\n");
                     exit(EXIT_FAILURE);
@@ -238,7 +239,7 @@ that this strips any quotes from the command-line.
             case 'a':
                 cl_default_a = my_strtod(optarg);
                 if (cl_default_a<0 || cl_default_a>1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    albedo '-a %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -247,7 +248,7 @@ that this strips any quotes from the command-line.
             case 'A':
                 cl_default_mua = my_strtod(optarg);
                 if (cl_default_mua < 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    absorption '-A %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -256,7 +257,7 @@ that this strips any quotes from the command-line.
             case 'b':
                 cl_default_b = my_strtod(optarg);
                 if (cl_default_b < 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    optical thickness '-b %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -265,7 +266,7 @@ that this strips any quotes from the command-line.
             case 'B':
                 cl_beam_d = my_strtod(optarg);
                 if (cl_beam_d < 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    beam diameter '-B %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -274,7 +275,7 @@ that this strips any quotes from the command-line.
             case 'c':
                 cl_ru_fraction = my_strtod(optarg);
                 if (cl_ru_fraction<0.0 || cl_ru_fraction>1.0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    unscattered refl fraction '-c %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_SUCCESS);
@@ -284,7 +285,7 @@ that this strips any quotes from the command-line.
             case 'C':
                 cl_tu_fraction = my_strtod(optarg);
                 if (cl_tu_fraction < 0.0 || cl_tu_fraction > 1.0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    unscattered trans fraction '-C %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_SUCCESS);
@@ -294,7 +295,7 @@ that this strips any quotes from the command-line.
             case 'd':
                 cl_sample_d = my_strtod(optarg);
                 if (cl_sample_d < 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    sample thickness '-d %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -303,7 +304,7 @@ that this strips any quotes from the command-line.
             case 'D':
                 cl_slide_d = my_strtod(optarg);
                 if (cl_slide_d < 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    slide thickness '-D %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -312,7 +313,7 @@ that this strips any quotes from the command-line.
             case 'e':
                 cl_tolerance = my_strtod(optarg);
                 if (cl_tolerance < 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    error tolerance '-e %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -321,7 +322,7 @@ that this strips any quotes from the command-line.
             case 'E':
                 cl_slide_OD = my_strtod(optarg);
                 if (cl_slide_OD < 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    slide optical depth '-E %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -330,7 +331,7 @@ that this strips any quotes from the command-line.
             case 'f':
                 cl_default_fr = my_strtod(optarg);
                 if (cl_default_fr < 0.0 || cl_default_fr > 1.0) {
-                    fprintf(stderr, "Error in command-line argument: ");
+                    fprintf(stderr, "Error in the command-line argument: ");
                     fprintf(stderr, "'-f %s' The argument must be between 0 and 1.\n", optarg);
                     exit(EXIT_SUCCESS);
                 }
@@ -341,7 +342,7 @@ that this strips any quotes from the command-line.
                 if (isdigit(optarg[0])) {
                     cl_default_mus = my_strtod(optarg);
                     if (cl_default_mus < 0) {
-                        fprintf(stderr, "Error in command-line\n");
+                        fprintf(stderr, "Error in the command line\n");
                         fprintf(stderr, "    mus '-F %s'\n", optarg);
                         exit(EXIT_FAILURE);
                     }
@@ -352,7 +353,7 @@ that this strips any quotes from the command-line.
                 n=sscanf(optarg, "%c %lf %lf %lf",&cc, &cl_mus0_lambda, &cl_mus0, &cl_mus0_pwr);
 
                 if (n!=4 || (cc != 'P' && cc != 'R')) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    bad -F option. '-F %s'\n", optarg);
                     fprintf(stderr, "    -F 1.0              for mus =1.0\n");
                     fprintf(stderr, "    -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
@@ -369,7 +370,7 @@ that this strips any quotes from the command-line.
             case 'g':
                 cl_default_g = my_strtod(optarg);
                 if (cl_default_g < -1 || cl_default_g > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    anisotropy '-g %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -391,7 +392,7 @@ that this strips any quotes from the command-line.
                 else if (optarg[0]=='f' || optarg[0]=='F')
                     cl_slides = ONE_SLIDE_NOT_NEAR_SPHERE;
                 else {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    Argument for '-G %s' must be \n", optarg);
                     fprintf(stderr, "    't' --- light always hits top slide first\n");
                     fprintf(stderr, "    'b' --- light always hits bottom slide first\n");
@@ -415,7 +416,7 @@ that this strips any quotes from the command-line.
                     cl_baffle_r = 1;
                     cl_baffle_t = 1;
                 } else {
-                    fprintf(stderr, "Error in command-line -H argument\n");
+                    fprintf(stderr, "Error in the command-line -H argument\n");
                     fprintf(stderr, "    argument is '%s', but ", optarg);
                     fprintf(stderr, "must be 0, 1, 2, or 3\n");
                     exit(EXIT_FAILURE);
@@ -424,7 +425,7 @@ that this strips any quotes from the command-line.
             case 'i':
                 cl_cos_angle = my_strtod(optarg);
                 if (cl_cos_angle<0 || cl_cos_angle>90) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    incident angle '-i %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 90 degrees\n");
                     exit(EXIT_FAILURE);
@@ -436,6 +437,11 @@ that this strips any quotes from the command-line.
                 cl_grid_calc = 1;
                 break;
 
+            case 'l':
+                tmp_str = strdup(optarg);
+                parse_string_into_array(optarg, cl_wave_limit, 2);
+                break;
+
             case 'L':
                 cl_lambda = my_strtod(optarg);
                 break;
@@ -443,7 +449,7 @@ that this strips any quotes from the command-line.
             case 'M':
                 MAX_MC_iterations = (int) my_strtod(optarg);
                 if (MAX_MC_iterations < 0 || MAX_MC_iterations > 50) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    MC iterations '-M %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -452,7 +458,7 @@ that this strips any quotes from the command-line.
             case 'n':
                 cl_sample_n = my_strtod(optarg);
                 if (cl_sample_n < 0.1 || cl_sample_n > 10) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    slab index '-n %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -461,7 +467,7 @@ that this strips any quotes from the command-line.
             case 'N':
                 cl_slide_n = my_strtod(optarg);
                 if (cl_slide_n < 0.1 || cl_slide_n > 10) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    slide index '-N %s'\n", optarg);
                     exit(EXIT_FAILURE);
                 }
@@ -478,13 +484,13 @@ that this strips any quotes from the command-line.
             case 'q':
                 cl_quadrature_points = (int) my_strtod(optarg);
                 if (cl_quadrature_points % 4 != 0) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    '-q %s'\n", optarg);
                     fprintf(stderr, "    Quadrature points must be a multiple of 4\n");
                     exit(EXIT_FAILURE);
                 }
                 if ((cl_cos_angle != UNINITIALIZED) && (cl_quadrature_points % 12 != 0)) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    '-q %s'\n", optarg);
                     fprintf(stderr, "    Quadrature points must be multiple of 12 for oblique incidence\n");
                     exit(EXIT_FAILURE);
@@ -495,7 +501,7 @@ that this strips any quotes from the command-line.
                 cl_UR1 = my_strtod(optarg);
                 process_command_line = 1;
                 if (cl_UR1 < 0 || cl_UR1 > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    UR1 value '-r %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_FAILURE);
@@ -505,7 +511,7 @@ that this strips any quotes from the command-line.
             case 'R':
                 cl_rstd_r = my_strtod(optarg);
                 if (cl_rstd_r < 0 || cl_rstd_r > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    Rstd value '-R %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_FAILURE);
@@ -519,7 +525,7 @@ that this strips any quotes from the command-line.
             case 'S':
                 cl_num_spheres = (int) my_strtod(optarg);
                 if (cl_num_spheres != 0 && cl_num_spheres != 1 && cl_num_spheres !=2) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    sphere number '-S %s'\n", optarg);
                     fprintf(stderr, "    must be 0, 1, or 2\n");
                     exit(EXIT_FAILURE);
@@ -529,7 +535,7 @@ that this strips any quotes from the command-line.
             case 't':
                 cl_UT1 = my_strtod(optarg);
                 if (cl_UT1 < 0 || cl_UT1 > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    UT1 value '-t %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_FAILURE);
@@ -540,7 +546,7 @@ that this strips any quotes from the command-line.
             case 'T':
                 cl_rstd_t = my_strtod(optarg);
                 if (cl_rstd_t < 0 || cl_rstd_t > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    transmission standard '-T %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_FAILURE);
@@ -550,7 +556,7 @@ that this strips any quotes from the command-line.
             case 'u':
                 cl_Tc = my_strtod(optarg);
                 if (cl_Tc < 0 || cl_Tc > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    unscattered transmission '-u %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_FAILURE);
@@ -570,7 +576,7 @@ that this strips any quotes from the command-line.
             case 'w':
                 cl_rwall_r = my_strtod(optarg);
                 if (cl_rwall_r < 0 || cl_rwall_r > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    refl sphere wall '-w %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_FAILURE);
@@ -580,7 +586,7 @@ that this strips any quotes from the command-line.
             case 'W':
                 cl_rwall_t = my_strtod(optarg);
                 if (cl_rwall_t < 0 || cl_rwall_r > 1) {
-                    fprintf(stderr, "Error in command-line\n");
+                    fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    trans sphere wall '-w %s'\n", optarg);
                     fprintf(stderr, "    must be between 0 and 1\n");
                     exit(EXIT_FAILURE);
@@ -802,7 +808,7 @@ if (cl_grid_calc != UNINITIALIZED) {
 
 @ Need to explicitly reset |r.search| each time through the loop,
 because it will get altered by the calculation process.  This also allows the
-command line to overwrite the reflection or transmission value from the command-line
+command line to overwrite the reflection or transmission value from the command line
 with something like {\tt -r 0} or {\tt -t 0}.
 
 We also want to be able to let different lines have different constraints.  In particular
@@ -814,45 +820,58 @@ measurements.
 @<Calculate and write optical properties@>=
 {
     @<Local Variables for Calculation@>@;
-
+    
+    if (cl_wave_limit[0] != UNINITIALIZED) {
+        if (m.lambda != 0) {
+            if (m.lambda < cl_wave_limit[0])
+                skip = TRUE;
+            if (m.lambda > cl_wave_limit[1])
+                skip = TRUE;
+        }
+    }
+    
     if (Debug(DEBUG_ANY)) {
         fprintf(stderr, "\n-------------------NEXT DATA POINT---------------------\n");
         if (m.lambda != 0)
             fprintf(stderr, "lambda=%6.1f ", m.lambda);
         fprintf(stderr, "MR=%8.5f MT=%8.5f\n\n", m.m_r, m.m_t);
+        if (skip)
+            fprintf(stderr, "skipping, wavelength out of range.\n");
     }
 
-    Initialize_Result(m, &r, FALSE);
-
-    r.default_a = UNINITIALIZED;
-    r.default_b = UNINITIALIZED;
-    r.default_g = UNINITIALIZED;
-    r.default_mua = UNINITIALIZED;
-    r.default_mus = UNINITIALIZED;
-
-    @<Command-line changes to |r|@>@;
-    @<Warn and quit for bad options@>@;
-    @<Write Header @>@;
-
-    m.ur1_lost = 0;
-    m.uru_lost = 0;
-    m.ut1_lost = 0;
-    m.utu_lost = 0;
-
-    Inverse_RT (m, &r);
-
-    @<Improve result using Monte Carlo@>@;
-
-    calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
-    print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
-
-    if (r.error != IAD_NO_ERROR)
-        any_error = 1;
-
-    if (Debug(DEBUG_ANY))
-        print_long_error(r.error);
-    else
-        print_dot(start_time, r.error, mc_total, TRUE, cl_verbosity);
+    if (!skip) {
+        Initialize_Result(m, &r, FALSE);
+    
+        r.default_a = UNINITIALIZED;
+        r.default_b = UNINITIALIZED;
+        r.default_g = UNINITIALIZED;
+        r.default_mua = UNINITIALIZED;
+        r.default_mus = UNINITIALIZED;
+    
+        @<Command-line changes to |r|@>@;
+        @<Warn and quit for bad options@>@;
+        @<Write Header @>@;
+    
+        m.ur1_lost = 0;
+        m.uru_lost = 0;
+        m.ut1_lost = 0;
+        m.utu_lost = 0;
+    
+        Inverse_RT (m, &r);
+    
+        @<Improve result using Monte Carlo@>@;
+    
+        calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
+        print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
+    
+        if (r.error != IAD_NO_ERROR)
+            any_error = 1;
+    
+        if (Debug(DEBUG_ANY))
+            print_long_error(r.error);
+        else
+            print_dot(start_time, r.error, mc_total, TRUE, cl_verbosity);
+    }
 }
 
 @   @<Local Variables for Calculation@>=
@@ -867,6 +886,7 @@ measurements.
     double mu_sp=0;
     double LR=0;
     double LT=0;
+    int skip = FALSE;
 
     rt_total++;
 
@@ -981,7 +1001,7 @@ if (r.found && m.num_spheres > 0) {
     }
 }
 
-@ Stuff the command line arguments that should be constant over the entire
+@ Stuff the command-line arguments that should be constant over the entire
 inversion process into the measurement record  and
 set up the result record to handle the arguments properly so that the optical
 properties can be determined.
@@ -1166,7 +1186,7 @@ properties can be determined.
         exit(EXIT_SUCCESS);
     }
 
-@ put the values for command line reflection and transmission into the measurement record.
+@ Put the command-line values for reflection and transmission into the measurement record.
 
 @<Count command-line measurements@>=
 
@@ -1241,6 +1261,7 @@ fprintf(stdout, "  -H #             # = 0, no baffles for R or T spheres\n");
 fprintf(stdout, "                   # = 1, baffle for R but not for T sphere\n");
 fprintf(stdout, "                   # = 2, baffle for T but not for R sphere\n");
 fprintf(stdout, "                   # = 3, baffle for both R and T spheres (default)\n");
+fprintf(stdout, "  -l #             wavelength limits\n");
 fprintf(stdout, "  -L #             specify the wavelength lambda\n");
 fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
 fprintf(stdout, "  -n #             specify index of refraction of slab\n");
@@ -1273,6 +1294,7 @@ fprintf(stdout, "  iad -C 0.8 file.rxt       \
 Assume M_T includes 80%% of unscattered transmittance\n");
 fprintf(stdout, "  iad -e 0.0001 file.rxt    Better convergence to R & T values\n");
 fprintf(stdout, "  iad -f 1.0 file.rxt       All light hits reflectance sphere wall first\n");
+fprintf(stdout, "  iad -l '500 600' file.rxt Only do wavelengths between 500 and 600\n");
 fprintf(stdout, "  iad -o out file.rxt       Calculated values in out\n");
 fprintf(stdout, "  iad -r 0.3                R_total=0.3, b=inf, find albedo\n");
 fprintf(stdout, "  iad -r 0.3 -t 0.4         R_total=0.3, T_total=0.4, find a,b,g\n");
@@ -1462,21 +1484,21 @@ static double my_strtod(const char *str)
 
     if (endptr == str) {
         // No digits were found
-        fprintf(stderr, "Error in command-line\n");
+        fprintf(stderr, "Error in the command line\n");
         fprintf(stderr, "    No conversion could be performed for `%s`.\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (*endptr != '\0') {
         // String contains extra characters after the number
-        fprintf(stderr, "Error in command-line\n");
+        fprintf(stderr, "Error in the command line\n");
         fprintf(stderr, "    Partial conversion of string = '%s'\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (errno == ERANGE) {
         // The converted value is out of range of representable values by a double
-        fprintf(stderr, "Error in command-line\n");
+        fprintf(stderr, "Error in the command line\n");
         printf("    The value '%s' is out of range of double.\n", str);
         exit(EXIT_FAILURE);
     }
@@ -1519,11 +1541,13 @@ static int parse_string_into_array(char *s, double *a, int n)
         if (sscanf(t, "%lf", &(a[i]) )==0) return 1;
         i++;
 
-        /* are we done ? */
+        /* are we done? */
         if (i==n) {
-            if (a[i-1] <= 0 || a[i-1] > 1) {
-                fprintf(stderr, "Sphere wall reflectivity (r_w=%g) must be a fraction less than one.\n", a[i-1]);
-                exit(EXIT_FAILURE);
+            if (i==5) { /* sphere parameters case */
+                if (a[i-1] <= 0 || a[i-1] > 1) {
+                    fprintf(stderr, "Sphere wall reflectivity (r_w=%g) must be a fraction less than one.\n", a[i-1]);
+                    exit(EXIT_FAILURE);
+                }
             }
             return 0;
         }
