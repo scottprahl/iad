@@ -35,6 +35,7 @@ test/*.ipynb
 test/*.grid
 
 # Ignore generated .o and .c and .h and .tex and .log and ... files
+src/iad_type.c
 src/*.o
 src/ad.*
 src/iad.*
