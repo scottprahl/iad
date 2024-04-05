@@ -333,7 +333,7 @@ def append_header(nb, output_filename):
     cell_text += "    " + second_line + "\n"
     nb.cells.append(new_markdown_cell(cell_text))
 
-def create_notebook_directory(input_name, directory):
+def create_notebook_directory(input_name, directory, subdirectory):
     """Create a notebook directory and copy the .rxt file into it."""
     
     # ensure that file.rxt exists and support omitting .rxt
@@ -349,15 +349,19 @@ def create_notebook_directory(input_name, directory):
     # extract the 'name' from 'path/to/name.rxt'
     base = os.path.splitext(os.path.basename(input_name))[0]
 
-    if directory is None:
-        # notebook directory will be in same directory as file_name
-        notebook_dir = os.path.join(local_dir, base + '-notebook')
+    if subdirectory is None:
+        if directory is None:
+            # notebook directory will be in same directory as file_name
+            notebook_dir = os.path.join(local_dir, base + '-notebook')
+        else:
+            notebook_dir = os.path.join(local_dir, directory)
+            if os.path.exists(notebook_dir) and os.path.isfile(notebook_dir):
+                print("Sorry, but '%s' is an existing file!" % notebook_dir)
+                print("Use a new or existing directory with --dir option.")
+                sys.exit()
     else:
-        notebook_dir = os.path.join(local_dir, directory)
-        if os.path.exists(notebook_dir) and os.path.isfile(notebook_dir):
-            print("Sorry, but '%s' is an existing file!" % notebook_dir)
-            print("Use a new or existing directory with --dir option.")
-            sys.exit()
+        # notebook directory will be in subdir/file_name
+            notebook_dir = os.path.join(subdirectory, base)
 
     if not os.path.exists(notebook_dir):
         os.makedirs(notebook_dir)
@@ -388,7 +392,9 @@ def main():
     parser.add_argument('--options', metavar='OPTIONS', type=str, nargs='?',
                         help='options to pass to iad program, e.g., "-c 0"')
     parser.add_argument('--dir',  metavar='DIRECTORY', default=None,
-                        help='name of directory to store notebook and files')
+                        help='explicit name of directory to store notebook and files')
+    parser.add_argument('--sdir',  metavar='SUBDIRECTORY', default=None,
+                        help='use dir/file/ to store store notebook and files')
     parser.add_argument('--force', action='store_true',
                         help='Force reanalysis of files')
     parser.add_argument('--fit', action='store_true',
@@ -399,7 +405,7 @@ def main():
     notebooks = []
     for file_name in args.input_files:
 
-        base, base_path = create_notebook_directory(file_name, args.dir)
+        base, base_path = create_notebook_directory(file_name, args.dir, args.sdir)
         if base_path == '':
             continue
 
