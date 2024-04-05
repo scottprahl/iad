@@ -3,8 +3,6 @@ This file has no routines.  It is responsible for creating
 the header file \.{iad\_type.h} and nothing else.
 
 @(iad_type.h@>=
-#undef FALSE
-#undef TRUE
 
 @h
 
@@ -34,7 +32,7 @@ the header file \.{iad\_type.h} and nothing else.
 @d FALSE 0
 @d TRUE 1
 
-@d IAD_MAX_ITERATIONS            500
+@d IAD_MAX_ITERATIONS            100
 
 @ Need error codes for this silly program
 
