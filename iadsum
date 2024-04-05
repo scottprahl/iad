@@ -133,16 +133,23 @@ def get_thickness(output_filename):
     return float(d_str)
 
 
-def append_header(nb, txts):
+def append_header(nb, txts, rel_txts):
     # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
     # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic-B.txt test/basic-B.rxt
 
     commands = []
+    links = []
     for txt in txts:
         with open(txt, 'r', encoding='utf-8') as file:
             first_line = file.readline()
             second_line = file.readline()
-            commands.append('    ' + second_line)
+            cmd = re.sub(r'^# ', '', second_line)
+            commands.append('    ' + cmd + '\n')
+
+    for txt in rel_txts:
+        url_ipynb = txt.replace(".txt", ".ipynb")
+        ipynb = urllib.parse.quote(url_ipynb)
+        links.append('[%s](%s)' % (url_ipynb, ipynb))
 
     pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
     match = re.search(pattern, first_line)
@@ -155,11 +162,17 @@ def append_header(nb, txts):
     formatted_date = today.strftime('%d %b %Y')
 
     cell_text = "# Summary of Inverse Adding-Doubling Analysis\n\n"
-    cell_text += "iad version %s built on %s\n\n" % (version,build)
-    cell_text += "This analysis was done on %s\n\n" % formatted_date
-    cell_text += "The command-lines for each file was\n\n"
+    cell_text += "The iad version used was %s built on %s. and " % (version,build)
+    cell_text += "this summary was created on %s\n\n" % formatted_date
+
+    cell_text += "The command line used for each file:\n"
     for c in commands:
         cell_text += c
+    
+    cell_text += "Links to summarized notebooks:\n"
+    for link in links:
+        cell_text += "\n* " + link + "\n"
+    
     nb.cells.append(new_markdown_cell(cell_text))
 
 def create_summary_directory(directory):
@@ -174,7 +187,6 @@ def create_summary_directory(directory):
 
 
 def find_notebooks_in_dir(directory):
-    print('looking in', directory)
     notebook_paths = []
     for root, dirs, files in os.walk(directory):
         if '.ipynb_checkpoints' in dirs:
@@ -234,19 +246,23 @@ def main():
     args = parser.parse_args()
 
     abs_dir = os.path.abspath(args.directory)
-    notebooks = find_notebooks_in_dir(abs_dir)
+    abs_notebooks = find_notebooks_in_dir(abs_dir)
+    rel_notebooks = find_notebooks_in_dir(args.directory)
+    print('looking in "%s" for notebooks' % args.directory)
 
-    txts = [s.replace(".ipynb", ".txt") for s in notebooks]
+    abs_txts = [s.replace(".ipynb", ".txt") for s in abs_notebooks]
+    rel_txts = [s.replace(".ipynb", ".txt") for s in rel_notebooks]
+    txts_relative_to_summary_nb = [s.replace(args.directory, "..") for s in rel_txts]
 
     bp = create_summary_directory(args.directory)
 
     results={}
-    for txt_path in txts:
+    for txt_path, rel_path in zip(abs_txts, rel_txts):
 
         if os.path.exists(txt_path) and os.path.getsize(txt_path) > 0:
-            print('reading ', txt_path)
+            print('reading ', rel_path)
             key = get_directory_list(txt_path)[-2]
-            print(key)
+#            print(key)
             results[key] = read_txt(txt_path)
 
 
@@ -267,7 +283,7 @@ def main():
         'name': 'python3'
     }
 
-    append_header(nb, txts)
+    append_header(nb, abs_txts, txts_relative_to_summary_nb)
     append_graph_cell(nb, '## Reflection', r_graph)
     append_graph_cell(nb, '## Transmission', t_graph)
     append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
