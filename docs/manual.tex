@@ -35,28 +35,28 @@
 \title{Everything I think you should know about \\
 Inverse Adding-Doubling}
 \author{
-	Scott Prahl\thanks{Oregon Tech,
-	            EERE,
-	            27500 SW Parkway Ave.,
-	            Wilsonville, OR 97225,
-	            (503) 821-1344 (office),
-	            email: scott.prahl@oit.edu
-	            https://omlc.org}	
+Scott Prahl\thanks{Oregon Tech,
+                   EERE,
+                   27500 SW Parkway Ave.,
+                   Wilsonville, OR 97225,
+                   (503) 821-1344 (office),
+                   email: scott.prahl@oit.edu
+                   https://omlc.org}
 }
-\date{March 2011}	
+\date{March 2024}	
 
 \maketitle
 
 \subsection*{Abstract}  
 This document describes a method for measuring the optical properties of
 scattering and absorbing materials.  The general idea is that you have made 
-careful measurements of the total
-reflection and transmission of the sample.  These observations are then fed into
+careful measurements of the total reflection and transmission of the sample.  
+These observations are then fed into
 a program (the inverse adding-doubling \iadprog{} program) to extract the intrinsic
 optical parameters for the sample.   The program does this by repeatedly guessing
 the optical properties and comparing the expected observables with those that you
 have made.  Upon matching, voil\`a, those optical properties used to generate the
-expected obserables are the ones that characterize your sample.
+expected observables are the ones that characterize your sample.
 
 If only it were that simple.  I have written a couple of papers on the details of
 the program \cite{jacques87a,prahl93a,moffitt06a}, on optical properties in general
@@ -67,15 +67,16 @@ articles is really concerned with dotting all the \textit{i}'s and crossing all
 the \textit{t}'s, partly it is because an appropriate forum for this information
 just doesn't exist other than in this manual.
 
-This document describes version 3.6.0 of the \iadprog{} program and constitutes
-a complete revision of the previous document.  The program is documented in the
+This document describes version 3.16.0 of the \iadprog{} program and constitutes
+a revision of the document dated March 2011.  The program is documented in the
 journal article~\cite{moffitt07a}.
 
-Over the last year there has been substantial improvement in the \iadprog{} because,
-for good or ill, we have been preparing optical phantoms for a number of uses.
-Before releasing these phantoms, it is necessary to measure their optical properties.
-Since the phantoms have a much wider range of optical properties than any I had
-considered in the past, the \iadprog{} broke down in various ways.  In fact, Ville
+Every once in a while, users of \iadprog{} let me know about some odd behavior in 
+the program.  Sometimes it is a bug in the program and sometimes it is their data.
+For the first few months of 2024, I have been reviewing the entire program and
+making multiple improvements that improve the robustness and utility of \iadprog{}.
+
+The last time I looked closely at the program was in 2011 when Ville
 Ker{\"a}nen somehow managed to break the damn program essentially every week for a
 full year.  As a consequence, \iadprog{} is much more robust than it has ever been before.
 
@@ -88,13 +89,13 @@ full year.  As a consequence, \iadprog{} is much more robust than it has ever be
 \centering
 \begin{tabular}{cp{7cm}c}
 \multicolumn{3}{c}{\textbf{Sphere Properties}}\\
-$A$ & area&	mm$^2$\\
-$a$ & area divided by the total sphere wall area&	---\\[2mm]
-$X_d$ & (subscript $d$) detector&	---\\
-$X_w$ & (subscript $w$) sphere wall (ports excluded)&	---\\
-$X_e$ & (subscript $e$) entrance &	---\\
-$X_s$ & (subscript $s$) sample &	---\\
-$X_b$ & (subscript $b$) beam &	---\\[8mm]
+$A$   & area&	mm$^2$\\
+$a$   & area divided by the total sphere wall area& ---\\[2mm]
+$X_d$ & (subscript $d$) detector    & ---\\
+$X_w$ & (subscript $w$) sphere wall & ---\\
+$X_e$ & (subscript $t$) third port  & ---\\
+$X_s$ & (subscript $s$) sample      & ---\\
+$X_b$ & (subscript $b$) beam        & ---\\[8mm]
 %
 %
 \multicolumn{3}{c}{\textbf{Sample Properties}}\\
@@ -162,7 +163,7 @@ To use the \iadprog{} program, create a data file with
 the appropriate header for your experiment and then append your your
 experimental measurements of reflectance and transmittance.  If the file is
 called \texttt{data.rxt}%
-\footnote{The \texttt{.rxt} extension is arbitrary and is the default extension
+\footnote{The \texttt{.rxt} extension is the default extension
 for data files to be processed by this program.  Any other extension is permitted,
 but you will have to type it out completely (e.g., \texttt{iad data.dat}).} 
 then the file can be processed by the \iadprog{} program by typing
@@ -1683,7 +1684,8 @@ the number of spheres has been set to zero.  Other test files in the
 The \iadprog{} is run from the command-line.  It is typically used with
 data files that contain values of $M_R$ and $M_T$ as a function of wavelength.
 \iadprog{} can be used without a data file by using various command-line 
-options or switches (see Table~ref{switches}), but it is reasonably clumsy.  In its simplest form 
+options or switches (see Table~ref{switches}), but it is reasonably clumsy.  
+In its simplest form 
 one could analyze the data file \texttt{basic1.rxt} by typing
 \begin{verbatim}
                 prompt> iad basic1
@@ -1693,6 +1695,170 @@ This command will process the data file \texttt{basic1.rxt} and produce a
 file named \texttt{basic1.txt}.
 
 \clearpage
+\subsection{Command-line options}
+\begin{description}
+    \item[-1 '\# \# \# \# \#'] Five parameters describing the reflection sphere.\\[1mm]
+                 The parameters are the diameters (in mm) of the sphere, the sample port, the entrance port, 
+                 the detector port, and the reflectivity of the sphere walls.  These parameters need 
+                 to be delimited by single or double quotes and separated by spaces e.g., \texttt{-1 '100 10 10 2 0.98'}
+                 for a 100\,mm sphere with 10\,mm diameter sample and entrance ports.\\[1mm]
+                 This option is used for both single and double sphere configurations. 
+                 If only one sphere is described on the command-line, i.e., there is no \texttt{-2} option, then
+                 the same parameters are used for the transmission sphere.
+
+    \item[-2 '\# \# \# \# \#'] Five parameters describing the transmission sphere.\\[1mm]
+                 The parameters are the diameters (in mm) of the sphere, the sample port, the third port, 
+                 the detector port, and the reflectivity of the sphere walls.  As above, these parameters need 
+                 to be delimited by single or double quotes and separated by spaces e.g., \texttt{-1 '100 10 10 2 0.98'}
+                 for a 100\,mm sphere with 10\,mm diameter sample and third ports.\\[1mm]
+                 The third port is assumed to be on the opposite side of the sphere from the sample port. \\[1mm]
+                 The diameter of third port can be zero which means that the third port is
+                 covered with a cap with the same reflectivity as the sphere wall.  Usually,
+                 a known reflection standard is present in the third port (controlled by the \texttt{-T}
+                 option described below).  If the third port is empty --- no unscattered transmitted light
+                 is collected by the sphere, then the \texttt{-C 0} option should be used so the reflectivity
+                 of the third port is zero.\\[1mm]
+                 This option is used for both single and double sphere configurations.
+
+    \item[-a \#] Assume this albedo for all calculations.\\[1mm]
+                 Constrains the inversion process by fixing that the albedo at this value.  This 
+                 is often convenient to use with low scattering \texttt{-a 0} and low absorption samples \texttt{-a 1}
+                 so that a single measurement can be used to determine the absorption coefficient or the scattering
+                 coefficient respectively.\\[1mm]
+                 If you want to constrain the reduced albedo $a'=\mu_s(1-g)/[\mu_a + \mu_s(1-g)]$ then use \texttt{-g }$g$
+                 together with $a = a' / (1 - g + a'\cdot g)$.
+                 
+    \item[-A \#] Assume this absorption coefficient for all calculations\\[1mm]
+                 Constrains the inversion process by fixing the absorption coefficient to this value in mm$^{-1}$.  
+                 This can be convenient to use with low absorption samples like Intralipid in the visible wavelength
+                 range. If two measurements have been made, then \texttt{iad} will find the scattering coefficient and
+                 the scattering anisotropy.  If only a single measurement is available, then just the scattering coefficient
+                 will be found assume that $g=0$ (which can be changed using the \texttt{-g} option.
+                 so that a single measurement can be used to determine the absorption coefficient or the scattering
+                 coefficient respectively.
+                 
+    \item[-b \#] Assume this optical thickness for all calculations\\[1mm]
+                 Constrains the inversion process by fixing $b=(\mu_a+\mu_s)d$ for the inversion process. This option
+                 is useful when doing forward calculations with the \texttt{-z} option below.
+                     
+    \item[-B \#] Assume this beam diameter for all calculations\\[1mm]
+                 Constrains the inversion process by fixing the beam diameter to this value in mm.  This parameter
+                 can be used to determine the effect of the beam diameter on the inversion process.  The only way
+                 that it enters into the inversion calculation is through the internal Monte Carlo lost light
+                 calculation --- and so if \texttt{-M 0} is used then the option \texttt{-b} will have
+                 no effect.
+                 
+    \item[-c \#] The fraction of unscattered reflected light in your reflection \texttt{MR} measurement.\\[1mm]
+                 This is a number from 0 to 1. Depending on the experiment, the incident beam might be oriented so that all the light
+                 reflected at the surface of the sample (or covering slides) is collected \texttt{-c 1} or it exits
+                 back out the entrance port \texttt{-c 0}.  If none of the light is collected, then this should be
+                 verified by inserting a piece of glass in the sample port and verifying that no light is detected
+                 in the sphere. If the light hits the sample at an angle (so that all the light is collected) then the 
+                 incidence angle option \texttt{-i} should also be used.\\[1mm]
+                 \textit{The default assumes all unscattered reflected light is collected, \texttt{-c 1}.}
+                 
+    \item[-C \#] The fraction of unscattered transmitted light in your transmission \texttt{MT} measurement.\\[1mm]
+                 This is a number from 0 to 1. Depending on the experiment, the third port in the sphere might be
+                 closed (or covered by a reflection standard) so that all the unscattered light transmitted through
+                 the sample is collected by the sphere \texttt{-C 1}.  Alternatively, in a double integrating sphere
+                 arrangement or when 
+                 reflected at the surface of the sample (or covering slides) is collected \texttt{-c 1} or it exits
+                 back out the entrance port \texttt{-c 0}.  If none of the light is collected, then this should be
+                 verified by inserting a piece of glass in the sample port and verifying that no light is detected
+                 in the sphere. If the light hits the sample at an angle (so that all the light is collected) then the 
+                 incidence angle option \texttt{-i} should also be used.\\[1mm]
+                 \textit{The default assumes all unscattered transmitted light is collected, \texttt{-C 1}.}
+  
+    \item[-d \#] The thickness of the sample in mm.\\[1mm]
+                 This option is most useful when running the program entirely from the command-line.  \texttt{iad -r 0.5 -t -0.1 -d 2}
+                 will figure out the scattering and absorption for a 2\,mm sample with 50\% reflection and 10\%
+                 transmission.\\[1mm]
+                 This number enters into the inversion process in two ways.  First, during the Monte Carlo lost light 
+                 calculation that allows light to spread in the sample and possibly escape collection by the 
+                 integrating sphere.  The second is in the very last step in which the absorption and reduced 
+                 scattering coefficients are calculated from the albedo, optical
+                 thickness, and scattering anisotropy, e.g., $\mu_a=(1-a)b/d$.\\[1mm]
+                 \textit{The default assumes a 1\,mm sample, \texttt{-d 1}.}
+               
+    \item[-D \#] The thickness of the slides in mm.\\[1mm]
+                 This option sets the thickness of the glass slides.  This thickness is used
+                 only in the Monte Carlo simulations for lost light.\\[1mm]
+                 There are two ways of specifying that glass slides were not used in a calculation.  The first is
+                 to use \texttt{-D 0} to indicate no thickness.  The second is to set the index
+                 of refraction of the slides to unity \texttt{-N 1}.\\[1mm]
+                 \textit{The default assumes no glass slides, \texttt{-D 0}.}
+
+    \item[-e \#] The error tolerance for success.\\[1mm]
+                 This value determines when the calculated values are close enough. When a single optical
+                 property is being determined, like for \texttt{iad -r 0.5 -g 0}, then this is just the
+                 difference between the calculated value for \texttt{MR} and the measured value.  For two
+                 parameters it is more complicated.  See \S \ref{error} for details.\\[1mm]
+                 \textit{The default value is 0.0001, \texttt{-D 0}.}
+                 
+    \item[-E \#] The optical absorption depth for the slides.\\[1mm]
+                 In the infrared, especially for lime glass, the absorption of the glass slides can be
+                 significant.  If $\mu_a^{slides}$ is the absorption coefficient of the glass slides
+                 then the optical absorption depth is the product of this and the thickness of the
+                 slide $\mu_a^{slides}\cdot d^{slides}$.\\[1mm]
+                 \textit{The default value is no slide absorption, \texttt{-E 0}.}
+
+    \item[-f \#] The fraction of incident light that hits the sphere wall first\\[1mm]
+                 The fraction ranges from 0 to 1.  This only applies to reflection measurements.  Ideally all the incident
+                 light on the sample during the reflection experiment hits the sample first.  However,
+                 it is possible that due to a small sample size or a large beam or poor collimation,
+                 some of the light misses the sample and hits the sphere wall instead. \\[1mm]
+                 \textit{The default value is that no light hits the wall first, \texttt{-f 0}.}
+    
+    \item[-F \#] Constrain the scattering coefficient.\\[1mm]
+                 The value for this option has three possible cases.  First, when the argument is a simple number
+                 \texttt{-F 0.5} then the scattering coefficient is kept fixed at 0.5\,mm$^{-1}$.\\[1mm]  
+                 The second
+                 option is when the value is '$P$ $\lambda_0$ $\mu_{s0}$ $\gamma$' where the assumed scattering
+                 coefficient depends on wavelength according to $\mu_{s0} (\lambda/\lambda_0)^\gamma$.  The 
+                 value $\mu_{s0}$ is the assumed scattering coefficient at $\lambda_0$.  So the 
+                 option \texttt{-F 'P 1000 1.5 -1.3'} will use the wavelength $\lambda$ to generate the scattering
+                 coefficient $\mu_s = 1.5 (\lambda/1000)^{-1.3}$.\\[1mm]  
+                 The third option is when the value is '$R$ $\lambda_0$ $\mu_{s0}$ $\gamma$' where the assumed scattering
+                 coefficient depends on wavelength according to $\mu_{s0} (\lambda/\lambda_0)^\gamma$.  The 
+                 value $\mu_{s0}$ is the assumed scattering coefficient at $\lambda_0$.  So the 
+                 option \texttt{-F 'R 1000 1.5 -1.3'} will use the wavelength $\lambda$ to generate the scattering
+                 coefficient $\mu_s' = 1.5 (\lambda/1000)^{-1.3}$.
+   
+    \item[-g \#] Assume this value for the scattering anisotropy for all calculations\\[1mm]
+                 Constrains the inversion process by fixing the scattering anisotropy to this value.  
+                 The program assumes a Henyey-Greenstein scattering phase function and $g$ is the cosine of the average
+                 value of the scattering function over all angles.  The value ranges from $-1$ (completely backwards scattering), to
+                 $0$ (isotropic), to $+1$ (completely forward scattering).\\[1mm]
+                 This option is useful when the scattering coefficient is roughly known and only two 
+                 measurements have been made. For example, using \texttt{-g 0.9} for tissue samples
+                 is common.\\[1mm]
+                 \textit{With 1 or 2 measurements the default is isotropic scattering, \texttt{-g 0}.}
+                 
+    \item[-G \#] type of boundary with various options
+    \item[-h] display help
+    \item[-H \#] baffle configuration options
+    \item[-L \#] specify the wavelength lambda
+    \item[-M \#] number of Monte Carlo iterations
+    \item[-n \#] specify index of refraction of slab
+    \item[-N \#] specify index of refraction of slides
+    \item[-o filename] explicitly specify filename for output
+    \item[-p \#] number of Monte Carlo photons or max MC time in milliseconds
+    \item[-q \#] number of quadrature points (default=8)
+    \item[-r \#] total reflection measurement
+    \item[-R \#] actual reflectance for 100\% measurement
+    \item[-S \#] number of spheres used
+    \item[-t \#] total transmission measurement
+    \item[-T \#] actual transmission for 100\% measurement
+    \item[-u \#] unscattered transmission measurement
+    \item[-v] version information
+    \item[-V 0 | 1 | 2] verbosity level
+    \item[-w \#] wall reflectivity for reflection sphere
+    \item[-W \#] wall reflectivity for transmission sphere
+    \item[-x \#] set debugging level
+    \item[-X] dual beam configuration
+    \item[-z] do forward calculation
+\end{description}
+
 \subsection{Basic Program Information}
 
 \begin{center}
@@ -1719,6 +1885,7 @@ of the program.
 \end{center}
 
 \subsubsection{The Error Tolerance }
+\label{error}
 The \texttt{-e \#} option allows you to specify the tolerance for the relative error allowed
 before the program quits.  The default value is 0.0001. It is unlikely that you will need to
 use this option since the default value seems to work pretty well in general.
@@ -1932,6 +2099,7 @@ This is absurdly handy when dealing with white things like Intralipid
 and teflon and titanium dioxide samples.
 
 \subsubsection{Constraining the Scattering Coefficient}
+\label{Fscat}
 \begin{verbatim}
                 prompt> iad -F 1 -r 0.3
                 prompt> iad -F 1 -g 0.9 -r 0.3
