@@ -171,34 +171,29 @@ if (Debug(DEBUG_A_LITTLE)) {
     Calculate_Mua_Musp(m, *r, &mus, &musp, &mua);
 
     fprintf(stderr, "AD iterations= %3d   MC iterations=%3d", r->AD_iterations, r->MC_iterations);
-    fprintf(stderr, "            a   =%6.4f b   =%8.4f g   =%6.4f\n", r->slab.a, r->slab.b, r->slab.g);
-    fprintf(stderr, "                                      ");
-    fprintf(stderr, "            mu_a=%6.4f mu_s=%8.4f mus'=%6.4f\n", mua, mus, musp);
+    fprintf(stderr, "            a=%6.4f, b=%.4f, g=%.4f,", r->slab.a, r->slab.b, r->slab.g);
+    fprintf(stderr, " mu_a=%6.4f, mu_s=%6.4f, mus'=%6.4f\n", mua, mus, musp);
 
-    fprintf(stderr, "    M_R loss     %8.5f  M_T loss     %8.5f", m.ur1_lost, m.ut1_lost);
+    fprintf(stderr, "    M_R loss           %8.5f  M_T loss           %8.5f", m.ur1_lost, m.ut1_lost);
     if (r->MC_iterations == 0)
-        fprintf(stderr, " ( no MC calculation yet)\n");
+        fprintf(stderr, " (none yet)\n");
     else
-        fprintf(stderr, " ( MC loss calculation)\n");
+        fprintf(stderr, "\n");
 
     Calculate_MR_MT(m, *r, MC_NONE, FALSE, &M_R, &M_T);
-    fprintf(stderr, "    M_R bare     %8.5f  M_T bare     %8.5f", M_R, M_T);
-    fprintf(stderr, " ( --- MC loss, --- sphere effects)\n");
+    fprintf(stderr, "    M_R no corrections %8.5f  M_T no corrections %8.5f\n", M_R, M_T);
 
     Calculate_MR_MT(m, *r, MC_NONE, TRUE, &M_R, &M_T);
-    fprintf(stderr, "    M_R sphere   %8.5f  M_T sphere   %8.5f", M_R, M_T);
-    fprintf(stderr, " ( --- MC loss, +++ sphere effects)\n");
+    fprintf(stderr, "    M_R + sphere       %8.5f  M_T + sphere       %8.5f\n", M_R, M_T);
 
     Calculate_MR_MT(m, *r, MC_USE_EXISTING, FALSE, &M_R, &M_T);
-    fprintf(stderr, "    M_R mc       %8.5f  M_T mc       %8.5f", M_R, M_T);
-    fprintf(stderr, " ( +++ MC loss, --- sphere effects)\n");
+    fprintf(stderr, "    M_R + mc           %8.5f  M_T + mc           %8.5f\n", M_R, M_T);
 
     Calculate_MR_MT(m, *r, MC_USE_EXISTING, TRUE, &M_R, &M_T);
-    fprintf(stderr, "    M_R both     %8.5f  M_T both     %8.5f", M_R, M_T);
-    fprintf(stderr, " ( +++ MC loss, +++ sphere effects)\n");
+    fprintf(stderr, "    M_R + sphere + mc  %8.5f  M_T + sphere + mc  %8.5f\n", M_R, M_T);
 
-    fprintf(stderr, "    M_R measured %8.5f  M_T measured %8.5f", m.m_r, m.m_t);
-    fprintf(stderr, " (  target values)\n");
+    fprintf(stderr, "    M_R measured       %8.5f  M_T measured       %8.5f", m.m_r, m.m_t);
+    fprintf(stderr, "\n");
 
     fprintf(stderr, "Final distance %8.5f\n\n", r->final_distance);
 }
