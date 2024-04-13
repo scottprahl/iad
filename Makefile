@@ -66,7 +66,7 @@ NRSRC = src/nr_amoeb.c      src/nr_amotr.h       src/nr_gaulg.c        src/nr_mn
         src/nr_amoeb.h      src/nr_brent.c       src/nr_gaulg.h        src/nr_rtsaf.c  \
         src/nr_amotr.c      src/nr_brent.h       src/nr_mnbrk.c        src/nr_rtsaf.h  \
         src/nr_hj.c         src/nr_hj.h          src/nr_zbrent.h       src/nr_zbrent.c \
-        src/mc_lost_test.c  src/version.h        src/mc_lost.c         src/mc_lost.h   \
+        src/mc_lost_main.c  src/version.h        src/mc_lost.c         src/mc_lost.h   \
         src/mc_test.c
 
 CSRC  = src/ad_frsnl.c      src/ad_globl.c       src/ad_matrx.c        src/ad_start.c        \
@@ -199,7 +199,7 @@ clean:
 	rm -f src/*.aux src/*.dvi src/*.idx src/*.ref src/*.sref src/*.tex src/*.toc src/*.log src/*.scn
 	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
 	rm -f libiad.dll src/libiad.dll
-	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost_test
+	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost
 	rm -rf test/.jupyter test/.ipynb_checkpoints .jupyter .ipynb_checkpoints
 
 realclean:
@@ -214,22 +214,22 @@ realclean:
 tidy:
 	cd src ; make tidy
 
-mc_lost_test:
-	cd src; make mc_lost_test
+mc_lost:
+	cd src; make mc_lost
 
 mctest:
 	cd src ; make mc_test
 	src/mc_test
 
-mclosttest: mc_lost_test
-	cd src ; make mc_lost_test
-	src/mc_lost_test
-	src/mc_lost_test -P 0
-	src/mc_lost_test -i 0 -n 1.0
-	src/mc_lost_test -i 0 -n 2
-	src/mc_lost_test -n 1.4
-	src/mc_lost_test -n 1.4 -N 1.5
-	src/mc_lost_test -n 1.4 -N 1.5 -g 0.9
+mclosttest: mc_lost
+	cd src ; make mc_lost 
+	src/mc_lost
+	src/mc_lost -P 0
+	src/mc_lost -i 0 -n 1.0
+	src/mc_lost -i 0 -n 2
+	src/mc_lost -n 1.4
+	src/mc_lost -n 1.4 -N 1.5
+	src/mc_lost -n 1.4 -N 1.5 -g 0.9
 
 layer_test:
 	cd src ; make layer_test
@@ -250,7 +250,7 @@ executables:
 	cd src; make layer_test
 	cd src; make oblique_test
 	cd src; make cone_test
-	cd src; make mc_lost_test
+	cd src; make mc_lost
 
 veryshorttest:
 	@echo "********* Basic tests ***********"
@@ -514,6 +514,7 @@ help::
 	echo "  dist          create a unix distribution";\
 	echo "  dists         make unix and windows distributions";\
 	echo "  docs          generate TEX out of all files";\
+	echo "  executables   build all the binaries";\
 	echo "  install       install ad and iad programs";\
 	echo "  install-lib   install interface and library programs";\
 	echo "  lib           create library binary and interface files";\
@@ -524,10 +525,11 @@ help::
 	echo "  veryshorttest github action test target";\
 	echo "  wintest       windows command-line and file tests using wine";\
 	echo "MAINTENANCE";\
-	echo "   clean         remove most generated objects";\
-	echo "   help          this message";\
-	echo "   realclean     remove all generated objects";\
-	echo "   tidy          generate and format .c and .h files";\
+	echo "  clean         remove most generated objects";\
+	echo "  help          this message";\
+	echo "  realclean     remove all generated objects";\
+	echo "  tidy          generate and format .c and .h files";\
+
 
 .SECONDARY: $(HSRC) $(CSRC)
 

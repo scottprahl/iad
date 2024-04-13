@@ -4,7 +4,7 @@ INDENT = indent
 INDENT_OPT = -br -brs -nbs -ci4 -cli0 -bli0 -l120 -ncdb -nce -nlp -npcs -npsl -i4 -nut
 
 ASSERT = -DNDEBUG
-#ASSERT =
+ASSERT =
 
 SHARED_LIB_OPT = -lm -shared
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
@@ -112,8 +112,10 @@ oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
 	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
-mc_lost_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_test.o
+mc_lost: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_main.o
+	$(CC) -DDEBUG_MC -c mc_lost.c -o mc_lost.o
 	$(CC) -o $@ $^ -lm
+	rm -rf mc_lost.o
 
 mc_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_test.o
 	$(CC) -o $@ $^ -lm
@@ -150,7 +152,7 @@ iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
 
 nr_amoeb.o :  iad_type.h
 mc_lost.o  :  iad_type.h
-mc_lost_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
+mc_lost_main.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 mc_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 
 version.o :
@@ -160,8 +162,8 @@ version.o :
 clean:
 	rm -f $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o
 	rm -f version.o ad_main.o ad_cone_test.o ad_oblique_test.o
-	rm -f mc_lost_test.o ad_layers_test.o
-	rm -f cone_test layer_test mc_test oblique_test mc_lost_test
+	rm -f mc_lost_main.o ad_layers_test.o
+	rm -f cone_test layer_test mc_test oblique_test mc_lost
 	rm -f ad iad adchapter
 
 realclean:
