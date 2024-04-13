@@ -9,9 +9,14 @@
 #include "ad_frsnl.h"
 #include "iad_type.h"
 
-#define MIN_WEIGHT 0.001
+#define MIN_WEIGHT 0.0001
+#define N_RADIAL_BINS  401
+#define RADIAL_BIN_SIZE 0.05    /* mm */
 
 unsigned long photon_seed = 12345678;
+
+double R_radial[N_RADIAL_BINS] = {0};
+double T_radial[N_RADIAL_BINS] = {0};
 
 /*
  * `kiss_rand_max` represents the maximum value that `kiss_rand` can return,
@@ -388,13 +393,60 @@ static double milliseconds(clock_t start_time)
     return t;
 }
 
+void add_to_reflectance_array(double x, double y, double z, double w, double weight)
+{
+    /* assume radial bins are 0.1mm wide */
+    double r = sqrt(x*x+y*y);
+    int bin = (int)(r/RADIAL_BIN_SIZE);
+
+    if (bin > N_RADIAL_BINS-1)
+        bin = N_RADIAL_BINS-1;
+
+    if (w > 0) {
+        fprintf(stderr, "photon is not going up and is reflectance photon?\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (z > 0) {
+        fprintf(stderr, "photon is inside and is reflectance photon?\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (weight == 0) {
+        fprintf(stderr, "photon weight is zero and is reflectance photon?\n");
+        exit(EXIT_FAILURE);
+    }
+
+    R_radial[bin] += weight;
+}
+
+void add_to_transmittance_array(double x, double y, double z, double w, double weight)
+{
+    /* assume radial bins are 0.1mm wide */
+    double r = sqrt(x*x+y*y);
+    int bin = (int)(r/RADIAL_BIN_SIZE);
+
+    if (bin > N_RADIAL_BINS-1)
+        bin = N_RADIAL_BINS-1;
+
+    if (w < 0) {
+        fprintf(stderr, "photon is not going up and is transmittance photon?\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (weight == 0) {
+        fprintf(stderr, "photon weight is zero and is transmittance photon?\n");
+        exit(EXIT_FAILURE);
+    }
+
+    T_radial[bin] += weight;
+}
+
 void MC_Radial(long photons, double a, double b, double g, double n_sample,
     double n_slide, double cos_cone_angle, double cos_incidence,
-    double t_sample, double t_slide, double b_slide, double dr_port, double dt_port,
-    double d_beam, double *r_total, double *t_total, double *r_lost,
-    double *t_lost)
+    double t_sample, double t_slide, double b_slide, double dr_port, double dt_port, double d_beam,
+    double *r_total, double *t_total, double *r_lost, double *t_lost)
 {
-
     double x, y, z, u, v, w, weight;
     long i, total_photons;
     double residual_weight = 0.0;
@@ -404,10 +456,11 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     double rt_port_squared = dt_port * dt_port / 4.0;
     double total_weight, distance_remaining;
     double total_time = 0;
-    clock_t start_time = 0;
-#ifndef NDEBUG
-    double ww;
+#ifdef DEBUG_MC
+    double absorbed = 0;
 #endif
+    clock_t start_time = 0;
+
     /* high resolution clock ... may be zero at start of process */
     start_time = clock();
 
@@ -448,11 +501,11 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
         total_weight += weight;
 
         /* first interaction from air to slide to sample */
-        move_in_slide(&x, &y, u, v, &w, &weight, t_slide, b_slide, 1.0,
-            n_slide, n_sample);
+        move_in_slide(&x, &y, u, v, &w, &weight, t_slide, b_slide, 1.0, n_slide, n_sample);
 
         if (w < 0) {
             /* specularly reflected from surface */
+            add_to_reflectance_array(x, y, z, w, weight);
             *r_total += weight;
             if (x * x + y * y > rr_port_squared)
                 *r_lost += weight;
@@ -460,9 +513,6 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
             continue;
         }
 
-#ifndef NDEBUG
-        ww = w;
-#endif
         assert(w > 0);
         assert(z == 0);
         assert(weight == 1);
@@ -507,6 +557,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
                     if (w < 0) {        /* at top surface and moving up */
                         assert(z == 0);
+                        add_to_reflectance_array(x, y, z, w, weight);
                         *r_total += weight;
                         if (x * x + y * y > rr_port_squared)
                             *r_lost += weight;
@@ -519,6 +570,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
                     if (w > 0) {        /* at bottom and moving down */
                         assert(z == t_sample);
+                        add_to_transmittance_array(x, y, z, w, weight);
                         *t_total += weight;
                         if (x * x + y * y > rt_port_squared)
                             *t_lost += weight;
@@ -534,6 +586,9 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
             }
 
             assert(z >= 0 && z <= t_sample);
+#ifdef DEBUG_MC
+            absorbed += (1-a)*weight;
+#endif
             weight *= a;
             roulette(&weight, &residual_weight);
             scatter(g, &u, &v, &w);
@@ -543,10 +598,34 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
             break;
     }
 
-    *r_lost /= (total_weight + residual_weight);
-    *t_lost /= (total_weight + residual_weight);
-    *r_total /= (total_weight + residual_weight);
-    *t_total /= (total_weight + residual_weight);
+    double total = total_weight - residual_weight;
+    *r_lost /= total;
+    *t_lost /= total;
+    *r_total /= total;
+    *t_total /= total;
+
+#ifdef DEBUG_MC
+    absorbed /= total;
+    fprintf(stderr,"%10d # number of bins\n", N_RADIAL_BINS);
+    fprintf(stderr,"%10.5f # bin size [mm]\n", RADIAL_BIN_SIZE);
+    fprintf(stderr,"# %10.5f total photons\n", total_weight);
+    fprintf(stderr,"# %10.5f residual photons\n", residual_weight);
+    fprintf(stderr,"# %10.5f total reflected light\n", *r_total);
+    fprintf(stderr,"# %10.5f total transmitted light\n", *t_total);
+    fprintf(stderr,"# %10.5f total absorbed light\n", absorbed);
+    fprintf(stderr,"# %10.5f total light\n", *r_total + *t_total + absorbed);
+//    fprintf(stderr,"%10.5f\t%10.5f # total\n", *r_total, *t_total);
+//    fprintf(stderr,"%10.5f\t%10.5f # lost\n", *r_lost, *t_lost);
+    fprintf(stderr,"#    r    \t    R(r)    \t   T(r)\n");
+    fprintf(stderr,"#    mm    \t    W/mm2    \t   W/mm2\n");
+
+    for (i=0; i<N_RADIAL_BINS; i++) {
+        double area = M_PI* sqr(RADIAL_BIN_SIZE)*(2*i+1);
+        fprintf(stderr,"%10.5f\t", i*RADIAL_BIN_SIZE);
+        fprintf(stderr,"%10.5f\t", R_radial[i]/total/area);
+        fprintf(stderr,"%10.5f\n", T_radial[i]/total/area);
+    }
+#endif
 }
 
 /* This assumes that the sample port diameter for the reflection and transmission
@@ -597,7 +676,7 @@ void MC_RT(struct AD_slab_type s, long n_photons, double t_sample, double t_slid
            double *UR1, double *UT1, double *URU, double *UTU)
 {
     double ur1_lost, ut1_lost, uru_lost, utu_lost;
-    double dr_port = 1000;
+    double dr_port = 1000;  /* collect all light with in 1 meter port! */
     double dt_port = 1000;
     double d_beam = 0.0;
     double mu = s.cos_angle;
