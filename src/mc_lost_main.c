@@ -51,12 +51,12 @@ int main(int argc, char **argv)
     double a = 0.99;
     double b = 1;
     double g = 0.0;
-    double n_slab = 1.0;
+    double n_sample = 1.0;
     double n_slide = 1.0;
     double mu0 = 1;
     double b_slide = 0;
     long n_photons = 1024 * 1024;
-    int machine_output = 0;
+    int machine_output = FALSE;
     int collimated_rofr_test = FALSE;
     int diffuse_rofr_test = FALSE;
 
@@ -98,11 +98,11 @@ int main(int argc, char **argv)
             break;
 
         case 'n':
-            n_slab = strtod(optarg, NULL);
+            n_sample = strtod(optarg, NULL);
             break;
 
         case 'm':
-            machine_output = 1;
+            machine_output = TRUE;
             break;
 
         case 'N':
@@ -134,12 +134,12 @@ int main(int argc, char **argv)
         }
     }
 
-    if (machine_output == 0) {
+    if (machine_output == FALSE) {
         printf("# Albedo                  %10.5f\n",a);
         printf("# Optical Depth           %10.5f\n",b);
         printf("# Anisotropy              %10.5f\n",g);
         printf("# Indices of Refraction\n");
-        printf("#                   slab  %10.5f\n",n_slab);
+        printf("#                   slab  %10.5f\n",n_sample);
         printf("#          slab thickness %10.5f mm\n",t_sample);
         printf("#              top slide  %10.5f\n",n_slide);
         printf("#           bottom slide  %10.5f\n",n_slide);
@@ -154,32 +154,32 @@ int main(int argc, char **argv)
     }
     
     if (collimated_rofr_test) {
-        MC_Radial(n_photons, a, b, g, n_slab, n_slide, COLLIMATED, mu0, t_sample,
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0, t_sample,
             t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
         exit(EXIT_SUCCESS);
     }
 
     if (diffuse_rofr_test) {
-        MC_Radial(n_photons, a, b, g, n_slab, n_slide, DIFFUSE, mu0, t_sample,
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0, t_sample,
             t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
         exit(EXIT_SUCCESS);
     }
 
-    MC_Radial(n_photons, a, b, g, n_slab, n_slide, COLLIMATED, mu0, t_sample,
+    MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0, t_sample,
         t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
 
-    MC_Radial(n_photons, a, b, g, n_slab, n_slide, DIFFUSE, mu0, t_sample,
+    MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0, t_sample,
         t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
 
-    ez_RT_Oblique(12, n_slab, n_slide, n_slide, a, b, g, mu0, &URx, &UTx, &URU, &UTU);
+    ez_RT_Oblique(12, n_sample, n_slide, n_slide, a, b, g, mu0, &URx, &UTx, &URU, &UTU);
 
-    if (machine_output == 0) {
+    if (machine_output == FALSE) {
         printf("#   URx    \t   UTx    \t   URU    \t   UTU\n");
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Calc\n", mc_ur1, mc_ut1, mc_uru, mc_utu);
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc\n", URx, UTx, URU, UTU);
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Loss\n", mc_ur1_lost, mc_ut1_lost,
             mc_uru_lost, mc_utu_lost);
-//        ez_RT(12, n_slab, n_slide, n_slide, a, b, g, &URx, &UTx, &URU, &UTU);
+//        ez_RT(12, n_sample, n_slide, n_slide, a, b, g, &URx, &UTx, &URU, &UTU);
 //        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc UR1 and UT1\n", URx, UTx, URU, UTU);
         printf
             ("-----------------------------------------------------------------------\n");
