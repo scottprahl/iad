@@ -39,9 +39,9 @@ def active_polygon():
 
 def add_x_label(lambda0):
     if lambda0[0] > 300:
-        plt.xlabel('Wavelength (nm)')
+        plt.xlabel('Wavelength (nm)', fontsize=12)
     else:
-        plt.xlabel('Measurement Number')
+        plt.xlabel('Measurement Number', fontsize=12)
 
 def plot_good(x, y, success, big_points=False):
     if big_points:
@@ -137,8 +137,8 @@ def plot_grid(mr, cr, mt, ct, success, filename_base):
     poly = plt.Polygon([[0,0],[0,1],[1,0]], closed=True, facecolor=skyblue, edgecolor='none', alpha=1)
     plt.gca().add_patch(poly)
     plot_gridlines(filename_base)
-    plt.xlabel('MR',fontsize=12)
-    plt.ylabel('MT',fontsize=12)
+    plt.xlabel('$M_R$ (Normalized Reflectance)',fontsize=12)
+    plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=12)
     plt.legend()
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -149,9 +149,9 @@ def plot_rt(lam, mr, mt, filename_base):
     """Plot measured r, t, and u."""
     out_filename = filename_base + '-RTU.svg'
     plt.figure(figsize=(8, 4.5))
-    plt.plot(lam, mr, 'ob', markersize=2, label='r')
-    plt.plot(lam, mt, 'or', markersize=2, label='t')
-    plt.plot(lam, mr+mt, 'ok', markersize=2, label='r+t')
+    plt.plot(lam, mr, 'ob', markersize=2, label='$M_R$')
+    plt.plot(lam, mt, 'or', markersize=2, label='$M_T$')
+    plt.plot(lam, mr+mt, 'ok', markersize=2, label='$M_R + M_T$')
     plt.ylabel('Measurement')
     add_x_label(lam)
     plt.legend()
@@ -167,7 +167,7 @@ def plot_r(lam, mr, cr, success, filename_base):
     plot_good_and_bad(lam, cr, success, True)
     plt.plot(lam, mr, 'ok', markersize=2, label='measured')
     add_x_label(lam)
-    plt.ylabel('Reflection')
+    plt.ylabel('$M_R$ (Normalized Reflectance)',fontsize=12)
     plt.legend()
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -181,7 +181,7 @@ def plot_t(lam, mt, ct, success, filename_base):
     plot_good_and_bad(lam, ct, success, True)
     plt.plot(lam, mt, 'ok', markersize=2, label='measured')
     add_x_label(lam)
-    plt.ylabel('Transmission')
+    plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=12)
     plt.legend()
     plt.savefig(out_filename, dpi=300)
     plt.close()
