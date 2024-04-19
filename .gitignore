@@ -7,7 +7,7 @@ src/cone_test
 src/layer_test
 src/mc_test
 src/oblique_test
-src/mc_lost_test
+src/mc_lost
 src/ad
 src/iad
 
