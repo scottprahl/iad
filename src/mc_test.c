@@ -32,6 +32,7 @@ int main(int argc, char **argv)
     printf("   a     b      g      n     n    |   d    dslide |     UR1             UT1             URU             UTU\n");
     printf("                     slab  slide  |   mm     mm   |  AD     MC       AD     MC       AD     MC       AD     MC\n");
 
+
     s.a = 0.0;
     s.b = 0.0;
     s.g = 0.0;
@@ -45,7 +46,7 @@ int main(int argc, char **argv)
     s.a = 0.0;
     s.b = 0.0;
     s.g = 0.0;
-    s.n_slab = 1.5;
+    s.n_slab = 2.5;
     MC_RT(s, n_photons, d, d_slide, &ur1,  &ut1,  &uru,  &utu);
     RT(n_quad, &s, &ad_ur1, &ad_ut1, &ad_uru, &ad_utu);
     printf("%5.4f %5.1f %5.4f %5.4f %5.4f | ", s.a, s.b, s.g, s.n_slab, s.n_top_slide);
@@ -95,7 +96,7 @@ int main(int argc, char **argv)
     printf("%5.4f %5.4f   %5.4f %5.4f   ", ad_ur1, ur1, ad_ut1, ut1);
     printf("%5.4f %5.4f   %5.4f %5.4f\n", ad_uru, uru, ad_utu, utu);
     printf("\n");
-    
+
     s.a = 0.0;
     s.b = 0.5;
     s.g = 0.0;
@@ -273,6 +274,60 @@ int main(int argc, char **argv)
 
     s.g = 0.9;
     s.b = 4;
+    MC_RT(s, n_photons, d, d_slide, &ur1,  &ut1,  &uru,  &utu);
+    RT(n_quad, &s, &ad_ur1, &ad_ut1, &ad_uru, &ad_utu);
+    printf("%5.4f %5.1f %5.4f %5.4f %5.4f | ", s.a, s.b, s.g, s.n_slab, s.n_top_slide);
+    printf("%5.4f %5.4f | ", d, d_slide);
+    printf("%5.4f %5.4f   %5.4f %5.4f   ", ad_ur1, ur1, ad_ut1, ut1);
+    printf("%5.4f %5.4f   %5.4f %5.4f\n", ad_uru, uru, ad_utu, utu);
+
+    printf("\n");
+
+    d_slide=1;
+    s.a = 0.9;
+    s.b = 4.0;
+    s.n_slab = 1.0;
+    s.n_top_slide = 1.0;
+    s.n_bottom_slide = 1.0;
+    s.g = 0;
+    MC_RT(s, n_photons, d, d_slide, &ur1,  &ut1,  &uru,  &utu);
+    RT(n_quad, &s, &ad_ur1, &ad_ut1, &ad_uru, &ad_utu);
+    printf("%5.4f %5.1f %5.4f %5.4f %5.4f | ", s.a, s.b, s.g, s.n_slab, s.n_top_slide);
+    printf("%5.4f %5.4f | ", d, d_slide);
+    printf("%5.4f %5.4f   %5.4f %5.4f   ", ad_ur1, ur1, ad_ut1, ut1);
+    printf("%5.4f %5.4f   %5.4f %5.4f\n", ad_uru, uru, ad_utu, utu);
+
+    s.g = 0.9;
+    MC_RT(s, n_photons, d, d_slide, &ur1,  &ut1,  &uru,  &utu);
+    RT(n_quad, &s, &ad_ur1, &ad_ut1, &ad_uru, &ad_utu);
+    printf("%5.4f %5.1f %5.4f %5.4f %5.4f | ", s.a, s.b, s.g, s.n_slab, s.n_top_slide);
+    printf("%5.4f %5.4f | ", d, d_slide);
+    printf("%5.4f %5.4f   %5.4f %5.4f   ", ad_ur1, ur1, ad_ut1, ut1);
+    printf("%5.4f %5.4f   %5.4f %5.4f\n", ad_uru, uru, ad_utu, utu);
+
+    s.n_slab = 1.5;
+    s.n_top_slide = 1.0;
+    s.n_bottom_slide = 1.0;
+    MC_RT(s, n_photons, d, d_slide, &ur1,  &ut1,  &uru,  &utu);
+    RT(n_quad, &s, &ad_ur1, &ad_ut1, &ad_uru, &ad_utu);
+    printf("%5.4f %5.1f %5.4f %5.4f %5.4f | ", s.a, s.b, s.g, s.n_slab, s.n_top_slide);
+    printf("%5.4f %5.4f | ", d, d_slide);
+    printf("%5.4f %5.4f   %5.4f %5.4f   ", ad_ur1, ur1, ad_ut1, ut1);
+    printf("%5.4f %5.4f   %5.4f %5.4f\n", ad_uru, uru, ad_utu, utu);
+
+    s.n_slab = 1.5;
+    s.n_top_slide = 1.5;
+    s.n_bottom_slide = 1.5;
+    MC_RT(s, n_photons, d, d_slide, &ur1,  &ut1,  &uru,  &utu);
+    RT(n_quad, &s, &ad_ur1, &ad_ut1, &ad_uru, &ad_utu);
+    printf("%5.4f %5.1f %5.4f %5.4f %5.4f | ", s.a, s.b, s.g, s.n_slab, s.n_top_slide);
+    printf("%5.4f %5.4f | ", d, d_slide);
+    printf("%5.4f %5.4f   %5.4f %5.4f   ", ad_ur1, ur1, ad_ut1, ut1);
+    printf("%5.4f %5.4f   %5.4f %5.4f\n", ad_uru, uru, ad_utu, utu);
+
+    s.n_slab = 1.3;
+    s.n_top_slide = 1.5;
+    s.n_bottom_slide = 1.5;
     MC_RT(s, n_photons, d, d_slide, &ur1,  &ut1,  &uru,  &utu);
     RT(n_quad, &s, &ad_ur1, &ad_ut1, &ad_uru, &ad_utu);
     printf("%5.4f %5.1f %5.4f %5.4f %5.4f | ", s.a, s.b, s.g, s.n_slab, s.n_top_slide);
