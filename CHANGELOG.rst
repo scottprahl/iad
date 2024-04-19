@@ -1,6 +1,22 @@
 Changelog
 =========
 
+v3.16.2 (19 Apr 2024)
+---------------------
+*   fixed bug in mc_lost affecting lost light estimation
+*   revised manual
+*   add wavelength constraints -l '500 600' to limit processing
+*   better checks for out of date redistribution matrix
+*   exit properly with bad header
+*   reduce max iterations to 100
+*   include mc_test.c in distribution
+*   show line number for bad .rxt entry
+*   invalidate h calc when angles change
+*   build targets for test programs
+*   better debug -x 1 output
+*   improved iadsum
+*   improved iadplus 
+
 v3.16.1 (25 Mar 2024)
 --------------------
 *   clarify and revise single sphere effects
