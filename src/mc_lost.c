@@ -10,8 +10,9 @@
 #include "iad_type.h"
 
 #define MIN_WEIGHT 0.0001
-#define N_RADIAL_BINS  401
-#define RADIAL_BIN_SIZE 0.05    /* mm */
+#define N_RADIAL_BINS  1001
+#define RADIAL_BIN_SIZE 0.02    /* mm */
+#define CLOSE(x, y) (fabs((x) - (y)) < 1e-8)
 
 unsigned long photon_seed = 12345678;
 
@@ -187,6 +188,9 @@ static double fresnel(double n_i, double n_t, double nu_i)
 static void refract(double n_i, double n_t, double *u, double *v, double *w)
 {
     double nu, c;
+#ifndef NDEBUG
+    double wi = *w;
+#endif
 
     if (n_i == n_t) return;
 
@@ -199,6 +203,15 @@ static void refract(double n_i, double n_t, double *u, double *v, double *w)
         *w = -sqrt(1.0 - sqr(c) + sqr(nu));
     else
         *w = sqrt(1.0 - sqr(c) + sqr(nu));
+
+    // Snell's law
+    assert(CLOSE(n_i * sin(acos(wi)), n_t * sin(acos(*w))));
+
+    // Same direction
+    assert(((*w) * wi) > 0);
+
+    // direction cosines still have unit magnitude
+    assert(CLOSE(sqr(*u) + sqr(*v) + sqr(*w) , 1.0) );
 }
 
 /* Scatter photon and establish new direction */
@@ -213,17 +226,9 @@ static void scatter(double g, double *u, double *v, double *w)
     } while (t3 > 1);
 
     if (g == 0) {               /* isotropic */
-        if (t3 == 0) {
-            *u = 1;
-            *v = 0;
-            *w = 0;
-        }
-        else {
-            *u = 2.0 * t3 - 1.0;
-            t3 = sqrt((1.0 - sqr(*u)) / t3);
-            *v = t1 * t3;
-            *w = t2 * t3;
-        }
+        *u = 2.0 * t1 * sqrt(1.0 - t3);
+        *v = 2.0 * t2 * sqrt(1.0 - t3);
+        *w = 1.0 - 2.0 * t3;
         return;
     }
 
@@ -250,12 +255,12 @@ static void scatter(double g, double *u, double *v, double *w)
     }
 }
 
-/* set photon launch point*/
-static void launch_point(double *x, double *y, double *z, double beam_radius)
+/* set photon launch point at the top of the slide */
+static void launch_point(double *x, double *y, double *z, double beam_radius, double t_slide)
 {
     *x = 0;
     *y = 0;
-    *z = 0;
+    *z = -t_slide;
 
     if (beam_radius > 0) {      /* uniform distribution over a disk */
         double a, b;
@@ -332,58 +337,108 @@ static void move_in_sample(double mu_t, double *x, double *y, double *z,
     *z += step * w;
 }
 
+static void move_at_boundary(double *u, double *v, double *w, double n_i, double n_t)
+{
+    // does the photon bounce or get refracted
+    double r = fresnel(n_i, n_t, *w);
+    if (rand_zero_one() < r) {
+        *w = -(*w);
+    } else {
+        refract(n_i, n_t, u, v, w);
+    }
+}
+
 /*
  * On entry the photon is on one boundary of the slide and the direction is
- * into the slide.  On exit, x and y will be the location that the photon
- * leaves the slide and the direction w should be correct.
- * The value of z does not need to be updated because if the ray exits
- * then it does not matter.  If the ray doesn't exit, then it is reflected
- * back into the medium and should have the same value as when it entered
+ * into the slide.  The photon is moving from n1 to n2 to n3.  n2 should always
+ * be the index of refraction of the slide (it may equal n1 or n3 in some cases).
+ * On exit, x and y will be the location that the photon
+ * leaves the slide and the directions u,v,w should be correct.
+ * On exit value of z will be on one of the faces of the glass slide.
+ *
  */
-static void move_in_slide(double *x, double *y, double u, double v, double *w,
-    double *weight, double t_slide, double b_slide, double n1, double n2,
+
+static void move_in_slide(double *x, double *y, double *z, double *u, double *v, double *w,
+    double *weight, double z_start, double z_end, double b_slide, double n1, double n2,
     double n3)
 {
-    double i_x, i_y, i_z, d_bounce, r1, r2, absorbed_light_per_bounce;
+    double i_x, i_y, i_z, d_bounce, r1, r2, absorbed_loss_per_bounce;
 
+    // case when slide thickness is zero
+    if (z_start == z_end){
+        move_at_boundary(u, v, w, n1, n3);
+        return;
+    }
+
+    // ensure photon is travelling the right direction
+    assert( (z_end - z_start) * (*w) > 0 );
+
+    // reflectivity as we move from n1 to n2
     r1 = fresnel(n1, n2, *w);
 
+    // handle photons that are reflected back at the n1/n2 boundary
     if (rand_zero_one() <= r1) {
-        /* specularly reflected photon */
         *w = -(*w);
         return;
     }
 
-    /* direction cosines in the slide */
-    i_x = u;
-    i_y = v;
+    // direction cosines within glass
+    i_x = *u;
+    i_y = *v;
     i_z = *w;
     refract(n1, n2, &i_x, &i_y, &i_z);
 
+    // reflectivity as we move from n2 to n3
     r2 = fresnel(n2, n3, i_z);
 
-    d_bounce = fabs(t_slide / i_z);
-    absorbed_light_per_bounce = 1 - exp(-fabs(b_slide / i_z));
+    // the distance and absorption for each bounce
+    d_bounce = fabs((z_end-z_start) / i_z);
+    assert( d_bounce > 0);
 
-    /* photon is in slide and bounces in the slide until it exits */
+    absorbed_loss_per_bounce = exp(-fabs(b_slide / i_z));
+
+    // photon has entered the slide and we bounce it until it exits
     while (1) {
+        // move to the n2/n3 boundary
         *x += d_bounce * i_x;
         *y += d_bounce * i_y;
-        *weight *= 1 - absorbed_light_per_bounce;
+        *z += d_bounce * i_z;
+        *weight *= absorbed_loss_per_bounce;
+        assert(fabs(*z - z_end) < 1e-8);
+        assert( (z_end - z_start) * (i_z) > 0 );
 
-        if (rand_zero_one() > r2)
-            return;
-
-        *x += d_bounce * i_x;
-        *y += d_bounce * i_y;
-        *weight *= 1 - absorbed_light_per_bounce;
-
-        if (rand_zero_one() > r1) {
-            *w = -(*w);
+        // transmitted through the n2/n3 boundary
+        if (rand_zero_one() > r2) {
+        //fprintf(stderr,"t0 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", *x, *y, *z, *u, *v, *w);
+            //fprintf(stderr, "n_i*sin(theta_i) = %10.5f\n", n1*sin(acos(*w)));
+            refract(n1, n3, u, v, w);
+            //fprintf(stderr, "n_t*sin(theta_t) = %10.5f\n", n3*sin(acos(*w)));
+        //fprintf(stderr,"t1 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", *x, *y, *z, *u, *v, *w);
             return;
         }
+
+        // bounce back towards the n1/n2 boundary
+        i_z *= -1;
+        *x += d_bounce * i_x;
+        *y += d_bounce * i_y;
+        *z += d_bounce * i_z;
+        *weight *= absorbed_loss_per_bounce;
+        assert(fabs(*z - z_start) < 1e-8);
+        assert( (z_end - z_start) * i_z < 0 );
+
+        // transmitted through (bounced from) the n1/n2 boundary
+        if (rand_zero_one() > r1) {
+        //fprintf(stderr,"r0 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", *x, *y, *z, *u, *v, *w);
+            *w = -(*w);
+        //fprintf(stderr,"r1 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", *x, *y, *z, *u, *v, *w);
+            return;
+        }
+
+        // we bounce back towards the n2/n3 boundary
+        i_z *= -1;
     }
 }
+
 
 static double milliseconds(clock_t start_time)
 {
@@ -393,54 +448,55 @@ static double milliseconds(clock_t start_time)
     return t;
 }
 
-void add_to_reflectance_array(double x, double y, double z, double w, double weight)
+double add_to_reflectance_array(double x, double y, double z, double w, double weight)
 {
-    /* assume radial bins are 0.1mm wide */
     double r = sqrt(x*x+y*y);
     int bin = (int)(r/RADIAL_BIN_SIZE);
 
     if (bin > N_RADIAL_BINS-1)
         bin = N_RADIAL_BINS-1;
 
-    if (w > 0) {
-        fprintf(stderr, "photon is not going up and is reflectance photon?\n");
-        exit(EXIT_FAILURE);
-    }
+    // photon must be going up
+    assert(w < 0);
 
-    if (z > 0) {
-        fprintf(stderr, "photon is inside and is reflectance photon?\n");
-        exit(EXIT_FAILURE);
-    }
-
-    if (weight == 0) {
-        fprintf(stderr, "photon weight is zero and is reflectance photon?\n");
-        exit(EXIT_FAILURE);
-    }
+    // weight must be non-zero
+    assert(weight != 0);
 
     R_radial[bin] += weight;
+    return r;
 }
 
-void add_to_transmittance_array(double x, double y, double z, double w, double weight)
+double add_to_transmittance_array(double x, double y, double z, double w, double weight)
 {
-    /* assume radial bins are 0.1mm wide */
     double r = sqrt(x*x+y*y);
     int bin = (int)(r/RADIAL_BIN_SIZE);
 
     if (bin > N_RADIAL_BINS-1)
         bin = N_RADIAL_BINS-1;
 
-    if (w < 0) {
-        fprintf(stderr, "photon is not going up and is transmittance photon?\n");
-        exit(EXIT_FAILURE);
-    }
+    // photon must be going down
+    assert(w > 0);
 
-    if (weight == 0) {
-        fprintf(stderr, "photon weight is zero and is transmittance photon?\n");
-        exit(EXIT_FAILURE);
-    }
+    // photon weight should not be zero
+    assert(weight != 0);
 
     T_radial[bin] += weight;
+    return r;
 }
+
+/*
+ * We have a glass-sample-glass sandwich.
+ *    -------------  z = -t_slide
+ *        glass
+ *    -------------  z = 0
+ *        sample
+ *    -------------  z = t_sample
+ *        glass
+ *    -------------  z = t_sample + t_slide
+ *
+ * Photons start and leave the sample from the top at z=-t_slide
+ * the can leave the sample when z= t_sample + t_slide
+ */
 
 void MC_Radial(long photons, double a, double b, double g, double n_sample,
     double n_slide, double cos_cone_angle, double cos_incidence,
@@ -449,17 +505,26 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 {
     double x, y, z, u, v, w, weight;
     long i, total_photons;
+    double total_weight, distance_remaining, r_beam, mu_t, r;
+
+    double r_port_radius = dr_port/2.0;
+    double t_port_radius = dt_port/2.0;
     double residual_weight = 0.0;
-    double r_beam;
-    double mu_t = b / t_sample;
-    double rr_port_squared = dr_port * dr_port / 4.0;
-    double rt_port_squared = dt_port * dt_port / 4.0;
-    double total_weight, distance_remaining;
     double total_time = 0;
-#ifdef DEBUG_MC
-    double absorbed = 0;
-#endif
     clock_t start_time = 0;
+
+#ifndef NDEBUG
+    double absorbed = 0;
+    double cos_critical = Cos_Critical_Angle(n_sample,1.0);
+    fprintf(stderr,"cos_incidence = %10.5f\n", cos_cone_angle);
+    fprintf(stderr,"cos_critical = %10.5f\n", cos_critical);
+    fprintf(stderr,"d_beam   = %10.5f\n", d_beam);
+    fprintf(stderr,"t_sample = %10.5f\n", t_sample);
+    fprintf(stderr,"t_slide  = %10.5f\n", t_slide);
+    fprintf(stderr,"n_sample = %10.5f\n", n_sample);
+    fprintf(stderr,"n_slide  = %10.5f\n", n_slide);
+#endif
+
 
     /* high resolution clock ... may be zero at start of process */
     start_time = clock();
@@ -476,122 +541,121 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
         total_time = labs(photons);
     }
 
+    // reset all accumulators to zero
     *r_lost = 0;
     *t_lost = 0;
     *r_total = 0;
     *t_total = 0;
+    total_weight = 0.0;
 
+    // avoid divison by zero or infinity when finding mu_t
     if (b<1e-5) b = 1e-5;
     if (b>1000) b = 1000;
     mu_t = b / t_sample;
 
-//    if (a==0 && collimated)
-//        return; /* no possible lost light (some diffuse utu losses possible tho) */
-
-    if (dr_port == 0 && dt_port == 0)  /* no port, no loss! */
-        return;
-
-    total_weight = 0.0;
-
     for (i = 1; i <= total_photons; i++) {
         next_photon_seed();
-        launch_point(&x, &y, &z, r_beam);
+        launch_point(&x, &y, &z, r_beam, t_slide);
         launch_direction(&u, &v, &w, cos_cone_angle, cos_incidence);
+        assert(w>0 && z==-t_slide);
+
         weight = 1;
         total_weight += weight;
 
-        /* first interaction from air to slide to sample */
-        move_in_slide(&x, &y, u, v, &w, &weight, t_slide, b_slide, 1.0, n_slide, n_sample);
+        // first interaction from air to slide to sample
+        //fprintf(stderr," 1 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", x, y, z, u, v, w);
+        move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z+t_slide, b_slide, 1.0, n_slide, n_sample);
+        //fprintf(stderr," 2 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", x, y, z, u, v, w);
 
+        // handle the case when the photon is reflected by the slide or surface
         if (w < 0) {
-            /* specularly reflected from surface */
-            add_to_reflectance_array(x, y, z, w, weight);
+            r = add_to_reflectance_array(x, y, z, w, weight);
             *r_total += weight;
-            if (x * x + y * y > rr_port_squared)
+            if (r > r_port_radius)
                 *r_lost += weight;
             weight = 0;
             continue;
         }
 
+        // sanity checks for the photon
         assert(w > 0);
-        assert(z == 0);
+        assert(cos_critical < w);
+        assert(CLOSE(z,0));
         assert(weight == 1);
 
-        /* enter the sample */
-        refract(1.0, n_sample, &u, &v, &w);
+        // ensure direction cosines are valid
+        assert(CLOSE(sqr(u)+sqr(v)+sqr(w), 1));
 
-        assert(fabs(u * u + v * v + w * w - 1.0) < 1e-8);
         while (weight > 0) {
 
-            /* move to next scattering or absorption event */
+            // move to next scattering or absorption event
             move_in_sample(mu_t, &x, &y, &z, u, v, w);
 
             assert(weight <= 1);
 
-            /* deal with photon that may exit the sample */
+            // handle photons that have left the sample
             while (z < 0 || z > t_sample) {
 
-                /* move back to top or bottom of sample */
-                if (z < 0) {
-                    distance_remaining = z / w;
-                    z = 0.0;
-                }
-                else {
-                    distance_remaining = (z - t_sample) / w;
-                    z = t_sample;
-                }
-                assert(distance_remaining >= 0);
+                // distance of the photon past the top or bottom of sample
+                distance_remaining = z / w;
+                if (z > t_sample)
+                    distance_remaining -= t_sample / w;
 
-                /* move x,y coordinates back to intersection with boundary */
+                // update the x,y coordinates also
                 x -= u * distance_remaining;
                 y -= v * distance_remaining;
+                z -= w * distance_remaining;
 
-                assert(z == 0 || z == t_sample);
+                assert(CLOSE(z,0) || CLOSE(z,t_sample));
 
-                /* w will change sign upon reflection back into sample */
-                move_in_slide(&x, &y, u, v, &w, &weight, t_slide, b_slide,
-                    n_sample, n_slide, 1.0);
+                // move photon for n_sample -> n_slide -> 1 */
+        //fprintf(stderr," 3 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", x, y, z, u, v, w);
+                if (w>0)
+                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z+t_slide, b_slide, n_sample, n_slide, 1.0);
+                else
+                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z-t_slide, b_slide, n_sample, n_slide, 1.0);
+        //fprintf(stderr," 4 x=%10.5f y=%10.5f z=%10.5f u=%10.5f v=%10.5f w=%10.5f\n", x, y, z, u, v, w);
 
-                /* use direction w to determine if photon is transmitted or reflected */
-                if (z == 0) {
 
-                    if (w < 0) {        /* at top surface and moving up */
-                        assert(z == 0);
-                        add_to_reflectance_array(x, y, z, w, weight);
-                        *r_total += weight;
-                        if (x * x + y * y > rr_port_squared)
-                            *r_lost += weight;
-                        weight = 0;
-                        break;
-                    }
-
-                }
-                else {
-
-                    if (w > 0) {        /* at bottom and moving down */
-                        assert(z == t_sample);
-                        add_to_transmittance_array(x, y, z, w, weight);
-                        *t_total += weight;
-                        if (x * x + y * y > rt_port_squared)
-                            *t_lost += weight;
-                        weight = 0;
-                        break;
-                    }
+                // photon exiting from the top
+                if (CLOSE(z, -t_slide) && w < 0) {
+                    r = add_to_reflectance_array(x, y, z, w, weight);
+                    *r_total += weight;
+                    if (r > r_port_radius)
+                        *r_lost += weight;
+                    weight = 0;
+                    break;
                 }
 
-                /* move the distance_remaining amount back into sample */
+                // photon exiting from the bottom
+                if (CLOSE(z, t_sample+t_slide) && w > 0) {
+                    r = add_to_transmittance_array(x, y, z, w, weight);
+                    *t_total += weight;
+                    if (r > t_port_radius)
+                        *t_lost += weight;
+                    weight = 0;
+                    break;
+                }
+
+                // move the distance_remaining amount back into sample
+                assert( (CLOSE(z,0) && w>0) || (CLOSE(z,t_sample) && w<0) );
                 x += u * distance_remaining;
                 y += v * distance_remaining;
                 z += w * distance_remaining;
             }
 
-            assert(z >= 0 && z <= t_sample);
-#ifdef DEBUG_MC
-            absorbed += (1-a)*weight;
-#endif
-            weight *= a;
-            roulette(&weight, &residual_weight);
-            scatter(g, &u, &v, &w);
+            if (weight > 0) {
+                assert(z >= 0 && z <= t_sample);
+    #ifndef NDEBUG
+                absorbed += (1-a)*weight;
+    #endif
+                weight *= a;
+                roulette(&weight, &residual_weight);
+                scatter(g, &u, &v, &w);
+
+                // ensure direction cosines are valid
+                assert(CLOSE(u * u + v * v + w * w, 1.0));
+            }
         }
 
         if (total_time && total_time < milliseconds(start_time))
@@ -604,7 +668,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     *r_total /= total;
     *t_total /= total;
 
-#ifdef DEBUG_MC
+#ifndef NDEBUG
     absorbed /= total;
     fprintf(stderr,"%10d # number of bins\n", N_RADIAL_BINS);
     fprintf(stderr,"%10.5f # bin size [mm]\n", RADIAL_BIN_SIZE);
@@ -614,13 +678,11 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     fprintf(stderr,"# %10.5f total transmitted light\n", *t_total);
     fprintf(stderr,"# %10.5f total absorbed light\n", absorbed);
     fprintf(stderr,"# %10.5f total light\n", *r_total + *t_total + absorbed);
-//    fprintf(stderr,"%10.5f\t%10.5f # total\n", *r_total, *t_total);
-//    fprintf(stderr,"%10.5f\t%10.5f # lost\n", *r_lost, *t_lost);
     fprintf(stderr,"#    r    \t    R(r)    \t   T(r)\n");
     fprintf(stderr,"#    mm    \t    W/mm2    \t   W/mm2\n");
 
     for (i=0; i<N_RADIAL_BINS; i++) {
-        double area = M_PI* sqr(RADIAL_BIN_SIZE)*(2*i+1);
+        double area = M_PI * sqr(RADIAL_BIN_SIZE)*(2*i+1);
         fprintf(stderr,"%10.5f\t", i*RADIAL_BIN_SIZE);
         fprintf(stderr,"%10.5f\t", R_radial[i]/total/area);
         fprintf(stderr,"%10.5f\n", T_radial[i]/total/area);
@@ -667,7 +729,7 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
                   uru, utu, uru_lost, utu_lost);
 
     if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
-        fprintf(stderr, "One or more of MC lost light calculations is negative!\n");
+        //fprintf(stderr, "One or more of MC lost light calculations is negative!\n");
         exit(EXIT_FAILURE);
     }
 }
