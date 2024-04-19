@@ -1842,6 +1842,9 @@ int main(int argc, char **argv)
                 r.a = aprime / (1 - g + aprime * g);
                 r.b = bprime / (1 - r.slab.a * g);
                 r.g = g;
+                r.slab.a = r.a;
+                r.slab.b = r.b;
+                r.slab.g = r.g;
                 if (MAX_MC_iterations == 0) {
                     Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
                 }
