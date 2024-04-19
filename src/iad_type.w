@@ -26,8 +26,8 @@ the header file \.{iad\_type.h} and nothing else.
 @d RELATIVE 0
 @d ABSOLUTE 1
 
-@d COLLIMATED 1
-@d DIFFUSE 0
+@d COLLIMATED 1.0
+@d DIFFUSE 0.0
 
 @d FALSE 0
 @d TRUE 1
