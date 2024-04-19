@@ -3,8 +3,8 @@ all : ad iad
 INDENT = indent
 INDENT_OPT = -br -brs -nbs -ci4 -cli0 -bli0 -l120 -ncdb -nce -nlp -npcs -npsl -i4 -nut
 
-ASSERT = -DNDEBUG
 ASSERT =
+ASSERT = -DNDEBUG
 
 SHARED_LIB_OPT = -lm -shared
 DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
@@ -113,7 +113,6 @@ oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
 	$(CC) -o $@ $^ -lm
 
 mc_lost: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_main.o
-	$(CC) -DDEBUG_MC -c mc_lost.c -o mc_lost.o
 	$(CC) -o $@ $^ -lm
 	rm -rf mc_lost.o
 
