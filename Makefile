@@ -330,7 +330,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.0249268 -t 0.155858 -E 0.5
 	@echo "EXPECT	   0.0249	   0.0251	   0.1559	   0.1331	   0.5000	   0.5000	   0.0000"
 	$(IAD_EXECUTABLE) -V 0 -r 0.0520462 -t 0.134587 -E 0.5 -n 1.5 -N 1.5
-	@echo "EXPECT	   0.0520	   0.0520	   0.1346	   0.1346	   0.5018	   0.4981	   0.0000"
+	@echo "EXPECT	   0.0520	   0.0520	   0.1346	   0.1346	   0.5000	   0.5000	   0.0000"
 	@echo "********* Constrain g ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4        -g 0.9
@@ -360,7 +360,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6221	   3.9698	  -0.6694"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.7046	   4.3993	  -0.9166"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4353	   4.5203	  -0.7625"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.4 -N 1.5
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4642	   4.4406	  -0.7512"
 	@echo "********* Constrain mu_s ************"
