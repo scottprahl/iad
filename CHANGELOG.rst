@@ -16,6 +16,7 @@ v3.16.2 (19 Apr 2024)
 *   better debug -x 1 output
 *   improved iadsum
 *   improved iadplus 
+*   made mc_lost as standalong executable
 
 v3.16.1 (25 Mar 2024)
 --------------------
