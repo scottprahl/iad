@@ -9,3 +9,5 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     double n_slide, double cos_cone_angle, double cos_incidence,
     double t_sample, double t_slide, double b_slide, double dr_port, double dt_port, double d_beam, 
     double *r_total, double *t_total, double *r_lost, double *t_lost);
+
+void MC_Print_RT_Arrays(int status);

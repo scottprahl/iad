@@ -152,24 +152,26 @@ int main(int argc, char **argv)
         printf("# Cos of incidence angle  %10.5f\n",mu0);
         printf("# \n");
     }
-    
+
     if (collimated_rofr_test) {
+        MC_Print_RT_Arrays(TRUE);
         MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0, t_sample,
             t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
-        exit(EXIT_SUCCESS);
     }
 
-    if (diffuse_rofr_test) {
+    else if (diffuse_rofr_test) {
+        MC_Print_RT_Arrays(TRUE);
         MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0, t_sample,
             t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
-        exit(EXIT_SUCCESS);
     }
 
-    MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0, t_sample,
-        t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
+    else {
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0, t_sample,
+            t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
 
-    MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0, t_sample,
-        t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0, t_sample,
+            t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
+    }
 
     ez_RT_Oblique(12, n_sample, n_slide, n_slide, a, b, g, mu0, &URx, &UTx, &URU, &UTU);
 
@@ -177,13 +179,7 @@ int main(int argc, char **argv)
         printf("#   URx    \t   UTx    \t   URU    \t   UTU\n");
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Calc\n", mc_ur1, mc_ut1, mc_uru, mc_utu);
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc\n", URx, UTx, URU, UTU);
-        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Loss\n", mc_ur1_lost, mc_ut1_lost,
-            mc_uru_lost, mc_utu_lost);
-//        ez_RT(12, n_sample, n_slide, n_slide, a, b, g, &URx, &UTx, &URU, &UTU);
-//        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc UR1 and UT1\n", URx, UTx, URU, UTU);
-        printf
-            ("-----------------------------------------------------------------------\n");
-        printf("\n");
+        printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Loss\n\n", mc_ur1_lost, mc_ut1_lost, mc_uru_lost, mc_utu_lost);
     } else {
         printf("%9.5f %9.5f %9.5f %9.5f ", mc_ur1, mc_ut1, mc_uru, mc_utu);
         printf("%9.5f %9.5f %9.5f %9.5f ", URx, UTx, URU, UTU);
