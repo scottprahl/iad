@@ -51,15 +51,15 @@ int main (int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    if (Read_Header (stdin, &m, &params) != 0) 
+    if (Read_Header (stdin, &m, &params) != 0)
         exit(EXIT_FAILURE);
-        
+
     start_time = clock();
     while (Read_Data_Line (stdin, &m, &r, params) == 0) {
         @<Command-line changes to |m|@>@;
         @<Calculate and write optical properties@>@;
     }
-    
+
     @<Generate and write grid@>@;
 
     if (cl_verbosity>0) fprintf(stderr,"\n\n");
@@ -823,7 +823,7 @@ measurements.
 @<Calculate and write optical properties@>=
 {
     @<Local Variables for Calculation@>@;
-    
+
     if (cl_wave_limit[0] != UNINITIALIZED) {
         if (m.lambda != 0) {
             if (m.lambda < cl_wave_limit[0])
@@ -832,8 +832,8 @@ measurements.
                 skip = TRUE;
         }
     }
-    
-    if (Debug(DEBUG_ANY)) {
+
+    if (Debug(DEBUG_ANY) && !skip) {
         fprintf(stderr, "\n-------------------NEXT DATA POINT---------------------\n");
         if (m.lambda != 0)
             fprintf(stderr, "lambda=%6.1f ", m.lambda);
@@ -843,33 +843,34 @@ measurements.
     }
 
     if (!skip) {
+        rt_total++;
         Initialize_Result(m, &r, FALSE);
-    
+
         r.default_a = UNINITIALIZED;
         r.default_b = UNINITIALIZED;
         r.default_g = UNINITIALIZED;
         r.default_mua = UNINITIALIZED;
         r.default_mus = UNINITIALIZED;
-    
+
         @<Command-line changes to |r|@>@;
         @<Warn and quit for bad options@>@;
         @<Write Header @>@;
-    
+
         m.ur1_lost = 0;
         m.uru_lost = 0;
         m.ut1_lost = 0;
         m.utu_lost = 0;
-    
+
         Inverse_RT (m, &r);
-    
+
         @<Improve result using Monte Carlo@>@;
-    
+
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
         print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
-    
+
         if (r.error != IAD_NO_ERROR)
             any_error = 1;
-    
+
         if (Debug(DEBUG_ANY))
             print_long_error(r.error);
         else
@@ -890,8 +891,6 @@ measurements.
     double LR=0;
     double LT=0;
     int skip = FALSE;
-
-    rt_total++;
 
 @ @<Command-line changes to |r|@>=
 
@@ -965,9 +964,7 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (r.found && m.num_spheres > 0) {
-    double mu_sp_last = mu_sp;
-    double mu_a_last  = mu_a;
+if (m.num_spheres > 0) {
 
     if (Debug(DEBUG_LOST_LIGHT)) {
         print_results_header(stderr);
@@ -975,10 +972,16 @@ if (r.found && m.num_spheres > 0) {
     }
 
     while (r.MC_iterations < MAX_MC_iterations) {
+        double last_mu_sp, last_mu_a, last_final_distance;
 
-        if (Debug(DEBUG_ITERATIONS))
+        calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
+        last_mu_sp = mu_sp;
+        last_mu_a  = mu_a;
+        last_final_distance = r.final_distance;
+
+        if (Debug(DEBUG_ITERATIONS) || Debug(DEBUG_A_LITTLE)) {
             fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n", r.MC_iterations+1);
-
+        }
         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
                 &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
@@ -988,19 +991,31 @@ if (r.found && m.num_spheres > 0) {
         Inverse_RT (m, &r);
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
-        if (fabs(mu_a_last -mu_a )/(mu_a +0.0001) < r.MC_tolerance &&
-            fabs(mu_sp_last-mu_sp)/(mu_sp+0.0001) < r.MC_tolerance) break;
-
-        mu_a_last = mu_a;
-        mu_sp_last = mu_sp;
+        if (r.found) {
+            if (fabs(last_mu_a-mu_a)<r.MC_tolerance && fabs(last_mu_sp-mu_sp)<r.MC_tolerance) {
+                break;
+            } else {
+                if (Debug(DEBUG_ITERATIONS))
+                    fprintf(stderr, "Repeat MC because mua and musp are still changing\n");
+            }
+        } else {
+            if (last_final_distance - r.final_distance < r.MC_tolerance) {
+                if (Debug(DEBUG_ITERATIONS))
+                    fprintf(stderr, "MC does not make things better\n");
+                break;
+            } else {
+                if (Debug(DEBUG_ITERATIONS))
+                    fprintf(stderr, "Repeat MC because distance is reduced\n");
+            }
+        }
 
         if (Debug(DEBUG_LOST_LIGHT))
             print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
         else
             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
 
-        if (r.found == FALSE)
-            break;
+//        if (r.found == FALSE)
+//            break;
     }
 }
 
@@ -1314,7 +1329,7 @@ fprintf(stdout, "  iad -G t file.rxt         One top slide with properties from 
 fprintf(stdout, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
 fprintf(stdout, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
 fprintf(stdout, "  iad -x   2 file.rxt       Show grid decisions\n");
-fprintf(stdout, "  iad -x   4 file.rxt       Show interations\n");
+fprintf(stdout, "  iad -x   4 file.rxt       Show iterations\n");
 fprintf(stdout, "  iad -x   8 file.rxt       Show lost light effects\n");
 fprintf(stdout, "  iad -x  16 file.rxt       Show best grid points\n");
 fprintf(stdout, "  iad -x  32 file.rxt       Show decisions for type of search\n");
