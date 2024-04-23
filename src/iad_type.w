@@ -32,7 +32,7 @@ the header file \.{iad\_type.h} and nothing else.
 @d FALSE 0
 @d TRUE 1
 
-@d IAD_MAX_ITERATIONS            100
+@d IAD_MAX_ITERATIONS            200
 
 @ Need error codes for this silly program
 
