@@ -73,8 +73,8 @@ is bogus anyway.
 In version 1.3 changed all error output to |stderr|.  Version 1.4
 included cases involving absorption in the boundaries.
 
-@d BIG_A_VALUE 999999.0
-@d SMALL_A_VALUE 0.000001
+@d BIG_A_CALC_VALUE   999999.0
+@d SMALL_A_CALC_VALUE 0.00001
 
 @<Prototype for |What_Is_B|@>=
 double What_Is_B(struct AD_slab_type slab, double Tu)
@@ -275,18 +275,10 @@ diffuse reflection values --- just subtract the specular
 transmission from the total transmission.
 
 @<Estimate the scattered transmission@>=
-    if (m.fraction_of_tu_in_mt) {
-        *tt = m.m_t;
-        *td = *tt - *tc;
-        if (*td < 0) {
-            *tc = *tt;
-            *td = 0;
-        }
-    }
-    else {
-        *td = m.m_t;
-        *tt = *td + *tc;
-    }
+    if (m.m_u > 0)
+        *tc = m.m_u;
+    *td = m.m_t - m.fraction_of_tu_in_mt * (*tc);
+    *tt = *td + *tc;
 
 @ Collect debugging info here
 
@@ -320,9 +312,10 @@ between $[0,1]\rightarrow (-\infty,+\infty)$.
 @ @<Definition for |a2acalc|@>=
 @<Prototype for |a2acalc|@>
 {
-    if (a <= 0) return -BIG_A_VALUE;
+    if (a <= 0) return -BIG_A_CALC_VALUE;
 
-    if (a >= 1) return BIG_A_VALUE;
+    if (a >= 1) return BIG_A_CALC_VALUE;
+
     return ((2 * a - 1) / a / (1 - a));
 }
 
@@ -349,16 +342,16 @@ equation, but this worked and I will leave it as it is for now.
 @ @<Definition for |acalc2a|@>=
 @<Prototype for |acalc2a|@>
 {
-    if (acalc == BIG_A_VALUE)
+    if (acalc >= BIG_A_CALC_VALUE)
         return 1.0;
-    else
-        if (acalc == -BIG_A_VALUE)
-            return 0.0;
-    else
-        if (fabs(acalc) < SMALL_A_VALUE)
-            return 0.5;
-    else
-        return ((-2+acalc+ sqrt(acalc * acalc + 4)) / (2 * acalc));
+
+    if (acalc <= -BIG_A_CALC_VALUE)
+        return 0.0;
+
+    if (fabs(acalc) < SMALL_A_CALC_VALUE)
+        return 0.5;
+
+    return ((-2 + acalc + sqrt(acalc * acalc + 4)) / (2 * acalc));
 }
 
 @ |g2gcalc| is used for the anisotropy transformations
