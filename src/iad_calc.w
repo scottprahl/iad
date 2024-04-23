@@ -38,7 +38,7 @@
 #define UT1_COLUMN 7
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
-#define GRID_SIZE 201
+#define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
 
 #define SWAP(a,b) {double swap=(a);(a)=(b);(b)=swap;}
@@ -722,7 +722,6 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     @<Prototype for |Fill_AB_Grid|@>
 {
     int i,j;
-    double a;
     double min_log_b = -8;  /* exp(-10) is smallest thickness */
     double max_log_b = +8;   /* exp(+8) is greatest thickness */
 
@@ -748,47 +747,47 @@ The_Grid_Initialized=TRUE;
 The_Grid_Search = FIND_AB;
 }
 
-@ Now it seems that I must be a bit more subtle in choosing the range
-of albedos to use in the grid.  Originally I just spaced them according
-to
+@ Now it seems that we must be a bit more subtle in choosing the values
+of albedos to use in the grid.  Spacing the points sometimes gives too
+coarse of spacing as $a\rightarrow0$ or $a\rightarrow1$.  A function that
+seems to work is
 $$
-a = 1 - \left[ {j-1\over n-1} \right]^3
+a = 1 - (1-x)^2\cdot (1+2x)\qquad{\rm where}\qquad x={j-1\over n-1}
 $$
-where $1\le j\le n$.  Long ago it seems that I based things only on the
-square of the bracketed term, but I seem to remember that I was forced to
-change it from a square to a cube to get more global convergence.
-
-So why am I rewriting this?  Well, because it works very poorly for samples
-with small albedos.  For example, when $n=11$ then the values chosen for
-|a| are (1, .999, .992, .973, .936, .875, .784, .657, .488, .271, 0).
-Clearly very skewed towards high albedos.
-
-I am considering a two part division.  I'm not too sure how it should go.
-Let the first half be uniformly divided and the last half follow the
-cubic scheme given above.  The list of values should then be
-(1, .996, .968, .892, 0.744, .5, .4, .3, .2, .1, 0).
-
-Maybe it would be best if I just went back to a quadratic term.
-Who knows?
-
-In the |if| statement below, note that it could read |j>=k| and still
-generate the same results.
-
-@<Nonworking code@>=
-            k = floor((GRID_SIZE-1) / 2);
-            if (j > k) {
-                a = 0.5 *(1-(j-k-1)/(GRID_SIZE-k-1));
-                RR.slab.a = a;
-            } else {
-                a = (j-1.0)/(GRID_SIZE-k-1);
-                RR.slab.a = 1.0-a*a*a/2;
-            }
+where $j = 0,1,\ldots,n$.  Thus instead of getting
+$$
+0.0, 0.1,0.2,\ldots,0.9,1.0
+$$
+we get
+$$
+0.000, 0.028, 0.104, 0.216, 0.352, 0.500, 0.648, 0.784, 0.896, 0.972, 1.000
+$$
+which is has symmetric spacing at both ends of the range of $a$.
 
 @ Here is heuristic that seems to work well
 
 @<Generate next albedo using j@>=
-            a = (double) j/(GRID_SIZE-1.0);
-            RR.slab.a = (1.0-a*a)*(1.0-a) + (1.0-a)*(1.0-a)*a;
+    {
+    double x = (double) j/(GRID_SIZE-1.0);
+    RR.slab.a = 1.0 - (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+    }
+
+@ Let's do the same thing for $g$ grid points with the exception that points
+are contrained between |-MAX_ABS_G| and |+MAX_ABS_G|
+
+@<Generate next anisotropy using i@>=
+    {
+    double x = (double) i/(GRID_SIZE-1.0);
+    double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+    RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
+    }
+
+@ @<Generate next anisotropy using j@>=
+    {
+    double x = (double) j/(GRID_SIZE-1.0);
+    double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+    RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
+    }
 
 @ This is quite similar to |Fill_AB_Grid|, with the exception of the
 little shuffle I do at the beginning to figure out the optical thickness to
@@ -821,14 +820,12 @@ void Fill_AG_Grid(struct measure_type m, struct invert_type r)
     Set_Calc_State(m,r);
     GG_b=r.slab.b;
     for(i=0; i<GRID_SIZE; i++){
-        RR.slab.g =MAX_ABS_G*(2.0*i/(GRID_SIZE-1.0)-1.0);
+        @<Generate next anisotropy using i@>@;
         for(j=0; j<GRID_SIZE; j++){
-            double a;
             @<Generate next albedo using j@>@;
             fill_grid_entry(i,j);
-            if (a < 0) RR.slab.a = 0;
-            if (a < min_a) min_a = a;
-            if (a > max_a) max_a = a;
+            if (RR.slab.a < min_a) min_a = RR.slab.a;
+            if (RR.slab.a > max_a) max_a = RR.slab.a;
         }
     }
 
@@ -881,7 +878,7 @@ void Fill_BG_Grid(struct measure_type m, struct invert_type r)
         double x = (double) i/(GRID_SIZE-1.0);
         RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
         for(j=0; j<GRID_SIZE; j++){
-            RR.slab.g =MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
+            @<Generate next anisotropy using j@>@;
             fill_grid_entry(i,j);
         }
     }
@@ -938,7 +935,7 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
         if (RR.slab.a > max_a) max_a = RR.slab.a;
 
         for(j=0; j<GRID_SIZE; j++){
-            RR.slab.g = MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
+            @<Generate next anisotropy using j@>@;
             fill_grid_entry(i,j);
         }
     }
@@ -994,7 +991,7 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
         if (RR.slab.a > max_a) max_a = RR.slab.a;
 
         for(j=0; j<GRID_SIZE; j++){
-            RR.slab.g = MAX_ABS_G*(2.0*j/(GRID_SIZE-1.0)-1.0);
+            @<Generate next anisotropy using j@>@;
             fill_grid_entry(i,j);
         }
     }
