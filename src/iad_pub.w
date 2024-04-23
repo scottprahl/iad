@@ -160,8 +160,10 @@ switch (r->search){
 if (Debug(DEBUG_ITERATIONS))
     fprintf(stderr, "Final amoeba/brent result after %d iterations\n", r->AD_iterations);
 
-if (r->AD_iterations>=IAD_MAX_ITERATIONS)
+if (r->AD_iterations>=IAD_MAX_ITERATIONS) {
     r->error=IAD_TOO_MANY_ITERATIONS;
+    r->found=FALSE;
+}
 
 @ This is to support -x 1
 
@@ -615,7 +617,7 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
     r->search = FIND_AUTO;
     r->metric = ABSOLUTE;
     r->final_distance = 10;
-    r->AD_iterations =0;
+    r->AD_iterations =4;
     r->MC_iterations =0;
     r->error = IAD_NO_ERROR;
 
@@ -952,6 +954,9 @@ be less than four percent for black glass!  This is because
 the sphere efficiency is much worse for the glass than for
 the white standard.
 
+If a |default_b| is specified then that determines the collimated
+transmission even when a |m_u| measurement is available.
+
 @<Prototype for |Calculate_Minimum_MR|@>=
 void Calculate_Minimum_MR(struct measure_type m,
                      struct invert_type r, double *mr, double *mt)
@@ -959,12 +964,10 @@ void Calculate_Minimum_MR(struct measure_type m,
 @ @<Definition for |Calculate_Minimum_MR|@>=
     @<Prototype for |Calculate_Minimum_MR|@>
 {
-    if (m.m_u > 0)
-        r.slab.b = What_Is_B(r.slab, m.m_u);
-
-    else if (r.default_b != UNINITIALIZED)
+    if (r.default_b != UNINITIALIZED)
         r.slab.b = r.default_b;
-
+    else if (m.m_u > 0)
+        r.slab.b = What_Is_B(r.slab, m.m_u);
     else
         r.slab.b = HUGE_VAL;
 
