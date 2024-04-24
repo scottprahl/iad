@@ -1,11 +1,13 @@
 Changelog
 =========
 
-v3.16.2 (19 Apr 2024)
+v3.16.2 (23 Apr 2024)
 ---------------------
 *   fixed bug in mc_lost affecting lost light estimation
+*   force one MC run when port sizes are present
 *   revised manual
 *   add wavelength constraints -l '500 600' to limit processing
+*   allow reduced scattering to be specified with -j
 *   better checks for out of date redistribution matrix
 *   exit properly with bad header
 *   reduce max iterations to 100
@@ -17,6 +19,9 @@ v3.16.2 (19 Apr 2024)
 *   improved iadsum
 *   improved iadplus 
 *   made mc_lost as standalong executable
+*   made forward calculation work with no spheres
+*   improved g spacing in grid
+*   better support for m.u measurements
 
 v3.16.1 (25 Mar 2024)
 --------------------
