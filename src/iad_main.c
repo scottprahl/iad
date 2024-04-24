@@ -309,8 +309,14 @@ static void calculate_coefficients(struct measure_type m,
     double delta, mus;
     *LR = 0;
     *LT = 0;
-    Calculate_Distance(LR, LT, &delta);
-    Calculate_Mua_Musp(m, r, &mus, musp, mua);
+    if (r.found || (!r.found && r.error == IAD_TOO_MANY_ITERATIONS)) {
+        Calculate_Distance(LR, LT, &delta);
+        Calculate_Mua_Musp(m, r, &mus, musp, mua);
+    }
+    else {
+        *musp = 0;
+        *mua = 0;
+    }
 }
 
 static int parse_string_into_array(char *s, double *a, int n)
