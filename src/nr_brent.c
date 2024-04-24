@@ -16,6 +16,7 @@ brent (double ax, double bx, double cx, double (*f) (double), double tol,
     x, xm;
   double e = 0.0;
 
+  *iterations = 3;
   a = (ax < cx ? ax : cx);
   b = (ax > cx ? ax : cx);
   d = 1;

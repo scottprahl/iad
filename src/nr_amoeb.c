@@ -29,7 +29,7 @@ amoeba (double **p, double y[], int ndim, double ftol,
 /*    double rtol;*/
    
     psum = dvector (1, ndim);
-    *nfunk = 0;
+    *nfunk = 4;  /* always four grid evaluations before starting */
     GET_PSUM
     for (;;) {
         ilo = 1;
