@@ -461,7 +461,7 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
         if (COLUMN_LABELS[0]=='\0'){
             switch (params) {
                 case -1:
-                    printf("# No M_R or M_T -- forward calculation.\n");
+                    printf("# No M_R or M_T -- forward calculation");
                     break;
                 case 1:
                     printf("# Just M_R was measured");
