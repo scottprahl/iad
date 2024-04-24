@@ -144,7 +144,6 @@ def plot_grid(mr, cr, mt, ct, success, filename_base):
     plt.close()
     return os.path.basename(out_filename)
 
-
 def plot_rt(lam, mr, mt, filename_base):
     """Plot measured r, t, and u."""
     out_filename = filename_base + '-RTU.svg'
