@@ -126,6 +126,7 @@ int main (int argc, char **argv)
     double cl_default_b   = UNINITIALIZED;
     double cl_default_mua = UNINITIALIZED;
     double cl_default_mus = UNINITIALIZED;
+    double cl_default_musp= UNINITIALIZED;
     double cl_tolerance   = UNINITIALIZED;
     double cl_slide_OD    = UNINITIALIZED;
 
@@ -167,7 +168,7 @@ int main (int argc, char **argv)
 
     clock_t start_time=clock();
     char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:j:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
     char *command_line = NULL;
 
 @ I want to include the command line to the output file.  To do this, we need to save
@@ -433,6 +434,15 @@ that this strips any quotes from the command line.
                 cl_cos_angle = cos(cl_cos_angle*M_PI/180.0);
                 break;
 
+            case 'j':
+                cl_default_musp = my_strtod(optarg);
+                if (cl_default_musp < 0) {
+                    fprintf(stderr, "Error in the command line\n");
+                    fprintf(stderr, "    musp '-j %s'\n", optarg);
+                    exit(EXIT_FAILURE);
+                }
+                break;
+
             case 'J':
                 cl_grid_calc = 1;
                 break;
@@ -621,61 +631,71 @@ that this strips any quotes from the command line.
 
 @*1 The forward calculation.
 
-We are doing a forward calculation.  We still need to set the albedo
-and optical depth appropriately.  Obviously when the -a switch is used
-then the albedo should be fixed as a constant equal to |cl_default_a|.
-The other cases are less clear.  If scattering and absorption are both
-specified, then calculate the albedo using these values.  If the scattering
-is not specified, then we assume that the sample is an unscattering sample
-and therefore the albedo is zero.  On the other hand, if the scattering is
-specified and the absorption is not, then the albedo is set to one.
+We are doing a forward calculation.  This takes care of setting up the
+sample scattering and absorption coefficients when they are specified on
+the command line.  It also deals with the case when the reduced scattering
+coefficient is specified.  We carefully set up the default values (scattering
+is 1/mm, absorption is 0/mm, and anisotropy is 0.0).
 
 @<Calculate and Print the Forward Calculation@>=
-    if (cl_default_a == UNINITIALIZED) {
+    double temp_mus = 1;
+    double temp_mua = 0;
+    r.g = 0;
 
-        if (cl_default_mus == UNINITIALIZED)
-            r.a = 0;
-        else if (cl_default_mua == UNINITIALIZED)
-            r.a = 1;
-        else
-            r.a = cl_default_mus / (cl_default_mua+cl_default_mus);
+    if (cl_default_mus != UNINITIALIZED)
+        temp_mus = cl_default_mus;
 
-    } else
+    if (cl_default_mua != UNINITIALIZED)
+        temp_mua = cl_default_mua;
+
+    if (cl_default_g!= UNINITIALIZED)
+        r.g = cl_default_g;
+
+    if (cl_default_musp != UNINITIALIZED)
+        temp_mus = cl_default_musp / (1 - r.g);
+
+@ We still need to set the albedo and optical depth appropriately.
+Obviously when the |-a| switch is used then the albedo must be set
+to equal to |cl_default_a|.  It is also important to adjust the scattering
+and absorption coefficients in this case so that they match the albedo.
+
+This is easy when both the optical thickness and the physical thickness of
+the sample are both given.  If this not the case, then we just assume the
+scattering coefficient is correct and adjust the absorption coefficient to
+be whatever it needs to be.  However in the case of |a=0| then we set the
+scattering coefficient to zero and the absorption coefficient to 1/mm.
+
+@<Calculate and Print the Forward Calculation@>=
+    if (cl_default_a != UNINITIALIZED) {
         r.a = cl_default_a;
 
-@ This is slightly more tricky because there are four things
-that can affect the optical thickness --- |cl_default_b|, the
-default mua, default mus and the thickness.  If the sample thickness
-is unspecified, then the only reasonable thing to do is to assume
-that the sample is very thick.  Otherwise, we use the sample thickness
-to calculate the optical thickness.
-
-@<Calculate and Print the Forward Calculation@>=
-    if (cl_default_b == UNINITIALIZED) {
-
-        if (cl_sample_d == UNINITIALIZED)
-            r.b = HUGE_VAL;
-
-        else if (r.a == 0) {
-            if (cl_default_mua == UNINITIALIZED)
-                r.b = HUGE_VAL;
-            else
-                r.b = cl_default_mua * cl_sample_d;
+        if (cl_default_b != UNINITIALIZED && cl_sample_d != UNINITIALIZED) {
+            temp_mus = cl_default_a * cl_default_b / cl_sample_d;
+            temp_mua = cl_default_b / cl_sample_d - temp_mus;
         } else {
-            if (cl_default_mus == UNINITIALIZED)
-                r.b = HUGE_VAL;
-            else
-                r.b = cl_default_mus/r.a * cl_sample_d;
+            if (cl_default_a == 0) {
+                temp_mus = 0;
+                temp_mua = 1;
+            } else
+                temp_mua = temp_mus / cl_default_a - temp_mus;
         }
     } else
-        r.b = cl_default_b;
+        r.a = temp_mus/(temp_mus+temp_mua);
 
-@ The easiest case, use the default value or set it to zero
+@ By this point the scattering coefficient and scattering coefficient are
+set correctly.  These values will be used unless |-b| has been used to set
+the optical thickness --- |cl_default_b|.  If the sample thickness is not
+specified, then the thickness is assumed infinite.
+
 @<Calculate and Print the Forward Calculation@>=
-    if (cl_default_g == UNINITIALIZED)
-        r.g = 0;
-    else
-        r.g = cl_default_g;
+    if (cl_default_b != UNINITIALIZED) {
+        r.b = cl_default_b;
+    } else {
+        if (cl_sample_d == UNINITIALIZED)
+            r.b = HUGE_VAL;
+        else
+            r.b = (temp_mus+temp_mua)*cl_sample_d;
+    }
 
 @ @<Calculate and Print the Forward Calculation@>=
     r.slab.a = r.a;
@@ -684,7 +704,7 @@ to calculate the optical thickness.
 
     {
         double mu_s, mu_sp, mu_a, m_r, m_t;
-        if (MAX_MC_iterations==0) {
+        if (MAX_MC_iterations==0 || m.num_spheres==0) {
             Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
         } else {
             Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
@@ -935,6 +955,19 @@ measurements.
             r.default_bs = cl_default_mus * m.slab_thickness;
     }
 
+    if (cl_default_musp != UNINITIALIZED) {
+        if (cl_default_g != UNINITIALIZED)
+            r.default_mus = cl_default_musp / (1.0 - cl_default_g);
+        else
+            r.default_mus = cl_default_musp;
+
+        if (cl_sample_d != UNINITIALIZED)
+            r.default_bs = r.default_mus * cl_sample_d;
+        else
+            r.default_bs = r.default_mus * m.slab_thickness;
+    }
+
+
     if (cl_search != UNINITIALIZED)
         r.search = cl_search;
 
@@ -1013,9 +1046,6 @@ if (m.num_spheres > 0) {
             print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
         else
             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
-
-//        if (r.found == FALSE)
-//            break;
     }
 }
 
@@ -1279,9 +1309,12 @@ fprintf(stdout, "  -H #             # = 0, no baffles for R or T spheres\n");
 fprintf(stdout, "                   # = 1, baffle for R but not for T sphere\n");
 fprintf(stdout, "                   # = 2, baffle for T but not for R sphere\n");
 fprintf(stdout, "                   # = 3, baffle for both R and T spheres (default)\n");
+fprintf(stdout, "  -i #             incident angle in degrees\n");
+fprintf(stdout, "  -j #             constrain reduced scattering coefficient \n");
+fprintf(stdout, "  -J               generate grid after inverse calculation\n");
 fprintf(stdout, "  -l #             wavelength limits\n");
 fprintf(stdout, "  -L #             specify the wavelength lambda\n");
-fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
+fprintf(stdout, "  -M #             limit number of Monte Carlo iterations\n");
 fprintf(stdout, "  -n #             specify index of refraction of slab\n");
 fprintf(stdout, "  -N #             specify index of refraction of slides\n");
 fprintf(stdout, "  -o filename      explicitly specify filename for output\n");
@@ -1290,6 +1323,7 @@ fprintf(stdout, "                   a negative number is max MC time in millisec
 fprintf(stdout, "  -q #             number of quadrature points (default=8)\n");
 fprintf(stdout, "  -r #             total reflection measurement\n");
 fprintf(stdout, "  -R #             actual reflectance for 100%% measurement \n");
+fprintf(stdout, "  -s #             specify type of search to do\n");
 fprintf(stdout, "  -S #             number of spheres used\n");
 fprintf(stdout, "  -t #             total transmission measurement\n");
 fprintf(stdout, "  -T #             actual transmission for 100%% measurement \n");
