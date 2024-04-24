@@ -362,11 +362,12 @@ double g2gcalc(double g)
 @ @<Definition for |g2gcalc|@>=
 @<Prototype for |g2gcalc|@>
 {
-    if (g <= -MAX_ABS_G) return (-HUGE_VAL);
+    double gg = g;
+    if (g < -MAX_ABS_G) gg=-MAX_ABS_G;
 
-    if (g >= MAX_ABS_G) return (HUGE_VAL);
+    if (g > MAX_ABS_G) gg=MAX_ABS_G;
 
-    return (g / (1 - fabs(g)));
+    return gg / (1 - fabs(gg));
 }
 
 @ |gcalc2g| is used for the anisotropy transformations
@@ -380,8 +381,6 @@ double gcalc2g(double gcalc)
 @ @<Definition for |gcalc2g|@>=
 @<Prototype for |gcalc2g|@>
 {
-    if (gcalc == -HUGE_VAL) return -MAX_ABS_G;
-    if (gcalc ==  HUGE_VAL) return  MAX_ABS_G;
     return (gcalc / (1 + fabs(gcalc)));
 }
 
