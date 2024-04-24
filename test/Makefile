@@ -23,7 +23,7 @@ OUT_FILES = basic-A.txt    basic-B.txt    basic-C.txt    basic-D.txt    basic-E.
             royston9-A.txt royston9-B.txt royston9-C.txt royston9-D.txt \
             sample-A.txt   sample-B.txt   sample-C.txt   sample-D.txt   sample-E.txt   \
             sample-F.txt   sample-G.txt   terse-A.txt    terse-B.txt    vio-A.txt      \
-            vio-B.txt      x_bad_data.txt il-B.txt       il-C.txt       basic-E.txt
+            vio-B.txt      x_bad_data.txt il-B.txt       il-C.txt
 
 SPECIAL_FILES = ville1.txt 
 
