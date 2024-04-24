@@ -7,7 +7,7 @@
 # final sanity check
     make realclean
     make
-    make shorttest       # visually check for failures
+    make test            # visually check for failures
     make longtest        # visually check for failures
     make wintest         # visually check for failures
 
