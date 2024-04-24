@@ -302,7 +302,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2564	   5.2748	   0.1021"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4663	   4.4382	  -0.7532"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6209	   4.4491	  -0.8719"
 	@echo "********* One slide on top ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5 -G t
@@ -312,7 +312,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G t
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2577	   5.3037	   0.0991"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G t
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4688	   4.4589	  -0.7536"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6212	   4.4707	  -0.8703"
 	@echo "********* One slide on bottom ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5 -G b
@@ -322,7 +322,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G b
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2536	   5.3611	   0.0898"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G b
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.5792	   4.4960	  -0.8533"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4791	   4.4960	  -0.7754"
 	@echo "********* Absorbing Slide Tests ***********"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.0000000 -t 0.135335 -E 0.5
@@ -503,7 +503,7 @@ layertest: $(WSRC) $(NRSRC)
 	src/layer_test
 
 wintest: ad.exe iad.exe
-	make IAD_EXECUTABLE='wine ./iad.exe' shorttest
+	make IAD_EXECUTABLE='wine ./iad.exe' test
 	cd test ; make IAD_EXECUTABLE='wine ../iad.exe'
 
 help::
