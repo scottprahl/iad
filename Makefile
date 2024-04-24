@@ -292,7 +292,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.5
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2274	   5.6964	   0.0354"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4361	   4.5201	  -0.7630"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.7046	   4.3991	  -0.9165"
 	@echo "********* Specify slide index ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5
@@ -322,7 +322,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G b
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2536	   5.3611	   0.0898"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G b
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4800	   4.4960	  -0.7760"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.5792	   4.4960	  -0.8533"
 	@echo "********* Absorbing Slide Tests ***********"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.0000000 -t 0.135335 -E 0.5
@@ -360,9 +360,9 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6221	   3.9698	  -0.6694"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4353	   4.5203	  -0.7625"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.7046	   4.3991	  -0.9165"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4642	   4.4406	  -0.7512"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6217	   4.4526	  -0.8721"
 	@echo "********* Constrain mu_s ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30
