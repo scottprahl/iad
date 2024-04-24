@@ -33,6 +33,10 @@ the header file \.{iad\_type.h} and nothing else.
 @d TRUE 1
 
 @d IAD_MAX_ITERATIONS            200
+@d BIG_A_CALC_VALUE              999999.0
+@d SMALL_A_CALC_VALUE            0.00001
+@d MAX_ABS_G                     0.999999
+@d GRID_SIZE                     101
 
 @ Need error codes for this silly program
 
@@ -91,7 +95,6 @@ the header file \.{iad\_type.h} and nothing else.
 @d MC_USE_EXISTING                1
 @d MC_REDO                        2
 
-@d MAX_ABS_G                      0.999999
 
 @ The idea of the structure |measure_type| is collect
 all the information regarding a single measurement together

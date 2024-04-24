@@ -23,7 +23,11 @@
 #define FALSE 0
 #define TRUE 1 \
 
-#define IAD_MAX_ITERATIONS 200 \
+#define IAD_MAX_ITERATIONS 200
+#define BIG_A_CALC_VALUE 999999.0
+#define SMALL_A_CALC_VALUE 0.00001
+#define MAX_ABS_G 0.999999
+#define GRID_SIZE 101 \
 
 #define IAD_NO_ERROR 0 \
 
@@ -79,8 +83,7 @@
 #define MC_NONE 0
 #define MC_USE_EXISTING 1
 #define MC_REDO 2 \
-
-#define MAX_ABS_G 0.999999 \
+ \
 
 typedef struct measure_type {
     double slab_index;

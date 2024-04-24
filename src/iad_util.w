@@ -70,11 +70,6 @@ routine does not work for diffuse irradiance, but then the whole
 concept of estimating the optical depth for diffuse irradiance
 is bogus anyway.
 
-In version 1.3 changed all error output to |stderr|.  Version 1.4
-included cases involving absorption in the boundaries.
-
-@d BIG_A_CALC_VALUE   999999.0
-@d SMALL_A_CALC_VALUE 0.00001
 
 @<Prototype for |What_Is_B|@>=
 double What_Is_B(struct AD_slab_type slab, double Tu)

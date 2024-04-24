@@ -13,9 +13,6 @@
 #include "iad_util.h"
 unsigned long g_util_debugging = 0;
 
-#define BIG_A_CALC_VALUE 999999.0
-#define SMALL_A_CALC_VALUE 0.00001 \
-
 double What_Is_B(struct AD_slab_type slab, double Tu)
 {
     double r1, r2, t1, t2, mu_in_slab;

@@ -38,7 +38,6 @@
 #define UT1_COLUMN 7
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
-#define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
 
 #define SWAP(a,b) {double swap=(a);(a)=(b);(b)=swap;}
@@ -99,7 +98,6 @@ static boolean_type The_Grid_Search = -1;
     @<Definition for |Find_BsG_fn|@>@;
     @<Definition for |maxloss|@>@;
     @<Definition for |Max_Light_Loss|@>@;
-
 
 @
 
