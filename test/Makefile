@@ -18,7 +18,7 @@ TST_FILES = basic-A.rxt     basic-B.rxt    basic-C.rxt    basic-D.rxt    basic-E
 OUT_FILES =  basic-A.txt    basic-B.txt    basic-C.txt    basic-D.txt    double.txt     \
              example2.txt   fairway-D.txt  il-A.txt       ink-B.txt      kenlee-A.txt   \
              kenlee-B.txt   kenlee-C.txt   newton.txt     royston2.txt   royston3-A.txt \
-             royston3-B.txt royston3-D.txt royston3-E.txt royston9-B.txt royston9-D.txt \
+             royston3-B.txt royston3-D.txt royston3-E.txt royston9-B.txt  \
              sample-A.txt   sample-B.txt   sample-C.txt   sample-D.txt   sample-E.txt   \
              sample-F.txt   sample-G.txt   terse-A.txt    terse-B.txt    vio-A.txt      \
              vio-B.txt      x_bad_data.txt il-B.txt       il-C.txt       basic-E.txt
@@ -26,7 +26,7 @@ OUT_FILES =  basic-A.txt    basic-B.txt    basic-C.txt    basic-D.txt    double.
 SPECIAL_FILES = basic-E.txt ville1.txt 
 
 NO_MC_FILES =       royston1.txt    royston3-C.txt royston9-A.txt \
-              royston9-C.txt tio2_vis.txt
+              royston9-C.txt tio2_vis.txt royston9-D.txt
 
 NO_RC_FILES = fairway-A.txt fairway-B.txt fairway-C.txt fairway-E.txt ink-A.txt
 
@@ -67,6 +67,9 @@ royston9-A.txt: royston9-A.rxt
 	$(IAD_EXECUTABLE) -M 0 $<
 
 royston9-C.txt: royston9-A.rxt
+	$(IAD_EXECUTABLE) -M 0 $<
+
+royston9-D.txt: royston9-D.rxt
 	$(IAD_EXECUTABLE) -M 0 $<
 
 tio2_vis.txt: tio2_vis.rxt
