@@ -13,8 +13,8 @@
 #include "iad_util.h"
 unsigned long g_util_debugging = 0;
 
-#define BIG_A_VALUE 999999.0
-#define SMALL_A_VALUE 0.000001 \
+#define BIG_A_CALC_VALUE 999999.0
+#define SMALL_A_CALC_VALUE 0.00001 \
 
 double What_Is_B(struct AD_slab_type slab, double Tu)
 {
@@ -63,18 +63,10 @@ void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double
         *rt = *rd + *rc;
     }
 
-    if (m.fraction_of_tu_in_mt) {
-        *tt = m.m_t;
-        *td = *tt - *tc;
-        if (*td < 0) {
-            *tc = *tt;
-            *td = 0;
-        }
-    }
-    else {
-        *td = m.m_t;
-        *tt = *td + *tc;
-    }
+    if (m.m_u > 0)
+        *tc = m.m_u;
+    *td = m.m_t - m.fraction_of_tu_in_mt * (*tc);
+    *tt = *td + *tc;
 
     if (0 && Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "SEARCH: r_t = %8.5f ", *rt);
@@ -91,23 +83,26 @@ void Estimate_RT(struct measure_type m, struct invert_type r, double *rt, double
 double a2acalc(double a)
 {
     if (a <= 0)
-        return -BIG_A_VALUE;
+        return -BIG_A_CALC_VALUE;
 
     if (a >= 1)
-        return BIG_A_VALUE;
+        return BIG_A_CALC_VALUE;
+
     return ((2 * a - 1) / a / (1 - a));
 }
 
 double acalc2a(double acalc)
 {
-    if (acalc == BIG_A_VALUE)
+    if (acalc >= BIG_A_CALC_VALUE)
         return 1.0;
-    else if (acalc == -BIG_A_VALUE)
+
+    if (acalc <= -BIG_A_CALC_VALUE)
         return 0.0;
-    else if (fabs(acalc) < SMALL_A_VALUE)
+
+    if (fabs(acalc) < SMALL_A_CALC_VALUE)
         return 0.5;
-    else
-        return ((-2 + acalc + sqrt(acalc * acalc + 4)) / (2 * acalc));
+
+    return ((-2 + acalc + sqrt(acalc * acalc + 4)) / (2 * acalc));
 }
 
 double g2gcalc(double g)

@@ -23,7 +23,7 @@
 #define UT1_COLUMN 7
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
-#define GRID_SIZE 201
+#define GRID_SIZE 101
 #define T_TRUST_FACTOR 1
 
 #define SWAP(a,b) {double swap= (a);(a)= (b);(b)= swap;}
@@ -308,7 +308,6 @@ void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
 void Fill_AB_Grid(struct measure_type m, struct invert_type r)
 {
     int i, j;
-    double a;
     double min_log_b = -8;
     double max_log_b = +8;
 
@@ -332,8 +331,10 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
         RR.slab.b = exp(min_log_b + (max_log_b - min_log_b) * x);
         for (j = 0; j < GRID_SIZE; j++) {
 
-            a = (double) j / (GRID_SIZE - 1.0);
-            RR.slab.a = (1.0 - a * a) * (1.0 - a) + (1.0 - a) * (1.0 - a) * a;
+            {
+                double x = (double) j / (GRID_SIZE - 1.0);
+                RR.slab.a = 1.0 - (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+            }
 
             fill_grid_entry(i, j);
         }
@@ -364,20 +365,25 @@ void Fill_AG_Grid(struct measure_type m, struct invert_type r)
     Set_Calc_State(m, r);
     GG_b = r.slab.b;
     for (i = 0; i < GRID_SIZE; i++) {
-        RR.slab.g = MAX_ABS_G * (2.0 * i / (GRID_SIZE - 1.0) - 1.0);
-        for (j = 0; j < GRID_SIZE; j++) {
-            double a;
 
-            a = (double) j / (GRID_SIZE - 1.0);
-            RR.slab.a = (1.0 - a * a) * (1.0 - a) + (1.0 - a) * (1.0 - a) * a;
+        {
+            double x = (double) i / (GRID_SIZE - 1.0);
+            double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+            RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
+        }
+
+        for (j = 0; j < GRID_SIZE; j++) {
+
+            {
+                double x = (double) j / (GRID_SIZE - 1.0);
+                RR.slab.a = 1.0 - (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+            }
 
             fill_grid_entry(i, j);
-            if (a < 0)
-                RR.slab.a = 0;
-            if (a < min_a)
-                min_a = a;
-            if (a > max_a)
-                max_a = a;
+            if (RR.slab.a < min_a)
+                min_a = RR.slab.a;
+            if (RR.slab.a > max_a)
+                max_a = RR.slab.a;
         }
     }
 
@@ -417,7 +423,13 @@ void Fill_BG_Grid(struct measure_type m, struct invert_type r)
         double x = (double) i / (GRID_SIZE - 1.0);
         RR.slab.b = exp(min_log_b + (max_log_b - min_log_b) * x);
         for (j = 0; j < GRID_SIZE; j++) {
-            RR.slab.g = MAX_ABS_G * (2.0 * j / (GRID_SIZE - 1.0) - 1.0);
+
+            {
+                double x = (double) j / (GRID_SIZE - 1.0);
+                double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+                RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
+            }
+
             fill_grid_entry(i, j);
         }
     }
@@ -474,7 +486,13 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
             max_a = RR.slab.a;
 
         for (j = 0; j < GRID_SIZE; j++) {
-            RR.slab.g = MAX_ABS_G * (2.0 * j / (GRID_SIZE - 1.0) - 1.0);
+
+            {
+                double x = (double) j / (GRID_SIZE - 1.0);
+                double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+                RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
+            }
+
             fill_grid_entry(i, j);
         }
     }
@@ -531,7 +549,13 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
             max_a = RR.slab.a;
 
         for (j = 0; j < GRID_SIZE; j++) {
-            RR.slab.g = MAX_ABS_G * (2.0 * j / (GRID_SIZE - 1.0) - 1.0);
+
+            {
+                double x = (double) j / (GRID_SIZE - 1.0);
+                double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
+                RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
+            }
+
             fill_grid_entry(i, j);
         }
     }

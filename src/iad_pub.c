@@ -91,8 +91,10 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
     if (Debug(DEBUG_ITERATIONS))
         fprintf(stderr, "Final amoeba/brent result after %d iterations\n", r->AD_iterations);
 
-    if (r->AD_iterations >= IAD_MAX_ITERATIONS)
+    if (r->AD_iterations >= IAD_MAX_ITERATIONS) {
         r->error = IAD_TOO_MANY_ITERATIONS;
+        r->found = FALSE;
+    }
 
     if (Debug(DEBUG_A_LITTLE)) {
         double M_R, M_T, mua, mus, musp;
@@ -433,7 +435,7 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
     r->search = FIND_AUTO;
     r->metric = ABSOLUTE;
     r->final_distance = 10;
-    r->AD_iterations = 0;
+    r->AD_iterations = 4;
     r->MC_iterations = 0;
     r->error = IAD_NO_ERROR;
 
@@ -825,12 +827,10 @@ int MinMax_MR_MT(struct measure_type m, struct invert_type r)
 
 void Calculate_Minimum_MR(struct measure_type m, struct invert_type r, double *mr, double *mt)
 {
-    if (m.m_u > 0)
-        r.slab.b = What_Is_B(r.slab, m.m_u);
-
-    else if (r.default_b != UNINITIALIZED)
+    if (r.default_b != UNINITIALIZED)
         r.slab.b = r.default_b;
-
+    else if (m.m_u > 0)
+        r.slab.b = What_Is_B(r.slab, m.m_u);
     else
         r.slab.b = HUGE_VAL;
 

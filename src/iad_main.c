@@ -86,9 +86,12 @@ static void print_usage(void)
     fprintf(stdout, "                   # = 1, baffle for R but not for T sphere\n");
     fprintf(stdout, "                   # = 2, baffle for T but not for R sphere\n");
     fprintf(stdout, "                   # = 3, baffle for both R and T spheres (default)\n");
+    fprintf(stdout, "  -i #             incident angle in degrees\n");
+    fprintf(stdout, "  -j #             constrain reduced scattering coefficient \n");
+    fprintf(stdout, "  -J               generate grid after inverse calculation\n");
     fprintf(stdout, "  -l #             wavelength limits\n");
     fprintf(stdout, "  -L #             specify the wavelength lambda\n");
-    fprintf(stdout, "  -M #             number of Monte Carlo iterations\n");
+    fprintf(stdout, "  -M #             limit number of Monte Carlo iterations\n");
     fprintf(stdout, "  -n #             specify index of refraction of slab\n");
     fprintf(stdout, "  -N #             specify index of refraction of slides\n");
     fprintf(stdout, "  -o filename      explicitly specify filename for output\n");
@@ -97,6 +100,7 @@ static void print_usage(void)
     fprintf(stdout, "  -q #             number of quadrature points (default=8)\n");
     fprintf(stdout, "  -r #             total reflection measurement\n");
     fprintf(stdout, "  -R #             actual reflectance for 100%% measurement \n");
+    fprintf(stdout, "  -s #             specify type of search to do\n");
     fprintf(stdout, "  -S #             number of spheres used\n");
     fprintf(stdout, "  -t #             total transmission measurement\n");
     fprintf(stdout, "  -T #             actual transmission for 100%% measurement \n");
@@ -136,7 +140,7 @@ Assume M_T includes 80%% of unscattered transmittance\n");
     fprintf(stdout, "  iad -G b -N 1.5 -D 1 file Use 1 bottom slide with n=1.5 and thickness=1\n");
     fprintf(stdout, "  iad -x   1 file.rxt       Show sphere and MC effects\n");
     fprintf(stdout, "  iad -x   2 file.rxt       Show grid decisions\n");
-    fprintf(stdout, "  iad -x   4 file.rxt       Show interations\n");
+    fprintf(stdout, "  iad -x   4 file.rxt       Show iterations\n");
     fprintf(stdout, "  iad -x   8 file.rxt       Show lost light effects\n");
     fprintf(stdout, "  iad -x  16 file.rxt       Show best grid points\n");
     fprintf(stdout, "  iad -x  32 file.rxt       Show decisions for type of search\n");
@@ -449,6 +453,7 @@ int main(int argc, char **argv)
     double cl_default_b = UNINITIALIZED;
     double cl_default_mua = UNINITIALIZED;
     double cl_default_mus = UNINITIALIZED;
+    double cl_default_musp = UNINITIALIZED;
     double cl_tolerance = UNINITIALIZED;
     double cl_slide_OD = UNINITIALIZED;
 
@@ -491,7 +496,7 @@ int main(int argc, char **argv)
     double cl_wave_limit[2] = { UNINITIALIZED, UNINITIALIZED };
 
     clock_t start_time = clock();
-    char command_line_options[] = "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
+    char command_line_options[] = "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:j:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
     char *command_line = NULL;
 
     {
@@ -751,6 +756,15 @@ int main(int argc, char **argv)
                 exit(EXIT_FAILURE);
             }
             cl_cos_angle = cos(cl_cos_angle * M_PI / 180.0);
+            break;
+
+        case 'j':
+            cl_default_musp = my_strtod(optarg);
+            if (cl_default_musp < 0) {
+                fprintf(stderr, "Error in the command line\n");
+                fprintf(stderr, "    musp '-j %s'\n", optarg);
+                exit(EXIT_FAILURE);
+            }
             break;
 
         case 'J':
@@ -1133,49 +1147,67 @@ int main(int argc, char **argv)
             r.default_bs = cl_default_mus * m.slab_thickness;
     }
 
+    if (cl_default_musp != UNINITIALIZED) {
+        if (cl_default_g != UNINITIALIZED)
+            r.default_mus = cl_default_musp / (1.0 - cl_default_g);
+        else
+            r.default_mus = cl_default_musp;
+
+        if (cl_sample_d != UNINITIALIZED)
+            r.default_bs = r.default_mus * cl_sample_d;
+        else
+            r.default_bs = r.default_mus * m.slab_thickness;
+    }
+
     if (cl_search != UNINITIALIZED)
         r.search = cl_search;
 
     if (cl_forward_calc != UNINITIALIZED) {
 
-        if (cl_default_a == UNINITIALIZED) {
+        double temp_mus = 1;
+        double temp_mua = 0;
+        r.g = 0;
 
-            if (cl_default_mus == UNINITIALIZED)
-                r.a = 0;
-            else if (cl_default_mua == UNINITIALIZED)
-                r.a = 1;
-            else
-                r.a = cl_default_mus / (cl_default_mua + cl_default_mus);
+        if (cl_default_mus != UNINITIALIZED)
+            temp_mus = cl_default_mus;
 
-        }
-        else
+        if (cl_default_mua != UNINITIALIZED)
+            temp_mua = cl_default_mua;
+
+        if (cl_default_g != UNINITIALIZED)
+            r.g = cl_default_g;
+
+        if (cl_default_musp != UNINITIALIZED)
+            temp_mus = cl_default_musp / (1 - r.g);
+
+        if (cl_default_a != UNINITIALIZED) {
             r.a = cl_default_a;
 
-        if (cl_default_b == UNINITIALIZED) {
-
-            if (cl_sample_d == UNINITIALIZED)
-                r.b = HUGE_VAL;
-
-            else if (r.a == 0) {
-                if (cl_default_mua == UNINITIALIZED)
-                    r.b = HUGE_VAL;
-                else
-                    r.b = cl_default_mua * cl_sample_d;
+            if (cl_default_b != UNINITIALIZED && cl_sample_d != UNINITIALIZED) {
+                temp_mus = cl_default_a * cl_default_b / cl_sample_d;
+                temp_mua = cl_default_b / cl_sample_d - temp_mus;
             }
             else {
-                if (cl_default_mus == UNINITIALIZED)
-                    r.b = HUGE_VAL;
+                if (cl_default_a == 0) {
+                    temp_mus = 0;
+                    temp_mua = 1;
+                }
                 else
-                    r.b = cl_default_mus / r.a * cl_sample_d;
+                    temp_mua = temp_mus / cl_default_a - temp_mus;
             }
         }
         else
-            r.b = cl_default_b;
+            r.a = temp_mus / (temp_mus + temp_mua);
 
-        if (cl_default_g == UNINITIALIZED)
-            r.g = 0;
-        else
-            r.g = cl_default_g;
+        if (cl_default_b != UNINITIALIZED) {
+            r.b = cl_default_b;
+        }
+        else {
+            if (cl_sample_d == UNINITIALIZED)
+                r.b = HUGE_VAL;
+            else
+                r.b = (temp_mus + temp_mua) * cl_sample_d;
+        }
 
         r.slab.a = r.a;
         r.slab.b = r.b;
@@ -1183,7 +1215,7 @@ int main(int argc, char **argv)
 
         {
             double mu_s, mu_sp, mu_a, m_r, m_t;
-            if (MAX_MC_iterations == 0) {
+            if (MAX_MC_iterations == 0 || m.num_spheres == 0) {
                 Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
             }
             else {
@@ -1278,8 +1310,6 @@ int main(int argc, char **argv)
             double LT = 0;
             int skip = FALSE;
 
-            rt_total++;
-
             if (cl_wave_limit[0] != UNINITIALIZED) {
                 if (m.lambda != 0) {
                     if (m.lambda < cl_wave_limit[0])
@@ -1289,7 +1319,7 @@ int main(int argc, char **argv)
                 }
             }
 
-            if (Debug(DEBUG_ANY)) {
+            if (Debug(DEBUG_ANY) && !skip) {
                 fprintf(stderr, "\n-------------------NEXT DATA POINT---------------------\n");
                 if (m.lambda != 0)
                     fprintf(stderr, "lambda=%6.1f ", m.lambda);
@@ -1299,6 +1329,7 @@ int main(int argc, char **argv)
             }
 
             if (!skip) {
+                rt_total++;
                 Initialize_Result(m, &r, FALSE);
 
                 r.default_a = UNINITIALIZED;
@@ -1346,6 +1377,18 @@ int main(int argc, char **argv)
                         r.default_bs = cl_default_mus * cl_sample_d;
                     else
                         r.default_bs = cl_default_mus * m.slab_thickness;
+                }
+
+                if (cl_default_musp != UNINITIALIZED) {
+                    if (cl_default_g != UNINITIALIZED)
+                        r.default_mus = cl_default_musp / (1.0 - cl_default_g);
+                    else
+                        r.default_mus = cl_default_musp;
+
+                    if (cl_sample_d != UNINITIALIZED)
+                        r.default_bs = r.default_mus * cl_sample_d;
+                    else
+                        r.default_bs = r.default_mus * m.slab_thickness;
                 }
 
                 if (cl_search != UNINITIALIZED)
@@ -1398,9 +1441,7 @@ int main(int argc, char **argv)
 
                 Inverse_RT(m, &r);
 
-                if (r.found && m.num_spheres > 0) {
-                    double mu_sp_last = mu_sp;
-                    double mu_a_last = mu_a;
+                if (m.num_spheres > 0) {
 
                     if (Debug(DEBUG_LOST_LIGHT)) {
                         print_results_header(stderr);
@@ -1408,11 +1449,17 @@ int main(int argc, char **argv)
                     }
 
                     while (r.MC_iterations < MAX_MC_iterations) {
+                        double last_mu_sp, last_mu_a, last_final_distance;
 
-                        if (Debug(DEBUG_ITERATIONS))
+                        calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
+                        last_mu_sp = mu_sp;
+                        last_mu_a = mu_a;
+                        last_final_distance = r.final_distance;
+
+                        if (Debug(DEBUG_ITERATIONS) || Debug(DEBUG_A_LITTLE)) {
                             fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n",
                                 r.MC_iterations + 1);
-
+                        }
                         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
                             &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
@@ -1422,20 +1469,31 @@ int main(int argc, char **argv)
                         Inverse_RT(m, &r);
                         calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                        if (fabs(mu_a_last - mu_a) / (mu_a + 0.0001) < r.MC_tolerance &&
-                            fabs(mu_sp_last - mu_sp) / (mu_sp + 0.0001) < r.MC_tolerance)
-                            break;
-
-                        mu_a_last = mu_a;
-                        mu_sp_last = mu_sp;
+                        if (r.found) {
+                            if (fabs(last_mu_a - mu_a) < r.MC_tolerance && fabs(last_mu_sp - mu_sp) < r.MC_tolerance) {
+                                break;
+                            }
+                            else {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because mua and musp are still changing\n");
+                            }
+                        }
+                        else {
+                            if (last_final_distance - r.final_distance < r.MC_tolerance) {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "MC does not make things better\n");
+                                break;
+                            }
+                            else {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because distance is reduced\n");
+                            }
+                        }
 
                         if (Debug(DEBUG_LOST_LIGHT))
                             print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
                         else
                             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
-
-                        if (r.found == FALSE)
-                            break;
                     }
                 }
 
@@ -1626,8 +1684,6 @@ int main(int argc, char **argv)
             double LT = 0;
             int skip = FALSE;
 
-            rt_total++;
-
             if (cl_wave_limit[0] != UNINITIALIZED) {
                 if (m.lambda != 0) {
                     if (m.lambda < cl_wave_limit[0])
@@ -1637,7 +1693,7 @@ int main(int argc, char **argv)
                 }
             }
 
-            if (Debug(DEBUG_ANY)) {
+            if (Debug(DEBUG_ANY) && !skip) {
                 fprintf(stderr, "\n-------------------NEXT DATA POINT---------------------\n");
                 if (m.lambda != 0)
                     fprintf(stderr, "lambda=%6.1f ", m.lambda);
@@ -1647,6 +1703,7 @@ int main(int argc, char **argv)
             }
 
             if (!skip) {
+                rt_total++;
                 Initialize_Result(m, &r, FALSE);
 
                 r.default_a = UNINITIALIZED;
@@ -1694,6 +1751,18 @@ int main(int argc, char **argv)
                         r.default_bs = cl_default_mus * cl_sample_d;
                     else
                         r.default_bs = cl_default_mus * m.slab_thickness;
+                }
+
+                if (cl_default_musp != UNINITIALIZED) {
+                    if (cl_default_g != UNINITIALIZED)
+                        r.default_mus = cl_default_musp / (1.0 - cl_default_g);
+                    else
+                        r.default_mus = cl_default_musp;
+
+                    if (cl_sample_d != UNINITIALIZED)
+                        r.default_bs = r.default_mus * cl_sample_d;
+                    else
+                        r.default_bs = r.default_mus * m.slab_thickness;
                 }
 
                 if (cl_search != UNINITIALIZED)
@@ -1746,9 +1815,7 @@ int main(int argc, char **argv)
 
                 Inverse_RT(m, &r);
 
-                if (r.found && m.num_spheres > 0) {
-                    double mu_sp_last = mu_sp;
-                    double mu_a_last = mu_a;
+                if (m.num_spheres > 0) {
 
                     if (Debug(DEBUG_LOST_LIGHT)) {
                         print_results_header(stderr);
@@ -1756,11 +1823,17 @@ int main(int argc, char **argv)
                     }
 
                     while (r.MC_iterations < MAX_MC_iterations) {
+                        double last_mu_sp, last_mu_a, last_final_distance;
 
-                        if (Debug(DEBUG_ITERATIONS))
+                        calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
+                        last_mu_sp = mu_sp;
+                        last_mu_a = mu_a;
+                        last_final_distance = r.final_distance;
+
+                        if (Debug(DEBUG_ITERATIONS) || Debug(DEBUG_A_LITTLE)) {
                             fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n",
                                 r.MC_iterations + 1);
-
+                        }
                         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
                             &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
 
@@ -1770,20 +1843,31 @@ int main(int argc, char **argv)
                         Inverse_RT(m, &r);
                         calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                        if (fabs(mu_a_last - mu_a) / (mu_a + 0.0001) < r.MC_tolerance &&
-                            fabs(mu_sp_last - mu_sp) / (mu_sp + 0.0001) < r.MC_tolerance)
-                            break;
-
-                        mu_a_last = mu_a;
-                        mu_sp_last = mu_sp;
+                        if (r.found) {
+                            if (fabs(last_mu_a - mu_a) < r.MC_tolerance && fabs(last_mu_sp - mu_sp) < r.MC_tolerance) {
+                                break;
+                            }
+                            else {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because mua and musp are still changing\n");
+                            }
+                        }
+                        else {
+                            if (last_final_distance - r.final_distance < r.MC_tolerance) {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "MC does not make things better\n");
+                                break;
+                            }
+                            else {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because distance is reduced\n");
+                            }
+                        }
 
                         if (Debug(DEBUG_LOST_LIGHT))
                             print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
                         else
                             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
-
-                        if (r.found == FALSE)
-                            break;
                     }
                 }
 

@@ -23,7 +23,7 @@
 #define FALSE 0
 #define TRUE 1 \
 
-#define IAD_MAX_ITERATIONS 100 \
+#define IAD_MAX_ITERATIONS 200 \
 
 #define IAD_NO_ERROR 0 \
 
