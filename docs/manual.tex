@@ -43,7 +43,7 @@ Scott Prahl\thanks{Oregon Tech,
                    email: scott.prahl@oit.edu
                    https://omlc.org}
 }
-\date{March 2024}	
+\date{April 2024}	
 
 \maketitle
 
@@ -67,8 +67,7 @@ articles is really concerned with dotting all the \textit{i}'s and crossing all
 the \textit{t}'s, partly it is because an appropriate forum for this information
 just doesn't exist other than in this manual.
 
-This document describes version 3.16.0 of the \iadprog{} program and constitutes
-a revision of the document dated March 2011.  The program is documented in the
+This document describes version 3.16.2 of the \iadprog{}.  The program is documented in the
 journal article~\cite{moffitt07a}.
 
 Every once in a while, users of \iadprog{} let me know about some odd behavior in 
@@ -138,6 +137,7 @@ been omitted).}
 \clearpage
 \section{Introduction}
 
+% what is this
 Inverse adding-doubling is a method for generating the optical properties of
 scattering and absorbing materials.  Reflection and transmission measurements (typically made with an
 integrating sphere) are converted to the optical properties of the sample
@@ -188,11 +188,12 @@ The \iadprog{} program has a number of parameters that can be modified to
 account for
 different experimental situations.  One, two, or three measurements can be used 
 to determine one, two, or
-three optical properties.  \iadprog{} is intended for batch
-operation, but can be used from the command line.  The processed output file
+three optical properties.  \iadprog{} is intended to be used from the command line.  
+The processed output file
 contains a summary of the experimental conditions as well as all the 
-calculated optical properties.\footnote{The optical properties are readily graphed using \texttt{gnuplot} because all the comment lines at the
-top of the file are preceeded by a hash mark (\texttt{\#}).}
+calculated optical properties.\footnote{The optical properties are readily graphed using 
+\texttt{gnuplot} or \texttt{python} because all the comment lines at the
+top of the file are preceded by a hash mark (\texttt{\#}).}
 
 \subsection{Assumptions}
 
@@ -234,122 +235,121 @@ has a reasonable trade-off between accuracy and speed.
 \subsection{Background}
 
 \subsubsection*{The graduate student days}
-The \iadprog{} program started its life as an inverse diffusion program.\footnote{
-This is somewhat ironic because when I translated the program into ANSI C, I did
-not convert the diffusion code.  Version 1.4 of the \iadprog{} program does not allow
-one to make calculations using a diffusion model.} Steve Jacques (then at the Wellman
+The \iadprog{} program started its life as an inverse diffusion equation program.Steve Jacques (then at the Wellman
 Laboratories of Photomedicine) and I (a graduate student at the University of Texas at
-Austin) just
-wanted a way to find the optical properties of tissues. We published a paper~\cite{jacques87a} and thought that was that.  We subsequently discovered that
-the diffusion model can generate negative reflectances for samples with large
-anisotropies ($g=0.9$)!  Steve encouraged me to improve the inverse diffusion
+Austin) wanted a way to find the optical properties of tissues based on observed quantities. We published a 
+paper~\cite{jacques87a} and thought that was that.  We subsequently discovered that
+the diffusion model can generate negative reflectances (!!) for samples with strongly
+anisotropic scattering ($g=0.9$).  Steve encouraged me to improve the inverse diffusion
 program.  I subsequently improved that program in two important ways.  First, I
-used the $\delta$-Eddington approximation to eliminate the problem with highly
-anisotropic scattering. Second, I replaced my simple-minded iteration method with the
-simplex method of Nelder and Weaver.  In this manner the inverse $\delta$-Eddington
-model was created.  I used this in/for my thesis that was finished in 1982. 
-During this time I my advisor
-A.\ J.\ Welch and the cash came from some Navy contract.
+adapted the diffusion code to the $\delta$-Eddington approximation to eliminate the problem with highly
+anisotropic scattering. Second, I replaced my simple-minded minimization method with the
+simplex method of Nelder and Weaver.  I used the inverse $\delta$-Eddington
+model in my 1982 thesis supervised by the Dr.\ Jon Valvano and the late Dr.\ A.\ J.\ Welch.
 
 \subsubsection*{The post-doc era}
 About the time I was giving my final defense I realized that I could not
 recommend my inverse program to anyone because I had no idea how accurate it
-was.  I started working on a paper to estimate the errors but it seemed pretty
-pointless.  I decided to take the adding-doubling program that I had just written
-(for a different section of my thesis)
-and substitute it for the $\delta$-Eddington program in the inverse algorithm. This
+was.  The $\delta$-Eddington model is a good solution to the radiative
+transport equation but it only uses the first two terms of the infinite series
+of spherical Legendre polynomials.  I started working on a paper to estimate the errors but it seemed pretty
+pointless.  
+
+Instead of continuing, I decided to use the adding-doubling program (which can use an arbitrary number of
+spherical Legendre polynomials) that I had included in a different section of my thesis to replace the
+$\delta$-Eddington program in the inverse algorithm. This
 led to the inverse adding-doubling (\iadprog{}) program.  This was done in 1983 in Amsterdam
-under the auspices of Martin van~Gemert and the necesssary guilders came from the Fundamenteel
+under the auspices of Dr.\ Martin van~Gemert and the necessary guilders came from the Fundamenteel
 Onderzoek voor Materie.  This program was much more accurate.  In fact, you can
 make the adding-doubling method as accurate as desired by increasing the number
-of quadrature points.  There were a couple of major snags in the implementation---most notably the
-problem with internal reflectance at boundaries.  It nearly killed me, but once found, the solution was
-surprisingly simple as long as really understand how quadrature works.
+of quadrature points.  The major improvement to the adding-doubling implementation was
+to incorporate mismatched boundaries.  Initially my solution was curiously
+inaccurate. Eventually, I realized that an
+accurate implementation required breaking the angular integration into two parts: one part over 
+all totally internally reflected angles and the other part over the angles that escape
+the sample.
 
-Since then, most of the implementation difficulties with the \iadprog{} program can be traced
-to how the first guess is made.  I spent a week working in Houston in 1984 with
-Steve Jacques (the at M.\ D.\ Anderson Cancer Center) trying to solve this problem.   
-This problem is basically the same as trying to solve the entire inverse problem quickly and accurately, 
-but with possibly poor precision.  In the process of solving this problem I incorporated
-a version of the $\delta$-Eddington program into the \iadprog{}.  
- After a bit more fussing (a lot actually) this became the core of the current \iadprog{}.
-The last
-little bit of work was done during  a couple of months spent at the University of
-Utah Laser Institute in Salt Lake City with generous support from Dr.\ Richard Straight.  
-Here the starting routine was completely rewritten.  I
-developed the heuristics for calculating starting values that were eventually published in the
-adding-doubling paper \cite{prahl93a}.  Large portions of the code were split up
-into smaller files and the first version of this documentation was written.
+One implementation challenge is the selection of initial optical properties for use as guesses. 
+Starting with poor guesses can easily lead to convergence at a local minimum, thereby missing the 
+desired global minimum. In 1984, I spent a week working with Steve Jacques at the M.D. Anderson 
+Cancer Center in Houston, attempting to address this issue.
 
-While I worked at Wellman Laboratories (1984-1985) in Boston as a post-doc under Dr. Rox Anderson, 
-I fixed a number of minor bugs and
-changed the headers for the input data files to bring the sphere
+Choosing initial values is akin to approximately solving the entire inverse problem. I eventually 
+adopted the $\delta$-Eddington method to generate starting values. Further refinement of the 
+starting routine occurred over a couple of months at the University of Utah Laser Institute in Salt 
+Lake City, with generous support from Dr.\ Richard Straight. Here, the starting routine was 
+completely rewritten.  There I developed heuristics for calculating starting values, which were later published in the adding-doubling paper \cite{prahl93a}. Large portions of the code were modularized into smaller files, and the first version of this documentation was drafted. After considerable refinement---quite a lot, in fact---this method remained in use until 2004.
+
+While I worked at Wellman Laboratories (1984-1985) in Boston as a post-doc under Dr.\ Rox Anderson, 
+I fixed a number of minor bugs and adapted the header for the input data files to bring the sphere
 corrections into accordance with the integrating sphere paper I worked on with Pickering and
-others.  I also implemented the use of a stored grid to extract values from. 
-This can yield immensely faster results when the optical depth or anisotropy is
-known \emph{a priori}.  However, if neither of these is the case, then using the
-stored grid does not help much, because a new grid must be calculated for each
-data point that is analyzed.
+others.  
 
 \subsubsection*{The transition to C}
 
-Up to this point, \iadprog{} was written in Pascal.  I know that this is a horrible
-thing to admit, but I actually liked Pascal.  Unfortunately, by 1986 it was clear
-that Pascal was seriously out of style and it was becoming harder and harder to
-find good Pascal compilers.  All the cool programmers
-were using C.  At the same time I was taken by the extraordinary 
-typesetting system of \TeX{} (this document is written using \TeX).  Since the \iadprog{} is a mathematically 
-intense program, I wanted my comments to be typeset nicely.  This meant that I
-used the \texttt{CWEB} system\footnote{\href{http://www-cs-faculty.stanford.edu/~uno/cweb.html}{Link to Knuth's CWEB page}}
- to write \iadprog{}.  This meant that I could
-create beautiful documentation at the cost of some extra mark-up and a pre-processing
-step.  Therefore, one of things that I did when I moved to the Oregon Medical Laser Center, 
-was to converted the entire program to ANSI C.  I improved many things so that the program was much faster and more
-reliable (e.g., the stored-grid approach). This work was
-supported by the Collins foundation and finished in the early 1990's.
+Until this stage, \iadprog{} was developed in Pascal. I must confess, despite its waning popularity, I had a fondness for Pascal. By 1986, however, it was becoming increasingly difficult to find robust Pascal compilers, as Pascal had fallen out of favor. The programming community had shifted its preference to C.
+
+Simultaneously, I became fascinated with the exceptional typesetting capabilities of \TeX{}---the same system used to compose this document. Given that \iadprog{} is mathematically complex, I desired aesthetically pleasing and clear typesetting for my comments. This led me to adopt the \footnote{\href{https://github.com/ascherer/cwebbin}{\texttt{CWEB} system}}, which allows for the creation of elegant documentation, albeit at the expense of a preprocessing step.
+
+Upon joining the Oregon Medical Laser Center, one of my initial tasks was to convert the entire program to ANSI C. This conversion not only modernized \iadprog{} but also enhanced its speed and reliability, for instance, through the implementation of a stored-grid approach. This effort was supported by the Collins Foundation and concluded in the early 1990s.
+
+The stored-grid addresses the initial guess problem.  This is, once again, a
+brute-force approach that is done before the inversion process starts. So, for example, when the albedo $a$ and optical thickness
+$b$ are being sought, I create a grid of $a$ and $b$ values and store the reflection 
+and transmission values for each grid point. The initial guesses for the inversion process are
+the values of $a$ and $b$ that most closely match the measured reflection and transmission.  This finally solved the local versus global minimum problem once and for all.
+
+The stored-grid results in much faster solutions when the sample has constant
+values from point to point.  So, as long as the anisotropy remains constant, the $a$ and $b$
+grid gives starting values that rapidly converge to the desired values.  On the other
+hand, when the unscattered transmission is also measured, then the optical thickness
+$b$ will change for every point --- meaning that the $a$ and $g$ grid must be recalculated
+for each new value of $b$.  Despite being slower, having starting values that 
+converge to the correct global minimum is a crucial improvement.
+
+\subsubsection*{User Issues 1}
 
 The next stage in the life of this program has been due to my most excellent
-interaction with David Royston at the FDA \cite{royston96}.  He did many careful experiments and
-then kept asking what was going wrong.  I eventually tracked these
-problems down.  Often they were the result of bugs that either had crept into the
-C port of the code, or they were the result of coding ineptitude on my part
-from the very beginning.  Dave also provided the incentive to allow
-light absorption by slides on each side of the sample in the calculation.%
-\footnote{This functionality is still present in the \iadprog{} but
-is not one of the parameters in the usual \iadprog{} input files.  Recovering
-this feature requires using the \texttt{-E} command-line option.}
+interaction with Dr.\ David Royston then at the FDA \cite{royston96}.  He did many careful experiments and kept asking what was going wrong.  This led to a rapid series of \iadprog{}
+releases as I addressed shortcomings in the program.
+
+David provided the incentive to incorporate light absorption by slides sandwiching the sample.
+This feature becomes important in the near-IR and solved a user problem twenty years later!%
+\footnote{This functionality is accessed through the \texttt{-E} command-line option.}
+
+\subsubsection*{User Issues 2}
 
 In the intervening ten years or so, I would correspond with users and add
-features or fix bugs as needed.  In 2005, I looked at the code base and realized that I had added
-stuff (multiple-layers, conical irradiation, and a \textit{Mathematica} interface) and that 
-compiling the code was a huge hassle.%
-\footnote{Alas, the \textit{Mathematica} interface has died of bit rot.  I refused to buy new 
-versions of \textit{Mathematica} to get access to the latest interfaces.} 
-I reorganized the code
+features or fix bugs as needed.  In 2004, I looked at the code base and realized that I had added
+stuff (multiple-layers, conical irradiation) and that 
+compiling the code was a huge hassle.  This led to version 2.0.0 --- the first major version increase.  For this release, I reorganized the code
 base and cleaned up the build process.  Then I discovered that this document was
-severely out of date.  I ignored the urge to update it.%
-\footnote{It is now 2023 and I am
-doing another pass through this document.}
+severely out of date.  I ignored the urge to update it.
 
 \subsubsection*{Trouble!}
 
-In 2008, I needed to revisit the whole problem of measuring optical
+In 2006, I needed to revisit the whole problem of measuring optical
 properties.  I had a contract to build a bunch of optical phantoms with closely
 specified tolerances for optical properties.  We made a bunch of measurements
 to show that the optical properties were the same as the promised ones.  These measurements 
 included two thicknesses of identical polyurethane material as well as on phantoms with the
 same scattering coefficient, but with different absorbing properties.  Unfortunately
-not all the measurements were consistent!
+not all of these measurements were consistent!
 
 I knew that the optical properties derived by \iadprog{} required careful measurements
-using integrating spheres.  We made careful, measurements but the results were still
-inconsistent.  I guessed that the difficulties might stem from the two areas that had
-always been problematic 
-in the measurement process: integrating sphere corrections and lost light.
-The first problem could be solved experimentally by (1) measuring the integrating
-sphere properties, (2) using smaller sample port diameters, or (3) using a reflectance 
-standard whose reflectance was 
-closer that of sample.  The second problem could presumably be solved
+using integrating spheres.  We made obsessively careful measurements but the results were still
+inconsistent.  
+
+I hypothesized that the difficulties might arise from the two areas that had
+always been problematic in the measurement process: integrating sphere corrections and lost light.
+The first problem could potentially be solved experimentally by 
+\begin{itemize}
+\item determining the wall reflectivity of the integrating sphere, 
+\item using smaller sample port diameters, 
+\item using a reflectance standard whose reflectance was closer that of sample. 
+\item making dual-beam measurements.
+\end{itemize}
+The second problem could presumably be solved
 by using larger samples.  Little did I know.
 
 \subsubsection*{Integrating sphere corrections}
@@ -361,7 +361,7 @@ containing a sample with 25\% reflectance will not measure exactly one-half
 the value of a 50\% sample. (The presence of the sample changes the number
 of times that light bounces in the sphere.  More reflective samples have
 more bounces and a greater chance of being captured by the detector.  Thus
-the 50\% sample will record slightly more than twice the value from the
+the 50\% sample will record slightly more than twice the value of the
 25\% sample.  See figure~\ref{spherecorr}).
 
 Now \iadprog{} has had code to account for the integrating sphere effect since
@@ -373,7 +373,7 @@ to use the integrating sphere correction factors unless one read the source
 code very carefully.  Consequently, no one (including myself or my students)
 used it.  
 
-Instead of trying to find the errors in the earlier papers, my graduate
+Instead of trying to find the errors in the earlier papers, my doctoral
 student Ted Moffitt and I re-derived all the necessary formulas.  We used
 sensible nomenclature and I insisted that all the quantities have actual
 physical significance.  I also eliminated unnecessary frills (e.g., baffles
@@ -388,7 +388,7 @@ the experimentalist to include all the relevant measurement parameters.
 
 Unfortunately, despite a new file format and new sphere correction formulas,
 the optical properties of the phantoms were only consistent for the largest
-sample sizes (two inches or about 50\,mm).  This was good enough to finish
+sample sizes (50\,mm in diameter).  This was good enough to finish
 the contract, but not really good enough to make me happy.  I was confident
 that the experiments were performed correctly and I was equally sure that
 the light interactions with the spheres were correct.  This indicated that the
@@ -404,19 +404,20 @@ the wall reflectivity of your spheres.
 
 The light loss problem is simple.  Light hits the front of a sample and the
 reflected light is collected by a sphere with a finite port size.  Consequently,
-some light reflected by the sample will not collected.  This light is lost.
+some light reflected by the sample will not collected (because it emerges on
+the reflection side outside the port).  This light is lost.
 Furthermore, light collected by the sphere will uniformly and diffusely 
-re-illuminate the sample.  Some of this light will hit near the
+re-illuminate the sample.  Some of this diffuse incident light will hit near the
 the edge of the sample port; when this light re-emerges from the front of
-the sample it will have an excellent chance of not being collected by the sphere.
+the sample it will also have a chance of not being collected by the sphere.
 
 The only way that I knew of to properly account for these two types of light
 loss was to use a Monte Carlo program.  I refused to consider just swapping
 out the adding-doubling code and replacing it with Monte Carlo code.
-A few other groups did exactly this, but I was stubborn.
+A few other groups have done exactly this, but I was stubborn.
 Monte Carlo programs are easily 10$^4\times$
 slower than the adding-doubling method.  I finally conceived of a hybrid 
-approach that uses the fast inverse adding-doubling to find the optical properties
+approach that uses the inverse adding-doubling to quickly find the optical properties
 for a sample.  
 
 A Monte Carlo program is used to estimate the amount of light
@@ -428,9 +429,10 @@ a few Monte Carlo iterations before stabilizing.  Furthermore, when analyzed
 with the new \iadprog{} that accounted for lost light, all the earlier 
 results for the contract phantoms that we made were now consistent!
 
-\subsubsection*{Documentation}
-The last phase --- much longer than I expected --- has been to revise
-this manual.  
+Incorporating Monte Carlo into the \iadprog{} led to the next major release ---
+version 3.0.0 in May of 2006.
+
+\subsubsection*{User Issues 3}
 
 \clearpage
 \section{Installation}
@@ -507,7 +509,7 @@ same directory.
 
 \subsubsection{Testing}
 
-In Windows XP you can start \texttt{Cmd.exe} by
+In Windows you can start \texttt{Cmd.exe} by
 going to the \texttt{Start Menu}, selecting \texttt{Run...}, and typing
 \texttt{cmd.exe} 
 \begin{center}
@@ -515,21 +517,20 @@ going to the \texttt{Start Menu}, selecting \texttt{Run...}, and typing
 \end{center}
 and clicking `OK'. 
 
-Next navigate to the directory containing \texttt{iad.exe}.  
-(Alternatively you 
-can add the directory containing \texttt{iad.exe} in your path variable.%
-\footnote{
-When started from a shortcut, \texttt{Cmd.exe} inherits the environment variables set in 
-'My Computer/Properties/Advanced/Environment'.} and
-navigate to the directory containing your data files.
+Navigate to the directory containing \texttt{iad.exe}.
 
-Test the executable by running
+Alternatively, you can add the directory containing \texttt{iad.exe} to your PATH environment variable.%
+\footnote{When started from a shortcut, \texttt{Cmd.exe} inherits the environment variables set in `My Computer \textgreater Properties \textgreater Advanced \textgreater Environment Variables`.}
+
+Navigate to the directory containing your data files and test the executable by running:
 \begin{verbatim}
     prompt> iad -v
 \end{verbatim}
-which should respond with something like
+
+which should produce
+
 \begin{verbatim}
-iad 3-14-0 (27 Jan 2024)
+iad 3-16-2(24 Apr 2024)
 Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu
           (see Applied Optics, 32:559-568, 1993)
 
