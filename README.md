@@ -85,9 +85,9 @@ to translate the reflection and transmission measurements to optical properties 
 
 Usually one wants the optical properties over an entire spectrum.  A good example was
 recently provide by @anishabahl.  This measurement was made with a spectrophotometer 
-equipped with a dual beam integrating sphere.  The input data looks like this
+equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.rxt) looks like this
 
-![r and t graph](phantom-with-no-slides-RTU.svg)
+![r and t graph](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-RTU.svg)
 
 The option `i 8` indicates that light is incident on the sample at an angle of 8°, `-X` indicates that a sphere with dual beams was used, and `-g 0.9` indicates  the default
 scattering anisotropy.  Note that in the PDMS file, the index off refraction of the
@@ -97,16 +97,17 @@ sample changes with every data point
     iad -X -i 8 -g 0.9 phantom-with-no-slides.rxt
 ```
 
-which should produce data that when plotted looks like
+which should produce (a file)[https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt] that when plotted looks like
 
-![calculated mua](phantom-with-no-slides-mua.svg)
+![calculated mua](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mua.svg)
 
 and
 
-![calculated mus](phantom-with-no-slides-mus.svg)
+![calculated mus](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mus.svg)
 
-
-
+By the way, one can tell that this is an excellent set of measurements because there is
+almost no influence of the absorption coefficient on the scattering coefficient.
+ 
 ### Jupyter support
 
 As of March 2024, there is now a python command-line script `iadplus` that will analyze an `.rxt` input file and graph the results.  Everything is assembled into a Jupyter notebook for convenience.  You may need to install some python modules to be able to use `iadplus`
