@@ -33,6 +33,7 @@ unsigned long g_util_debugging = 0;
     @<Definition for |quick_guess|@>@;
     @<Definition for |Set_Debugging|@>@;
     @<Definition for |Debug|@>@;
+    @<Definition for |sqr|@>@;
     @<Definition for |Calculate_Mua_Musp|@>@;
     @<Definition for |Print_Invert_Type|@>@;
     @<Definition for |Print_Measure_Type|@>@;
@@ -55,6 +56,7 @@ unsigned long g_util_debugging = 0;
     @<Prototype for |Set_Debugging|@>;
     @<Prototype for |Calculate_Mua_Musp|@>;
     @<Prototype for |Debug|@>;
+    @<Prototype for |sqr|@>;
     @<Prototype for |Print_Invert_Type|@>;
     @<Prototype for |Print_Measure_Type|@>;
 
@@ -764,6 +766,18 @@ void quick_guess(struct measure_type m, struct invert_type r, double *a, double 
     else
         return 0;
 }
+
+@
+@<Prototype for |sqr|@>=
+    double sqr(double x)
+
+@
+@<Definition for |sqr|@>=
+    @<Prototype for |sqr|@>
+{
+    return x * x;
+}
+
 
 @ Just figure out the damn scattering and absorption.  This is a nuisance because
 |b| may be infinite.

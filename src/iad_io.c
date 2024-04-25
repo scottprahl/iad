@@ -12,7 +12,9 @@ char COLUMN_LABELS[MAX_COLUMNS] = "";
 #include "ad_globl.h"
 #include "iad_type.h"
 #include "iad_io.h"
+#include "iad_util.h"
 #include "iad_pub.h"
+
 #include "version.h"
 
 long get_current_line_number(FILE *file)
@@ -304,9 +306,9 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
         if (read_number(fp, &m->rw_r))
             return 1;
 
-        m->as_r = (d_sample_r / m->d_sphere_r / 2.0) * (d_sample_r / m->d_sphere_r / 2.0);
-        m->at_r = (d_third_r / m->d_sphere_r / 2.0) * (d_third_r / m->d_sphere_r / 2.0);
-        m->ad_r = (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r / m->d_sphere_r / 2.0);
+        m->as_r = sqr(d_sample_r / (2 * m->d_sphere_r));
+        m->at_r = sqr(d_third_r / (2 * m->d_sphere_r));
+        m->ad_r = sqr(d_detector_r / (2 * m->d_sphere_r));
         m->aw_r = 1.0 - m->as_r - m->at_r - m->ad_r;
     }
 
@@ -323,9 +325,9 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
         if (read_number(fp, &m->rw_t))
             return 1;
 
-        m->as_t = (d_sample_t / m->d_sphere_t / 2.0) * (d_sample_t / m->d_sphere_t / 2.0);
-        m->at_t = (d_third_t / m->d_sphere_t / 2.0) * (d_third_t / m->d_sphere_t / 2.0);
-        m->ad_t = (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t / m->d_sphere_t / 2.0);
+        m->as_t = sqr(d_sample_t / (2 * m->d_sphere_t));
+        m->at_t = sqr(d_third_t / (2 * m->d_sphere_t));
+        m->ad_t = sqr(d_detector_t / (2 * m->d_sphere_t));
         m->aw_t = 1.0 - m->as_t - m->at_t - m->ad_t;
     }
 

@@ -33,6 +33,8 @@ void Calculate_Mua_Musp(struct measure_type m, struct invert_type r, double *mus
 
 int Debug(unsigned long mask);
 
+double sqr(double x);
+
 void Print_Invert_Type(struct invert_type r);
 
 void Print_Measure_Type(struct measure_type m);

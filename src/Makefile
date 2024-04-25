@@ -12,13 +12,13 @@ DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
 
 CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC -fsigned-char
 
-IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o
+IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o   mc_lost.o
 
 AD_OBJ  = nr_zbrak.o  ad_bound.o ad_doubl.o ad_frsnl.o ad_globl.o ad_matrx.o \
           ad_phase.o  ad_prime.o ad_radau.o ad_start.o ad_cone.o  ad_layers.o
 
 NR_OBJ  = nr_amoeb.o  nr_amotr.o nr_brent.o nr_gaulg.o  nr_mnbrk.o     nr_rtsaf.o \
-          nr_util.o   mc_lost.o  nr_hj.o    nr_zbrent.o
+          nr_util.o   nr_hj.o    nr_zbrent.o
 
 ad: $(AD_OBJ) $(NR_OBJ) ad_main.o version.o
 	./version.pl
@@ -112,10 +112,6 @@ oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
 	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
-mc_lost: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_main.o
-	$(CC) -o $@ $^ -lm
-	rm -rf mc_lost.o
-
 mc_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_test.o
 	$(CC) -o $@ $^ -lm
 
@@ -150,7 +146,7 @@ iad_main.o : iad_main.c ad_globl.h ad_frsnl.h ad_prime.h iad_type.h iad_pub.h ia
 iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h
 
 nr_amoeb.o :  iad_type.h
-mc_lost.o  :  iad_type.h
+mc_lost.o  :  iad_type.h iad_util.h
 mc_lost_main.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 mc_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 

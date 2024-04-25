@@ -8,6 +8,7 @@
 #include "ad_globl.h"
 #include "ad_frsnl.h"
 #include "iad_type.h"
+#include "iad_util.h"
 
 #define MIN_WEIGHT 0.0001
 #define N_RADIAL_BINS  1001
@@ -147,11 +148,6 @@ static double rand_zero_one(void)
 static double rand_one_one(void)
 {
     return 2.0 * rand_zero_one() - 1.0;
-}
-
-static double sqr(double x)
-{
-    return x * x;
 }
 
 /* Fresnel Reflectance

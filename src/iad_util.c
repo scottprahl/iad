@@ -351,6 +351,11 @@ int Debug(unsigned long mask)
         return 0;
 }
 
+double sqr(double x)
+{
+    return x * x;
+}
+
 void Calculate_Mua_Musp(struct measure_type m, struct invert_type r, double *mus, double *musp, double *mua)
 {
     if (r.b == HUGE_VAL || isinf(r.b)) {

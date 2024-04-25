@@ -15,7 +15,9 @@ char COLUMN_LABELS[MAX_COLUMNS] = "";
 #include "ad_globl.h"
 #include "iad_type.h"
 #include "iad_io.h"
+#include "iad_util.h"
 #include "iad_pub.h"
+
 #include "version.h"
 
 @<Definition for |get_current_line_number|@>@;
@@ -86,7 +88,12 @@ should do the trick.
     return 0;
 }
 
-@ @<Read coefficients for reflection sphere@>=
+@ So the port areas are normalized by the sphere area
+$$
+a = {A_{port} \over A_{sphere}}= {\pi (d_{port}/2)^2 \over 4\pi (d_{sphere}/2)^2} 
+= \left[{d_{port} \over 2 d_{sphere}}\right]^2
+$$
+@<Read coefficients for reflection sphere@>=
 {
     double d_sample_r, d_third_r, d_detector_r;
     if (read_number(fp,&m->d_sphere_r))   return 1;
@@ -95,9 +102,9 @@ should do the trick.
     if (read_number(fp,&d_detector_r))    return 1;
     if (read_number(fp,&m->rw_r))         return 1;
 
-    m->as_r = (d_sample_r   / m->d_sphere_r / 2.0) * (d_sample_r   / m->d_sphere_r / 2.0);
-    m->at_r = (d_third_r    / m->d_sphere_r / 2.0) * (d_third_r    / m->d_sphere_r / 2.0);
-    m->ad_r = (d_detector_r / m->d_sphere_r / 2.0) * (d_detector_r / m->d_sphere_r / 2.0);
+    m->as_r = sqr(d_sample_r   / (2 * m->d_sphere_r)) ;
+    m->at_r = sqr(d_third_r    / (2 * m->d_sphere_r));
+    m->ad_r = sqr(d_detector_r / (2 * m->d_sphere_r));
     m->aw_r = 1.0 - m->as_r - m->at_r - m->ad_r;
 }
 
@@ -110,9 +117,9 @@ should do the trick.
     if (read_number(fp,&d_detector_t)) return 1;
     if (read_number(fp,&m->rw_t))         return 1;
 
-    m->as_t = (d_sample_t   / m->d_sphere_t / 2.0) * (d_sample_t   / m->d_sphere_t / 2.0);
-    m->at_t = (d_third_t    / m->d_sphere_t / 2.0) * (d_third_t    / m->d_sphere_t / 2.0);
-    m->ad_t = (d_detector_t / m->d_sphere_t / 2.0) * (d_detector_t / m->d_sphere_t / 2.0);
+    m->as_t = sqr(d_sample_t   / (2 * m->d_sphere_t)) ;
+    m->at_t = sqr(d_third_t    / (2 * m->d_sphere_t));
+    m->ad_t = sqr(d_detector_t / (2 * m->d_sphere_t));
     m->aw_t = 1.0 - m->as_t - m->at_t - m->ad_t;
 }
 
