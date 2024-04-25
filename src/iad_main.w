@@ -1244,17 +1244,6 @@ properties can be determined.
     if (m.m_u == 0) m.num_measures--;
     params = m.num_measures;
 
-    if (m.num_measures==3) {
-        /* need to fill slab entries to calculate the optical thickness */
-        struct AD_slab_type s;
-        s.n_slab=m.slab_index;
-        s.n_top_slide=m.slab_top_slide_index;
-        s.n_bottom_slide=m.slab_bottom_slide_index;
-        s.b_top_slide=m.slab_top_slide_b;
-        s.b_bottom_slide=m.slab_bottom_slide_b;
-        s.cos_angle=m.slab_cos_angle;
-     }
-
 @ @<print version function@>=
 
 static void print_version(int verbosity)
