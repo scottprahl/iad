@@ -24,14 +24,56 @@ Details about using the program are documented in the accompanying [manual](/doc
 
 ## INSTALLATION
 
-In principle, in a unix environment you should be able to just type
+In a unix environment,
 
-    make install
+```bash
+    unzip iad-3-16-2.zip
+    make
+    ./iad -v
+```
 
-to create and install executable versions of the `ad` and `iad` programs.  See
-[INSTALL.md](/INSTALL.md) for more details. Then run
+to create and executable versions the `iad` program.  See
+[INSTALL.md](/INSTALL.md) for more details. 
 
-    iad test/basic-A.rxt
+## Usage
+
+To find the optical properties
+of a sample 1mm thick that has a total reflectance of 40% and a total transmission of
+10% do
+
+```bash
+    ./iad -r 0.4 -t 0.1 -d 1
+```
+
+which will generate
+
+```
+# Inverse Adding-Doubling 3-16-2 (24 Apr 2024) 
+# iad -r 0.4 -t 0.1 
+...
+#     	Measured 	   M_R   	Measured 	   M_T   	Estimated	Estimated	Estimated
+##wave	   M_R   	   fit   	   M_T   	   fit   	  mu_a   	  mu_s'  	    g    
+# [nm]	  [---]  	  [---]  	  [---]  	  [---]  	  1/mm   	  1/mm   	  [---]  
+     1	   0.4000	   0.4000	   0.1000	   0.0999	   0.4673	   3.9317	   0.0000	 *
+```
+
+This can be checked by doing a forward calculation using (here `-z` designates a forward
+calculation, `-A 0.4673` sets the absorption coefficient, and `-j 3.9317` sets the reduced scattering coefficient).  Specifying the thickness `-d 1` is necessary because the default
+thickness is infinite.
+
+
+```bash
+    ./iad -z -A 0.4673 -j 3.9317 -d 1
+```
+
+which produces output that ends with
+
+```
+#     	Measured 	   M_R   	Measured 	   M_T   	Estimated	Estimated	Estimated
+##wave	   M_R   	   fit   	   M_T   	   fit   	  mu_a   	  mu_s'  	    g    
+# [nm]	  [---]  	  [---]  	  [---]  	  [---]  	  1/mm   	  1/mm   	  [---]  
+     0	   0.0000	   0.4000	   0.0000	   0.0999	   0.4673	   3.9317	   0.0000	 * 
+```
 
 to translate the reflection and transmission measurements to optical properties in the generated file `test/basic-A.txt`
 
