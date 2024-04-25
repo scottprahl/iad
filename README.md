@@ -97,7 +97,7 @@ sample changes with every data point
     iad -X -i 8 -g 0.9 phantom-with-no-slides.rxt
 ```
 
-which should produce (a file)[https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt] that when plotted looks like
+which should produce [a file](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt) that when plotted looks like
 
 ![calculated mua](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mua.svg)
 
