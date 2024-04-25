@@ -81,23 +81,26 @@ to translate the reflection and transmission measurements to optical properties 
 
 > For Windows, there are executable binaries `ad.exe` and `iad.exe` compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run using the `Command Prompt` application `cmd.exe`.  These binaries are packaged in a separate `iad-win` distributions on [github](https://github.com/scottprahl/iad/releases) or [omlc](https://omlc.org/software/iad/).
 
-### Inverting many points
+### Inverting spectral data
 
-Usually one wants the optical properties over an entire spectrum.  A good example was
+Often one wants the optical properties over an entire spectrum.  A good example was
 recently provide by @anishabahl.  This measurement was made with a spectrophotometer 
-equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.rxt) looks like this
+equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.rxt) looks includes the total reflection and transmission as well a header that describes the
+experiment.  The reflection and transmission data look like this
 
 ![r and t graph](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-RTU.svg)
 
-The option `i 8` indicates that light is incident on the sample at an angle of 8°, `-X` indicates that a sphere with dual beams was used, and `-g 0.9` indicates  the default
-scattering anisotropy.  Note that in the PDMS file, the index off refraction of the
-sample changes with every data point
+The input file is processed with
 
 ```bash
     iad -X -i 8 -g 0.9 phantom-with-no-slides.rxt
 ```
 
-which should produce [a file](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt) that when plotted looks like
+The option `i 8` indicates that light is incident on the sample at an angle of 8°, `-X` indicates that a sphere with dual beams was used, and `-g 0.9` indicates  the default
+scattering anisotropy.  Note that in the PDMS file, the index off refraction of the
+sample changes with every data point
+
+This command will produce an [output file](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt) that when plotted looks like
 
 ![calculated mua](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mua.svg)
 
@@ -106,7 +109,8 @@ and
 ![calculated mus](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mus.svg)
 
 By the way, one can tell that this is an excellent set of measurements because there is
-almost no influence of the absorption coefficient on the scattering coefficient.
+almost no influence of the absorption coefficient on the scattering coefficient.  The 
+intrinsic absorption of the PDMS matches that found for Wacker PDMS RT 601 19:1 found in [Cai's 2008 Disseration](https://dx.doi.org/10.17877/DE290R-8242)
  
 ### Jupyter support
 
