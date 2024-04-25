@@ -285,7 +285,7 @@ I fixed a number of minor bugs and adapted the header for the input data files t
 corrections into accordance with the integrating sphere paper I worked on with Pickering and
 others.  
 
-\subsubsection*{The transition to C}
+\subsubsection*{Version 1.0.0 --- The beginning}
 
 Until this stage, \iadprog{} was developed in Pascal. I must confess, despite its waning popularity, I had a fondness for Pascal. By 1986, however, it was becoming increasingly difficult to find robust Pascal compilers, as Pascal had fallen out of favor. The programming community had shifted its preference to C.
 
@@ -317,7 +317,7 @@ David provided the incentive to incorporate light absorption by slides sandwichi
 This feature becomes important in the near-IR and solved a user problem twenty years later!%
 \footnote{This functionality is accessed through the \texttt{-E} command-line option.}
 
-\subsubsection*{User Issues 2}
+\subsubsection*{Version 2.0.0 --- Repackaging}
 
 In the intervening ten years or so, I would correspond with users and add
 features or fix bugs as needed.  In 2004, I looked at the code base and realized that I had added
@@ -400,7 +400,7 @@ increased from 1.66 to 1.91\,mm$^{-1}$ when the sphere reflectivity was
 changed from 0.960 to 0.973; consequently, it is important to measure
 the wall reflectivity of your spheres.
 
-\subsubsection*{Solving the light loss problem}
+\subsubsection*{Version 3.0.0 --- Solving the light loss problem}
 
 The light loss problem is simple.  Light hits the front of a sample and the
 reflected light is collected by a sphere with a finite port size.  Consequently,
@@ -429,9 +429,6 @@ a few Monte Carlo iterations before stabilizing.  Furthermore, when analyzed
 with the new \iadprog{} that accounted for lost light, all the earlier 
 results for the contract phantoms that we made were now consistent!
 
-Incorporating Monte Carlo into the \iadprog{} led to the next major release ---
-version 3.0.0 in May of 2006.
-
 \subsubsection*{User Issues 3}
 
 \clearpage
@@ -439,73 +436,28 @@ version 3.0.0 in May of 2006.
 
 \subsection{Obtaining the code}
 
-The source code is available at
+The source code is available as a \texttt{git} repository or as a zip archive
+of individual releases at
+
 \begin{center}
-\texttt{http://omlc.org/software/iad/}
+\url{https://github.com/scottprahl/iad}
 \end{center}
-Links to compiled versions of the code for MacOS X (PPC and Intel) as well as
-for Windows (XP) are there as well.  You Linux types will need to download 
-\texttt{iad-3-6-0.zip} and compile as described below.
 
-There are two basic distributions \texttt{iad-3-6-0.zip} and \texttt{xp\_iad3-6-0.zip}.
-These are built from the same original source files.  
-The former is the full distribution and contains all the \texttt{CWEB}%
-\footnote{\texttt{http://www-cs-faculty.stanford.edu/\~{}knuth/cweb.html}}
-files.  It is intended for unix systems and uses \texttt{make} to produce
-executables.  The \texttt{zip} distribution contains a binary compiled version
-for Windows XP.  It also has the minimal set of \texttt{.c} and \texttt{.h} 
-files needed to compile a binary using Microsoft's compiler.
+The two distributions are \texttt{iad-3-16-2.zip} and \texttt{iad-win-3-16-2.zip}.
+The former contains the source files and the latter contains the same sources along 
+with pre-built binaries \texttt{ad.exe} and \texttt{iad.exe} for Windows.  
 
-The actual source files \texttt{foo.w} are  written in \texttt{CWEB}, from which the
-ANSI C source code files \texttt{foo.c} and \texttt{foo.h} files are 
-generated.  The documenation \texttt{foo.tex} is also generated from the same
+The original source files \texttt{foo.w} are written in \texttt{CWEB}, from which the
+source code files \texttt{foo.c} and \texttt{foo.h} files are 
+generated.  The documentation \texttt{foo.tex} is also generated from the same
 base \texttt{foo.w} files.  This keeps the code and the documentation in one
 place and furthermore allows me to use the typesetting  capabilities of \TeX\ in
-the program comments (see \texttt{doc/ad\_src.pdf} and \texttt{doc/iad\_src.pdf}.
+the program comments (see \texttt{docs/ad\_src.pdf} and \texttt{docs/iad\_src.pdf}.
 
-(I cautiously recommend the \texttt{CWEB} system.  It
-really does produce beautiful documentation, but I do not think it is worth
-having code that is not readily sharable with others.
-So that you will not need to install \texttt{CWEB} the raw, the
-uncommented C source files are contained in both distributions.)
-
-\subsection{Compiling on Windows XP}
-
-The \iadprog{} code has been tested and compiles cleanly under two windows
-development environments.  
-
-The first one is the 
-standard Microsoft compiler Visual C++ 2005 Express%
-\footnote{\texttt{http://msdn.microsoft.com/vstudio/express/visualc/}}
-which uses the \texttt{xp\_iad.zip} archive.  The \texttt{xp\_iad.zip} archive
-contains the minimum set of files required to build an executable using
-Visual C++.  Unzip the file \texttt{xp\_iad.zip}. 
-Navigate to the directory \texttt{xp\_iad} and then into \texttt{src} inside the directory.
-Double-click on the file named \texttt{xp\_iad.vcproj} to start Visual C++ and
-open the program project.  Select \texttt{Build}$\rightarrow$\texttt{Build Solution} from 
-the menu to compile the program to create the executable \texttt{iad.exe} 
-in the \texttt{xp\_iad} directory.
-The executable \texttt{iad.exe} is a command-line program that should be
-run in the \texttt{Cmd.exe} shell.   
-
-The second environment is the Minimalist GNU for Windows \texttt{minGW}%
-\footnote{\texttt{http://www.mingw.org/}}.  \texttt{minGW} provides a
-simple Unix-like environment that runs on top of Windows XP.  This second environment
-needs the standard \texttt{iad.tar.gz} distribution that all other platforms use.  To compile an executable,  unpack
-the tarball, navigate to the top level directory in the distribution and type.  Navigate to the top-level directory in the tarball and uncomment the line in the \texttt{Makefile} so that
-\begin{verbatim}
-#BINARY_EXTENSION=.exe
-\end{verbatim}
-becomes
-\begin{verbatim}
-BINARY_EXTENSION=.exe
-\end{verbatim}
-This causes the \texttt{Makefile} to produce executable files called \texttt{iad.exe} rather than just \texttt{iad}.  To compile the program type
-\begin{verbatim}
-    prompt> make
-\end{verbatim}
-at the prompt.  This should produce two executable files \texttt{ad.exe} and \texttt{iad.exe} in the 
-same directory.
+(The \texttt{CWEB} system really does produce beautiful documentation, but I do not 
+think that offsets the fact that the code that is worth the hassles associated
+with debugging or the need to keep separate \texttt{.c} and \texttt{.h} versions
+in sync with the distributions.)
 
 \subsubsection{Testing}
 
@@ -530,7 +482,7 @@ Navigate to the directory containing your data files and test the executable by 
 which should produce
 
 \begin{verbatim}
-iad 3-16-2(24 Apr 2024)
+iad 3-16-2 (24 Apr 2024)
 Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu
           (see Applied Optics, 32:559-568, 1993)
 
@@ -555,11 +507,13 @@ This code has been compiled and tested on a variety of unix computers (MacOS X P
 Red Hat Linux x86, and SUSE Linux x86) and microprocessors (PPC, x86, and Arm (Raspberry Pi and
 Apple M-Series).
 If you just want to compile the code you just need a compiler and a \texttt{make} program.
-To compile an executable,  unzip the compressed file, navigate to the top level directory in the distribution and type
+To compile an executable
 \begin{verbatim}
-    prompt> make
+prompt> unzip iad-3-16-2.zip
+prompt> cd iad-3-16-2
+prompt> make
 \end{verbatim}
-at the prompt.  This should produce two executable files \texttt{ad} and \iadprog{} in the 
+This should produce two executable files \texttt{ad} and \iadprog{} in the 
 same directory.%
 \footnote{To recreate all the files
 from the originals you'll need \texttt{perl}, \pdflatex{}, \texttt{cweb} and \texttt{indent}.}
@@ -570,7 +524,7 @@ from the originals you'll need \texttt{perl}, \pdflatex{}, \texttt{cweb} and \te
 \end{verbatim}
 should respond with something like
 \begin{verbatim}
-iad 3-14-0 (27 Jan 2024)
+iad 3-16-2 (24 Apr 2024)
 Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu
           (see Applied Optics, 32:559-568, 1993)
 
@@ -584,9 +538,7 @@ at the prompt.  Test the executable by running
 \begin{verbatim}
     prompt> make test
 \end{verbatim}
-This will run a series of simple calculations.  Check for validity by making sure
-that (column 1 = column 2) and (column 3 = column 4).
-
+This will run a series of simple calculations. 
 \clearpage
 
 \section{Experimental Decisions}
