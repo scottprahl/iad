@@ -37,6 +37,8 @@ to create and executable versions the `iad` program.  See
 
 ## Usage
 
+### Inverting a single measurement on the command line
+
 To find the optical properties
 of a sample 1mm thick that has a total reflectance of 40% and a total transmission of
 10% do
@@ -78,6 +80,32 @@ which produces output that ends with
 to translate the reflection and transmission measurements to optical properties in the generated file `test/basic-A.txt`
 
 > For Windows, there are executable binaries `ad.exe` and `iad.exe` compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run using the `Command Prompt` application `cmd.exe`.  These binaries are packaged in a separate `iad-win` distributions on [github](https://github.com/scottprahl/iad/releases) or [omlc](https://omlc.org/software/iad/).
+
+### Inverting many points
+
+Usually one wants the optical properties over an entire spectrum.  A good example was
+recently provide by @anishabahl.  This measurement was made with a spectrophotometer 
+equipped with a dual beam integrating sphere.  The input data looks like this
+
+![r and t graph](phantom-with-no-slides-RTU.svg)
+
+The option `i 8` indicates that light is incident on the sample at an angle of 8°, `-X` indicates that a sphere with dual beams was used, and `-g 0.9` indicates  the default
+scattering anisotropy.  Note that in the PDMS file, the index off refraction of the
+sample changes with every data point
+
+```bash
+    iad -X -i 8 -g 0.9 phantom-with-no-slides.rxt
+```
+
+which should produce data that when plotted looks like
+
+![calculated mua](phantom-with-no-slides-mua.svg)
+
+and
+
+![calculated mus](phantom-with-no-slides-mus.svg)
+
+
 
 ### Jupyter support
 
