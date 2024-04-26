@@ -73,7 +73,7 @@ recently provide by @anishabahl.  This measurement was made with a spectrophotom
 equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.rxt) looks includes the total reflection and transmission as well a header that describes the
 experiment.  The reflection and transmission data look like this
 
-![r and t graph](../docs/phantom-with-no-slides-RTU.svg)
+![r and t graph](https://github.com/scottprahl/iad/blob/docs/phantom-with-no-slides-RTU.svg)
 
 The input file is processed with
 
@@ -85,13 +85,13 @@ The option `i 8` indicates that light is incident on the sample at an angle of 8
 scattering anisotropy.  Note that in the PDMS file, the index off refraction of the
 sample changes with every data point
 
-This command will produce an [output file](../docs/phantom-with-no-slides.txt) that when plotted looks like
+This command will produce an [output file](https://github.com/scottprahl/iad/blob/docs/phantom-with-no-slides.txt) that when plotted looks like
 
-![calculated mua](../docs/phantom-with-no-slides-mua.svg)
+![calculated mua](https://github.com/scottprahl/iad/blob/docs/phantom-with-no-slides-mua.svg)
 
 and
 
-![calculated mus](../docs/phantom-with-no-slides-mus.svg)
+![calculated mus](https://github.com/scottprahl/iad/blob/docs/phantom-with-no-slides-mus.svg)
 
 By the way, one can tell that this is an excellent set of measurements because there is
 almost no influence of the absorption coefficient on the scattering coefficient.  The 
