@@ -82,20 +82,20 @@ The input file is processed with
 ```
 
 The option `i 8` indicates that light is incident on the sample at an angle of 8°, `-X` indicates that a sphere with dual beams was used, and `-g 0.9` indicates  the default
-scattering anisotropy.  Note that in the PDMS file, the index off refraction of the
-sample changes with every data point
+scattering anisotropy.  Note that in the PDMS file, the refractive index of the
+sample changes with each data point
 
 This command will produce an [output file](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt) that when plotted looks like
 
 ![calculated mua](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mua.svg)
 
-and
+which matches the 
+intrinsic absorption of Wacker PDMS found in Cai's 2008 [Disseration](https://dx.doi.org/10.17877/DE290R-8242)
 
 ![calculated mus](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mus.svg)
 
-By the way, one can tell that this is an excellent set of measurements because there is
-almost no influence of the absorption coefficient on the scattering coefficient.  The 
-intrinsic absorption of the PDMS matches that found for Wacker PDMS RT 601 19:1 found in [Cai's 2008 Disseration](https://dx.doi.org/10.17877/DE290R-8242)
+This is an excellent set of measurements because there is
+almost no influence of the absorption coefficient on the scattering coefficient.  
  
 ### Jupyter support
 
