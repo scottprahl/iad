@@ -7,60 +7,47 @@
 
 by Scott Prahl
 
-May 2023
+April 2024
 
-## OVERVIEW
+## Overview
 
-Inverse Adding-Doubling is a command-line program that determines the intrinsic optical properties of a flat scattering and absoption sample using measurements of the total reflection and transmission.  Basically, optical properties are repeatedly guessed until the calculated reflection and transmission match the measured values.
+Inverse Adding-Doubling is a command-line program that determines the intrinsic optical properties of a flat scattering and absoption sample using measurements of the total reflection and transmission.  Basically, optical properties are repeatedly guessed until the calculated reflection and transmission match the measured values. The program accounts
+for realistic measurement constraints associated with integrating sphere effects.
 
-This package provides two executables `ad` and `iad`.  The first does a forward adding-doubling calculation (i.e., given the albedo, optical thickness, and anisotropy it returns the total reflection and transmission).  The second
-does the reverse.
+This package provides two executables `ad` and `iad`.  The first does a forward adding-doubling calculation (i.e., given the albedo, optical thickness, and anisotropy it returns the total reflection and transmission).  The second does the reverse.
 
 This program [Prahl et al., *Applied Optics*, **32**, 559-568, 1993](https://omlc.org/~prahl/pubs/pdfx/prahl93a.pdf) uses the Adding-Doubling method of [van de Hulst *Multiple Light Scattering*, Academic Press, 1978](https://www.amazon.com/Multiple-Light-Scattering-Formulas-Applications-ebook/dp/B01D4CMF80).  I extended the Adding-Doubling method to account for Fresnel reflection at boundaries as well as corrections that must accompany integrating sphere experiments.
 
-Finally, integrating spheres do not always collect all the light that exits from the front or back surface of a sample.  Since this is impossible to account for the 1D adding-doubling technique, a Monte Carlo simulation is included in the inverse calculation.
+Finally, integrating spheres do not always collect all the light that exits from the front or back surface of a sample.  Since this is impossible to account for the 1D adding-doubling technique, a Monte Carlo simulation is embedded in the inverse calculation.
 
 Details about using the program are documented in the accompanying [manual](/doc/manual.pdf).
 
-## INSTALLATION
+## Installation
 
-In a unix environment,
-
-```bash
-    unzip iad-3-16-2.zip
-    make
-    ./iad -v
-```
-
-to create and executable versions the `iad` program.  See
-[INSTALL.md](/INSTALL.md) for more details. 
+Obtaining executables from source entails unzipping and running `make` (See
+[INSTALL.md](/INSTALL.md) for more details.) Windows executables are available
+in the `iad-win-3-16-2.zip` releases.
 
 ## Usage
 
 ### Inverting a single measurement on the command line
 
-To find the optical properties
-of a sample 1mm thick that has a total reflectance of 40% and a total transmission of
-10% do
+To find the optical properties of a 1mm thick sample with 40% total reflectance and 10% total transmission
 
 ```bash
     ./iad -r 0.4 -t 0.1 -d 1
 ```
 
-which will generate
+which will generate output that ends with
 
 ```
-# Inverse Adding-Doubling 3-16-2 (24 Apr 2024) 
-# iad -r 0.4 -t 0.1 
-...
-#     	Measured 	   M_R   	Measured 	   M_T   	Estimated	Estimated	Estimated
-##wave	   M_R   	   fit   	   M_T   	   fit   	  mu_a   	  mu_s'  	    g    
-# [nm]	  [---]  	  [---]  	  [---]  	  [---]  	  1/mm   	  1/mm   	  [---]  
-     1	   0.4000	   0.4000	   0.1000	   0.0999	   0.4673	   3.9317	   0.0000	 *
+#       Measured   M_R     Measured   M_T    Estimated Estimated Estimated
+##wave     M_R     fit        M_T     fit       mu_a     mu_s'       g    
+# [nm]    [---]    [---]     [---]    [---]     1/mm     1/mm      [---]  
+     1   0.4000   0.4000    0.1000   0.0999    0.4673   3.9317    0.0000    *
 ```
 
-This can be checked by doing a forward calculation using (here `-z` designates a forward
-calculation, `-A 0.4673` sets the absorption coefficient, and `-j 3.9317` sets the reduced scattering coefficient).  Specifying the thickness `-d 1` is necessary because the default
+The process can be reversed by doing a forward calculation with the `-z` option.  Here `-A 0.4673` sets the absorption coefficient, and `-j 3.9317` sets the reduced scattering coefficient).  Specifying the thickness `-d 1` is necessary because the default
 thickness is infinite.
 
 
@@ -68,18 +55,16 @@ thickness is infinite.
     ./iad -z -A 0.4673 -j 3.9317 -d 1
 ```
 
-which produces output that ends with
+produces output that ends with
 
 ```
-#     	Measured 	   M_R   	Measured 	   M_T   	Estimated	Estimated	Estimated
-##wave	   M_R   	   fit   	   M_T   	   fit   	  mu_a   	  mu_s'  	    g    
-# [nm]	  [---]  	  [---]  	  [---]  	  [---]  	  1/mm   	  1/mm   	  [---]  
-     0	   0.0000	   0.4000	   0.0000	   0.0999	   0.4673	   3.9317	   0.0000	 * 
+#       Measured    M_R    Measured    M_T    Estimated Estimated Estimated
+##wave     M_R      fit       M_T      fit      mu_a      mu_s'       g    
+# [nm]    [---]    [---]     [---]    [---]     1/mm      1/mm      [---]  
+     0   0.0000   0.4000    0.0000   0.0999    0.4673    3.9317     0.0000    * 
 ```
 
-to translate the reflection and transmission measurements to optical properties in the generated file `test/basic-A.txt`
-
-> For Windows, there are executable binaries `ad.exe` and `iad.exe` compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run using the `Command Prompt` application `cmd.exe`.  These binaries are packaged in a separate `iad-win` distributions on [github](https://github.com/scottprahl/iad/releases) or [omlc](https://omlc.org/software/iad/).
+> For Windows, there are executable binaries `ad.exe` and `iad.exe` compiled using [MinGW-w64](https://mingw-w64.org/doku.php).  These apps can be run using the `Command Prompt` application `cmd.exe`.  These binaries are packaged in the separate `iad-win` distributions on [github](https://github.com/scottprahl/iad/releases) or [omlc](https://omlc.org/software/iad/).
 
 ### Inverting spectral data
 
@@ -88,7 +73,7 @@ recently provide by @anishabahl.  This measurement was made with a spectrophotom
 equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.rxt) looks includes the total reflection and transmission as well a header that describes the
 experiment.  The reflection and transmission data look like this
 
-![r and t graph](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-RTU.svg)
+![r and t graph](../docs/phantom-with-no-slides-RTU.svg)
 
 The input file is processed with
 
@@ -100,13 +85,13 @@ The option `i 8` indicates that light is incident on the sample at an angle of 8
 scattering anisotropy.  Note that in the PDMS file, the index off refraction of the
 sample changes with every data point
 
-This command will produce an [output file](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt) that when plotted looks like
+This command will produce an [output file](../docs/phantom-with-no-slides.txt) that when plotted looks like
 
-![calculated mua](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mua.svg)
+![calculated mua](../docs/phantom-with-no-slides-mua.svg)
 
 and
 
-![calculated mus](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mus.svg)
+![calculated mus](../docs/phantom-with-no-slides-mus.svg)
 
 By the way, one can tell that this is an excellent set of measurements because there is
 almost no influence of the absorption coefficient on the scattering coefficient.  The 
@@ -118,8 +103,7 @@ As of March 2024, there is now a python command-line script `iadplus` that will 
 
     iadplus -options '-i 8 -X ' file.rxt
 
-will produce `file.txt` as well as bunch of `.svg` files for the Jupyter notebook
-`file.ipynb`
+will run `iad` and produce `file-notebook/file.ipynb` along with a bunch of `.svg` files used in the Jupyter notebook  `file.ipynb`
 
 ## Author
 

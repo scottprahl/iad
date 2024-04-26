@@ -12,8 +12,7 @@ On Linux and macOS, you should be able to just type
 
 to create excutable versions of the `ad` and `iad` programs.  
 
-> Despite being written in standard C, cross-platform compiling can be a nuisance because I wrote the program using the literate [cweb](http://literateprogramming.com/cweb_download.html) techniques of Knuth.  This means the original source files `*.w` need to be converted to to `*.c` files using a program called `ctangle`. Since I don't want everyone else to be forced to wear the `cweb` hairshirt, I have included the `.c` and `.h` files, but sometimes I screw up.  The ctangle code is available from [Stanford](https://www-cs-faculty.stanford.edu/~knuth/cweb.html).
-
+> Despite being written in standard C, cross-platform compiling can be a nuisance because I wrote the program using the literate [cweb](http://literateprogramming.com/cweb_download.html) techniques of Knuth.  This means the original source files `*.w` need to be converted to to `*.c` files using a program called `ctangle`. Since I don't want everyone else to be forced to wear the `cweb` hairshirt, I have included the `.c` and `.h` files, but sometimes I screw up.
 
 To verify that the program is working properly, try
 
