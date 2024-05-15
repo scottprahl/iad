@@ -16,10 +16,6 @@
 
 void Inverse_RT(struct measure_type m, struct invert_type *r)
 {
-    if (m.m_u > 0 && r->default_b == UNINITIALIZED) {
-        r->default_b = What_Is_B(r->slab, m.m_u);
-    }
-
     if (r->search == FIND_AUTO) {
         r->search = determine_search(m, *r);
     }
@@ -248,6 +244,8 @@ search_type determine_search(struct measure_type m, struct invert_type r)
         independent++;
     if (m.m_t > 0)
         independent++;
+    if (m.m_u > 0)
+        independent++;
 
     if (r.default_a != UNINITIALIZED)
         constraints++;
@@ -265,6 +263,16 @@ search_type determine_search(struct measure_type m, struct invert_type r)
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr, "SEARCH: starting with %d measurement(s)\n", independent);
         fprintf(stderr, "SEARCH:      and with %d constraint(s)\n", constraints);
+        if (r.default_a != UNINITIALIZED)
+            fprintf(stderr, "            albedo constrained\n");
+        if (r.default_b != UNINITIALIZED)
+            fprintf(stderr, "            optical thickness constrained\n");
+        if (r.default_g != UNINITIALIZED)
+            fprintf(stderr, "            anisotropy constrained\n");
+        if (r.default_mua != UNINITIALIZED)
+            fprintf(stderr, "          mua constrained\n");
+        if (r.default_mus != UNINITIALIZED)
+            fprintf(stderr, "          mus constrained\n");
         fprintf(stderr, "SEARCH: m_r = %8.5f ", m.m_r);
         fprintf(stderr, "m_t = %8.5f ", m.m_t);
         fprintf(stderr, "m_u = %8.5f\n", m.m_u);

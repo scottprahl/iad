@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v3.16.3 (15 May 2024)
+---------------------
+*   fixed bug that discarded info from "g" input column
+
 v3.16.2 (23 Apr 2024)
 ---------------------
 *   fixed bug in mc_lost affecting lost light estimation

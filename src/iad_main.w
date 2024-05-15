@@ -866,12 +866,6 @@ measurements.
         rt_total++;
         Initialize_Result(m, &r, FALSE);
 
-        r.default_a = UNINITIALIZED;
-        r.default_b = UNINITIALIZED;
-        r.default_g = UNINITIALIZED;
-        r.default_mua = UNINITIALIZED;
-        r.default_mus = UNINITIALIZED;
-
         @<Command-line changes to |r|@>@;
         @<Warn and quit for bad options@>@;
         @<Write Header @>@;

@@ -73,9 +73,11 @@ This is the most common case.
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"SEARCH: Using U_Find_AB()");
-        fprintf(stderr," (mu=%6.4f)",r->slab.cos_angle);
+        fprintf(stderr," mu=%4.2f, g=",r->slab.cos_angle);
         if (r->default_g != UNINITIALIZED)
-            fprintf(stderr,"  default_g = %8.5f", r->default_g);
+            fprintf(stderr,"  %7.3f (constrained g)", r->default_g);
+        else
+            fprintf(stderr,"  %7.3f (default)", 0.0);
         fprintf(stderr,"\n");
     }
 
@@ -510,9 +512,13 @@ away.
 
     if (Debug(DEBUG_SEARCH)) {
         fprintf(stderr,"SEARCH: Using U_Find_AG()");
-        fprintf(stderr," (mu=%6.4f)",r->slab.cos_angle);
-        if (r->default_b != UNINITIALIZED)
-            fprintf(stderr,"  default_b = %8.5f", r->default_b);
+        fprintf(stderr," mu=%4.2f, ",r->slab.cos_angle);
+        if (m.num_measures==3)
+            fprintf(stderr," b= %6.3f  (M_U)", What_Is_B(r->slab, m.m_u));
+        else if (r->default_b != UNINITIALIZED)
+            fprintf(stderr," b = %6.3f (constrained)", r->default_b);
+        else
+            fprintf(stderr," b = %6.3f (default)", 1.0);
         fprintf(stderr,"\n");
     }
 

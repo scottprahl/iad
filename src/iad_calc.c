@@ -311,7 +311,7 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     double max_log_b = +8;
 
     if (Debug(DEBUG_GRID))
-        fprintf(stderr, "GRID: Filling AB grid\n");
+        fprintf(stderr, "GRID: Filling AB grid (g=%.5f)\n", RR.slab.g);
 
     if (The_Grid == NULL)
         Allocate_Grid(r.search);
