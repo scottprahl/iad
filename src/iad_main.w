@@ -877,6 +877,7 @@ measurements.
 
         Inverse_RT (m, &r);
 
+        calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
         @<Improve result using Monte Carlo@>@;
 
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
@@ -1018,6 +1019,11 @@ if (m.num_spheres > 0) {
         Inverse_RT (m, &r);
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
+        if (Debug(DEBUG_LOST_LIGHT))
+            print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
+        else
+            print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
+
         if (r.found) {
             if (fabs(last_mu_a-mu_a)<r.MC_tolerance && fabs(last_mu_sp-mu_sp)<r.MC_tolerance) {
                 break;
@@ -1035,11 +1041,6 @@ if (m.num_spheres > 0) {
                     fprintf(stderr, "Repeat MC because distance is reduced\n");
             }
         }
-
-        if (Debug(DEBUG_LOST_LIGHT))
-            print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
-        else
-            print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
     }
 }
 
@@ -1135,9 +1136,9 @@ properties can be determined.
         d_detector_r     = cl_sphere_one[3];
         m.rw_r           = cl_sphere_one[4];
 
-        m.as_r = (d_sample_r   / m.d_sphere_r / 2) * (d_sample_r   / m.d_sphere_r / 2);
-        m.at_r = (d_third_r    / m.d_sphere_r / 2) * (d_third_r    / m.d_sphere_r / 2);
-        m.ad_r = (d_detector_r / m.d_sphere_r / 2) * (d_detector_r / m.d_sphere_r / 2);
+        m.as_r = sqr(d_sample_r   / m.d_sphere_r / 2);
+        m.at_r = sqr(d_third_r    / m.d_sphere_r / 2);
+        m.ad_r = sqr(d_detector_r / m.d_sphere_r / 2);
 
         m.aw_r = 1.0 - m.as_r - m.at_r - m.ad_r;
 
@@ -1161,9 +1162,9 @@ properties can be determined.
         d_detector_t     = cl_sphere_two[3];
         m.rw_t           = cl_sphere_two[4];
 
-        m.as_t = (d_sample_t   / m.d_sphere_t / 2) * (d_sample_t   / m.d_sphere_t / 2);
-        m.at_t = (d_third_t    / m.d_sphere_t / 2) * (d_third_t    / m.d_sphere_t / 2);
-        m.ad_t = (d_detector_t / m.d_sphere_t / 2) * (d_detector_t / m.d_sphere_t / 2);
+        m.as_t = sqr(d_sample_t   / m.d_sphere_t / 2);
+        m.at_t = sqr(d_third_t    / m.d_sphere_t / 2);
+        m.ad_t = sqr(d_detector_t / m.d_sphere_t / 2);
         m.aw_t = 1.0 - m.as_t - m.at_t - m.ad_t;
 
         if (cl_num_spheres == UNINITIALIZED)
@@ -1398,18 +1399,12 @@ static void print_results_header(FILE *fp)
         fprintf(fp,"--------------------------------------------------------\n");
     } else {
         fprintf(fp,"#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
-        if (Debug(DEBUG_LOST_LIGHT))
-            fprintf(fp,"\t  Lost   \t  Lost   \t  Lost   \t  Lost   \t   MC    \t   IAD   \t  Error  ");
         fprintf(fp,"\n");
 
         fprintf(fp,"##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
-        if (Debug(DEBUG_LOST_LIGHT))
-            fprintf(fp,"\t   UR1   \t   URU   \t   UT1   \t   UTU   \t    #    \t    #    \t  State  ");
         fprintf(fp,"\n");
 
         fprintf(fp,"# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
-        if (Debug(DEBUG_LOST_LIGHT))
-            fprintf(fp,"\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  [---]  ");
         fprintf(fp,"\n");
     }
 }
