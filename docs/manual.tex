@@ -459,86 +459,40 @@ think that offsets the fact that the code that is worth the hassles associated
 with debugging or the need to keep separate \texttt{.c} and \texttt{.h} versions
 in sync with the distributions.)
 
-\subsubsection{Testing}
-
-In Windows you can start \texttt{Cmd.exe} by
-going to the \texttt{Start Menu}, selecting \texttt{Run...}, and typing
-\texttt{cmd.exe} 
-\begin{center}
-\includegraphics[width=3in]{cmdexe.png}
-\end{center}
-and clicking `OK'. 
-
-Navigate to the directory containing \texttt{iad.exe}.
-
-Alternatively, you can add the directory containing \texttt{iad.exe} to your PATH environment variable.%
-\footnote{When started from a shortcut, \texttt{Cmd.exe} inherits the environment variables set in `My Computer \textgreater Properties \textgreater Advanced \textgreater Environment Variables`.}
-
-Navigate to the directory containing your data files and test the executable by running:
-\begin{verbatim}
-    prompt> iad -v
-\end{verbatim}
-
-which should produce
-
-\begin{verbatim}
-iad 3-16-2 (24 Apr 2024)
-Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu
-          (see Applied Optics, 32:559-568, 1993)
-
-This is free software; see the source for copying conditions.
-There is no warranty; not even for MERCHANTABILITY or FITNESS.
-FOR A PARTICULAR PURPOSE.
-\end{verbatim}
-
-To run a quick validation, navigate to the \texttt{xp\_iad/test} directory.  Run the
-batch file \texttt{valid.bat} (located in the \texttt{test} directory) by
-double-clicking the \texttt{verify.bat} icon or by typing \texttt{valid.bat} at
-the \texttt{cmd.exe} prompt.
-\begin{center}
-\includegraphics[width=5in]{valid.png}
-\end{center}
-
-\subsection{Installing on Unix systems}
-
-\subsubsection{Compiling}
+\subsubsection{Building}
 
 This code has been compiled and tested on a variety of unix computers (MacOS X PPC, MacOS X Intel,
 Red Hat Linux x86, and SUSE Linux x86) and microprocessors (PPC, x86, and Arm (Raspberry Pi and
 Apple M-Series).
-If you just want to compile the code you just need a compiler and a \texttt{make} program.
+
 To compile an executable
 \begin{verbatim}
 prompt> unzip iad-3-16-2.zip
 prompt> cd iad-3-16-2
 prompt> make
 \end{verbatim}
-This should produce two executable files \texttt{ad} and \iadprog{} in the 
-same directory.%
+This should produce two executable files \texttt{ad} and \iadprog{}.%
 \footnote{To recreate all the files
-from the originals you'll need \texttt{perl}, \pdflatex{}, \texttt{cweb} and \texttt{indent}.}
+from the originals you'll need \texttt{perl}, \pdflatex{}, \texttt{cweb} and \texttt{gindent}.}
 
 \subsubsection{Testing}
-\begin{verbatim}
-    prompt> iad -v
-\end{verbatim}
-should respond with something like
-\begin{verbatim}
-iad 3-16-2 (24 Apr 2024)
-Copyright 1993-2024 Scott Prahl, scott.prahl@oit.edu
-          (see Applied Optics, 32:559-568, 1993)
 
-This is free software; see the source for copying conditions.
-There is no warranty; not even for MERCHANTABILITY or FITNESS.
-FOR A PARTICULAR PURPOSE.
+Once the code has been compiled, \iadprog{} can be tested by running
+\begin{verbatim}
+    prompt> make veryshorttest
 \end{verbatim}
 
-Once the code has been compiled, \iadprog{} can be tested by
-at the prompt.  Test the executable by running
+A more extensive set of command-line tests can be run using
 \begin{verbatim}
     prompt> make test
 \end{verbatim}
-This will run a series of simple calculations. 
+
+
+Finally, if you want to run tests against various datasets in the \texttt{test} directory, then do
+\begin{verbatim}
+    prompt> make longtest
+\end{verbatim}
+
 \clearpage
 
 \section{Experimental Decisions}
