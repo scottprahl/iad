@@ -20,20 +20,23 @@ OUT_FILES = basic-A.txt    basic-B.txt    basic-C.txt    basic-D.txt    basic-E.
             il-A.txt       ink-A.txt      ink-B.txt      ink-C.txt      kenlee-A.txt   \
             kenlee-B.txt   kenlee-C.txt   newton.txt     royston1.txt   royston2.txt   \
             royston3-A.txt royston3-B.txt royston3-C.txt royston3-D.txt royston3-E.txt \
-            royston9-A.txt royston9-B.txt royston9-C.txt royston9-D.txt \
+            royston9-A.txt royston9-B.txt royston9-C.txt  \
             sample-A.txt   sample-B.txt   sample-C.txt   sample-D.txt   sample-E.txt   \
             sample-F.txt   sample-G.txt   terse-A.txt    terse-B.txt    vio-A.txt      \
             vio-B.txt      x_bad_data.txt il-B.txt       il-C.txt
 
 SPECIAL_FILES = ville1.txt 
 
-NO_MC_FILES = royston1.txt tio2_vis.txt
+NO_MC_FILES = royston1.txt tio2_vis.txt royston9-D.txt
 
 NO_RC_FILES = fairway-A.txt fairway-E.txt
 
 OPTIONS   =  
 
 all: $(OUT_FILES) $(SPECIAL_FILES) $(NO_MC_FILES) $(NO_RC_FILES)
+
+$(OUT_FILES): %.txt: %.rxt
+	$(IAD_EXECUTABLE) $(OPTIONS) $<
 
 ville1.txt: ville1.rxt
 	$(IAD_EXECUTABLE) -a 0 $<
@@ -49,8 +52,8 @@ fairway-E.txt: fairway-E.rxt
 tio2_vis.txt: tio2_vis.rxt
 	$(IAD_EXECUTABLE) -M 0 $<
 
-$(OUT_FILES): %.txt: %.rxt
-	$(IAD_EXECUTABLE) $(OPTIONS) $<
+royston9-D.txt: royston9-D.rxt
+	$(IAD_EXECUTABLE) -e 0.005 $<
 
 clean:
 	rm -f *.txt *.svg *.ipynb *.grid
