@@ -728,23 +728,36 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
             }
 
             {
+                double r_cal, r_third, P_su, P_ss;
                 double r_first = 1;
-                double r_third = MM.rstd_t;
 
-                if (MM.fraction_of_tu_in_mt == 0)
+                if (MM.at_t == 0) {
+                    r_cal = MM.rw_t;
+                    r_third = MM.rw_t;
+                }
+                else if (MM.fraction_of_tu_in_mt > 0) {
+                    r_cal = MM.rstd_t;
+                    r_third = MM.rstd_t;
+                }
+                else {
+                    r_cal = MM.rstd_t;
                     r_third = 0;
+                }
 
                 if (MM.baffle_t)
-                    r_first = MM.rw_t * (1 - MM.at_t) + MM.rstd_t * MM.at_t;
+                    r_first = MM.rw_t * (1 - MM.at_t) + r_third * MM.at_t;
 
                 UT1_calc = UT1 - Tu - MM.ut1_lost;
                 if (UT1_calc < 0)
                     UT1_calc = 0;
 
                 G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
-                G_std = Gain(TRANSMISSION_SPHERE, MM, 0, MM.rstd_t);
+                G_std = Gain(TRANSMISSION_SPHERE, MM, 0, r_cal);
 
-                *M_T = (r_third * Tu * MM.fraction_of_tu_in_mt + r_first * UT1_calc) * G / G_std;
+                P_su = r_third * Tu * MM.fraction_of_tu_in_mt;
+                P_ss = r_first * UT1_calc;
+
+                *M_T = (P_su + P_ss) * G / G_std;
 
                 if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
                     fprintf(stderr, "SPHERE: TRANSMISSION\n");

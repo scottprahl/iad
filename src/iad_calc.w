@@ -5,6 +5,7 @@
 \def\rdiffuse{r_s^{\hbox{\sevenrm{}}}}
 \def\tdiffuse{t_s^{\hbox{\sevenrm{}}}}
 \def\std{{\hbox{\sevenrm{}std}}}
+\def\cal{{\hbox{\sevenrm{}cal}}}
 \def\third{{\hbox{\sevenrm{}third}}}
 \def\first{{\hbox{\sevenrm{}first}}}
 \def\lost{{\hbox{\sevenrm{}lost}}}
@@ -1141,7 +1142,8 @@ void Calculate_Distance_With_Corrections(
             if (MM.method == COMPARISON) {
                 @<Calc |M_R| and |M_T| for dual beam sphere@>@;
             } else {
-                @<Calc |M_R| and |M_T| for single beam sphere@>@;
+                @<Calc |M_R| for single beam sphere@>@;
+                @<Calc |M_T| for single beam sphere@>@;
             }break;
 
         case 2:
@@ -1310,7 +1312,7 @@ $$
 In addition, the entrance port is empty and therefore $r_t=0$ and can be omitted
 from the $r_\first$ calculation.  This leads to the following code for |M_R|
 
-@<Calc |M_R| and |M_T| for single beam sphere@>=
+@<Calc |M_R| for single beam sphere@>=
     double P_std, P, P_0, G, G_0, G_std, r_first, P_ss, P_su;
     r_first = 1;
 
@@ -1353,34 +1355,33 @@ P_{ss} = ({\tt UT1} - T_u)P_i
 P_{su} = f_\unscat T_u P_i
 $$
 
-@ Transmitted light not collected.
-
-The scattered light will be reduced by {\tt UT1}$_\lost$. The unscattered light
-will be affected by the fraction of unscattered light collected by the sphere.
+The unscattered light collection is affected by the configuration of the sphere.
 When transmission measurements are made, the third port (opposite the sample port
 in the sphere) is typically filled with a known standard. However, the third port
-might also be left open so that all the scattered light might exit and only scattered
-light is collected.  In the former case $f_\unscat=1$ and in the latter case $f_\unscat=0$.
-So including these effects gives
+might also be left open so that all the unscattered light exits and only scattered
+light is collected.  If the port is closed $f_\unscat=1$ and if it is open $f_\unscat=0$.
+
+The scattered light will be reduced by {\tt UT1}$_\lost$, including this lost light gives
 $$
 P_{ss} = ({\tt UT1} - T_u - T_\lost)P_i
     \qquad\hbox{\it and}\qquad
-P_{su} = f_\unscat T_u
+P_{su} = f_\unscat T_u P_i
 $$
 
 @ The baffling case of transmission.
 
-With a baffle, then scattered light from the sample cannot reach
+If there is no baffle then we set $r_\first=1$ and calculate the gain assuming no baffle.
+
+When a baffle is present, then scattered light from the sample cannot reach
 the detector without a bounce.  This weighted reflection is given by
 $$
 r_\first= (1-a_t) r_w + a_t r_t
 $$
-The unscattered light will be reflected by the standard $r_t$ in the third port
-and so
+The unscattered light can only be reflected by the third port, so
 $$
 P_{ss} = r_\first ({\tt UT1} - T_u - T_\lost) P_i
     \qquad\hbox{\it and}\qquad
-P_{su} = r_t f_\unscat T_u
+P_{su} = r_t f_\unscat T_u P_i
 $$
 The last step is to account for the sphere gain. The sample is held in the sample port
 and the third port reflects $r_t$.  The total reflection for diffuse illumination of the
@@ -1388,47 +1389,89 @@ sample is {\tt URU}.  This quantity must also be corrected for light that is not
 collected by the sphere ${\tt UR1}_\lost$.  The gain for such a sphere is
 $G({\tt URU}-{\tt URU}_\lost,r_t)$.  Finally,
 $$
-P_s = G({\tt URU}- {\tt URU}_\lost, r_t) (P_{ss}+P_{su})
+P_s = G({\tt URU} - {\tt URU}_\lost, r_t) (P_{ss}+P_{su})
 $$
 
-@ No baffle.
+@ The standard transmission measurement.
 
-Here $r_\first=1$ and the gain should be calculated assuming no baffle.
-
-@ The standard measurement.
-
-When transmission measurements are made, typically the third port (the one that
-let the light into the sphere for the reflection measurement) is filled with a known
-standard. In this case, the natural way to make the 100\% transmission measurement
-is to shine the beam through the empty sample port onto the known standard.
-
-We let ${\tt UT1}=T_u=1$, $T_\lost=0$, ${\tt URU} =0$, $r_t=r_\std$, and $f_\unscat=1$ so
+When transmission measurements are made, three different scenarios exist.  
+In this case, the third port is a possible exit port for unscattered light and may or may not
+be blocked.   The definition of |M_T| is
 $$
-P_\std = G(0, r_\std) r_\std P_i
+M_T = r_\cal {P_s -P_0\over P_\cal - P_0}
+$$
+where $P_0$ is the background and $r_\cal$ is the diffuse reflectance in the third port during the calibration measurement. 
+For calculation purposes, there is no background and so 
+$$
+M_T = r_\cal {P_s\over P_\cal}
+$$
+The three configurations are
+
+1) The third port is covered with something that matches the sphere wall reflectivity during both
+the sample measurement and the 100\% measurement.  This can be identified when the third port 
+has zero area |MM.at_t==0|.  Here $r_\cal=r_w$
+
+$$
+M_T = r_w {P_s \over G(0, r_w) r_w P_i} = {P_s \over G(0, r_w) P_i}
 $$
 
-The estimate for the measured transmittance is
+2) The third port is covered with a reference standard for both the sample measurement 
+and the 100\% measurement.  This is identified when the third port has a non-zero area
+|MM.at_t>0| and the fraction of unscattered light greater than zero |MM.fraction_of_tu_in_mt>0|.
+Here $r_\cal=r_\std$
+
 $$
-M_T = r_\std {P_s \over P_\std}
-= {P_{ss}+P_{su}\over P_i} \cdot {G({\tt URU}- {\tt URU}_\lost, r_\third)\over G(0, r_\std)}
+M_T = r_\std {P_s \over G(0, r_\std) r_\std P_i} = {P_s \over G(0, r_\std) P_i}
 $$
 
-@<Calc |M_R| and |M_T| for single beam sphere@>=
+3) The third port is open to let unscattered light through for the sample measurement
+but covered with the standard for the 100\% measurement. This case is identified when
+|MM.fraction_of_tu_in_mt==0|. Here $r_\cal=r_\std$
+
+$$
+M_T = r_\std {P_s \over G(0, r_\std) r_\std P_i} = {P_s \over G(0, r_\std) P_i}
+$$
+
+@ Collecting everything together.
+
+$$
+M_T = {P_s \over G(0, r_\cal) P_i} = {G({\tt URU} - {\tt URU}_\lost, r_t) \over G(0, r_\cal)}{P_{ss}+P_{su} \over P_i}
+$$
+or
+$$
+M_T = \left[r_\first ({\tt UT1} - T_u - T_\lost) + r_t f_\unscat T_u \right]
+{G({\tt URU} - {\tt URU}_\lost, r_t) \over G(0, r_\cal)}
+$$
+
+@<Calc |M_T| for single beam sphere@>=
 {
+    double r_cal, r_third, P_su, P_ss;
     double r_first = 1;
-    double r_third = MM.rstd_t;
 
-    if (MM.fraction_of_tu_in_mt == 0) r_third = 0;
+    if (MM.at_t == 0) {
+        r_cal = MM.rw_t;
+        r_third = MM.rw_t;
+    }
+    else if (MM.fraction_of_tu_in_mt > 0) {
+        r_cal = MM.rstd_t;
+        r_third = MM.rstd_t;
+    } else {
+        r_cal = MM.rstd_t;
+        r_third = 0;
+    }
 
-    if (MM.baffle_t) r_first = MM.rw_t * (1-MM.at_t) + MM.rstd_t * MM.at_t;
+    if (MM.baffle_t) r_first = MM.rw_t * (1-MM.at_t) + r_third * MM.at_t;
 
     UT1_calc = UT1 - Tu - MM.ut1_lost;
     if (UT1_calc < 0) UT1_calc = 0;
 
     G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
-    G_std = Gain(TRANSMISSION_SPHERE, MM, 0, MM.rstd_t);
+    G_std = Gain(TRANSMISSION_SPHERE, MM, 0, r_cal);
 
-    *M_T  = (r_third * Tu * MM.fraction_of_tu_in_mt + r_first * UT1_calc) * G/G_std;
+    P_su = r_third * Tu * MM.fraction_of_tu_in_mt;
+    P_ss = r_first * UT1_calc;
+    
+    *M_T  = (P_su + P_ss) * G/G_std;
 
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
         fprintf(stderr, "SPHERE: TRANSMISSION\n");
