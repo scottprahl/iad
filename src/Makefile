@@ -112,7 +112,10 @@ oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
 	$(CC) -c -o version.o version.c
 	$(CC) -o $@ $^ -lm
 
-mc_test: $(AD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_test.o
+mc_test: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_test.o
+	$(CC) -o $@ $^ -lm
+
+mc_lost: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_main.o
 	$(CC) -o $@ $^ -lm
 
 # ctangle rule to make .c and .h files
