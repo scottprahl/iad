@@ -1,7 +1,7 @@
 # Inverse Adding-Doubling
 
 ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/scottprahl/iad?label=latest)
-[![MIT License](https://img.shields.io/badge/MIT-license-yellow.svg)](https://github.com/scottprahl/miepython/blob/master/LICENSE.txt)
+[![MIT License](https://img.shields.io/badge/MIT-license-yellow.svg)](https://github.com/scottprahl/miepython/blob/main/LICENSE.txt)
 [![GitHub Actions](https://github.com/scottprahl/iad/actions/workflows/make.yml/badge.svg)](https://github.com/scottprahl/iad/actions/workflows/make.yml)
 [![DOI](https://zenodo.org/badge/102147394.svg)](https://zenodo.org/badge/latestdoi/102147394)
 
@@ -70,10 +70,10 @@ produces output that ends with
 
 Often one wants the optical properties over an entire spectrum.  A good example was
 recently provide by @anishabahl.  This measurement was made with a spectrophotometer 
-equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.rxt) looks includes the total reflection and transmission as well a header that describes the
+equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides.rxt) looks includes the total reflection and transmission as well a header that describes the
 experiment.  The reflection and transmission data look like this
 
-![r and t graph](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-RTU.svg)
+![r and t graph](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides-RTU.svg)
 
 The input file is processed with
 
@@ -85,14 +85,14 @@ The option `i 8` indicates that light is incident on the sample at an angle of 8
 scattering anisotropy.  Note that in the PDMS file, the refractive index of the
 sample changes with each data point
 
-This command will produce an [output file](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides.txt) that when plotted looks like
+This command will produce an [output file](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides.txt) that when plotted looks like
 
-![calculated mua](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mua.svg)
+![calculated mua](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides-mua.svg)
 
 which matches the 
 intrinsic absorption of Wacker PDMS found in Cai's 2008 [Disseration](https://dx.doi.org/10.17877/DE290R-8242)
 
-![calculated mus](https://github.com/scottprahl/iad/blob/master/docs/phantom-with-no-slides-mus.svg)
+![calculated mus](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides-mus.svg)
 
 This is an excellent set of measurements because there is
 almost no influence of the absorption coefficient on the scattering coefficient.  
