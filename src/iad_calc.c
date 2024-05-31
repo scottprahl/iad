@@ -722,9 +722,16 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
 
             if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
                 fprintf(stderr, "SPHERE: REFLECTION\n");
-                fprintf(stderr, "SPHERE:      G0 = %7.3f      G  = %7.3f G_std = %7.3f\n", G_0, G, G_std);
-                fprintf(stderr, "SPHERE:      P0 = %7.3f      P  = %7.3f P_std = %7.3f\n", P_0, P, P_std);
-                fprintf(stderr, "SPHERE:     UR1 = %7.3f UR1calc = %7.3f   M_R = %7.3f\n", UR1, UR1_calc, *M_R);
+                fprintf(stderr, "SPHERE:     baffle = %d\n", MM.baffle_r);
+                fprintf(stderr, "SPHERE:     R_u collected = %5.1f%%\n", MM.fraction_of_ru_in_mr * 100);
+                fprintf(stderr, "SPHERE:     hits sphere wall first = %5.1f%%\n", MM.f_r * 100);
+                fprintf(stderr, "SPHERE:     UR1 = %7.3f   UR1_calc = %7.3f\n", UR1, UR1_calc);
+                fprintf(stderr, "SPHERE:     URU = %7.3f   URU_calc = %7.3f\n", URU, URU_calc);
+                fprintf(stderr, "SPHERE:     R_u = %7.3f\n", Ru);
+                fprintf(stderr, "SPHERE:     G_0 = %7.3f        P_0 = %7.3f\n", G_0, P_0);
+                fprintf(stderr, "SPHERE:       G = %7.3f          P = %7.3f\n", G, P);
+                fprintf(stderr, "SPHERE:   G_cal = %7.3f      P_cal = %7.3f\n", G_std, P_std);
+                fprintf(stderr, "SPHERE:     M_R = %7.3f\n", *M_R);
             }
 
             {
@@ -761,8 +768,17 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
 
                 if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
                     fprintf(stderr, "SPHERE: TRANSMISSION\n");
-                    fprintf(stderr, "SPHERE:      G  = %7.3f   G_std = %7.3f\n", G, G_std);
-                    fprintf(stderr, "SPHERE:     UT1 = %7.3f UT1calc = %7.3f T_c = %7.3f\n", UT1, UT1_calc, Tu);
+                    fprintf(stderr, "SPHERE:     baffle = %d\n", MM.baffle_t);
+                    fprintf(stderr, "SPHERE:     T_u collected = %5.1f%%\n", MM.fraction_of_tu_in_mt * 100);
+                    fprintf(stderr, "SPHERE:     UR1 = %7.3f   UR1_calc = %7.3f\n", UR1, UR1_calc);
+                    fprintf(stderr, "SPHERE:     URU = %7.3f   URU_calc = %7.3f\n", URU, URU_calc);
+                    fprintf(stderr, "SPHERE:     UT1 = %7.3f   UT1_calc = %7.3f\n", UT1, UT1_calc);
+                    fprintf(stderr, "SPHERE:     T_u = %7.3f\n", Tu);
+                    fprintf(stderr, "SPHERE:       G = %7.3f          P = %7.3f\n", G, P_su + P_ss);
+                    fprintf(stderr, "SPHERE:   G_cal = %7.3f      P_cal = %7.3f\n", G_std, 1.0);
+                    fprintf(stderr, "SPHERE: r_third = %7.3f      r_cal = %7.3f\n", r_third, r_cal);
+                    fprintf(stderr, "SPHERE: r_first = %7.3f\n", r_first);
+                    fprintf(stderr, "SPHERE:     Psu = %7.3f        Pss = %7.3f\n", P_su, P_ss);
                     fprintf(stderr, "SPHERE:     M_T = %7.3f\n", *M_T);
                     fprintf(stderr, "\n");
                 }
