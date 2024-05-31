@@ -1,6 +1,10 @@
 Changelog
 =========
 
+v3.16.4 (unreleased)
+---------------------
+*   improved single sphere MT calc when unscattered T leaves
+
 v3.16.3 (15 May 2024)
 ---------------------
 *   fixed bug that discarded info from "g" input column
