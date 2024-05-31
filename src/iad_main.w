@@ -1115,17 +1115,32 @@ properties can be determined.
     if (cl_method != UNINITIALIZED)
         m.method = (int) cl_method;
 
-    if (cl_rstd_t != UNINITIALIZED)
-        m.rstd_t = cl_rstd_t;
-
-    if (cl_rstd_r != UNINITIALIZED)
+    if (cl_rstd_r != UNINITIALIZED) {
         m.rstd_r = cl_rstd_r;
+        m.rstd_t = cl_rstd_r;
+    }
 
-    if (cl_rwall_r != UNINITIALIZED)
+    if (cl_rstd_t != UNINITIALIZED) {
+        m.rstd_t = cl_rstd_t;
+        if (cl_rstd_r == UNINITIALIZED)
+            m.rstd_r = cl_rstd_t;
+    }
+
+    if (cl_rwall_r != UNINITIALIZED) {
+        if (cl_sphere_one[0] != UNINITIALIZED) {
+            fprintf(stderr, "-w is overridden by -1 option. omit.\n");
+            exit(EXIT_FAILURE);
+        }
         m.rw_r = cl_rwall_r;
+    }
 
-    if (cl_rwall_t != UNINITIALIZED)
+    if (cl_rwall_t != UNINITIALIZED) {
+        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_one[1] != UNINITIALIZED) {
+            fprintf(stderr, "-W is overridden by -1 and -2 options. omit.");
+            exit(EXIT_FAILURE);
+        }
         m.rw_t = cl_rwall_t;
+    }
 
     if (cl_sphere_one[0] != UNINITIALIZED) {
         double d_sample_r, d_third_r, d_detector_r;
