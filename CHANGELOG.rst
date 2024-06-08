@@ -121,62 +121,62 @@ v3.13.1 (24 Jan 2024)
 *   left debugging statements in
 
 v3.13.0 (24 Jan 2024)
---------------------
+---------------------
 *   add -1 feature for parameters in .rxt files
 
 v3.12.1 (26 May 2023)
 ---------------------
 *   bump version to get zenodo links correct
 
-v3.12.0
--------------------
+v3.12.0 (26 May 2023)
+----------------------
 *   add continuous building (@tvercat)
 *   improve cweave/ctwill processing (@ascherer)
 *   add CITATION.cff to base level of repository
 *   add DOI for citation purposes
 *   added badges to README page (whee!)
 
-v3.11.6
--------------------
+v3.11.6 (18 Nov 2021)
+---------------------
 *   fix initialization for couple of corner cases (finding just g)
 *   found while adding tests to iadpython.
 
-v3.11.5
--------------------
+v3.11.5 (7 Nov 2020)
+--------------------
 *   fix initialization problem when using ad_layers
 
-v3.11.4
--------------------
+v3.11.4 (15 Oct 2019)
+---------------------
 *   solve compilation problem on Raspberry Pi by adding -fsigned-char complier option
 *   touch .c and .h files in Makefile to avoid needing ctangle
 
-v3.11.3
--------------------
+v3.11.3 (21 Aug 2019)
+---------------------
 *   improve an error message when using -F
 *   add command-line option to specify search explicitly
 *   improve help message
 
-v3.11.2
--------------------
+v3.11.2 (29 Mar 2019)
+---------------------
 *   Add separate License file
 *   Make copyright notices consistent
 *   Add some basic hints to the README.md for Windows users
 *   Update the doc/CHANGELOG
 
-v3.11.1
--------------------
+v3.11.1 (28 Mar 2019)
+---------------------
 *   The main change in this release is that windows executables can now be built with MinGW-w64 and tested under Wine.
 
-v10.3.3
--------------------
+v3.10.3 (3 July 2018)
+---------------------
 *   This release mostly improves packaging so that everything compiles cleanly on MacOS X and linux.
 *   Improved tests and fixed a few minor bugs in the frameworks
 *   Improved information presented during debugging.
 
-v10.3.2
--------------------
+v3.10.2 (2 Nov 2017)
+--------------------
 *   This version adds header files needed to install libiad that formerly needed to be generated with ctangle.
 
-v3.10.1
--------------------
+v3.10.1 (2 Nov 2017)
+--------------------
 *   This version now includes .c and .h files that are generated using the ctangle program. The program should build cleanly on unix/macos platforms.
