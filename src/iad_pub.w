@@ -1002,6 +1002,8 @@ constrained minimization, we can do exactly this.
 
 The only thing that remains is to sort out the light lost effect.
 
+Well, also double spheres!
+
 @<Prototype for |MinMax_MR_MT|@>=
 int MinMax_MR_MT(struct measure_type m,
                   struct invert_type r)
@@ -1020,6 +1022,9 @@ int MinMax_MR_MT(struct measure_type m,
     if (m.m_t == 0)
         return IAD_NO_ERROR;
 
+    if (m.num_spheres == 2)
+        return IAD_NO_ERROR;
+    
     measured_m_r = m.m_r;
 
     m.m_r = 0;
