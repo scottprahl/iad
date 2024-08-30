@@ -1299,11 +1299,14 @@ $$
 P_0 = [a_d (1-r_d)] \cdot r_\first f_\miss r_w G(0,0) P_i
 $$
 
-@ The unbaffled reflectance sphere.
+@ The single reflectance sphere.
 
-In this case, light can reach the detector from the sample.  The first bounce is
-not needed which can be accommodated by letting $r_\first=1$.  We, of course,
+Foe a sphere without a baffle, reflected light from the sample can reach 
+the detector from the sample.  In the case, light does not need to hit the sphere
+wall first, so the required first bounce (for a baffled sphere) is
+not needed so $r_\first=1$.  We, of course,
 assume that the gain is calculated assuming that no baffle is present.
+
 The incident power $P_i$ and the quantities in square brackets are identical for
 $P_s$, $P_\std$, and $P_0$ and cancel in the normalized reflection fraction
 $$
@@ -1334,17 +1337,25 @@ from the $r_\first$ calculation.  This leads to the following code for |M_R|
     *M_R     = MM.rstd_r * (P - P_0)/(P_std - P_0);
 
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
+        double G_none, P_none, M_none;
+        G_none = Gain(REFLECTION_SPHERE, MM, URU, 0.0);
+        P_none = G_none * (P_ss + P_su);
+        M_none = MM.rstd_r * (P_none - P_0)/(P_std - P_0);
         fprintf(stderr, "SPHERE: REFLECTION\n");
-        fprintf(stderr, "SPHERE:     baffle = %d\n", MM.baffle_r);
-        fprintf(stderr, "SPHERE:     R_u collected = %5.1f%%\n", MM.fraction_of_ru_in_mr*100);
-        fprintf(stderr, "SPHERE:     hits sphere wall first = %5.1f%%\n", MM.f_r*100);
-        fprintf(stderr, "SPHERE:     UR1 = %7.3f   UR1_calc = %7.3f\n", UR1, UR1_calc);
-        fprintf(stderr, "SPHERE:     URU = %7.3f   URU_calc = %7.3f\n", URU, URU_calc);
-        fprintf(stderr, "SPHERE:     R_u = %7.3f\n", Ru);
-        fprintf(stderr, "SPHERE:     G_0 = %7.3f        P_0 = %7.3f\n", G_0, P_0);
-        fprintf(stderr, "SPHERE:       G = %7.3f          P = %7.3f\n", G, P);
-        fprintf(stderr, "SPHERE:   G_cal = %7.3f      P_cal = %7.3f\n", G_std, P_std);
-        fprintf(stderr, "SPHERE:     M_R = %7.3f\n", *M_R);
+        fprintf(stderr, "SPHERE:       baffle = %d\n", MM.baffle_r);
+        fprintf(stderr, "SPHERE:       R_u collected = %5.1f%%\n", MM.fraction_of_ru_in_mr*100);
+        fprintf(stderr, "SPHERE:       hits sphere wall first = %5.1f%%\n", MM.f_r*100);
+        fprintf(stderr, "SPHERE:       UR1 = %7.3f   UR1_calc = %7.3f\n", UR1, UR1_calc);
+        fprintf(stderr, "SPHERE:       URU = %7.3f   URU_calc = %7.3f\n", URU, URU_calc);
+        fprintf(stderr, "SPHERE:       R_u = %7.3f\n", Ru);
+        fprintf(stderr, "SPHERE:       G_0 = %7.3f        P_0 = %7.3f\n", G_0, P_0);
+        fprintf(stderr, "SPHERE:         G = %7.3f          P = %7.3f\n", G, P);
+        if (MM.uru_lost>0)
+            fprintf(stderr, "SPHERE: G_no_lost = %7.3f  P_no_lost = %7.3f\n", G_none, P_none);
+        fprintf(stderr, "SPHERE:     G_cal = %7.3f      P_cal = %7.3f\n", G_std, P_std);
+        if (MM.uru_lost>0)
+            fprintf(stderr, "SPHERE: M_no_lost = %7.3f\n", M_none);
+        fprintf(stderr, "SPHERE:       M_R = %7.3f\n", *M_R);
     }
 
 @*2 Transmittance measurement for one sphere.
@@ -1481,19 +1492,27 @@ $$
     *M_T  = (P_su + P_ss) * G/G_std;
 
     if (Debug(DEBUG_SPHERE_GAIN) && !CALCULATING_GRID) {
+        double G_none, P_none, M_none;
+        G_none = Gain(TRANSMISSION_SPHERE, MM, URU, 0.0);
+        P_none = (P_ss + P_su);
+        M_none = (P_su + P_ss) * G_none/G_std;
         fprintf(stderr, "SPHERE: TRANSMISSION\n");
-        fprintf(stderr, "SPHERE:     baffle = %d\n", MM.baffle_t);
-        fprintf(stderr, "SPHERE:     T_u collected = %5.1f%%\n", MM.fraction_of_tu_in_mt*100);
-        fprintf(stderr, "SPHERE:     UR1 = %7.3f   UR1_calc = %7.3f\n", UR1, UR1_calc);
-        fprintf(stderr, "SPHERE:     URU = %7.3f   URU_calc = %7.3f\n", URU, URU_calc);
-        fprintf(stderr, "SPHERE:     UT1 = %7.3f   UT1_calc = %7.3f\n", UT1, UT1_calc);
-        fprintf(stderr, "SPHERE:     T_u = %7.3f\n", Tu);
-        fprintf(stderr, "SPHERE:       G = %7.3f          P = %7.3f\n", G, P_su+P_ss);
-        fprintf(stderr, "SPHERE:   G_cal = %7.3f      P_cal = %7.3f\n", G_std, 1.0);
-        fprintf(stderr, "SPHERE: r_third = %7.3f      r_cal = %7.3f\n", r_third, r_cal);
-        fprintf(stderr, "SPHERE: r_first = %7.3f\n", r_first);
-        fprintf(stderr, "SPHERE:     Psu = %7.3f        Pss = %7.3f\n", P_su, P_ss);
-        fprintf(stderr, "SPHERE:     M_T = %7.3f\n", *M_T);
+        fprintf(stderr, "SPHERE:       baffle = %d\n", MM.baffle_t);
+        fprintf(stderr, "SPHERE:       T_u collected = %5.1f%%\n", MM.fraction_of_tu_in_mt*100);
+        fprintf(stderr, "SPHERE:       UR1 = %7.3f   UR1_calc = %7.3f\n", UR1, UR1_calc);
+        fprintf(stderr, "SPHERE:       URU = %7.3f   URU_calc = %7.3f\n", URU, URU_calc);
+        fprintf(stderr, "SPHERE:       UT1 = %7.3f   UT1_calc = %7.3f\n", UT1, UT1_calc);
+        fprintf(stderr, "SPHERE:       T_u = %7.3f\n", Tu);
+        fprintf(stderr, "SPHERE:         G = %7.3f          P = %7.3f\n", G, P_su+P_ss);
+        if (MM.uru_lost>0)
+            fprintf(stderr, "SPHERE: G_no_lost = %7.3f  P_no_lost = %7.3f\n", G_none, P_none);
+        fprintf(stderr, "SPHERE:     G_cal = %7.3f      P_cal = %7.3f\n", G_std, 1.0);
+        fprintf(stderr, "SPHERE:   r_third = %7.3f      r_cal = %7.3f\n", r_third, r_cal);
+        fprintf(stderr, "SPHERE:   r_first = %7.3f\n", r_first);
+        fprintf(stderr, "SPHERE:       Psu = %7.3f        Pss = %7.3f\n", P_su, P_ss);
+        if (MM.uru_lost>0)
+            fprintf(stderr, "SPHERE: M_no_lost = %7.3f\n", M_none);
+        fprintf(stderr, "SPHERE:       M_T = %7.3f\n", *M_T);
         fprintf(stderr, "\n");
     }
 }
