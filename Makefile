@@ -216,12 +216,13 @@ tidy:
 
 mc_lost:
 	cd src; make mc_lost
+	cp src/mc_lost .
 
-mctest:
+mc_test:
 	cd src ; make mc_test
 	src/mc_test
 
-mclosttest: mc_lost
+mc_lost_test: mc_lost
 	cd src ; make mc_lost 
 	src/mc_lost
 	src/mc_lost -P 0
