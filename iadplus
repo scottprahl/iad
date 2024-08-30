@@ -408,7 +408,7 @@ def main():
         if base_path == '':
             continue
 
-        # doing the iad analysis can be slow, avoid it if needed
+        # doing the iad analysis can be slow, avoid if possible
         txt_path = base_path + '.txt'
         exists_and_is_non_zero = os.path.exists(txt_path) and os.path.getsize(txt_path) > 0
         if args.force or not exists_and_is_non_zero:
