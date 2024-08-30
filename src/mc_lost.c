@@ -709,7 +709,7 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     if (n_slide == 1.0)
         t_slide = 0.0;
 
-    set_photon_seed(12345);
+//    set_photon_seed(12345);
     MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
               COLLIMATED, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam,
               ur1, ut1, ur1_lost, ut1_lost);
