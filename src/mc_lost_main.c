@@ -11,8 +11,8 @@
 
 static void print_usage(void)
 {
-    fprintf(stderr, "lost1 \n\n");
-    fprintf(stderr, "lost finds the reflection and transmission from optical properties\n\n");
+    fprintf(stderr, "lost \n\n");
+    fprintf(stderr, "lost finds the lost R and T from optical properties and port sizes\n\n");
     fprintf(stderr, "Usage:  lost [options] input\n\n");
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -a #   albedo (0-1)\n");
@@ -32,8 +32,9 @@ static void print_usage(void)
     fprintf(stderr, "  -T #   thickness of glass slide\n");
     fprintf(stderr, "  -v     display help\n");
     fprintf(stderr, "Examples:\n");
-    fprintf(stderr, "  mc_lost_test -a 0.3 -b 2.0 -g 0.8 -n 1.4 -N 1.5 -p 1000000\n");
-    fprintf(stderr, "  mc_lost_test -a 0.3 -b 2.0 -t 2 -B 10 -P 11 &2 > rt.out\n");
+    fprintf(stderr, "  mc_lost -a 0.3 -b 2.0 -g 0.8 -n 1.4 -N 1.5 -p 1000000\n");
+    fprintf(stderr, "  mc_lost -a 0.3 -b 2.0 -t 2 -B 10 -P 11 &2 > rt.out\n");
+    fprintf(stderr, "  mc_lost -a 0.3 -b 2.0 -t 2 -B 10 -P 11 -m\n");
     exit(EXIT_SUCCESS);
 }
 
@@ -135,6 +136,7 @@ int main(int argc, char **argv)
     }
 
     if (machine_output == FALSE) {
+        printf("# MC Lost ----- Photons = %ld\n", n_photons);
         printf("# Albedo                  %10.5f\n",a);
         printf("# Optical Depth           %10.5f\n",b);
         printf("# Anisotropy              %10.5f\n",g);
