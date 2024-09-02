@@ -36,7 +36,7 @@ the header file \.{iad\_type.h} and nothing else.
 @d BIG_A_CALC_VALUE              999999.0
 @d SMALL_A_CALC_VALUE            0.00001
 @d MAX_ABS_G                     0.999999
-@d GRID_SIZE                     101
+@d GRID_SIZE                     11
 
 @ Need error codes for this silly program
 
@@ -85,6 +85,7 @@ the header file \.{iad\_type.h} and nothing else.
 @d DEBUG_GRID_CALC               64
 @d DEBUG_SPHERE_GAIN            128
 @d DEBUG_EVERY_CALC             256
+@d DEBUG_MC                     512
 @d DEBUG_ANY                      0xFFFFFFFF
 
 @d UNKNOWN                        0
@@ -187,6 +188,10 @@ typedef struct guess_t {
     double a;
     double b;
     double g;
+    double ur1_lost;
+    double ut1_lost;
+    double uru_lost;
+    double utu_lost;
 } guess_type;
 
 extern double FRACTION;

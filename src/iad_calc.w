@@ -28,6 +28,7 @@
 #include "iad_type.h"
 #include "iad_util.h"
 #include "iad_calc.h"
+#include "mc_lost.h"
 
 #define ABIT 1e-6
 #define A_COLUMN 1
@@ -37,6 +38,11 @@
 #define UTU_COLUMN 5
 #define UR1_COLUMN 6
 #define UT1_COLUMN 7
+#define URU_LOST_COLUMN 8
+#define UTU_LOST_COLUMN 9
+#define UR1_LOST_COLUMN 10
+#define UT1_LOST_COLUMN 11
+
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
 #define T_TRUST_FACTOR 1
@@ -419,7 +425,7 @@ void Allocate_Grid(search_type s)
     @<Prototype for |Allocate_Grid|@>
 {
     (void) s;
-    The_Grid = dmatrix(0,GRID_SIZE*GRID_SIZE,1,7);
+    The_Grid = dmatrix(0,GRID_SIZE*GRID_SIZE,1,11);
     if (The_Grid==NULL) AD_error("unable to allocate the grid matrix");
     The_Grid_Initialized = FALSE;
 }
@@ -437,11 +443,19 @@ void Grid_ABG(int i, int j, guess_type *guess)
         guess->a = The_Grid[GRID_SIZE*i+j][A_COLUMN];
         guess->b = The_Grid[GRID_SIZE*i+j][B_COLUMN];
         guess->g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
+        guess->ur1_lost = The_Grid[GRID_SIZE*i+j][UR1_LOST_COLUMN];
+        guess->ut1_lost = The_Grid[GRID_SIZE*i+j][UT1_LOST_COLUMN];
+        guess->uru_lost = The_Grid[GRID_SIZE*i+j][URU_LOST_COLUMN];
+        guess->utu_lost = The_Grid[GRID_SIZE*i+j][UTU_LOST_COLUMN];
         guess->distance = Calculate_Grid_Distance(i,j);
     } else {
         guess->a = 0.5;
         guess->b = 0.5;
         guess->g = 0.5;
+        guess->ur1_lost = 0;
+        guess->ut1_lost = 0;
+        guess->uru_lost = 0;
+        guess->utu_lost = 0;
         guess->distance = 999;
     }
 }
@@ -666,6 +680,7 @@ Presumes that |RR.slab| is properly set up.
 static void fill_grid_entry(int i, int j)
 {
     double ur1,ut1,uru,utu;
+    double ur1_lost,ut1_lost,uru_lost,utu_lost;
 
     if (RR.slab.b <= 1e-6 ) RR.slab.b = 1e-6;
 
@@ -698,11 +713,41 @@ static void fill_grid_entry(int i, int j)
     The_Grid[GRID_SIZE*i+j][URU_COLUMN]=uru;
     The_Grid[GRID_SIZE*i+j][UTU_COLUMN]=utu;
 
-    if (Debug(DEBUG_GRID_CALC)) {
-        fprintf(stderr, "+ %3d %3d ",i,j);
-        fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
-        fprintf(stderr, "%10.5f %10.5f |", MM.m_r, uru);
-        fprintf(stderr, "%10.5f %10.5f \n", MM.m_t, utu);
+    if (Debug(DEBUG_MC)) {
+        if (i==0 && j==0)
+            fprintf(stderr, "Filling Grid\n%2d ", 0);
+    
+    //    fprintf(stderr, "%10.5f %10.5f %10.5f \n", RR.slab.a, RR.slab.b, RR.slab.g);
+    //    fprintf(stderr, "       ");
+    //    fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** AD\n", ur1,ut1,uru,utu);
+        RR.a = RR.slab.a;
+        RR.b = RR.slab.b;
+        RR.g = RR.slab.g;
+        MC_Lost(MM, RR, 100000, &ur1, &ut1, &uru, &utu, &ur1_lost, &ut1_lost, &uru_lost, &utu_lost);
+    
+        The_Grid[GRID_SIZE*i+j][UR1_LOST_COLUMN]=ur1_lost;
+        The_Grid[GRID_SIZE*i+j][UT1_LOST_COLUMN]=ut1_lost;
+        The_Grid[GRID_SIZE*i+j][URU_LOST_COLUMN]=uru_lost;
+        The_Grid[GRID_SIZE*i+j][UTU_LOST_COLUMN]=utu_lost;
+    //    fprintf(stderr, "       ");
+    //    fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC\n", ur1,ut1,uru,utu);
+    //    fprintf(stderr, "       ");
+    //    fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC Lost\n", ur1_lost,ut1_lost,uru_lost,utu_lost);
+            
+        fprintf(stderr, ".");
+        if (j==GRID_SIZE-1) {
+            if (i!=GRID_SIZE-1)
+                fprintf(stderr, "\n%2d ",i+1);
+            else
+                fprintf(stderr, "\n");
+        }
+    
+        if (Debug(DEBUG_GRID_CALC)) {
+            fprintf(stderr, "+ %3d %3d ",i,j);
+            fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
+            fprintf(stderr, "%10.5f %10.5f |", MM.m_r, uru);
+            fprintf(stderr, "%10.5f %10.5f \n", MM.m_t, utu);
+        }
     }
 }
 
@@ -1096,6 +1141,14 @@ double Calculate_Grid_Distance(int i, int j)
     RR.slab.a = The_Grid[GRID_SIZE*i+j][A_COLUMN];
     RR.slab.b = The_Grid[GRID_SIZE*i+j][B_COLUMN];
     RR.slab.g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
+    RR.slab.g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
+
+    if (Debug(DEBUG_MC)) {
+        MM.ur1_lost = The_Grid[GRID_SIZE*i+j][UR1_LOST_COLUMN];
+        MM.ut1_lost = The_Grid[GRID_SIZE*i+j][UT1_LOST_COLUMN];
+        MM.uru_lost = The_Grid[GRID_SIZE*i+j][URU_LOST_COLUMN];
+        MM.utu_lost = The_Grid[GRID_SIZE*i+j][UTU_LOST_COLUMN];
+    }
 
     Sp_mu_RT_Flip(MM.flip_sample,
              RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,

@@ -193,6 +193,12 @@ made in the analagous code for |a| and |b|.
         fprintf(stderr, "%10.5f\n", guess[kk].distance);
         fprintf(stderr, "\n");
     }
+    if (Debug(DEBUG_MC)) {
+        m.ur1_lost = guess[kk].ur1_lost;
+        m.ut1_lost = guess[kk].ut1_lost;
+        m.uru_lost = guess[kk].uru_lost;
+        m.utu_lost = guess[kk].utu_lost;
+    }
 }
 
 @ @<Evaluate the |a| and |b| simplex at the nodes@>=

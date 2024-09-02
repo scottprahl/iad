@@ -1,0 +1,30 @@
+IAD1 # Must be first four characters
+
+1.365  # Index of refraction of the sample 
+       # (Ethanol at .632, C2H5OH Refractiveinfoindex Kedenburg et al. 2012)
+1.5875 # Index of refraction of the top and bottom slides 
+       # (C8H8 - Polystyrene at .633um, PS - Sultanova et al. 2009:n 0.437-1.05um, refractive index.info) 
+2.0    # [mm] Thickness of sample
+1.075  # [mm] Thickness of slides (one single polystyrene petri dish)
+6.5    # [mm] Diameter of illumination beam 
+0.98   # Reflectance of the calibration standard
+
+1 # Number of spheres used during each measurement
+
+# Properties of sphere used for reflectance measurements 
+203.2  # [mm] Sphere Diameter (8 in * 25.4 mm/in) 
+44.45  # [mm] Sample Port Diameter 
+6.3    # [mm] Empty Port Diameter 
+1.00   # [mm] Detector Port Diameter 
+0.97   # Reflectance of the sphere wall
+
+# Properties of sphere used for transmittance measurements 
+203.2  # [mm] Sphere Diameter (8 in * 25.4 mm/in) 
+44.45  # [mm] Sample Port Diameter 
+0.00   # [mm] Empty Port Diameter 
+1.00   # [mm] Detector Port Diameter 
+0.97   # Reflectance of the sphere wall
+
+ L 	   r    	   t     	   w    	    W   
+452	0.743615	0.243551	0.974309	0.974309
+458	0.771634	0.245520	0.974802	0.974802

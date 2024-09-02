@@ -137,7 +137,7 @@ ad_layers.o: ad_layers.c ad_layers.h nr_util.h ad_globl.h ad_bound.h ad_doubl.h 
              ad_prime.h ad_matrx.h
 
 iad_calc.o : iad_calc.c iad_calc.h ad_globl.h ad_frsnl.h ad_prime.h iad_type.h \
-             iad_util.h nr_util.h nr_zbrent.h
+             iad_util.h nr_util.h nr_zbrent.h mc_lost.h
 iad_pub.o  : iad_pub.c iad_pub.h ad_globl.h ad_frsnl.h iad_type.h iad_util.h iad_calc.h \
              iad_find.h iad_io.h nr_util.h mc_lost.h
 iad_util.o : iad_util.c iad_util.h ad_globl.h ad_frsnl.h ad_bound.h iad_type.h \
