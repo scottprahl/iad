@@ -93,6 +93,9 @@ that are appropriate for your experiment.
 
     @<Find the optical properties@>@;
 
+    if (r->error != IAD_TOO_MANY_ITERATIONS)
+        r->error = measure_OK(m,*r, TRUE);
+
     @<Print basic sphere and MC effects@>@;
 }
 
@@ -101,7 +104,7 @@ minimization if the input data is bogus.  So I wrote a
 single routine |measure_OK| to do just this.
 
 @<Exit with bad input data@>=
-    r->error=measure_OK(m,*r);
+    r->error=measure_OK(m,*r, FALSE);
 
     if (r->method.quad_pts<4)
         r->error = IAD_QUAD_PTS_NOT_VALID;
@@ -202,7 +205,7 @@ if (Debug(DEBUG_A_LITTLE)) {
 @ Now the question is --- just what is bad data?  Here's the prototype.
 
 @<Prototype for |measure_OK|@>=
-int measure_OK(struct measure_type m, struct invert_type r)
+int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
 
 @ It would just be nice to stop computing with bad data.  This does not
 work in practice because it turns out that there is often bogus data in a full wavelength
@@ -270,7 +273,11 @@ no need to check \.{MR} because it is ignored.
             return IAD_MR_TOO_BIG;
 
         /* one parameter search only needs one good measurement */
-        if (r.search==FIND_A  || r.search==FIND_G || r.search==FIND_B ||
+        if (flag_bad) {
+            if (m.m_r < mr)
+                return IAD_MR_TOO_SMALL;
+        }
+        else if (r.search==FIND_A  || r.search==FIND_G || r.search==FIND_B ||
             r.search==FIND_Bs || r.search == FIND_Ba) {
             if (m.m_r < mr && m.m_t<=0)
                 return IAD_MR_TOO_SMALL;
