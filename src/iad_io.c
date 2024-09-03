@@ -566,6 +566,14 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
 
 int Read_Data_Line(FILE *fp, struct measure_type *m, struct invert_type *r, int params)
 {
+    r->default_a = UNINITIALIZED;
+    r->default_b = UNINITIALIZED;
+    r->default_g = UNINITIALIZED;
+    r->default_ba = UNINITIALIZED;
+    r->default_bs = UNINITIALIZED;
+    r->default_mua = UNINITIALIZED;
+    r->default_mus = UNINITIALIZED;
+
     if (strlen(COLUMN_LABELS) > 0)
         return Read_Data_Line_Per_Labels(fp, m, r, params);
 

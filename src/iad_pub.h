@@ -2,7 +2,7 @@
 
 void Inverse_RT(struct measure_type m, struct invert_type *r);
 
-int measure_OK(struct measure_type m, struct invert_type r);
+int measure_OK(struct measure_type m, struct invert_type r, int flag_bad);
 
 search_type determine_search(struct measure_type m, struct invert_type r);
 

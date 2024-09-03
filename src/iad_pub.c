@@ -30,7 +30,7 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         r->search = FIND_B;
     }
 
-    r->error = measure_OK(m, *r);
+    r->error = measure_OK(m, *r, FALSE);
 
     if (r->method.quad_pts < 4)
         r->error = IAD_QUAD_PTS_NOT_VALID;
@@ -92,6 +92,9 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         r->found = FALSE;
     }
 
+    if (r->error != IAD_TOO_MANY_ITERATIONS)
+        r->error = measure_OK(m, *r, TRUE);
+
     if (Debug(DEBUG_A_LITTLE)) {
         double M_R, M_T, mua, mus, musp;
         Calculate_Mua_Musp(m, *r, &mus, &musp, &mua);
@@ -126,7 +129,7 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
 
 }
 
-int measure_OK(struct measure_type m, struct invert_type r)
+int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
 {
     double ru, tu;
 
@@ -158,7 +161,11 @@ int measure_OK(struct measure_type m, struct invert_type r)
             if (m.m_r > 1)
                 return IAD_MR_TOO_BIG;
 
-            if (r.search == FIND_A || r.search == FIND_G || r.search == FIND_B ||
+            if (flag_bad) {
+                if (m.m_r < mr)
+                    return IAD_MR_TOO_SMALL;
+            }
+            else if (r.search == FIND_A || r.search == FIND_G || r.search == FIND_B ||
                 r.search == FIND_Bs || r.search == FIND_Ba) {
                 if (m.m_r < mr && m.m_t <= 0)
                     return IAD_MR_TOO_SMALL;
