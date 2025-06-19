@@ -45,7 +45,7 @@ void RT_Layers_All(int n,
         return;
     if (ntopslide < 0)
         return;
-    if (nbottomslide < 0)
+    if (nbottomslide < -1)
         return;
 
     for (i = 0; i < nlayers; i++) {

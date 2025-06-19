@@ -73,7 +73,6 @@ static void print_usage(void)
     fprintf(stdout, "  -F #             constrain scattering coefficient \n");
     fprintf(stdout, "                   # = constant: use constant scattering coefficient \n");
     fprintf(stdout, "                   # = 'P lambda0 mus0 gamma' then mus=mus0*(lambda/lambda0)^gamma\n");
-    fprintf(stdout, "                   # = 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma\n");
     fprintf(stdout, "  -g #             scattering anisotropy (default 0) \n");
     fprintf(stdout, "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
     fprintf(stdout, "                   '0' or '2'                --- number of slides\n");
@@ -477,7 +476,6 @@ int main(int argc, char **argv)
 
     double cl_search = UNINITIALIZED;
     double cl_mus0 = UNINITIALIZED;
-    double cl_musp0 = UNINITIALIZED;
     double cl_mus0_pwr = UNINITIALIZED;
     double cl_mus0_lambda = UNINITIALIZED;
 
@@ -671,19 +669,14 @@ int main(int argc, char **argv)
 
             n = sscanf(optarg, "%c %lf %lf %lf", &cc, &cl_mus0_lambda, &cl_mus0, &cl_mus0_pwr);
 
-            if (n != 4 || (cc != 'P' && cc != 'R')) {
+            if (n != 4 || (cc != 'P' && cc != 'p')) {
                 fprintf(stderr, "Error in the command line\n");
                 fprintf(stderr, "    bad -F option. '-F %s'\n", optarg);
                 fprintf(stderr, "    -F 1.0              for mus =1.0\n");
                 fprintf(stderr, "    -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
-                fprintf(stderr, "    -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
                 exit(EXIT_FAILURE);
             }
 
-            if (cc == 'R' || cc == 'r') {
-                cl_musp0 = cl_mus0;
-                cl_mus0 = UNINITIALIZED;
-            }
             break;
 
         case 'g':
@@ -1121,63 +1114,67 @@ int main(int argc, char **argv)
 
     Initialize_Result(m, &r, TRUE);
 
-    if (cl_quadrature_points != UNINITIALIZED)
-        r.method.quad_pts = cl_quadrature_points;
-    else
-        r.method.quad_pts = 8;
-
-    if (cl_default_a != UNINITIALIZED)
-        r.default_a = cl_default_a;
-
-    if (cl_default_mua != UNINITIALIZED) {
-        r.default_mua = cl_default_mua;
-        if (cl_sample_d != UNINITIALIZED)
-            r.default_ba = cl_default_mua * cl_sample_d;
-        else
-            r.default_ba = cl_default_mua * m.slab_thickness;
-    }
-
-    if (cl_default_b != UNINITIALIZED)
-        r.default_b = cl_default_b;
-
-    if (cl_default_g != UNINITIALIZED)
-        r.default_g = cl_default_g;
-
-    if (cl_tolerance != UNINITIALIZED) {
-        r.tolerance = cl_tolerance;
-        r.MC_tolerance = cl_tolerance;
-    }
-
-    if (cl_musp0 != UNINITIALIZED)
-        cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
-
-    if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
-        cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
-
-    if (cl_default_mus != UNINITIALIZED) {
-        r.default_mus = cl_default_mus;
-        if (cl_sample_d != UNINITIALIZED)
-            r.default_bs = cl_default_mus * cl_sample_d;
-        else
-            r.default_bs = cl_default_mus * m.slab_thickness;
-    }
-
-    if (cl_default_musp != UNINITIALIZED) {
-        if (cl_default_g != UNINITIALIZED)
-            r.default_mus = cl_default_musp / (1.0 - cl_default_g);
-        else
-            r.default_mus = cl_default_musp;
-
-        if (cl_sample_d != UNINITIALIZED)
-            r.default_bs = r.default_mus * cl_sample_d;
-        else
-            r.default_bs = r.default_mus * m.slab_thickness;
-    }
-
-    if (cl_search != UNINITIALIZED)
-        r.search = cl_search;
-
     if (cl_forward_calc != UNINITIALIZED) {
+
+        if (cl_quadrature_points != UNINITIALIZED)
+            r.method.quad_pts = cl_quadrature_points;
+        else
+            r.method.quad_pts = 8;
+
+        if (cl_default_a != UNINITIALIZED)
+            r.default_a = cl_default_a;
+
+        if (cl_default_mua != UNINITIALIZED) {
+            r.default_mua = cl_default_mua;
+            if (cl_sample_d != UNINITIALIZED)
+                r.default_ba = cl_default_mua * cl_sample_d;
+            else
+                r.default_ba = cl_default_mua * m.slab_thickness;
+        }
+
+        if (cl_default_b != UNINITIALIZED)
+            r.default_b = cl_default_b;
+
+        if (cl_default_g != UNINITIALIZED)
+            r.default_g = cl_default_g;
+
+        if (cl_tolerance != UNINITIALIZED) {
+            r.tolerance = cl_tolerance;
+            r.MC_tolerance = cl_tolerance;
+        }
+
+        if (cl_mus0 != UNINITIALIZED) {
+            if (m.lambda != 0) {
+                cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
+            }
+            else {
+                fprintf(stderr, "Seems like you want to constrain scattering to a power law.\n");
+                fprintf(stderr, "Unfortunately, there is no wavelength so this cannot be done.\n");
+            }
+        }
+
+        if (cl_default_mus != UNINITIALIZED) {
+            r.default_mus = cl_default_mus;
+            if (cl_sample_d != UNINITIALIZED)
+                r.default_bs = cl_default_mus * cl_sample_d;
+            else
+                r.default_bs = cl_default_mus * m.slab_thickness;
+        }
+
+        if (cl_default_musp != UNINITIALIZED) {
+            if (cl_default_g != UNINITIALIZED)
+                r.default_mus = cl_default_musp / (1.0 - cl_default_g);
+            else
+                r.default_mus = cl_default_musp;
+
+            if (cl_sample_d != UNINITIALIZED)
+                r.default_bs = r.default_mus * cl_sample_d;
+            else
+                r.default_bs = r.default_mus * m.slab_thickness;
+        }
+
+        if (cl_search != UNINITIALIZED)
+            r.search = cl_search;
 
         double temp_mus = 1;
         double temp_mua = 0;
@@ -1363,11 +1360,15 @@ int main(int argc, char **argv)
                     r.MC_tolerance = cl_tolerance;
                 }
 
-                if (cl_musp0 != UNINITIALIZED)
-                    cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
-
-                if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
-                    cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
+                if (cl_mus0 != UNINITIALIZED) {
+                    if (m.lambda != 0) {
+                        cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
+                    }
+                    else {
+                        fprintf(stderr, "Seems like you want to constrain scattering to a power law.\n");
+                        fprintf(stderr, "Unfortunately, there is no wavelength so this cannot be done.\n");
+                    }
+                }
 
                 if (cl_default_mus != UNINITIALIZED) {
                     r.default_mus = cl_default_mus;
@@ -1450,6 +1451,11 @@ int main(int argc, char **argv)
 
                     while (r.MC_iterations < MAX_MC_iterations) {
                         double last_mu_sp, last_mu_a, last_final_distance;
+                        double current_ur1_lost, current_ut1_lost, current_uru_lost, current_utu_lost;
+                        double diff_ur1_lost, diff_ut1_lost, diff_uru_lost, diff_utu_lost;
+                        double factor = 0.8;
+                        int too_much_lost;
+                        double tol = r.MC_tolerance;
 
                         calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                         last_mu_sp = mu_sp;
@@ -1461,7 +1467,21 @@ int main(int argc, char **argv)
                                 r.MC_iterations + 1);
                         }
                         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
-                            &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+                            &current_ur1_lost, &current_ut1_lost, &current_uru_lost, &current_utu_lost);
+                        diff_ur1_lost = current_ur1_lost - m.ur1_lost;
+                        diff_uru_lost = current_uru_lost - m.uru_lost;
+                        diff_ut1_lost = current_ut1_lost - m.ut1_lost;
+                        diff_utu_lost = current_utu_lost - m.utu_lost;
+
+                        if (diff_ur1_lost > 0.001 || diff_ut1_lost > 0.001)
+                            too_much_lost = 1;
+                        else
+                            too_much_lost = 0;
+
+                        m.ur1_lost += factor * diff_ur1_lost;
+                        m.uru_lost += factor * diff_uru_lost;
+                        m.ut1_lost += factor * diff_ut1_lost;
+                        m.utu_lost += factor * diff_utu_lost;
 
                         mc_total++;
                         r.MC_iterations++;
@@ -1469,19 +1489,40 @@ int main(int argc, char **argv)
                         Inverse_RT(m, &r);
                         calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
+                        if (0) {
+                            fprintf(stderr, "%2d %2d %2d | %7.4f %7.4f %7.4f | %7.4f %7.4f %7.4f\n",
+                                r.MC_iterations, too_much_lost, r.found,
+                                m.m_r, current_ur1_lost, m.ur1_lost, m.m_t, current_ut1_lost, m.ut1_lost);
+                        }
+
                         if (Debug(DEBUG_LOST_LIGHT))
                             print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
                         else
                             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
 
                         if (r.found) {
-                            if (fabs(last_mu_a - mu_a) < r.MC_tolerance && fabs(last_mu_sp - mu_sp) < r.MC_tolerance) {
-                                break;
+                            if (fabs(last_mu_a - mu_a) > tol) {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because mua is still changing\n");
+                                continue;
                             }
-                            else {
+
+                            if (fabs(last_mu_sp - mu_sp) > tol) {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because musp is still changing\n");
+                                continue;
+                            }
+
+                            if (too_much_lost) {
                                 if (Debug(DEBUG_ITERATIONS))
                                     fprintf(stderr, "Repeat MC because mua and musp are still changing\n");
+                                continue;
                             }
+
+                            if (Debug(DEBUG_ITERATIONS))
+                                fprintf(stderr, "found!\n");
+                            break;
+
                         }
                         else {
                             if (last_final_distance - r.final_distance < r.MC_tolerance) {
@@ -1748,11 +1789,15 @@ int main(int argc, char **argv)
                     r.MC_tolerance = cl_tolerance;
                 }
 
-                if (cl_musp0 != UNINITIALIZED)
-                    cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0 / (1 - r.default_g) : cl_musp0;
-
-                if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
-                    cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
+                if (cl_mus0 != UNINITIALIZED) {
+                    if (m.lambda != 0) {
+                        cl_default_mus = cl_mus0 * pow(m.lambda / cl_mus0_lambda, cl_mus0_pwr);
+                    }
+                    else {
+                        fprintf(stderr, "Seems like you want to constrain scattering to a power law.\n");
+                        fprintf(stderr, "Unfortunately, there is no wavelength so this cannot be done.\n");
+                    }
+                }
 
                 if (cl_default_mus != UNINITIALIZED) {
                     r.default_mus = cl_default_mus;
@@ -1835,6 +1880,11 @@ int main(int argc, char **argv)
 
                     while (r.MC_iterations < MAX_MC_iterations) {
                         double last_mu_sp, last_mu_a, last_final_distance;
+                        double current_ur1_lost, current_ut1_lost, current_uru_lost, current_utu_lost;
+                        double diff_ur1_lost, diff_ut1_lost, diff_uru_lost, diff_utu_lost;
+                        double factor = 0.8;
+                        int too_much_lost;
+                        double tol = r.MC_tolerance;
 
                         calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                         last_mu_sp = mu_sp;
@@ -1846,7 +1896,21 @@ int main(int argc, char **argv)
                                 r.MC_iterations + 1);
                         }
                         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
-                            &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+                            &current_ur1_lost, &current_ut1_lost, &current_uru_lost, &current_utu_lost);
+                        diff_ur1_lost = current_ur1_lost - m.ur1_lost;
+                        diff_uru_lost = current_uru_lost - m.uru_lost;
+                        diff_ut1_lost = current_ut1_lost - m.ut1_lost;
+                        diff_utu_lost = current_utu_lost - m.utu_lost;
+
+                        if (diff_ur1_lost > 0.001 || diff_ut1_lost > 0.001)
+                            too_much_lost = 1;
+                        else
+                            too_much_lost = 0;
+
+                        m.ur1_lost += factor * diff_ur1_lost;
+                        m.uru_lost += factor * diff_uru_lost;
+                        m.ut1_lost += factor * diff_ut1_lost;
+                        m.utu_lost += factor * diff_utu_lost;
 
                         mc_total++;
                         r.MC_iterations++;
@@ -1854,19 +1918,40 @@ int main(int argc, char **argv)
                         Inverse_RT(m, &r);
                         calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
+                        if (0) {
+                            fprintf(stderr, "%2d %2d %2d | %7.4f %7.4f %7.4f | %7.4f %7.4f %7.4f\n",
+                                r.MC_iterations, too_much_lost, r.found,
+                                m.m_r, current_ur1_lost, m.ur1_lost, m.m_t, current_ut1_lost, m.ut1_lost);
+                        }
+
                         if (Debug(DEBUG_LOST_LIGHT))
                             print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
                         else
                             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
 
                         if (r.found) {
-                            if (fabs(last_mu_a - mu_a) < r.MC_tolerance && fabs(last_mu_sp - mu_sp) < r.MC_tolerance) {
-                                break;
+                            if (fabs(last_mu_a - mu_a) > tol) {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because mua is still changing\n");
+                                continue;
                             }
-                            else {
+
+                            if (fabs(last_mu_sp - mu_sp) > tol) {
+                                if (Debug(DEBUG_ITERATIONS))
+                                    fprintf(stderr, "Repeat MC because musp is still changing\n");
+                                continue;
+                            }
+
+                            if (too_much_lost) {
                                 if (Debug(DEBUG_ITERATIONS))
                                     fprintf(stderr, "Repeat MC because mua and musp are still changing\n");
+                                continue;
                             }
+
+                            if (Debug(DEBUG_ITERATIONS))
+                                fprintf(stderr, "found!\n");
+                            break;
+
                         }
                         else {
                             if (last_final_distance - r.final_distance < r.MC_tolerance) {
