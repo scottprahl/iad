@@ -18,6 +18,12 @@ import matplotlib.pyplot as plt
 import nbformat
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 from scipy.optimize import curve_fit
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="Input line .* contained no data and will not be counted",
+)
 
 skyblue = '#00bfff'
 ocean= '#009dc4'
