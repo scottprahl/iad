@@ -36,9 +36,9 @@ int main (int argc, char **argv)
     @<Command-line changes to |m|@>@;
 
     Initialize_Result(m, &r, TRUE);
-    @<Command-line changes to |r|@>@;
 
     if (cl_forward_calc != UNINITIALIZED) {
+        @<Command-line changes to |r|@>@;
         @<Calculate and Print the Forward Calculation@>@;
         exit(EXIT_SUCCESS);
     }
@@ -150,7 +150,6 @@ int main (int argc, char **argv)
 
     double cl_search      = UNINITIALIZED;
     double cl_mus0        = UNINITIALIZED;
-    double cl_musp0       = UNINITIALIZED;
     double cl_mus0_pwr    = UNINITIALIZED;
     double cl_mus0_lambda = UNINITIALIZED;
 
@@ -339,7 +338,7 @@ that this strips any quotes from the command line.
                 break;
 
             case 'F':
-                /* initial digit means this is mus is constant */
+                /* initial digit means that mus is constant */
                 if (isdigit(optarg[0])) {
                     cl_default_mus = my_strtod(optarg);
                     if (cl_default_mus < 0) {
@@ -350,22 +349,17 @@ that this strips any quotes from the command line.
                     break;
                 }
 
-                /* should be a string like 'R 1000 1.2 -1.8' */
+                /* should be a string like 'P 1000 1.2 -1.8' */
                 n=sscanf(optarg, "%c %lf %lf %lf",&cc, &cl_mus0_lambda, &cl_mus0, &cl_mus0_pwr);
 
-                if (n!=4 || (cc != 'P' && cc != 'R')) {
+                if (n != 4 || (cc != 'P' && cc != 'p')) {
                     fprintf(stderr, "Error in the command line\n");
                     fprintf(stderr, "    bad -F option. '-F %s'\n", optarg);
                     fprintf(stderr, "    -F 1.0              for mus =1.0\n");
                     fprintf(stderr, "    -F 'P 500 1.0 -1.3' for mus =1.0*(lambda/500)^(-1.3)\n");
-                    fprintf(stderr, "    -F 'R 500 1.0 -1.3' for mus'=1.0*(lambda/500)^(-1.3)\n");
                     exit(EXIT_FAILURE);
                 }
 
-                if (cc=='R' || cc == 'r') {
-                    cl_musp0 = cl_mus0;
-                    cl_mus0 = UNINITIALIZED;
-                }
                 break;
 
             case 'g':
@@ -936,11 +930,14 @@ measurements.
         r.MC_tolerance = cl_tolerance;
     }
 
-    if (cl_musp0 != UNINITIALIZED)
-        cl_mus0 = (r.default_g != UNINITIALIZED) ? cl_musp0/(1-r.default_g) : cl_musp0;
-
-    if (cl_mus0 != UNINITIALIZED && m.lambda != 0)
-        cl_default_mus = cl_mus0 * pow(m.lambda/cl_mus0_lambda,cl_mus0_pwr);
+    if (cl_mus0 != UNINITIALIZED) {
+        if (m.lambda != 0) {
+            cl_default_mus = cl_mus0 * pow(m.lambda/cl_mus0_lambda,cl_mus0_pwr);
+        } else {
+            fprintf(stderr, "Seems like you want to constrain scattering to a power law.\n");
+            fprintf(stderr, "Unfortunately, there is no wavelength so this cannot be done.\n");
+        }
+    }
 
     if (cl_default_mus != UNINITIALIZED) {
         r.default_mus = cl_default_mus;
@@ -961,7 +958,6 @@ measurements.
         else
             r.default_bs = r.default_mus * m.slab_thickness;
     }
-
 
     if (cl_search != UNINITIALIZED)
         r.search = cl_search;
@@ -1001,6 +997,11 @@ if (m.num_spheres > 0) {
 
     while (r.MC_iterations < MAX_MC_iterations) {
         double last_mu_sp, last_mu_a, last_final_distance;
+        double current_ur1_lost, current_ut1_lost, current_uru_lost, current_utu_lost;
+        double diff_ur1_lost, diff_ut1_lost, diff_uru_lost, diff_utu_lost;
+        double factor = 0.8;
+        int too_much_lost;
+        double tol = r.MC_tolerance;
 
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
         last_mu_sp = mu_sp;
@@ -1011,7 +1012,21 @@ if (m.num_spheres > 0) {
             fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n", r.MC_iterations+1);
         }
         MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
-                &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+                &current_ur1_lost, &current_ut1_lost, &current_uru_lost, &current_utu_lost);
+        diff_ur1_lost= current_ur1_lost - m.ur1_lost;
+        diff_uru_lost= current_uru_lost - m.uru_lost;
+        diff_ut1_lost= current_ut1_lost - m.ut1_lost;
+        diff_utu_lost= current_utu_lost - m.utu_lost;
+
+        if (diff_ur1_lost > 0.001 || diff_ut1_lost > 0.001)
+            too_much_lost = 1;
+        else
+            too_much_lost = 0;
+
+        m.ur1_lost +=  factor * diff_ur1_lost;
+        m.uru_lost +=  factor * diff_uru_lost;
+        m.ut1_lost +=  factor * diff_ut1_lost;
+        m.utu_lost +=  factor * diff_utu_lost;
 
         mc_total++;
         r.MC_iterations++;
@@ -1019,18 +1034,41 @@ if (m.num_spheres > 0) {
         Inverse_RT (m, &r);
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
+        if (0) {
+            fprintf(stderr, "%2d %2d %2d | %7.4f %7.4f %7.4f | %7.4f %7.4f %7.4f\n",
+                r.MC_iterations, too_much_lost, r.found,
+                m.m_r, current_ur1_lost, m.ur1_lost,
+                m.m_t, current_ut1_lost, m.ut1_lost);
+        }
+
         if (Debug(DEBUG_LOST_LIGHT))
             print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
         else
             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
 
         if (r.found) {
-            if (fabs(last_mu_a-mu_a)<r.MC_tolerance && fabs(last_mu_sp-mu_sp)<r.MC_tolerance) {
-                break;
-            } else {
+            if (fabs(last_mu_a-mu_a)>tol) {
+                if (Debug(DEBUG_ITERATIONS))
+                    fprintf(stderr, "Repeat MC because mua is still changing\n");
+                continue;
+            }
+
+            if (fabs(last_mu_sp-mu_sp)>tol) {
+                if (Debug(DEBUG_ITERATIONS))
+                    fprintf(stderr, "Repeat MC because musp is still changing\n");
+                continue;
+            }
+
+            if (too_much_lost){
                 if (Debug(DEBUG_ITERATIONS))
                     fprintf(stderr, "Repeat MC because mua and musp are still changing\n");
+                continue;
             }
+
+            if (Debug(DEBUG_ITERATIONS))
+                fprintf(stderr, "found!\n");
+            break;
+
         } else {
             if (last_final_distance - r.final_distance < r.MC_tolerance) {
                 if (Debug(DEBUG_ITERATIONS))
@@ -1295,7 +1333,6 @@ fprintf(stdout, "  -f #             allow a fraction 0.0-1.0 of light to hit sph
 fprintf(stdout, "  -F #             constrain scattering coefficient \n");
 fprintf(stdout, "                   # = constant: use constant scattering coefficient \n");
 fprintf(stdout, "                   # = 'P lambda0 mus0 gamma' then mus=mus0*(lambda/lambda0)^gamma\n");
-fprintf(stdout, "                   # = 'R lambda0 musp0 gamma'  musp=musp0*(lambda/lambda0)^gamma\n");
 fprintf(stdout, "  -g #             scattering anisotropy (default 0) \n");
 fprintf(stdout, "  -G #             type of boundary '0', '2', 't', 'b', 'n', 'f' \n");
 fprintf(stdout, "                   '0' or '2'                --- number of slides\n");
