@@ -717,9 +717,11 @@ static void fill_grid_entry(int i, int j)
         if (i==0 && j==0)
             fprintf(stderr, "Filling Grid\n%2d ", 0);
     
-    //    fprintf(stderr, "%10.5f %10.5f %10.5f \n", RR.slab.a, RR.slab.b, RR.slab.g);
-    //    fprintf(stderr, "       ");
-    //    fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** AD\n", ur1,ut1,uru,utu);
+        if (0) {
+            fprintf(stderr, "%10.5f %10.5f %10.5f \n", RR.slab.a, RR.slab.b, RR.slab.g);
+            fprintf(stderr, "       ");
+            fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** AD\n", ur1,ut1,uru,utu);
+        }
         RR.a = RR.slab.a;
         RR.b = RR.slab.b;
         RR.g = RR.slab.g;
@@ -729,10 +731,12 @@ static void fill_grid_entry(int i, int j)
         The_Grid[GRID_SIZE*i+j][UT1_LOST_COLUMN]=ut1_lost;
         The_Grid[GRID_SIZE*i+j][URU_LOST_COLUMN]=uru_lost;
         The_Grid[GRID_SIZE*i+j][UTU_LOST_COLUMN]=utu_lost;
-    //    fprintf(stderr, "       ");
-    //    fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC\n", ur1,ut1,uru,utu);
-    //    fprintf(stderr, "       ");
-    //    fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC Lost\n", ur1_lost,ut1_lost,uru_lost,utu_lost);
+        if (0) {
+            fprintf(stderr, "       ");
+            fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC\n", ur1,ut1,uru,utu);
+            fprintf(stderr, "       ");
+            fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC Lost\n", ur1_lost,ut1_lost,uru_lost,utu_lost);
+        }
             
         fprintf(stderr, ".");
         if (j==GRID_SIZE-1) {
