@@ -53,9 +53,9 @@
  * slope-matching the penalties or barriers.
  *
  */
- 
+
  /* hooke() has been rewritten so that it can be a drop in replacement for amoeba() */
- 
+
 #include <stdio.h>
 #include <math.h>
 #define VARS        (2)         /* max # of variables */
@@ -63,41 +63,41 @@
 #define NMAX 5000
 
 /* given a point, look for a better one nearby, one coord at a time */
-double best_nearby(double (*funk) (double[]), int *evals,
-                   double delta[VARS], double point[VARS], double prevbest, int nvars)
+double
+best_nearby(double (*funk)(double[]), int *evals, double delta[VARS], double point[VARS], double prevbest, int nvars)
 {
     double z[3];
     double minf, ftmp;
     int i;
     *evals = 0;
-    
+
     minf = prevbest;
     for (i = 0; i < nvars; i++)
-    	z[i+1] = point[i];
-    	
+        z[i + 1] = point[i];
+
     for (i = 0; i < nvars; i++) {
-    	z[i+1] = point[i] + delta[i];
-		ftmp = funk(z);
-		(*evals)++;
-		if (ftmp < minf)
-			minf = ftmp;
-		else {
-			delta[i] = 0.0 - delta[i];
-			z[i+1] = point[i] + delta[i];
-			ftmp = funk(z);
-			(*evals)++;
-			if (ftmp < minf)
-				minf = ftmp;
-			else
-				z[i+1] = point[i];
-		}
+        z[i + 1] = point[i] + delta[i];
+        ftmp = funk(z);
+        (*evals)++;
+        if (ftmp < minf)
+            minf = ftmp;
+        else {
+            delta[i] = 0.0 - delta[i];
+            z[i + 1] = point[i] + delta[i];
+            ftmp = funk(z);
+            (*evals)++;
+            if (ftmp < minf)
+                minf = ftmp;
+            else
+                z[i + 1] = point[i];
+        }
     }
     for (i = 0; i < nvars; i++)
-    	point[i] = z[i+1];
+        point[i] = z[i + 1];
     return (minf);
 }
 
-void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(double []), int *nfunk)
+void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(double[]), int *nfunk)
 {
     double newf, fbefore, steplength, tmp;
     double xbefore[VARS], newx[VARS], delta[VARS];
@@ -105,16 +105,16 @@ void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(dou
     int i, keep, evals;
 
     for (i = 0; i < nvars; i++) {
-    	xbefore[i] = p[1][i+1];
-    	delta[i]   = p[2+i][i+1] - p[1][i+1];
+        xbefore[i] = p[1][i + 1];
+        delta[i] = p[2 + i][i + 1] - p[1][i + 1];
     }
-        
+
     fbefore = y[1];
     newf = fbefore;
-    
-	*nfunk = 0;
+
+    *nfunk = 0;
     steplength = rho;
-    
+
     while ((*nfunk < NMAX) && (steplength > epsilon)) {
 
 /*
@@ -124,24 +124,24 @@ void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(dou
 */
 
         /* find best new point, one coord at a time */
-        for (i = 0; i < nvars; i++) 
+        for (i = 0; i < nvars; i++)
             newx[i] = xbefore[i];
-        
+
         newf = best_nearby(funk, &evals, delta, newx, fbefore, nvars);
         *nfunk = *nfunk + evals;
-        
+
         /* if we made some improvements, pursue that direction */
         keep = 1;
         while ((newf < fbefore) && (keep == 1)) {
 
             for (i = 0; i < nvars; i++) {
-    
+
                 /* firstly, arrange the sign of delta[] */
                 if (newx[i] <= xbefore[i])
                     delta[i] = 0.0 - fabs(delta[i]);
                 else
                     delta[i] = fabs(delta[i]);
-                    
+
                 /* now, move further in this direction */
                 tmp = xbefore[i];
                 xbefore[i] = newx[i];
@@ -149,12 +149,12 @@ void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(dou
             }
             fbefore = newf;
             newf = best_nearby(funk, &evals, delta, newx, fbefore, nvars);
-        	*nfunk = *nfunk + evals;
-            
+            *nfunk = *nfunk + evals;
+
             /* if the further (optimistic) move was bad.... */
             if (newf >= fbefore)
                 break;
-            
+
             /* make sure that the differences between the new */
             /* and the old points are due to actual */
             /* displacements; beware of roundoff errors that */
@@ -162,8 +162,7 @@ void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(dou
             keep = 0;
             for (i = 0; i < nvars; i++) {
                 keep = 1;
-                if (fabs(newx[i] - xbefore[i]) >
-                    (0.5 * fabs(delta[i])))
+                if (fabs(newx[i] - xbefore[i]) > (0.5 * fabs(delta[i])))
                     break;
                 else
                     keep = 0;
@@ -171,13 +170,13 @@ void hooke(double **p, double y[], int nvars, double epsilon, double (*funk)(dou
         }
         if ((steplength >= epsilon) && (newf >= fbefore)) {
             steplength = steplength * rho;
-            for (i = 0; i < nvars; i++) 
+            for (i = 0; i < nvars; i++)
                 delta[i] *= rho;
         }
     }
-    for (i = 0; i < nvars; i++) 
-        p[1][i+1] = xbefore[i];
-    
+    for (i = 0; i < nvars; i++)
+        p[1][i + 1] = xbefore[i];
+
     y[1] = fbefore;
 /*	fprintf(stderr, "<%5d>\n", *nfunk); */
 }
