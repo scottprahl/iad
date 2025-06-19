@@ -210,6 +210,7 @@ tidy-src:
 	done
 
 	rm *~
+	rm -rf temp
 	echo "==> tidy complete"
 
 .PHONEY : clean realclean lib tidy
