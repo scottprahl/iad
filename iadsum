@@ -210,7 +210,7 @@ def read_txt(txt_path):
     musp = np.atleast_1d(musp)
     g = np.atleast_1d(g)
 
-    converters = {8: lambda s: s.lstrip(b'#').strip()}
+    converters = {8: lambda s: s.lstrip('#').strip()}
     status = np.loadtxt(txt_path, usecols=[8], dtype=str, converters=converters)
     status = np.atleast_1d(status)
     success = status == '*'
