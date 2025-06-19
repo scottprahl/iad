@@ -67,7 +67,7 @@ NRSRC = src/nr_amoeb.c      src/nr_amotr.h       src/nr_gaulg.c        src/nr_mn
         src/nr_amotr.c      src/nr_brent.h       src/nr_mnbrk.c        src/nr_rtsaf.h  \
         src/nr_hj.c         src/nr_hj.h          src/nr_zbrent.h       src/nr_zbrent.c \
         src/mc_lost_main.c  src/version.h        src/mc_lost.c         src/mc_lost.h   \
-        src/mc_test.c
+        src/mc_test.c       src/cache.h          src/cache.c
 
 CSRC  = src/ad_frsnl.c      src/ad_globl.c       src/ad_matrx.c        src/ad_start.c        \
         src/iad_main.c      src/ad_doubl.c       src/iad_util.c        src/ad_radau.c        \
@@ -223,7 +223,7 @@ mc_test:
 	src/mc_test
 
 mc_lost_test: mc_lost
-	cd src ; make mc_lost 
+	cd src ; make mc_lost
 	src/mc_lost
 	src/mc_lost -P 0
 	src/mc_lost -i 0 -n 1.0
