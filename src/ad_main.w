@@ -111,11 +111,11 @@ of the bottom slide.  The slides are assumed to have no absorption.
     if (fileflag!=EOF) 
         fileflag=scanf("%lf", &slab.n_bottom_slide);
     if (fileflag!=EOF)
-            fileflag=scanf("%lf", &slab.b_top_slide);
+        fileflag=scanf("%lf", &slab.b_top_slide);
     if (fileflag!=EOF)
-            fileflag=scanf("%lf", &slab.b_bottom_slide);
+        fileflag=scanf("%lf", &slab.b_bottom_slide);
     if (fileflag!=EOF)
-            fileflag=scanf("%d", &nstreams);
+        fileflag=scanf("%d", &nstreams);
 }
 
 @ @<Calculate and Print the Results@>=
@@ -244,7 +244,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
 static void print_version(void)
 {
     fprintf(stdout, "ad %s\n",Version);
-    fprintf(stdout, "Copyright 1993-2024 Scott Prahl, scott.prahl@@oit.edu\n");
+    fprintf(stdout, "Copyright 1993-2025 Scott Prahl, scott.prahl@@oit.edu\n");
     fprintf(stdout, "          (see Applied Optics, 32:559-568, 1993)\n\n");
     fprintf(stdout, "This is free software; see the source for copying conditions.\n");
     fprintf(stdout, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");
@@ -286,6 +286,7 @@ static void print_usage(void)
     fprintf(stdout, "    4) nslab = index of refraction of slab\n");
     fprintf(stdout, "    5) ntopslide = index of refraction of glass slide on top\n");
     fprintf(stdout, "    6) nbottomslide = index of refraction of glass slide on bottom\n");
+    fprintf(stdout, "       negative is diffuse, i.e., -0.7 => 0.7 Lambertian reflection\n");
     fprintf(stdout, "    7) btopslide = optical depth of top slide (for absorbing slides)\n");
     fprintf(stdout, "    8) bbottomslide = optical depth of bottom slide (for absorbing slides)\n");
     fprintf(stdout, "    9) q = number of quadrature points\n\n");
@@ -383,11 +384,18 @@ static void validate_slab(struct AD_slab_type slab, int nstreams, int machine)
         exit(EXIT_FAILURE);
     }
 
-    if (slab.n_bottom_slide<1 || slab.n_bottom_slide>10) {
-        fprintf(stderr,"Bad Top Slide Index n=%f\n",slab.n_bottom_slide);
-        exit(EXIT_FAILURE);
+    if (slab.n_bottom_slide > 0) {
+        if (slab.n_bottom_slide<1 || slab.n_bottom_slide>10) {
+            fprintf(stderr,"Bad Bottom Slide Index n=%f\n",slab.n_bottom_slide);
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        if (slab.n_bottom_slide<-1) {
+            fprintf(stderr,"Bad Lambertian Bottom Reflection n=%f\n",slab.n_bottom_slide);
+            exit(EXIT_FAILURE);
+        }
     }
-    
+
     if (slab.b_top_slide<0 || slab.b_top_slide>10) {
         fprintf(stderr,"Bad Top Slide Optical Thickness b=%f\n",slab.b_top_slide);
         exit(EXIT_FAILURE);
