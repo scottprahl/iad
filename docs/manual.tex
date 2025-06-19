@@ -1716,24 +1716,21 @@ file named \texttt{basic1.txt}.
                  some of the light misses the sample and hits the sphere wall instead. \\[1mm]
                  \textit{The default value is that no light hits the wall first, \texttt{-f 0}.}
     
-    \item[-F \#] Constrain the scattering coefficient.\\[1mm]
-                 The value for this option has three possible cases.  First, when the argument is a simple number
-                 \texttt{-F 0.5} then the scattering coefficient is kept fixed at 0.5\,mm$^{-1}$.\\[1mm]  
-                 The second
-                 option is when the value is '$P$ $\lambda_0$ $\mu_{s0}$ $\gamma$' where the assumed scattering
-                 coefficient depends on wavelength according to $\mu_{s0} (\lambda/\lambda_0)^\gamma$.  The 
-                 value $\mu_{s0}$ is the assumed scattering coefficient at $\lambda_0$.  So the 
-                 option \texttt{-F 'P 1000 1.5 -1.3'} will use the wavelength $\lambda$ to generate the scattering
-                 coefficient $\mu_s = 1.5 (\lambda/1000)^{-1.3}$.\\[1mm]  
-                 The third option is when the value is '$R$ $\lambda_0$ $\mu_{s0}$ $\gamma$' where the assumed scattering
-                 coefficient depends on wavelength according to $\mu_{s0} (\lambda/\lambda_0)^\gamma$.  The 
-                 value $\mu_{s0}$ is the assumed scattering coefficient at $\lambda_0$.  So the 
-                 option \texttt{-F 'R 1000 1.5 -1.3'} will use the wavelength $\lambda$ to generate the scattering
-                 coefficient $\mu_s' = 1.5 (\lambda/1000)^{-1.3}$.
-   
+    \item[-F \#] Constrain the scattering coefficient as a constant or as a power-law.\\[1mm]
+                 1) \texttt{-F $\mu_s$} when the argument is a simple number, say,
+                 \texttt{-F 0.5} then the scattering coefficient is fixed at $\mu_s=0.5\,$mm$^{-1}$.
+                 (If you want to constrain $\mu_s'$ then fix the anisotropy to \texttt{-g $g$}\
+                 and constrain $\mu_s$ using $\mu_s'/(1-g)$.)\\[1mm]  
+                 2) \texttt{-F \textquotesingle{}P $\lambda_0$ $\mu_s(\lambda_0)$ $\gamma$\textquotesingle}  means 
+                 $\mu_s(\lambda)=\mu_s(\lambda_0) \left(\lambda/\lambda_0\right)^\gamma$\\
+                 Thus \texttt{-F \textquotesingle{}P 1000 10 -1.3\textquotesingle}
+                 is equivalent to $\mu_s(\lambda) = 10 (\lambda/1000)^{-1.3}$. The quotes on the command-line
+                 are mandatory.  Furthermore, the wavelength, must of course,
+                 be specified in the input file with the same units as $\lambda_0$
+
     \item[-g \#] Assume this value for the scattering anisotropy for all calculations\\[1mm]
                  Constrains the inversion process by fixing the scattering anisotropy to this value.  
-                 The program assumes a Henyey-Greenstein scattering phase function and $g$ is the cosine of the average
+                 The program assumes a Henyey-Greenstein scattering phase function and that $g$ is the cosine of the average
                  value of the scattering function over all angles.  The value ranges from $-1$ (completely backwards scattering), to
                  $0$ (isotropic), to $+1$ (completely forward scattering).\\[1mm]
                  This option is useful when the scattering coefficient is roughly known and only two 
