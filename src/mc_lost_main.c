@@ -137,42 +137,42 @@ int main(int argc, char **argv)
 
     if (machine_output == FALSE) {
         printf("# MC Lost ----- Photons = %ld\n", n_photons);
-        printf("# Albedo                  %10.5f\n",a);
-        printf("# Optical Depth           %10.5f\n",b);
-        printf("# Anisotropy              %10.5f\n",g);
+        printf("# Albedo                  %10.5f\n", a);
+        printf("# Optical Depth           %10.5f\n", b);
+        printf("# Anisotropy              %10.5f\n", g);
         printf("# Indices of Refraction\n");
-        printf("#                   slab  %10.5f\n",n_sample);
-        printf("#          slab thickness %10.5f mm\n",t_sample);
-        printf("#              top slide  %10.5f\n",n_slide);
-        printf("#           bottom slide  %10.5f\n",n_slide);
-        printf("#         slide thickness %10.5f mm\n",t_slide);
+        printf("#                   slab  %10.5f\n", n_sample);
+        printf("#          slab thickness %10.5f mm\n", t_sample);
+        printf("#              top slide  %10.5f\n", n_slide);
+        printf("#           bottom slide  %10.5f\n", n_slide);
+        printf("#         slide thickness %10.5f mm\n", t_slide);
         printf("# Port and Beam Diameter\n");
-        printf("#        reflection port  %10.5f mm\n",dr_port);
-        printf("#      transmission port  %10.5f mm\n",dt_port);
-        printf("#                   beam  %10.5f mm\n",d_beam);
-        printf("# Incidence angle         %10.5f\n",acos(mu0)*180.0/M_PI);
-        printf("# Cos of incidence angle  %10.5f\n",mu0);
+        printf("#        reflection port  %10.5f mm\n", dr_port);
+        printf("#      transmission port  %10.5f mm\n", dt_port);
+        printf("#                   beam  %10.5f mm\n", d_beam);
+        printf("# Incidence angle         %10.5f\n", acos(mu0) * 180.0 / M_PI);
+        printf("# Cos of incidence angle  %10.5f\n", mu0);
         printf("# \n");
     }
 
     if (collimated_rofr_test) {
         MC_Print_RT_Arrays(TRUE);
-        MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0, t_sample,
-            t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0,
+            t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
     }
 
     else if (diffuse_rofr_test) {
         MC_Print_RT_Arrays(TRUE);
-        MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0, t_sample,
-            t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0,
+            t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
     }
 
     else {
-        MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0, t_sample,
-            t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, COLLIMATED, mu0,
+            t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, &mc_ur1, &mc_ut1, &mc_ur1_lost, &mc_ut1_lost);
 
-        MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0, t_sample,
-            t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
+        MC_Radial(n_photons, a, b, g, n_sample, n_slide, DIFFUSE, mu0,
+            t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, &mc_uru, &mc_utu, &mc_uru_lost, &mc_utu_lost);
     }
 
     ez_RT_Oblique(12, n_sample, n_slide, n_slide, a, b, g, mu0, &URx, &UTx, &URU, &UTU);
@@ -182,10 +182,11 @@ int main(int argc, char **argv)
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Calc\n", mc_ur1, mc_ut1, mc_uru, mc_utu);
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tAD Calc\n", URx, UTx, URU, UTU);
         printf("%9.5f \t%9.5f \t%9.5f \t%9.5f \tMC Loss\n\n", mc_ur1_lost, mc_ut1_lost, mc_uru_lost, mc_utu_lost);
-    } else {
+    }
+    else {
         printf("%9.5f %9.5f %9.5f %9.5f ", mc_ur1, mc_ut1, mc_uru, mc_utu);
         printf("%9.5f %9.5f %9.5f %9.5f ", URx, UTx, URU, UTU);
-        printf("%9.5f %9.5f %9.5f %9.5f\n" , mc_ur1_lost, mc_ut1_lost, mc_uru_lost, mc_utu_lost);
+        printf("%9.5f %9.5f %9.5f %9.5f\n", mc_ur1_lost, mc_ut1_lost, mc_uru_lost, mc_utu_lost);
     }
 
     exit(EXIT_SUCCESS);
