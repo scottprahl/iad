@@ -1,0 +1,54 @@
+IAD1   # Must be first four characters
+
+# Basic test of two measurement functionality
+# These are accurate values for total reflectance transmittance
+# for a sample between glass sides for g=0 and various mus and mua
+ 
+1.40   # Index of refraction of the sample
+1.50   # Index of refraction of the top and bottom slides
+1.0    # [mm] Thickness of sample
+1.0    # [mm] Thickness of slides
+0.1    # [mm] Diameter of illumination beam
+1.00   # Reflectivity of the reflectance calibration standard
+
+1      # Number of spheres used during each measurement
+
+       # Properties of sphere (unused)
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+25.4   # [mm] Sample Port Diameter
+12.7   # [mm] Empty Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+       # Properties of sphere (unused)
+203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
+25.4   # [mm] Sample Port Diameter
+12.7   # [mm] Empty Port Diameter
+1.00   # [mm] Detector Port Diameter
+0.96   # Reflectivity of the sphere wall
+
+r   t    i 
+0.18744404560482633 0.5762005443502255  8#  5 0.1 0.9
+0.11408695107696898 0.4247042155048462  8#  5 0.3 0.9
+0.08471305576215057 0.3300887417740564  8#  5 0.5 0.9
+0.06982294430167554 0.2612417396290802  8#  5 0.7 0.9
+0.06135333777430316 0.2084620482128875  8#  5 0.9 0.9
+0.27088016856897984 0.4509192971704515  8# 10 0.1 0.9
+0.16333747798935647 0.2987243441470849  8# 10 0.3 0.9
+0.11792911555677094 0.21658938611934533 8# 10 0.5 0.9
+0.09428868597310426 0.16315981631593007 8# 10 0.7 0.9
+0.08044503686810237 0.12537444039186588 8# 10 0.9 0.9
+0.3237537120926814  0.3838856142761712  8 # 15 0.1 0.9
+0.20107528687650159 0.23478780431948043 8 # 15 0.3 0.9
+0.14701027202208009 0.16016218300262994 8 # 15 0.5 0.9
+0.11771880655085115 0.11501848868168339 8 # 15 0.7 0.9
+0.09985414400017813 0.08501666270897117 8 # 15 0.9 0.9
+0.3645806239639053  0.33789025764628244 8 # 20 0.1 0.9
+0.23310882350754394 0.19448119664465763 8 # 20 0.3 0.9
+0.17325128485522778 0.12628929941659306 8 # 20 0.5 0.9
+0.1397305504426868  0.08707259647454037 8 # 20 0.7 0.9
+0.1186171920562128  0.06218235955454871 8 # 20 0.9 0.9
+0.3987189090404213  0.30192686119454526 8 # 25 0.1 0.9
+0.26116346314962957 0.16526379969277508 8 # 25 0.3 0.9
+0.19697893309135678 0.10298113321790629 8 # 25 0.5 0.9
+0.16010187736822423 0.06857093492328084 8 # 25 0.7 0.9
