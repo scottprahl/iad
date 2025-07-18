@@ -206,6 +206,17 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
         case 'g':
             r->default_g = x;
             break;
+        case 'i':
+            m->slab_cos_angle = cos(x * M_PI / 180.0);
+            if (x < 0 || x > 90) {
+                fprintf(stderr, "Error\n");
+                fprintf(stderr, "    incident angle '%8.4f'\n", x);
+                fprintf(stderr, "    must be between 0 and 90 degrees\n");
+                exit(EXIT_FAILURE);
+            }
+            if (r->method.quad_pts % 12 != 0)
+                r->method.quad_pts = ((r->method.quad_pts + 11) / 12) * 12;
+            break;
         case 'L':
             m->lambda = x;
             break;

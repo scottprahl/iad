@@ -11,6 +11,7 @@ typedef struct {
 typedef struct Cache Cache;
 
 int cache_init(Cache * c);
+
 void cache_free(Cache * c);
 
 int cache_get(const Cache * c, double a, double b, double g, double *ur1, double *ut1, double *uru, double *utu);
@@ -18,6 +19,7 @@ int cache_get(const Cache * c, double a, double b, double g, double *ur1, double
 void cache_put(Cache * c, double a, double b, double g, double ur1, double ut1, double uru, double utu);
 
 size_t cache_size(const Cache * c);
+
 int cache_get_by_index(const Cache * c, size_t i,
     double *a, double *b, double *g, double *ur1, double *ut1, double *uru, double *utu);
 

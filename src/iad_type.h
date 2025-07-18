@@ -27,7 +27,7 @@
 #define BIG_A_CALC_VALUE 999999.0
 #define SMALL_A_CALC_VALUE 0.00001
 #define MAX_ABS_G 0.999999
-#define GRID_SIZE 41 \
+#define GRID_SIZE 101 \
 
 #define IAD_NO_ERROR 0 \
 
