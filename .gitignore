@@ -14,7 +14,10 @@ src/iad
 # ignore generated docs
 docs/iad_src.pdf
 docs/ad_src.pdf
-docs/manual.*
+docs/manual.log
+docs/manual.blg
+docs/manual.out
+docs/manual.toc
 docs/jupyter
 docs/*graffle
 docs/*png
