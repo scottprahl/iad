@@ -14,6 +14,8 @@ src/iad
 # ignore generated docs
 docs/iad_src.pdf
 docs/ad_src.pdf
+docs/manual.aux
+docs/manual.bbl
 docs/manual.log
 docs/manual.blg
 docs/manual.out
