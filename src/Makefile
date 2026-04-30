@@ -168,7 +168,7 @@ clean:
 
 realclean:
 	make clean
-	rm -f ad*.h ad*.c iad*.h iad*.c libiad.h
+	rm -f ad*.h ad*.c iad*.h iad*.c mc_lost.c mc_lost.h libiad.h
 	rm -f libiad.* lib_ad* lib_iad*
 	rm -f ad.idx ad.log ad.scn ad.tex ad.toc ad.pdf
 	rm -f iad.idx iad.log iad.scn iad.tex iad.toc iad.pdf

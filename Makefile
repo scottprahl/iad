@@ -53,33 +53,34 @@ TEST =  test/Makefile       test/basic-A.rxt    test/basic-B.rxt      test/basic
         test/ville1.rxt     test/fairway-A.rxt  test/fairway-B.rxt    test/fairway-C.rxt  test/fairway-D.rxt  \
         test/fairway-E.rxt  test/basic-E.rxt    test/combo_0.rxt
 
-export WSRC =  src/ad.w            src/ad_frsnl.w       src/ad_prime.w        src/iad_io.w          \
+export WSRC =  src/ad.w     src/ad_frsnl.w       src/ad_prime.w        src/iad_io.w          \
         src/ad_globl.w      src/ad_radau.w       src/iad_main.w                              \
         src/ad_bound.w      src/ad_layers.w      src/ad_start.w        src/iad_main_mus.w    \
         src/ad_chapter.w    src/ad_layers_test.w src/iad.w             src/iad_pub.w         \
         src/ad_cone.w       src/ad_main.w        src/iad_calc.w        src/iad_type.w        \
         src/ad_cone_test.w  src/ad_matrx.w       src/iad_util.w        src/ad_oblique_test.w \
-        src/ad_doubl.w      src/ad_phase.w       src/iad_find.w        src/iad_agrid.w
+        src/ad_doubl.w      src/ad_phase.w       src/iad_find.w        src/iad_agrid.w       \
+        src/mc_lost.w
 
-export NRSRC = src/nr_amoeb.c      src/nr_amotr.h       src/nr_gaulg.c        src/nr_mnbrk.h  \
+export NRSRC = src/nr_amoeb.c src/nr_amotr.h     src/nr_gaulg.c        src/nr_mnbrk.h  \
         src/nr_util.c       src/nr_util.h        src/nr_zbrak.c        src/nr_zbrak.h  \
         src/nr_amoeb.h      src/nr_brent.c       src/nr_gaulg.h        src/nr_rtsaf.c  \
         src/nr_amotr.c      src/nr_brent.h       src/nr_mnbrk.c        src/nr_rtsaf.h  \
         src/nr_hj.c         src/nr_hj.h          src/nr_zbrent.h       src/nr_zbrent.c \
-        src/mc_lost_main.c  src/version.h        src/mc_lost.c         src/mc_lost.h   \
-        src/mc_test.c
+        src/mc_lost_main.c  src/version.h        src/mc_test.c
 
 export CSRC  = src/ad_frsnl.c      src/ad_globl.c       src/ad_matrx.c        src/ad_start.c        \
         src/iad_main.c      src/ad_doubl.c       src/iad_util.c        src/ad_radau.c        \
         src/ad_prime.c      src/iad_find.c       src/ad_phase.c        src/ad_bound.c        \
         src/ad_layers.c     src/version.c        src/iad_io.c          src/ad_chapter.c      \
         src/iad_calc.c      src/iad_pub.c        src/ad_cone.c         src/ad_oblique_test.c \
-        src/ad_cone_test.c  src/ad_layers_test.c src/iad_agrid.c
+        src/ad_cone_test.c  src/ad_layers_test.c src/iad_agrid.c       src/mc_lost.c
 
 export HSRC  = src/ad_bound.h      src/ad_globl.h       src/ad_phase.h        src/ad_start.h   src/iad_io.h   \
         src/ad_doubl.h                           src/ad_prime.h        src/iad_calc.h   src/iad_util.h \
         src/ad_frsnl.h      src/ad_matrx.h       src/ad_radau.h        src/iad_find.h   src/iad_pub.h  \
-        src/ad_cone_ez.h    src/ad_layers.h      src/ad_cone.h         src/iad_type.h   src/iad_agrid.h
+        src/ad_cone_ez.h    src/ad_layers.h      src/ad_cone.h         src/iad_type.h   src/iad_agrid.h \
+        src/mc_lost.h
 
 OSRC  = src/system.bux src/ad.bux src/iad.bux src/cobweb.pl src/version.pl src/Makefile src/toDOS.pl
 
@@ -514,7 +515,7 @@ help::
 	echo "  iad           compile inverse Adding-Doubling program";\
 	echo "  dist          create a unix distribution";\
 	echo "  dists         make unix and windows distributions";\
-	echo "  docs          generate TEX out of all files";\
+	echo "  docs          generate source docs, manual, tutorial";\
 	echo "  executables   build all the binaries";\
 	echo "  install       install ad and iad programs";\
 	echo "  install-lib   install interface and library programs";\

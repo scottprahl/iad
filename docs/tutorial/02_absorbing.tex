@@ -1,0 +1,113 @@
+% !TEX root = 00-tutorial.tex
+
+\chapter{Single inversion without an \texttt{.rxt} File}
+
+\section{No scattering, no boundaries}
+When the slab has no scattering ($\mu_s=0$) the unscattered transmission matches total transmission $M_U=M_T$. This is easily inverted on the command line
+
+\begin{grayverb}
+iad -V0 -d 1.0 -t 0.325
+\end{grayverb}
+
+\begin{description}
+  \item[\ttfamily -V0] silence extra output (only numeric fields printed)  
+  \item[\ttfamily -d 1.0] thickness in mm  
+  \item[\ttfamily -t 0.325] measured $M_T$  
+\end{description}
+
+\texttt{iad} defaults to assuming no scattering (since no light bounces back) and no integrating spheres. 
+
+A typical one-line output:
+\begin{grayverb}
+1 0.0000 0.0000 0.3250 0.3250 1.1239 0.0000 0.0000 * 
+\end{grayverb}
+
+Fields are:
+\begin{itemize}
+  \item line number (1)
+  \item $M_R$ (here 0.0000)  
+  \item $M_R$ fit (here 0.0000)  
+  \item $M_T$ (0.3250)  
+  \item $M_T$ fit (0.3250)  
+  \item recovered $\mu_a$ (1.1239 mm$^{-1}$)  
+  \item reduced scattering $\mu_s'$ (0.0000 default)  
+  \item anisotropy $g$ (0.0000 default)  
+  \item error flag (* = success)  
+\end{itemize}
+
+\section{No scattering with boundaries}
+We can add boundaries to the previous example by using \texttt{-N} and \texttt{-n}.  However, now there will be specular (unscattered) reflection from the surfaces.  To account for this, we use \texttt{-c 0} to explicitly tell the program that no unscattered reflectance is included in $M_R$.
+
+\begin{grayverb}
+iad -V0 -c 0 -N 1.5 -n 1.4 -d 1.0 -t 0.325
+\end{grayverb}
+
+\begin{description}
+  \item[\ttfamily -V0] silence extra output (only numeric fields printed)  
+  \item[\ttfamily -c 0] no unscattered reflectance included
+  \item[\ttfamily -N 1.5] refractive index of bounding slides 
+  \item[\ttfamily -n 1.4] refractive index of slab
+  \item[\ttfamily -d 1.0] thickness in mm  
+  \item[\ttfamily -t 0.325] measured $M_T$  
+\end{description}
+
+The defaults are no scattering (since no light bounces back) and no integrating spheres. 
+
+A typical one-line output:
+\begin{grayverb}
+1 0.0000 0.0000 0.3250 0.3250 1.0401 0.0000 0.0000 r
+\end{grayverb}
+
+Fields are:
+\begin{itemize}
+  \item line number (1)
+  \item $M_R$ (assumed 0.0000)  
+  \item $M_R$ fit (0.0000)  
+  \item $M_T$ (0.3250)  
+  \item $M_T$ fit (0.3250)  
+  \item recovered $\mu_a$ (1.0401 mm$^{-1}$)  
+  \item reduced scattering $\mu_s'$ (0.0000 default)  
+  \item anisotropy $g$ (0.0000 default)  
+  \item error flag (* means ok)  
+\end{itemize}
+
+Here the absorption is less than for the no boundary case because the unscattered reflected light at the top and bottom boundaries is accounted for.
+
+\section{Backscattered light from thick sample}
+Since we only have one measurement $M_R$, we will need to provide some extra information.  We can extract the absorption coefficient by using the
+\texttt{-F} command line option.  This time we will also remove the slides on top and bottom.
+
+\begin{grayverb}
+iad -V0 -n 1.4 -d 1.0 -F 1 -r 0.3
+\end{grayverb}
+
+\begin{description}
+  \item[\ttfamily -V0] silence extra output (only numeric fields printed)  
+  \item[\ttfamily -n 1.4] refractive index of slab
+  \item[\ttfamily -d 1.0] thickness in mm  
+  \item[\ttfamily -F 1.0] scattering coefficient in mm$^{-1}$
+  \item[\ttfamily -t 0.325] measured $M_T$  
+\end{description}
+
+The defaults are no scattering (since no light bounces back) and no integrating spheres. 
+
+A typical one-line output:
+\begin{grayverb}
+ 1 0.3000 0.3000 0.0000 0.0000 0.0958 1.0000 0.0000 *
+ \end{grayverb}
+
+Fields are:
+\begin{itemize}
+  \item line number (1)
+  \item $M_R$ (0.3000)  
+  \item $M_R$ fit (0.3000)  
+  \item $M_T$ (0.0000)  
+  \item $M_T$ fit (0.0000)  
+  \item recovered $\mu_a$ (0.0958 mm$^{-1}$)  
+  \item reduced scattering $\mu_s'$ (specified 1.0000mm$^{-1}$)  
+  \item anisotropy $g$ (0.0000 default)  
+  \item error flag (* means ok)  
+\end{itemize}
+
+In this example, the scattering coefficient was kept constant and the absorption coefficient varied until the calculated value for total
+reflection matched the command-line value of $M_R = 0.3$

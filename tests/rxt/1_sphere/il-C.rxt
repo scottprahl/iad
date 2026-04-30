@@ -10,32 +10,32 @@ IAD1
 2.0          # [mm] Diameter of illumination beam
 0.99         # Reflectance of calibration standard
 
-1            # [mm] Number of spheres used during each measurement
+1            # Number of spheres used during each measurement
 
              # Refection sphere properties
 203.2        # [mm] Sphere Diameter
 20.3         # [mm] Sample Port Diameter
-47.2         # [mm] Entrance Port Diameter
+47.2         # [mm] Empty Port Diameter
 1.0          # [mm] Detector Port Diameter
-0.90457      # Reflectivity of the sphere wall
+0.85891      # Reflectivity of the sphere wall
 
              # Transmission sphere properties
 203.2        # [mm] Sphere Diameter
 20.3         # [mm] Sample Port Diameter
-47.2         # [mm] Third Port Diameter
+47.2         # [mm] Empty Port Diameter
 1.0          # [mm] Detector Port Diameter
-0.90457      # Reflectivity of the sphere wall
+0.85891      # Reflectivity of the sphere wall
 
 3            # [mm] Number of measurements
 
 #Vr	Vt	Vcol
-0.23869	0.36672	0.04728899
-0.22638	0.39926	0.06781545
-0.20919	0.42377	0.09522752
-0.19130	0.45461	0.1264738
-0.16659	0.50394	0.18989391
-0.23873	0.37181	0.05528
-0.22559	0.40758	0.07365
-0.20845	0.43952	0.10476
-0.19108	0.46654	0.14089
-0.16653	0.51121	0.18639
+0.18489	0.46509	0.15452
+0.16275	0.52141	0.22132
+0.14255	0.55701	0.28431
+0.12027	0.62963	0.40124
+0.09926	0.67093	0.50900
+0.18534	0.47286	0.15786
+0.16225	0.51197	0.21671
+0.14316	0.54231	0.27726
+0.11816	0.60307	0.37750
+0.09896	0.67784	0.51913

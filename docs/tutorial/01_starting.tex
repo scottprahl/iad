@@ -1,0 +1,42 @@
+% !TEX root = 00-tutorial.tex
+
+\chapter{Getting Started}
+
+This tutorial assumes you have or will obtain the \texttt{iad} executable as follows:
+
+\section{Windows}
+Download the latest precompiled Windows binary (e.g.\ \texttt{iad.exe}) from github:
+\begin{grayverb}
+https://github.com/scottprahl/iad
+\end{grayverb}
+Place the binary somewhere on your \texttt{PATH}.
+
+\section{macOS and Linux}
+Clone the source and build:
+\begin{enumerate}
+  \item Clone the repository:
+    \begin{grayverb}
+git clone https://github.com/scottprahl/iad
+cd iad
+    \end{grayverb}
+  \item Build the program:
+    \begin{grayverb}
+make clean
+make all
+    \end{grayverb}
+  \item (Optional) Install or add to your 
+    \begin{grayverb}
+make install
+    \end{grayverb}
+or move the binary into your \texttt{PATH}:
+    \begin{grayverb}
+cp iad /usr/local/bin
+    \end{grayverb}
+\end{enumerate}
+
+\section{Testing}
+Example test files (e.g., \texttt{basic4.rxt}) are provided in \texttt{test/}. Run from the iad directory where you built \texttt{iad}
+\begin{grayverb}
+./iad test/basic-A.rxt
+\end{grayverb}
+and compare the output against the reference in the \texttt{basic4-A.txt} appendix

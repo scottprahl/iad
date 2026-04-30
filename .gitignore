@@ -1,6 +1,7 @@
 # Ignore binaries
 ad
 iad
+mc_lost
 ad.exe
 iad.exe
 src/cone_test
@@ -11,18 +12,30 @@ src/mc_lost
 src/ad
 src/iad
 
+# instructions
+CLAUDE.md
+PLAN.md
+
+# tex created files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk 
+*.fls
+*.gz 
+*.log
+*.out 
+*.toc
+*.graffle
+*.png
+
+# ignore data files
+tests/rxt/1_sphere/thinh*
+
 # ignore generated docs
 docs/iad_src.pdf
 docs/ad_src.pdf
-docs/manual.aux
-docs/manual.bbl
-docs/manual.log
-docs/manual.blg
-docs/manual.out
-docs/manual.toc
 docs/jupyter
-docs/*graffle
-docs/*png
 
 # ignore archives
 archives/*
@@ -31,13 +44,13 @@ archives/*
 .DS_Store
 .#*
 
-# Ignore (generated) test files,
-test/.ipynb_checkpoints/*
-test/.jupyter/*
-test/*.txt
-test/*.svg
-test/*.ipynb
-test/*.grid
+# generated files,
+tests/.ipynb_checkpoints/*
+tests/.jupyter/*
+tests/*.txt
+tests/*.svg
+tests/*.ipynb
+tests/*.grid
 
 # Ignore generated .o and .c and .h and .tex and .log and ... files
 src/iad_type.c

@@ -1,0 +1,102 @@
+% !TEX root = 00-tutorial.tex
+
+\chapter{Integrating Spheres}
+
+We ignore the unscattered transmission measurements for now.
+
+\section{Perfect measurements of total reflection/transmission (or diffuse reflection/transmission)}
+
+Sometimes one just wants to convert a total reflection measurement to (assuming sample thickness
+is 1mm and the scattering coefficient is 1mm$^{-1}$).  Here the \texttt{-V 0} option suppresses 
+extra output
+
+\begin{grayverb}
+iad -r 0.5
+\end{grayverb}
+
+to get an absorption coefficient of 0.0659mm$^{-1}$.
+
+%If the total diffuse reflection is known then use
+%\begin{grayverb}
+%iad -V 0 -r 0.5 -c 0
+%\end{grayverb}
+
+\section{Dual Beam Experiments}
+If you happen to have a spectrophotometer with an integrating sphere that 
+alternates between illuminating the sample and a reflection standard, then 
+you should use the \texttt{-X} command-line and set the number of spheres to one.  
+
+The \texttt{-X} option assumes that your measurements have already been corrected f
+or most sphere effects.  
+
+\section{Single sphere use}
+Spheres are needed to collect all light reflected or transmitted by the sample.  Most
+people use a single sphere; they measure sample reflectance and then move the sample
+to another port to measure the transmittance.
+
+The normalized reflection and transmission are defined six measurements 
+
+\begin{equation}
+M_R \equiv r_\mathit{std}\cdot{{R(\rdirect, \rdiffuse) - R(0, 0)\over 
+                    R(r_{\mathit{std}}, r_{\mathit{std}})- R(0, 0)} }.
+\label{eqmr}
+\end{equation}
+
+and
+
+\begin{equation}
+M_T \equiv {{T(\tdirect, \rdiffuse) - T_{\mathit{dark}}\over 
+                    T(0, 0) - T_{\mathit{dark}}} }
+\label{eqmt}
+\end{equation}
+
+where all the quantities are defined in the figure above.  Typically one collects spectra
+across all wavelengths for each these six quantities.  These are collected in a \texttt{.rxt} file as below.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.45\textwidth]{../Ch3spheresR.pdf}
+\,
+\includegraphics[width=0.34\textwidth]{../Ch3spheresT.pdf}
+\end{center}
+\caption{Measurements needed when using a single sphere.}
+\end{figure}
+
+
+\begin{verbatim}
+IAD1  # Must be first four characters
+1.38   # Index of refraction of the sample 
+1.00   # Index of refraction of the top and bottom slides 
+1.62   # [mm] Thickness of sample 
+0.00   # [mm] Thickness of slides 
+2.00   # [mm] Diameter of illumination beam 
+0.99   # Reflectivity of the reflectance calibration standard
+
+1      # Number of spheres used for the measurement
+
+# Properties of sphere used for reflectance measurements
+101.6  # [mm] Sphere Diameter
+12.7   # [mm] Sample Port Diameter
+12.7   # [mm] Entrance Port Diameter
+0.6    # [mm] Detector Port Diameter
+0.94   # Reflectivity of the sphere wall
+
+# Properties of sphere for transmittance measurements
+101.6  # [mm] Sphere Diameter
+12.7   # [mm] Sample Port Diameter
+12.7   # [mm] Third Port Diameter
+0.6    # [mm] Detector Port Diameter
+0.94   # Reflectivity of the sphere wall
+
+L      r         t     g
+852 0.315087 0.606721 0.9
+853 0.333245 0.590481 0.9
+
+\end{verbatim}
+
+By creating such a file, all the information about a particular experiment is captured in one place.  If this file is called
+\texttt{example.rxt} then 
+
+\begin{grayverb}
+iad example.rxt
+\end{grayverb}

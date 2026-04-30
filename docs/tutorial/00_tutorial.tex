@@ -1,0 +1,117 @@
+\documentclass[11pt,oneside]{book}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[utf8]{inputenc}
+\DeclareUnicodeCharacter{2009}{\,}
+\usepackage{xcolor}
+\usepackage{fvextra}   % extends fancyvrb; gives breaklines, breakanywhere, etc.
+\usepackage[colorlinks=true,
+            linkcolor=blue,
+            urlcolor=blue,
+            citecolor=blue]{hyperref}
+            
+\title{Inverse Adding–Doubling Tutorial}
+\author{Scott Prahl}
+\date{July 2025}
+
+\usepackage{listings,xcolor}
+\definecolor{codebg}{gray}{0.95}
+
+\lstnewenvironment{grayverb}{%
+  \lstset{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{codebg},
+    xleftmargin=2em,
+    frame=single,
+    rulecolor=\color{codebg},
+    framerule=0pt,
+    showstringspaces=false,
+    columns=fullflexible,
+    keepspaces=false,
+  }%
+}{}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt} % choose what you like
+
+
+\newcommand\pdflatex{pdf\LaTeX}
+\newcommand\iadprog{\texttt{iad}}
+\newcommand\rzero{R^{\mathit{diffuse}}_\mathit{0}}
+\newcommand\rstd{R^{\mathit{diffuse}}_\mathit{std}}
+\newcommand\rdirect{r_s^{\mathit{direct}}}
+\newcommand\rdiffuse{r_s}
+\newcommand\tdirect{t_s^{\mathit{direct}}}
+\newcommand\tdiffuse{t_s}
+\newcommand\tcross{t_{\mathit{cross}}}
+\newcommand\Psphere{P_{\mathit{sphere}}}
+
+\begin{document}
+\frontmatter
+\maketitle
+
+% create an unnumbered Abstract chapter...
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+This tutorial guides you through installing, configuring, and running the IAD program
+to extract optical properties (scattering, absorption, anisotropy) from integrating‐sphere
+measurements. Examples, command‐line options, and an overview of the code structure
+are provided.
+
+
+\tableofcontents
+
+\mainmatter
+
+\chapter{Introduction}
+Inverse adding-doubling (IAD) is a robust method to recover intrinsic optical parameters
+from measurements of total reflection ($M_R$) and transmission ($M_T$) of a sample
+measured with zero, one, or two integrating spheres. The program iteratively adjusts tissue optical properties
+until simulated observables match your data.
+\section{Assumptions}
+\begin{itemize}
+  \item The sample is a homogeneous slab between two glass slides (or nothing)
+  \item Phase function restricted to Henyey–Greenstein ($g$) scattering
+  \item Inputs are total reflection, total tranmission, and/or unscattered transmission.
+\end{itemize}
+
+\include{01_starting.tex}
+\input{02_absorbing.tex}
+\input{03_spheres.tex}
+%\input{03_rxt_files.tex}
+%\input{05_scattering.tex}
+
+\cleardoublepage
+\appendix
+\addcontentsline{toc}{chapter}{basic-A.rxt}
+Listing of \texttt{basic-A.rxt}
+
+\VerbatimInput[
+  fontsize=\small,     % typewriter font size
+  breaklines=true,     % wrap long lines
+  breakanywhere=true,  % allow breaks inside long "words"
+  obeytabs=true,       % respect tabs
+  tabsize=4,           % ...with this width
+  numbers=left,        % line numbers (optional)
+  frame=single         % simple box (optional)
+]{../../test/basic-A.rxt}
+
+\cleardoublepage
+\appendix
+\addcontentsline{toc}{chapter}{basic-A.txt}
+Listing of \texttt{basic-A.txt}
+
+\VerbatimInput[
+  fontsize=\scriptsize,     % typewriter font size
+  breaklines=true,     % wrap long lines
+  breakanywhere=true,  % allow breaks inside long "words"
+  obeytabs=true,       % respect tabs
+  tabsize=4,           % ...with this width
+  numbers=left,        % line numbers (optional)
+  frame=single         % simple box (optional)
+]{../../test/basic-A.txt}
+
+\end{document}
