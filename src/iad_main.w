@@ -22,6 +22,7 @@ instead of creating separate functions.  Oh well.
 @<print dot function@>@;
 @<calculate coefficients function@>@;
 @<parse string into array function@>@;
+@<rxt filename test function@>@;
 @<print results header function@>@;
 @<Print results function@>@;
 
@@ -51,14 +52,16 @@ int main (int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
-    if (Read_Header (stdin, &m, &params) != 0)
-        exit(EXIT_FAILURE);
-
-    start_time = clock();
-    while (Read_Data_Line (stdin, &m, &r, params) == 0) {
-        @<Command-line changes to |m|@>@;
-        @<Calculate and write optical properties@>@;
+    file_count = argc > 1 ? argc : 1;
+    file_index = 0;
+read_next_file:
+    if (argc > 1) {
+        @<Prepare named input file for reading@>@;
     }
+    @<Read measurements and calculate optical properties@>@;
+    file_index++;
+    if (file_index < file_count)
+        goto read_next_file;
 
     @<Generate and write grid@>@;
 
@@ -115,6 +118,10 @@ int main (int argc, char **argv)
     int any_error = 0;
     int process_command_line = 0;
     int params = 0;
+    int rt_total = 0;
+    int mc_total = 0;
+    int file_index = 0;
+    int file_count = 1;
 
     int cl_quadrature_points = UNINITIALIZED;
     int cl_verbosity = 2;
@@ -889,9 +896,19 @@ We scan for it explicitly before the "too many files" check.
     }
 }
     if (argc > 1) {
-        fprintf(stderr, "Only a single file can be processed at a time\n");
-        fprintf(stderr, "try 'apply iad file1 file2 ... fileN'\n");
-        exit(EXIT_FAILURE);
+        int file_arg_index;
+        int write_index = 0;
+        for (file_arg_index = 0; file_arg_index < argc; file_arg_index++) {
+            if (has_rxt_extension(argv[file_arg_index]))
+                argv[write_index++] = argv[file_arg_index];
+        }
+        argc = write_index;
+        if (argc == 0)
+            exit(EXIT_SUCCESS);
+        if (argc > 1 && g_out_name != NULL) {
+            fprintf(stderr, "The -o option cannot be used with multiple input files\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     if (argc == 1 && strcmp(argv[0],"-")!=0) {  /* filename exists and != "-" */
@@ -930,6 +947,48 @@ We scan for it explicitly before the "too many files" check.
         }
     }
 
+@ @<Prepare named input file for reading@>=
+{
+    int n;
+    char *base_name, *rt_name, *out_name;
+
+    base_name = strdup(argv[file_index]);
+    n = (int) (strlen(base_name) - strlen(".rxt"));
+    base_name[n] = '\0';
+    rt_name = strdup_together(base_name,".rxt");
+    out_name = strdup_together(base_name,".txt");
+
+    if (freopen(rt_name,"r",stdin)==NULL) {
+        fprintf(stderr, "Could not open file '%s'\n", rt_name);
+        exit(EXIT_FAILURE);
+    }
+
+    if (freopen(out_name,"w",stdout)==NULL) {
+        fprintf(stderr, "Could not open file '%s' for output\n", out_name);
+        exit(EXIT_FAILURE);
+    }
+
+    free(out_name);
+    free(rt_name);
+    free(base_name);
+}
+
+@ @<Read measurements and calculate optical properties@>=
+    Initialize_Measure(&m);
+    @<Command-line changes to |m|@>@;
+    Initialize_Result(m, &r, TRUE);
+
+    params = 0;
+    rt_total = 0;
+    mc_total = 0;
+    if (Read_Header (stdin, &m, &params) != 0)
+        exit(EXIT_FAILURE);
+
+    start_time = clock();
+    while (Read_Data_Line (stdin, &m, &r, params) == 0) {
+        @<Command-line changes to |m|@>@;
+        @<Calculate and write optical properties@>@;
+    }
 
 @ Need to explicitly reset |r.search| each time through the loop,
 because it will get altered by the calculation process.  This also allows the
@@ -996,9 +1055,6 @@ measurements.
 }
 
 @   @<Local Variables for Calculation@>=
-    static int rt_total = 0;
-    static int mc_total = 0;
-
     double ur1=0;
     double ut1=0;
     double uru=0;
@@ -1572,7 +1628,8 @@ fprintf(stdout, "  iad -x 256 file.rxt       DEBUG_EVERY_CALC\n");
 fprintf(stdout, "  iad -x 511 file.rxt       Show all debugging output\n");
 fprintf(stdout, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
 fprintf(stdout, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
-fprintf(stdout, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
+fprintf(stdout, "  iad *                     Process all .rxt files in current directory\n");
+fprintf(stdout, "  iad x.rxt y.rxt           Process multiple files\n\n");
 fprintf(stdout, "Report bugs to <scott.prahl@@oit.edu>\n\n");
 }
 
@@ -1722,6 +1779,24 @@ static char *  strdup_together(char *s, char *t)
     strcpy(both, s);
     strcat(both, t);
     return both;
+}
+
+@ returns true when a filename has the standard \.{.rxt} extension
+@<rxt filename test function@>=
+static int has_rxt_extension(char *s)
+{
+    size_t len;
+    char *extension = ".rxt";
+    size_t extension_len = strlen(extension);
+
+    if (s == NULL)
+        return 0;
+
+    len = strlen(s);
+    if (len < extension_len)
+        return 0;
+
+    return strcmp(s + len - extension_len, extension) == 0;
 }
 
 @ catch parsing errors in strtod

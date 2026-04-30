@@ -149,7 +149,8 @@ Assume M_T includes 80%% of unscattered transmittance\n");
     fprintf(stdout, "  iad -x 511 file.rxt       Show all debugging output\n");
     fprintf(stdout, "  iad -X -i 8 file.rxt      Dual beam spectrometer with 8 degree incidence\n\n");
     fprintf(stdout, "  iad -z -a 0.9 -b 1 -i 45  Forward calc assuming 45 degree incidence\n\n");
-    fprintf(stdout, "  apply iad x.rxt y.rxt     Process multiple files\n\n");
+    fprintf(stdout, "  iad *                     Process all .rxt files in current directory\n");
+    fprintf(stdout, "  iad x.rxt y.rxt           Process multiple files\n\n");
     fprintf(stdout, "Report bugs to <scott.prahl@oit.edu>\n\n");
 }
 
@@ -352,6 +353,22 @@ static int parse_string_into_array(char *s, double *a, int n)
     return 1;
 }
 
+static int has_rxt_extension(char *s)
+{
+    size_t len;
+    char *extension = ".rxt";
+    size_t extension_len = strlen(extension);
+
+    if (s == NULL)
+        return 0;
+
+    len = strlen(s);
+    if (len < extension_len)
+        return 0;
+
+    return strcmp(s + len - extension_len, extension) == 0;
+}
+
 static void print_results_header(FILE *fp)
 {
     if (Debug(DEBUG_LOST_LIGHT)) {
@@ -443,6 +460,10 @@ int main(int argc, char **argv)
     int any_error = 0;
     int process_command_line = 0;
     int params = 0;
+    int rt_total = 0;
+    int mc_total = 0;
+    int file_index = 0;
+    int file_count = 1;
 
     int cl_quadrature_points = UNINITIALIZED;
     int cl_verbosity = 2;
@@ -1347,9 +1368,19 @@ int main(int argc, char **argv)
         }
     }
     if (argc > 1) {
-        fprintf(stderr, "Only a single file can be processed at a time\n");
-        fprintf(stderr, "try 'apply iad file1 file2 ... fileN'\n");
-        exit(EXIT_FAILURE);
+        int file_arg_index;
+        int write_index = 0;
+        for (file_arg_index = 0; file_arg_index < argc; file_arg_index++) {
+            if (has_rxt_extension(argv[file_arg_index]))
+                argv[write_index++] = argv[file_arg_index];
+        }
+        argc = write_index;
+        if (argc == 0)
+            exit(EXIT_SUCCESS);
+        if (argc > 1 && g_out_name != NULL) {
+            fprintf(stderr, "The -o option cannot be used with multiple input files\n");
+            exit(EXIT_FAILURE);
+        }
     }
 
     if (argc == 1 && strcmp(argv[0], "-") != 0) {
@@ -1398,9 +1429,6 @@ int main(int argc, char **argv)
         params = m.num_measures;
 
         {
-
-            static int rt_total = 0;
-            static int mc_total = 0;
 
             double ur1 = 0;
             double ut1 = 0;
@@ -1703,6 +1731,210 @@ int main(int argc, char **argv)
         exit(EXIT_SUCCESS);
     }
 
+    file_count = argc > 1 ? argc : 1;
+    file_index = 0;
+  read_next_file:
+    if (argc > 1) {
+
+        {
+            int n;
+            char *base_name, *rt_name, *out_name;
+
+            base_name = strdup(argv[file_index]);
+            n = (int) (strlen(base_name) - strlen(".rxt"));
+            base_name[n] = '\0';
+            rt_name = strdup_together(base_name, ".rxt");
+            out_name = strdup_together(base_name, ".txt");
+
+            if (freopen(rt_name, "r", stdin) == NULL) {
+                fprintf(stderr, "Could not open file '%s'\n", rt_name);
+                exit(EXIT_FAILURE);
+            }
+
+            if (freopen(out_name, "w", stdout) == NULL) {
+                fprintf(stderr, "Could not open file '%s' for output\n", out_name);
+                exit(EXIT_FAILURE);
+            }
+
+            free(out_name);
+            free(rt_name);
+            free(base_name);
+        }
+
+    }
+
+    Initialize_Measure(&m);
+
+    if (cl_cos_angle != UNINITIALIZED) {
+        m.slab_cos_angle = cl_cos_angle;
+        if (cl_quadrature_points == UNINITIALIZED)
+            cl_quadrature_points = 12;
+
+        if (cl_quadrature_points != 12 * (cl_quadrature_points / 12)) {
+            fprintf(stderr, "If you use the -i option to specify an oblique incidence angle, then\n");
+            fprintf(stderr, "the number of quadrature points must be a multiple of 12\n");
+            exit(EXIT_SUCCESS);
+        }
+    }
+
+    if (cl_sample_n != UNINITIALIZED)
+        m.slab_index = cl_sample_n;
+
+    if (cl_slide_n != UNINITIALIZED) {
+        m.slab_bottom_slide_index = cl_slide_n;
+        m.slab_top_slide_index = cl_slide_n;
+    }
+
+    if (cl_slide_OD != UNINITIALIZED) {
+        m.slab_bottom_slide_b = cl_slide_OD;
+        m.slab_top_slide_b = cl_slide_OD;
+    }
+
+    if (cl_sample_d != UNINITIALIZED)
+        m.slab_thickness = cl_sample_d;
+
+    if (cl_beam_d != UNINITIALIZED)
+        m.d_beam = cl_beam_d;
+
+    if (cl_slide_d != UNINITIALIZED) {
+        m.slab_bottom_slide_thickness = cl_slide_d;
+        m.slab_top_slide_thickness = cl_slide_d;
+    }
+
+    if (cl_slides == NO_SLIDES) {
+        m.slab_bottom_slide_index = 1.0;
+        m.slab_bottom_slide_thickness = 0.0;
+        m.slab_top_slide_index = 1.0;
+        m.slab_top_slide_thickness = 0.0;
+    }
+
+    if (cl_slides == ONE_SLIDE_ON_TOP || cl_slides == ONE_SLIDE_NEAR_SPHERE) {
+        m.slab_bottom_slide_index = 1.0;
+        m.slab_bottom_slide_thickness = 0.0;
+    }
+
+    if (cl_slides == ONE_SLIDE_ON_BOTTOM || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE) {
+        m.slab_top_slide_index = 1.0;
+        m.slab_top_slide_thickness = 0.0;
+    }
+
+    if (cl_slides == ONE_SLIDE_NEAR_SPHERE || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+        m.flip_sample = 1;
+    else
+        m.flip_sample = 0;
+
+    if (cl_method != UNINITIALIZED)
+        m.method = (int) cl_method;
+
+    if (cl_rstd_r != UNINITIALIZED) {
+        m.rstd_r = cl_rstd_r;
+        m.rstd_t = cl_rstd_r;
+    }
+
+    if (cl_rstd_t != UNINITIALIZED) {
+        m.rstd_t = cl_rstd_t;
+        if (cl_rstd_r == UNINITIALIZED)
+            m.rstd_r = cl_rstd_t;
+    }
+
+    if (cl_rwall_r != UNINITIALIZED) {
+        if (cl_sphere_one[0] != UNINITIALIZED) {
+            fprintf(stderr, "-w is overridden by -1 option. omit.\n");
+            exit(EXIT_FAILURE);
+        }
+        m.rw_r = cl_rwall_r;
+    }
+
+    if (cl_rwall_t != UNINITIALIZED) {
+        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_one[1] != UNINITIALIZED) {
+            fprintf(stderr, "-W is overridden by -1 and -2 options. omit.");
+            exit(EXIT_FAILURE);
+        }
+        m.rw_t = cl_rwall_t;
+    }
+
+    if (cl_sphere_one[0] != UNINITIALIZED) {
+        double d_sample_r, d_third_r, d_detector_r;
+
+        m.d_sphere_r = cl_sphere_one[0];
+        d_sample_r = cl_sphere_one[1];
+        d_third_r = cl_sphere_one[2];
+        d_detector_r = cl_sphere_one[3];
+        m.rw_r = cl_sphere_one[4];
+
+        m.as_r = sqr(d_sample_r / m.d_sphere_r / 2);
+        m.at_r = sqr(d_third_r / m.d_sphere_r / 2);
+        m.ad_r = sqr(d_detector_r / m.d_sphere_r / 2);
+
+        m.aw_r = 1.0 - m.as_r - m.at_r - m.ad_r;
+
+        m.d_sphere_t = m.d_sphere_r;
+        m.as_t = m.as_r;
+        m.at_t = m.at_r;
+        m.ad_t = m.ad_r;
+        m.aw_t = m.aw_r;
+        m.rw_t = m.rw_r;
+
+        if (cl_num_spheres == UNINITIALIZED)
+            m.num_spheres = 1;
+    }
+
+    if (cl_sphere_two[0] != UNINITIALIZED) {
+        double d_sample_t, d_third_t, d_detector_t;
+
+        m.d_sphere_t = cl_sphere_two[0];
+        d_sample_t = cl_sphere_two[1];
+        d_third_t = cl_sphere_two[2];
+        d_detector_t = cl_sphere_two[3];
+        m.rw_t = cl_sphere_two[4];
+
+        m.as_t = sqr(d_sample_t / m.d_sphere_t / 2);
+        m.at_t = sqr(d_third_t / m.d_sphere_t / 2);
+        m.ad_t = sqr(d_detector_t / m.d_sphere_t / 2);
+        m.aw_t = 1.0 - m.as_t - m.at_t - m.ad_t;
+
+        if (cl_num_spheres == UNINITIALIZED)
+            m.num_spheres = 2;
+    }
+
+    if (cl_num_spheres != UNINITIALIZED) {
+        m.num_spheres = (int) cl_num_spheres;
+        if (m.num_spheres > 0 && m.method == UNKNOWN)
+            m.method = SUBSTITUTION;
+    }
+
+    if (cl_ru_fraction != UNINITIALIZED)
+        m.fraction_of_ru_in_mr = cl_ru_fraction;
+
+    if (cl_tu_fraction != UNINITIALIZED)
+        m.fraction_of_tu_in_mt = cl_tu_fraction;
+
+    if (cl_UR1 != UNINITIALIZED)
+        m.m_r = cl_UR1;
+
+    if (cl_UT1 != UNINITIALIZED)
+        m.m_t = cl_UT1;
+
+    if (cl_Tc != UNINITIALIZED)
+        m.m_u = cl_Tc;
+
+    if (cl_default_fr != UNINITIALIZED)
+        m.f_r = cl_default_fr;
+
+    if (cl_baffle_r != UNINITIALIZED)
+        m.baffle_r = cl_baffle_r;
+
+    if (cl_baffle_t != UNINITIALIZED)
+        m.baffle_t = cl_baffle_t;
+
+    if (cl_lambda != UNINITIALIZED)
+        m.lambda = cl_lambda;
+
+    Initialize_Result(m, &r, TRUE);
+
+    params = 0;
+    rt_total = 0;
+    mc_total = 0;
     if (Read_Header(stdin, &m, &params) != 0)
         exit(EXIT_FAILURE);
 
@@ -1875,9 +2107,6 @@ int main(int argc, char **argv)
             m.lambda = cl_lambda;
 
         {
-
-            static int rt_total = 0;
-            static int mc_total = 0;
 
             double ur1 = 0;
             double ut1 = 0;
@@ -2178,6 +2407,10 @@ int main(int argc, char **argv)
         }
 
     }
+
+    file_index++;
+    if (file_index < file_count)
+        goto read_next_file;
 
     if (cl_grid_calc != UNINITIALIZED) {
         double m_r, m_t, aprime, bprime, g;
