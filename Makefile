@@ -19,6 +19,7 @@ LIB_EXT = .dylib      # macOS shared lib
 
 # default executable name
 IAD_EXECUTABLE = ./iad
+AD_EXECUTABLE = ./ad
 
 CFLAGS = -dynamic -fno-common -Wall -ansi  #First two flags needed on macOS to build .dylib
 
@@ -196,12 +197,12 @@ docs:
 
 clean:
 	rm -f ad iad *.pdf libiad.a libiad.so libiad.dylib libiad.h src/lib_iad.h src/lib_ad.h
-	rm -f src/*.o test/*.abg
+	rm -f src/*.o tests/*.abg
 	rm -f src/*.aux src/*.dvi src/*.idx src/*.ref src/*.sref src/*.tex src/*.toc src/*.log src/*.scn
 	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
 	rm -f libiad.dll src/libiad.dll
 	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost
-	rm -rf test/.jupyter test/.ipynb_checkpoints .jupyter .ipynb_checkpoints
+	rm -rf tests/.jupyter tests/.ipynb_checkpoints .jupyter .ipynb_checkpoints
 
 realclean:
 	make clean
@@ -209,7 +210,7 @@ realclean:
 	rm -f ad iad libiad.h libiad$(LIB_EXT)
 	rm -f docs/manual.pdf docs/manual.bbl docs/manual.blg docs/manual.out docs/manual.toc
 	rm -f docs/manual.aux docs/manual.log
-	cd test ; make clean
+	cd tests ; make clean
 	rm -f $(CSRC) $(HSRC)
 
 tidy:
@@ -254,251 +255,14 @@ executables:
 	cd src; make cone_test
 	cd src; make mc_lost
 
-veryshorttest:
-	@echo "********* Basic tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0
-	@echo "EXPECT	   0.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 1
-	@echo "EXPECT	   1.0000	   1.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.1217	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4671	   3.9306	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4346	   3.9791	   0.3116"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.01   -d 1 -M 0  -S 1 -1 '200 13 13 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0100	   0.0100	   0.8503	   8.1759	   0.0000"
+veryshorttest: iad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh veryshort
 
-test shorttest:
-	@echo "********* Basic tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0
-	@echo "EXPECT	   0.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 1
-	@echo "EXPECT	   1.0000	   1.0000	   0.0000	   0.0000	   0.0000	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.1217	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4671	   3.9306	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4346	   3.9791	   0.3116"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.049787
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6221	   3.9686	  -0.6688"
-	@echo "********* Specify sample index ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0407	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2283	   5.6944	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2274	   5.6964	   0.0354"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.7046	   4.3991	  -0.9165"
-	@echo "********* Specify slide index ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0501	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2596	   5.2724	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2564	   5.2748	   0.1021"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6209	   4.4491	  -0.8719"
-	@echo "********* One slide on top ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5 -G t
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0501	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5 -G t
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2608	   5.3009	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G t
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2577	   5.3037	   0.0991"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G t
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4688	   4.4590	  -0.7537"
-	@echo "********* One slide on bottom ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5 -G b
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0487	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -n 1.4 -N 1.5 -G b
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2564	   5.3583	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G b
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2536	   5.3611	   0.0898"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G b
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4791	   4.4960	  -0.7754"
-	@echo "********* Absorbing Slide Tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.0000000 -t 0.135335 -E 0.5
-	@echo "EXPECT	   0.0000	   0.0000	   0.1353	   0.1353	   1.0000	   0.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.0249268 -t 0.155858 -E 0.5
-	@echo "EXPECT	   0.0249	   0.0251	   0.1559	   0.1331	   0.5000	   0.5000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.0520462 -t 0.134587 -E 0.5 -n 1.5 -N 1.5
-	@echo "EXPECT	   0.0520	   0.0520	   0.1346	   0.1346	   0.5000	   0.5000	   0.0000"
-	@echo "********* Constrain g ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4        -g 0.9
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0101	   0.1000	   0.9000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -g 0.9
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4000	   4.0750	   0.9000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4        -g 0.9 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0040	   0.1000	   0.9000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -g 0.9 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2192	   5.6242	   0.9000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4        -g 0.9 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0048	   0.1000	   0.9000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -g 0.9 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2464	   5.2219	   0.9000"
-	@echo "********* Constrain a ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4        -a 0.9
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.1111	   0.9316	   0.0684"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -a 0.9
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4608	   3.9379	   0.0505"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -a 0.9 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.3298	   4.8687	  -0.6404"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -a 0.95 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2619	   5.2662	  -0.0583"
-	@echo "********* Constrain b ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6221	   3.9698	  -0.6694"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.7046	   4.3991	  -0.9165"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4642	   4.4405	  -0.7511"
-	@echo "********* Constrain mu_s ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   3.6512	  30.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -F 30
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4015	   4.0691	   0.8644"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   1.2216	  30.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -F 30 -n 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2193	   5.6405	   0.8120"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   1.5044	  30.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -F 30 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2467	   5.2304	   0.8257"
-	@echo "********* Constrain mu_a ************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.6000	   2.6427	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3 -t 0.1 -A 0.6
-	@echo "EXPECT	   0.3000	   0.3000	   0.1000	   0.1000	   0.6000	   3.0846	   0.4187"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -n 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.6000	   7.2956	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3 -t 0.1 -A 0.6 -n 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.1000	   0.1000	   0.6000	   3.4619	  -0.6482"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.6000	   5.9837	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3 -t 0.1 -A 0.6 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.1000	   0.1000	   0.6000	   3.4104	  -0.5899"
-	@echo "********* Constrain mu_a and g************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -g 0.6
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.6000	   3.1693	   0.6000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -g 0.6 -n 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.6000	   7.7464	   0.6000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -A 0.6 -g 0.6 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.6000	   6.4312	   0.6000"
-	@echo "********* Constrain mu_s and g************"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -F 2.0 -g 0.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.1939	   1.0000	   0.5000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -F 2.0 -g 0.5 -n 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.0778	   1.0000	   0.5000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.3        -F 2.0 -g 0.5 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.3000	   0.3000	   0.0000	   0.0000	   0.0939	   1.0000	   0.5000"
-	@echo "********* Basic One Sphere tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0117	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1868	  16.6174	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.000001  -S 1 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1889	  16.5889	  -0.2174"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.2000	   0.2000	   0.2000	   0.2000	   0.3174	   5.6443	  -0.1322"
-	@echo "******** Basic 100,000 photon tests *********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1 -p 100000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0117	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1 -p 100000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1868	  16.6174	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.000001  -S 1 -p 100000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1889	  16.5889	  -0.2174"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -p 100000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.2000	   0.2000	   0.2000	   0.2000	   0.3174	   5.6443	  -0.1322"
-	@echo "******** Basic timed photon tests *********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1 -p -1000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0117	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1 -p -1000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1868	  16.6174	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.000001  -S 1 -p -1000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1889	  16.5889	  -0.2174"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -p -1000 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.2000	   0.2000	   0.2000	   0.2000	   0.3174	   5.6443	  -0.1322"
-	@echo "********* More One Sphere tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 1 -1 '200 13 13 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.1040	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 1 -1 '200 13 13 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4169	   4.1260	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 1 -1 '200 13 13 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.3907	   4.1607	   0.2856"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -1 '100 13 13 2 0.95' -2 '100 13 0 2 0.95' -H 0
-	@echo "EXPECT	   0.2000	   0.2000	   0.2000	   0.2000	   0.5566	   1.7732	   0.6264"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -1 '100 13 13 2 0.95' -2 '100 13 0 2 0.95' -H 1
-	@echo "EXPECT	   0.2000	   0.2000	   0.2000	   0.2000	   0.5359	   1.8393	   0.6141"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -1 '100 13 13 2 0.95' -2 '100 13 0 2 0.95' -H 2
-	@echo "EXPECT	   0.2000	   0.2000	   0.2000	   0.2000	   0.5380	   1.7281	   0.6371"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.2 -u 0.0049787 -S 1 -1 '100 13 13 2 0.95' -2 '100 13 0 2 0.95' -H 3
-	@echo "EXPECT	   0.2000	   0.2000	   0.2000	   0.2000	   0.5178	   1.7910	   0.6251"
-	@echo "********* Basic Two Sphere tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 2 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.0117	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 2 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1434	  12.3429	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.0001    -S 2 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.1456	  12.3183	  -0.3589"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.1 -u 0.0049787 -S 2 -1 '203.2 25.4 12.7 2.54 1.0' -2 '203.2 25.4 0 2.54 1.0'
-	@echo "EXPECT	   0.2000	   0.2000	   0.1000	   0.1000	   0.2702	   4.4282	   0.1201"
-	@echo "********* More Two Sphere tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4                     -S 2 -1 '200 13 13 2 0.95' -2 '200 13 0 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.0000	   0.0000	   0.1186	   1.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1              -S 2 -1 '200 13 13 2 0.95' -2 '200 13 0 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4629	   3.9936	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002     -S 2 -1 '200 13 13 2 0.95' -2 '200 13 0 2 0.95'
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4320	   4.0408	   0.3012"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.1 -u 0.0049787 -S 2 -1 '200 13 13 2 0.95' -2 '200 13 0 2 0.95'
-	@echo "EXPECT	   0.2000	   0.2000	   0.1000	   0.1000	   0.8294	   2.2896	   0.4881"
-	@echo "********* Oblique tests ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -i 60 -r 0.00000 -t 0.13691
-	@echo "EXPECT	   0.0000	   0.0000	   0.1369	   0.1369	   0.9941	   0.0000	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -i 60 -r 0.14932 -t 0.23181
-	@echo "EXPECT	   0.1493	   0.1493	   0.2318	   0.2318	   0.4980	   0.4966	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -i 60 -r 0.61996 -t 0.30605
-	@echo "EXPECT	   0.6200	   0.6199	   0.3060	   0.3060	   0.0382	   2.0176	   0.0000"
-	@echo "********* Different reference standards Tstd and Rstd ***********"
-	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01 -M 0  -S 1 -1 '100 15 13 2 0.95' -2 '100 15 15 2 0.95'
-	@echo "EXPECT	   0.2000	   0.2000	   0.0100	   0.0100	   1.6987	   4.5267	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01 -M 0  -S 1 -1 '100 15 13 2 0.95' -2 '100 15 0 2 0.95'
-	@echo "EXPECT	   0.2000	   0.2000	   0.0100	   0.0100	   1.6986	   4.5263	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01 -M 0  -S 1 -1 '100 15 13 2 0.95' -2 '100 15 15 2 0.95' -T 0.95
-	@echo "EXPECT	   0.2000	   0.2000	   0.0100	   0.0100	   1.6951	   4.5164	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01 -M 0  -S 1 -1 '100 15 13 2 0.95' -2 '100 15 13 2 0.95' -T 0.5
-	@echo "EXPECT	   0.2000	   0.2000	   0.0100	   0.0100	   1.6591	   4.4202	   0.0000"
-	$(IAD_EXECUTABLE) -V 0 -r 0.2 -t 0.01 -M 0  -S 1 -1 '100 15 13 2 0.95' -2 '100 15 13 2 0.95' -R 0.5
-	@echo "EXPECT	   0.2000	   0.2000	   0.0100	   0.0100	   1.7648	   4.3554	   0.0000"
+test shorttest: iad ad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) AD_EXECUTABLE=$(AD_EXECUTABLE) tests/cli/run_cli_tests.sh basic
 
-
-longtest:
-	cd test ; make
+longtest: iad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch
 
 layertest: $(WSRC) $(NRSRC)
 	cd src ; make layer_test
@@ -506,7 +270,7 @@ layertest: $(WSRC) $(NRSRC)
 
 wintest: ad.exe iad.exe
 	make IAD_EXECUTABLE='wine ./iad.exe' test
-	cd test ; make IAD_EXECUTABLE='wine ../iad.exe'
+	IAD_EXECUTABLE='wine ../iad.exe' tests/cli/run_cli_tests.sh batch
 
 help::
 	@echo;\
