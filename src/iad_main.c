@@ -1571,7 +1571,7 @@ int main(int argc, char **argv)
 
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                if (m.num_spheres > 0) {
+                if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
 
                     if (Debug(DEBUG_LOST_LIGHT)) {
                         print_results_header(stderr);
@@ -2249,7 +2249,7 @@ int main(int argc, char **argv)
 
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                if (m.num_spheres > 0) {
+                if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
 
                     if (Debug(DEBUG_LOST_LIGHT)) {
                         print_results_header(stderr);

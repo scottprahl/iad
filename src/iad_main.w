@@ -1146,13 +1146,13 @@ if (rt_total==1 && cl_verbosity>0) {
 @*1 Monte Carlo light loss.
 Use Monte Carlo to figure out how much light leaks out.  We use
 the sphere corrected values as the starting values and only do try
-Monte Carlo when spheres are used, the albedo unknown or non-zero, and
-there has been no error.  The sphere parameters must be known because
+Monte Carlo when spheres are used and the first inverse calculation
+converged without error.  The sphere parameters must be known because
 otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (m.num_spheres > 0) {
+if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
 
     if (Debug(DEBUG_LOST_LIGHT)) {
         print_results_header(stderr);
