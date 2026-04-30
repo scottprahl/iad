@@ -886,11 +886,10 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
         RR.search == FIND_Bs || RR.search == FIND_Ba) {
 
         if (RR.metric == L2_SCALED) {
-            *dev = 0.0;
-            if (MM.m_r > 0)
-                *dev += scaled_l2_component(*M_R, MM.m_r);
             if (MM.m_t > 0)
-                *dev += scaled_l2_component(*M_T, MM.m_t);
+                *dev = scaled_l2_component(*M_T, MM.m_t);
+            else
+                *dev = scaled_l2_component(*M_R, MM.m_r);
         }
         else if (MM.m_t > 0) {
             if (RR.metric == RELATIVE)

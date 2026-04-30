@@ -1804,11 +1804,10 @@ exists.
 @<One parameter deviation@>=
 
 if (RR.metric == L2_SCALED) {
-    *dev = 0.0;
-    if (MM.m_r > 0)
-        *dev += scaled_l2_component(*M_R, MM.m_r);
-    if (MM.m_t > 0)
-        *dev += scaled_l2_component(*M_T, MM.m_t);
+    if ( MM.m_t > 0 )
+        *dev = scaled_l2_component(*M_T, MM.m_t);
+    else
+        *dev = scaled_l2_component(*M_R, MM.m_r);
 } else if ( MM.m_t > 0 ){
     if (RR.metric == RELATIVE)
         *dev = fabs(MM.m_t - *M_T) / (MM.m_t + ABIT);
