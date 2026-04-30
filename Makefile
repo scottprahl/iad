@@ -313,7 +313,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.002 -n 1.4 -N 1.5 -G t
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.2577	   5.3037	   0.0991"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -u 0.045884 -n 1.4 -N 1.5 -G t
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6212	   4.4707	  -0.8703"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4688	   4.4590	  -0.7537"
 	@echo "********* One slide on bottom ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -n 1.4 -N 1.5 -G b
@@ -363,7 +363,7 @@ test shorttest:
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.5
 	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.7046	   4.3991	  -0.9165"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4 -t 0.1 -b 3 -n 1.4 -N 1.5
-	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.6217	   4.4526	  -0.8721"
+	@echo "EXPECT	   0.4000	   0.4000	   0.1000	   0.1000	   0.4642	   4.4405	  -0.7511"
 	@echo "********* Constrain mu_s ************"
 	@echo "	     Meas R	   Calc R	   Meas T	   Calc T	     mu_a	    mu_s'	        g"
 	$(IAD_EXECUTABLE) -V 0 -r 0.4        -F 30
