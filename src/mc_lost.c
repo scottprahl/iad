@@ -110,6 +110,16 @@ static inline void set_photon_seed(unsigned long new_seed)
     photon_seed = new_seed;
 }
 
+/* Public entry point: set the global photon seed.
+ * If seed == 0, seed from the current time so each run is different. */
+void MC_Set_Seed(unsigned long seed)
+{
+    if (seed == 0)
+        set_photon_seed((unsigned long) time(NULL));
+    else
+        set_photon_seed(seed);
+}
+
 /*
  * The function `set_photon_seed` initializes the seed for photon-specific
  * random number generation, ensuring a distinct starting point for each
@@ -756,4 +766,77 @@ MC_RT(struct AD_slab_type s, long n_photons, double t_sample, double t_slide,
 void MC_Print_RT_Arrays(int status)
 {
     print_radial_arrays = status;
+}
+
+/*
+ * MC_Lost_With_Stderr — run MC_Lost n_repeats times, each with
+ * n_photons/n_repeats photons, and return the mean and standard error
+ * of the four lost-light fractions.
+ *
+ * Outputs:
+ *   mean_ur1_lost, mean_ut1_lost, mean_uru_lost, mean_utu_lost
+ *       — arithmetic mean over all runs
+ *   se_ur1_lost, se_ut1_lost, se_uru_lost, se_utu_lost
+ *       — standard error of the mean  (std_dev / sqrt(n_repeats))
+ *
+ * The ur1, ut1, uru, utu outputs from the last run are returned in the
+ * corresponding pointers (they are not averaged — they are only used as
+ * diagnostic outputs by callers that already track the running mean).
+ */
+void
+MC_Lost_With_Stderr(struct measure_type m, struct invert_type r,
+    long n_photons, int n_repeats,
+    double *ur1, double *ut1, double *uru, double *utu,
+    double *mean_ur1_lost, double *mean_ut1_lost,
+    double *mean_uru_lost, double *mean_utu_lost,
+    double *se_ur1_lost, double *se_ut1_lost, double *se_uru_lost, double *se_utu_lost)
+{
+    int i;
+    long n_per_run;
+    double sum_ur1 = 0, sum_ut1 = 0, sum_uru = 0, sum_utu = 0;
+    double sum2_ur1 = 0, sum2_ut1 = 0, sum2_uru = 0, sum2_utu = 0;
+    double v_ur1, v_ut1, v_uru, v_utu;
+    double cur_ur1_lost, cur_ut1_lost, cur_uru_lost, cur_utu_lost;
+    double n = (double) n_repeats;
+
+    if (n_repeats < 1)
+        n_repeats = 1;
+    n_per_run = n_photons / n_repeats;
+    if (n_per_run < 1)
+        n_per_run = 1;
+
+    for (i = 0; i < n_repeats; i++) {
+        MC_Lost(m, r, n_per_run, ur1, ut1, uru, utu, &cur_ur1_lost, &cur_ut1_lost, &cur_uru_lost, &cur_utu_lost);
+        sum_ur1 += cur_ur1_lost;
+        sum_ut1 += cur_ut1_lost;
+        sum_uru += cur_uru_lost;
+        sum_utu += cur_utu_lost;
+        sum2_ur1 += cur_ur1_lost * cur_ur1_lost;
+        sum2_ut1 += cur_ut1_lost * cur_ut1_lost;
+        sum2_uru += cur_uru_lost * cur_uru_lost;
+        sum2_utu += cur_utu_lost * cur_utu_lost;
+    }
+
+    *mean_ur1_lost = sum_ur1 / n;
+    *mean_ut1_lost = sum_ut1 / n;
+    *mean_uru_lost = sum_uru / n;
+    *mean_utu_lost = sum_utu / n;
+
+    if (n_repeats > 1) {
+        /* sample variance = (sum_x2 - n*mean^2) / (n-1), stderr = sqrt(var/n) */
+        v_ur1 = (sum2_ur1 - n * (*mean_ur1_lost) * (*mean_ur1_lost)) / (n - 1.0);
+        v_ut1 = (sum2_ut1 - n * (*mean_ut1_lost) * (*mean_ut1_lost)) / (n - 1.0);
+        v_uru = (sum2_uru - n * (*mean_uru_lost) * (*mean_uru_lost)) / (n - 1.0);
+        v_utu = (sum2_utu - n * (*mean_utu_lost) * (*mean_utu_lost)) / (n - 1.0);
+        *se_ur1_lost = sqrt(fmax(0.0, v_ur1) / n);
+        *se_ut1_lost = sqrt(fmax(0.0, v_ut1) / n);
+        *se_uru_lost = sqrt(fmax(0.0, v_uru) / n);
+        *se_utu_lost = sqrt(fmax(0.0, v_utu) / n);
+    }
+    else {
+        *se_ur1_lost = 0.0;
+        *se_ut1_lost = 0.0;
+        *se_uru_lost = 0.0;
+        *se_utu_lost = 0.0;
+    }
 }

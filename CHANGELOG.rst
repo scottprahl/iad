@@ -1,9 +1,35 @@
 Changelog
 =========
 
-v3.16.4 (unreleased)
+v4.0.0 (unreleased)
 ---------------------
-*   improved single sphere MT calc when unscattered T leaves
+*   improved single sphere MT calc when unscattered T exits
+*   add bounded Nelder-Mead amoeba with explicit lower/upper bounds
+*   initialize the simplex in physical space using scipy-style 5% steps
+*   add new L2_SCALED deviation metric and make it the default
+*   replace grid with adaptive grid (``iad_agrid``) for initial guesses
+*   add Monte Carlo simplex hot-start so re-inversions reuse previous solution
+*   reduce MC update factor from 0.8 to 0.3
+*   accept a valid boundary-clamped solution even after the simplex hits its iteration cap
+*   ``iad -z`` now prints intrinsic, derived, sphere, and calculated R/T quantities
+*   fix ``-o outfile`` placed after the input filename (POSIX getopt on macOS/BSD)
+*   fix missing break in ``-x`` option parsing
+*   tag output header with ``iad`` so the writing program is identifiable
+*   reallocate redistribution-function cache when quadrature-point count changes
+*   allow incidence angle to appear in a column of ``.rxt`` files
+*   add ``cache.c``/``cache.h`` infrastructure
+*   remove faulty reduced-scattering power-law support
+*   improve lost-light and sphere debug output
+*   use a non-deterministic Monte Carlo seed each run
+*   catch low M_R measurements early
+*   reset defaults for each data point
+*   suppress spurious "max R" error with double spheres
+*   single-sphere command-line fixes
+*   improve M_T calculation
+*   fix ``mc_lost`` build
+*   improve ``iadplus`` and ``iadsum``
+*   tabs-to-spaces and formatting passes across CWEB sources
+*   manual revisions and rebuild of ``manual.pdf``
 
 v3.16.3 (15 May 2024)
 ---------------------

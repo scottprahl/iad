@@ -305,6 +305,7 @@ void Init_Layer(struct AD_slab_type slab, struct AD_method_type method, double *
 {
     static double **h = NULL;
     static double current_g = 10.0;
+    static int current_n = 0;
     int n;
 
     n = method.quad_pts;
@@ -314,8 +315,13 @@ void Init_Layer(struct AD_slab_type slab, struct AD_method_type method, double *
         return;
     }
 
-    if (h == NULL)
+    if (h == NULL || current_n != n) {
+        if (h != NULL)
+            free_dmatrix(h, -current_n, current_n, -current_n, current_n);
         h = dmatrix(-n, n, -n, n);
+        current_n = n;
+        current_g = 10.0;
+    }
 
     if (current_g != method.g_calc || twoaw_changed) {
         current_g = method.g_calc;

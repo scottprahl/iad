@@ -401,7 +401,7 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
 @ @<Write slab info@>=
         double xx;
 
-        printf("# Inverse Adding-Doubling %s \n",Version);
+        printf("# Inverse Adding-Doubling iad %s \n",Version);
         printf("# %s\n", cmd);
         printf("#                        Beam diameter = ");
         print_maybe('B', "%7.1f mm\n", m.d_beam);

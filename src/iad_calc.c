@@ -34,6 +34,7 @@
 #define SWAP(a,b) {double swap= (a);(a)= (b);(b)= swap;}
 
 static int CALCULATING_GRID = 0;
+static int SKIP_DISTANCE_CLAMP = 0;
 static struct measure_type MM;
 static struct invert_type RR;
 static struct measure_type MGRID;
@@ -46,6 +47,15 @@ static double GG_bs;
 static double GG_ba;
 static boolean_type The_Grid_Initialized = FALSE;
 static boolean_type The_Grid_Search = -1;
+
+static double scaled_l2_component(double calculated, double measured)
+{
+    double residual = calculated - measured;
+    double scale = fabs(measured);
+    if (scale < 0.01)
+        scale = 0.01;
+    return (residual / scale) * (residual / scale);
+}
 
 void Set_Calc_State(struct measure_type m, struct invert_type r)
 {
@@ -711,19 +721,19 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
     double UR1_calc, UT1_calc, URU_calc, UTU_calc;
 
     URU_calc = URU - MM.uru_lost;
-    if (URU_calc < 0)
+    if (!SKIP_DISTANCE_CLAMP && URU_calc < 0)
         URU_calc = 0;
 
     UTU_calc = UTU - MM.utu_lost;
-    if (UTU_calc < 0)
+    if (!SKIP_DISTANCE_CLAMP && UTU_calc < 0)
         UTU_calc = 0;
 
     UR1_calc = UR1 - (1.0 - MM.fraction_of_ru_in_mr) * Ru - MM.ur1_lost;
-    if (UR1_calc < 0)
+    if (!SKIP_DISTANCE_CLAMP && UR1_calc < 0)
         UR1_calc = 0;
 
     UT1_calc = UT1 - (1.0 - MM.fraction_of_tu_in_mt) * Tu - MM.ut1_lost;
-    if (UT1_calc < 0)
+    if (!SKIP_DISTANCE_CLAMP && UT1_calc < 0)
         UT1_calc = 0;
 
     switch (MM.num_spheres) {
@@ -754,7 +764,7 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
                 r_first = MM.rw_r * (1 - MM.at_r);
 
             UR1_calc = UR1 - Ru - MM.ur1_lost;
-            if (UR1_calc < 0)
+            if (!SKIP_DISTANCE_CLAMP && UR1_calc < 0)
                 UR1_calc = 0;
 
             G_0 = Gain(REFLECTION_SPHERE, MM, 0.0, 0.0);
@@ -812,7 +822,7 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
                     r_first = MM.rw_t * (1 - MM.at_t) + r_third * MM.at_t;
 
                 UT1_calc = UT1 - Tu - MM.ut1_lost;
-                if (UT1_calc < 0)
+                if (!SKIP_DISTANCE_CLAMP && UT1_calc < 0)
                     UT1_calc = 0;
 
                 G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
@@ -875,7 +885,14 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
     if (RR.search == FIND_A || RR.search == FIND_G || RR.search == FIND_B ||
         RR.search == FIND_Bs || RR.search == FIND_Ba) {
 
-        if (MM.m_t > 0) {
+        if (RR.metric == L2_SCALED) {
+            *dev = 0.0;
+            if (MM.m_r > 0)
+                *dev += scaled_l2_component(*M_R, MM.m_r);
+            if (MM.m_t > 0)
+                *dev += scaled_l2_component(*M_T, MM.m_t);
+        }
+        else if (MM.m_t > 0) {
             if (RR.metric == RELATIVE)
                 *dev = fabs(MM.m_t - *M_T) / (MM.m_t + ABIT);
             else
@@ -891,7 +908,12 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
     }
     else {
 
-        if (RR.metric == RELATIVE) {
+        if (RR.metric == L2_SCALED) {
+            *dev = scaled_l2_component(*M_T, MM.m_t);
+            if (RR.default_a != 0)
+                *dev += scaled_l2_component(*M_R, MM.m_r);
+        }
+        else if (RR.metric == RELATIVE) {
             if (MM.m_t > ABIT)
                 *dev = T_TRUST_FACTOR * fabs(MM.m_t - *M_T) / (UTU_calc + ABIT);
             if (RR.default_a != 0) {
@@ -998,11 +1020,112 @@ void abg_distance(double a, double b, double g, guess_type *guess)
     guess->distance = distance;
 }
 
+void abg_eval(double a, double b, double g, double *ur1, double *ut1, double *uru, double *utu)
+{
+    struct measure_type old_mm;
+    struct invert_type old_rr;
+
+    Get_Calc_State(&old_mm, &old_rr);
+
+    RR.slab.a = a;
+    RR.slab.b = (b < 1e-6) ? 1e-6 : b;
+    RR.slab.g = g;
+
+    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, ur1, ut1, uru, utu);
+
+    Set_Calc_State(old_mm, old_rr);
+}
+
+double abg_stored_distance(double a, double b, double g, double ur1, double ut1, double uru, double utu)
+{
+    double mr, mt;
+    double residual, scale, dev;
+    int two_param, include_r;
+    struct measure_type old_mm;
+    struct invert_type old_rr;
+
+    abg_sphere_mr_mt(a, b, g, ur1, ut1, uru, utu, &mr, &mt);
+
+    Get_Calc_State(&old_mm, &old_rr);
+    RR.slab.a = a;
+    RR.slab.b = (b < 1e-6) ? 1e-6 : b;
+    RR.slab.g = g;
+
+    two_param = (RR.search == FIND_AB || RR.search == FIND_AG || RR.search == FIND_BG);
+    dev = 0.0;
+
+    if (two_param) {
+        scale = fabs(MM.m_t);
+        if (scale < 0.01)
+            scale = 0.01;
+        residual = mt - MM.m_t;
+        dev = (residual / scale) * (residual / scale);
+
+        include_r = (RR.default_a == UNINITIALIZED) || (fabs(RR.default_a) > 1e-10);
+        if (include_r) {
+            scale = fabs(MM.m_r);
+            if (scale < 0.01)
+                scale = 0.01;
+            residual = mr - MM.m_r;
+            dev += (residual / scale) * (residual / scale);
+        }
+    }
+    else {
+        if (MM.m_r > 0) {
+            scale = fabs(MM.m_r);
+            if (scale < 0.01)
+                scale = 0.01;
+            residual = mr - MM.m_r;
+            dev += (residual / scale) * (residual / scale);
+        }
+        if (MM.m_t > 0) {
+            scale = fabs(MM.m_t);
+            if (scale < 0.01)
+                scale = 0.01;
+            residual = mt - MM.m_t;
+            dev += (residual / scale) * (residual / scale);
+        }
+    }
+
+    Set_Calc_State(old_mm, old_rr);
+
+    return dev;
+}
+
+void abg_sphere_mr_mt(double a, double b, double g,
+    double ur1, double ut1, double uru, double utu, double *mr, double *mt)
+{
+    double Ru, Tu, dev;
+    struct measure_type old_mm;
+    struct invert_type old_rr;
+
+    Get_Calc_State(&old_mm, &old_rr);
+
+    RR.slab.a = a;
+    RR.slab.b = (b < 1e-6) ? 1e-6 : b;
+    RR.slab.g = g;
+
+    MM.ur1_lost = 0.0;
+    MM.ut1_lost = 0.0;
+    MM.uru_lost = 0.0;
+    MM.utu_lost = 0.0;
+
+    Sp_mu_RT_Flip(MM.flip_sample,
+        RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
+        RR.slab.b_top_slide, RR.slab.b, RR.slab.b_bottom_slide, RR.slab.cos_angle, &Ru, &Tu);
+
+    CALCULATING_GRID = 1;
+    Calculate_Distance_With_Corrections(ur1, ut1, Ru, Tu, uru, utu, mr, mt, &dev);
+    CALCULATING_GRID = 0;
+
+    Set_Calc_State(old_mm, old_rr);
+}
+
 double Find_AG_fn(double x[])
 {
     double m_r, m_t, deviation;
-    RR.slab.a = acalc2a(x[1]);
-    RR.slab.g = gcalc2g(x[2]);
+    RR.slab.a = x[1];
+    RR.slab.g = x[2];
     Calculate_Distance(&m_r, &m_t, &deviation);
     return deviation;
 }
@@ -1010,8 +1133,8 @@ double Find_AG_fn(double x[])
 double Find_AB_fn(double x[])
 {
     double m_r, m_t, deviation;
-    RR.slab.a = acalc2a(x[1]);
-    RR.slab.b = bcalc2b(x[2]);
+    RR.slab.a = x[1];
+    RR.slab.b = x[2];
     Calculate_Distance(&m_r, &m_t, &deviation);
     return deviation;
 }
@@ -1073,8 +1196,8 @@ double Find_G_fn(double x)
 double Find_BG_fn(double x[])
 {
     double m_r, m_t, deviation;
-    RR.slab.b = bcalc2b(x[1]);
-    RR.slab.g = gcalc2g(x[2]);
+    RR.slab.b = x[1];
+    RR.slab.g = x[2];
     RR.slab.a = RR.default_a;
     Calculate_Distance(&m_r, &m_t, &deviation);
     return deviation;

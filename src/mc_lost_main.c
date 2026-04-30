@@ -28,6 +28,7 @@ static void print_usage(void)
     fprintf(stderr, "  -N #   specify index of refraction of slide\n");
     fprintf(stderr, "  -p #   number of photons\n");
     fprintf(stderr, "  -P #   sample port diameter\n");
+    fprintf(stderr, "  -s #   random seed (0 = seed from time, default 12345678)\n");
     fprintf(stderr, "  -t #   thickness of sample\n");
     fprintf(stderr, "  -T #   thickness of glass slide\n");
     fprintf(stderr, "  -v     display help\n");
@@ -57,11 +58,12 @@ int main(int argc, char **argv)
     double mu0 = 1;
     double b_slide = 0;
     long n_photons = 1024 * 1024;
+    unsigned long seed = 12345678;
     int machine_output = FALSE;
     int collimated_rofr_test = FALSE;
     int diffuse_rofr_test = FALSE;
 
-    while ((c = getopt(argc, argv, "hva:b:B:CDg:i:n:mN:p:P:t:T:")) != -1) {
+    while ((c = getopt(argc, argv, "hva:b:B:CDg:i:n:mN:p:P:s:t:T:")) != -1) {
         switch (c) {
 
         case 'a':
@@ -119,6 +121,10 @@ int main(int argc, char **argv)
             dt_port = dr_port;
             break;
 
+        case 's':
+            seed = (unsigned long) strtoul(optarg, NULL, 10);
+            break;
+
         case 't':
             t_sample = strtod(optarg, NULL);
             break;
@@ -154,6 +160,8 @@ int main(int argc, char **argv)
         printf("# Cos of incidence angle  %10.5f\n", mu0);
         printf("# \n");
     }
+
+    MC_Set_Seed(seed);
 
     if (collimated_rofr_test) {
         MC_Print_RT_Arrays(TRUE);

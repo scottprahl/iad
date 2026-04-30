@@ -655,6 +655,7 @@ Space must previously been allocated for |R| and |T|.
 {
     static double **h = NULL;
     static double current_g = 10.0;
+    static int current_n = 0;
     int n;
 
     n = method.quad_pts;
@@ -664,9 +665,16 @@ Space must previously been allocated for |R| and |T|.
         return;
     }
 
-    /* allocate space for redistribution function */
-    if (h == NULL)
+    /* (Re)allocate redistribution function when |n| changes, since |h|
+       is indexed over $[-n,n]\times[-n,n]$ and the static cache from a
+       previous call with a smaller |n| would be too small. */
+    if (h == NULL || current_n != n) {
+        if (h != NULL)
+            free_dmatrix(h, -current_n, current_n, -current_n, current_n);
         h = dmatrix(-n, n, -n, n);
+        current_n = n;
+        current_g = 10.0;  /* force |Get_Phi| recompute below */
+    }
 
     if (current_g != method.g_calc || twoaw_changed) {
         current_g = method.g_calc;

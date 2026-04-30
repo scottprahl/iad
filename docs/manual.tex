@@ -577,9 +577,14 @@ know what the sphere size was.  Similarly, instead of the easily understandable
 detector diameter, a weird $b_2$ factor was used because it made things a little 
 simpler for the code. 
 
-I have also decided that you must always have a baffle between the sample
-and the detector.  As I said before, it is just too hard to estimate the
-amount of light that directly reaches the detector on the first bounce.  
+The derivations and examples in this manual assume that there is a baffle
+between the sample and the detector.  As I said before, this is still the
+recommended geometry because it suppresses the direct sample-to-detector
+path on the first bounce.  However, the current \iadprog{} implementations
+can model all four reflection/transmission baffle combinations with the
+\texttt{-H 0}, \texttt{-H 1}, \texttt{-H 2}, and \texttt{-H 3} options.
+The fully baffled case (\texttt{-H 3}) remains the reference configuration
+for the equations and examples in this manual.
 
 \subsection{Which reflectance standard?}
 
@@ -647,18 +652,17 @@ BaSO$_4$, glue it back together attach detectors and voil\'{a}!  Or you can plun
 down a thousand bucks and buy one from LabSphere.  
 
 The integrating sphere is characterized by its diameter, its ports, its baffle,
-and its wall reflectance (typically $\sim$98\%).  In all the discussion and
-code that follows, it is assumed that the baffle (inside the sphere) is located
+and its wall reflectance (typically $\sim$98\%).  In the validated derivations
+that follow, it is assumed that the baffle (inside the sphere) is located
 between the sample and the detector.  This ensures that all the light leaving 
 the sample hits the diffuse white coating on the sphere walls and is more-or-less
 uniformly distributed across the sphere walls.  If the baffle is not present, then
-some (unknown) fraction of light directly propagates from the sample to the
-detector, while the rest of the light bounces around in the sphere.  It is
-possible approximate the light captured by the detector and sample, but this
-depends on the extent of the emission profile from the sample, the geometry
-between the sample and the detector, as well as on the reflectance of the
-detector at that angle.  It is much better just to require the presence of a
-baffle and avoid the whole mess.  
+some fraction of light directly propagates from the sample to the detector, while
+the rest of the light bounces around in the sphere.  The current code can still
+model these alternative baffle states with \texttt{-H}, but the gain expressions
+must then be adjusted accordingly.  For matching the equations, notebook checks,
+and examples in this manual, it is much better to keep the baffle and avoid the
+whole mess.  
 
 The size of the sphere is usually determined by what sphere you happen to
 have in the lab.  The sphere diameter pretty much determines the maximum
@@ -709,7 +713,9 @@ for me to make you copy-and-paste sphere parameters than it is for me to continu
 When you specify 0 spheres, then the program assumes that 
 you have made measurements of the sample in such a way that the values that you
 specify for $M_R$ and $M_T$ are devoid of integrating sphere errors and therefore
-\iadprog{} \textit{ makes no corrections for the integrating spheres.}  Good
+\iadprog{} \textit{ makes no corrections for the integrating spheres.}  In this
+mode, lost-light correction is also undefined, so Monte Carlo lost-light
+iterations are skipped even if \texttt{-M} is non-zero.  Good
 reasons for choosing this are
 \begin{itemize}
 \item
@@ -742,7 +748,10 @@ it affects the results of the sphere making the measurements.
 \textit{The program will use the values in the header to make corrections
 for a single sphere.}  The values for the reflection sphere and the transmission
 sphere do not need to be identical --- a single sphere means that one sphere is
-used at a time for all measurements. 
+used at a time for all measurements.  For one-sphere work, the default
+normalization is the substitution method, but comparison-mode normalization is
+also available with \texttt{-X}.  The baffle state for the reflection and
+transmission measurements is controlled by \texttt{-H 0..3}.
 
 \subsubsection{Two}
 
@@ -752,7 +761,7 @@ Using two spheres is actually why I was originally interested in this problem.%
 changed during high power irradiation, I tried to measure the changes in optical
 properties as they changed.}
 There are a few good reasons to use two spheres.  First, if the
-sample is has dynamically changing optical properties, then it is critical
+sample has dynamically changing optical properties, then it is critical
 that both $M_R$ and $M_T$ be measured at the same time.  Another reason 
 might be that you would like to measure the greatest number of samples in
 the shortest possible time.  
@@ -765,7 +774,12 @@ light baffles pretty much determine the necessary sphere orientation, this makes
 double integrating sphere measurements tricky.}
 One does not want to squish one side of the sample so that just barely adequate
 optical contact is reached on both sides.  The second drawback is that it is
-a pain in the neck to make the calibration experiments.  
+a pain in the neck to make the calibration experiments.  The command-line
+programs treat the two-sphere case as a substitution-mode model only; the
+\texttt{-X} dual-beam option cannot be combined with \texttt{-S 2}.  The
+double-sphere equations in this manual correspond to the validated baffled
+configuration, while the code can still swap in the appropriate gain expressions
+for other \texttt{-H} baffle settings.
 
 \subsection{What about dual-beam spectrometers?}
 
@@ -796,7 +810,11 @@ for in the dual-beam sphere.  Oddly, the diffuse light loss \textit{is} properly
 accounted for because the diffuse sample reflectance only enters into the calculation
 when figuring out the integrating sphere efficiency.  Since the sphere efficiency
 for the sample illumination and the standard illumination are equal, the diffuse
-light loss is not an issue.
+light loss is not an issue in the idealized normalization argument.  In the current
+\iadprog{} implementation, lost-light estimation for dual-beam data is still treated
+as a separate modeling step: \texttt{-S 0 -X} disables both sphere and lost-light
+corrections, while \texttt{-S 1 -X} uses the beam and sphere geometry for the
+Monte Carlo lost-light estimate.
 
 Anyhow, if you are using a dual beam system, then if your system automatically
 gives you the ratio of the sample reflectance to the standard reflectance, you
@@ -815,7 +833,13 @@ of light that may be measured.
 
 How does one analyze these in practice with IAD?  Well, the simplest way is to just
 to use the \texttt{-X} option\footnote{The `X' is for crossed beams.} and specify
-the sphere parameters that you used.
+the sphere parameters that you used.  In the current programs, \texttt{-X} may be
+combined only with \texttt{-S 0} or \texttt{-S 1}; \texttt{-S 2 -X} is rejected.
+In addition, \texttt{-X} assumes that no light hits the reflection sphere wall
+first, so \texttt{-f} must remain zero.  If you choose \texttt{-S 0}, then no
+sphere or lost-light model is applied.  If you choose \texttt{-S 1} and provide
+the sphere geometry, then the comparison-mode normalization is used while the
+beam and port geometry can still be used for the lost-light estimate.
 
 \subsection{How should the sample be prepared?}
 
@@ -981,9 +1005,9 @@ of the integrating sphere varies with the sample reflectance (see Figure~\ref{sp
 \includegraphics[width=49mm]{ch3spheresR.pdf}
 \includegraphics[width=38mm]{ch3spheresT.pdf}
 \caption{The measurements needed to measure $M_R$ and $M_T$ in equations \ref{eqmr} and~\ref{eqmt}.
-Note that the baffle is always located between the sample and
-the detector.  The back wall of the transmission sphere is never open
-(light that does not interact with the sample bounces around in the sphere).  Finally,
+Note that this figure shows the fully baffled reference geometry with the baffle between the sample and
+the detector.  The transmission sketch also shows the common case in which the third port is covered
+so that light that does not interact with the sample bounces around in the sphere.  Finally,
 notice that $T_\mathit{dark}$ and $T(0,0)$ are very different.}
 \label{spherert}
 \end{figure}
@@ -1009,6 +1033,12 @@ and transmittance by
 \begin{equation}
 M_T = {\frac{T_2(\rdirect, \rdiffuse, \tdirect, \tdiffuse)-T_2(0,0, 0,0) }{T_2(0, 0, 1, 1)-T_2(0,0, 0,0)}}.
 \end{equation}
+These are the same substitution-mode double-sphere formulas validated in the
+double-sphere derivation notebook and implemented in both the CWEB and Python
+programs.  In the code, the directly measured $\rdirect$, $\tdirect$,
+$\rdiffuse$, and $\tdiffuse$ terms are first corrected for any uncollected
+unscattered component and, when enabled, for lost light, and only then are
+they normalized with the double-sphere gains.
 
 \begin{figure}[!b]
 \begin{center}                                                            
@@ -1547,7 +1577,7 @@ IAD1
 
 0            # [mm] Number of spheres used during each measurement
 
-             # Refection sphere properties (unused because n_spheres=0)
+             # Reflection sphere properties (unused because n_spheres=0)
 203.2        # [mm] Sphere Diameter
 25.4         # [mm] Sample Port Diameter
 12.7         # [mm] Entrance Port Diameter
@@ -1603,6 +1633,14 @@ file named \texttt{basic1.txt}.
 
 \clearpage
 \subsection{Command-line options}
+The CWEB \texttt{iad} program is currently the reference implementation for the
+full command-line interface documented in this section.  The Python
+\texttt{iadcommand.py} interface already supports the common measurement and
+constraint switches and is being brought into parity with the remaining
+advanced options documented here.  Where the two implementations differ today,
+the switch semantics described below should be read as the canonical \texttt{iad}
+behavior.
+
 \begin{description}
     \item[-1 '\# \# \# \# \#'] Five parameters describing the reflection sphere.\\[1mm]
                  The parameters are the diameters (in mm) of the sphere, the sample port, the entrance port, 
@@ -1652,7 +1690,7 @@ file named \texttt{basic1.txt}.
                  Constrains the inversion process by fixing the beam diameter to this value in mm.  This parameter
                  can be used to determine the effect of the beam diameter on the inversion process.  The only way
                  that it enters into the inversion calculation is through the internal Monte Carlo lost light
-                 calculation --- and so if \texttt{-M 0} is used then the option \texttt{-b} will have
+                 calculation --- and so if \texttt{-M 0} is used then the option \texttt{-B} will have
                  no effect.
                  
     \item[-c \#] The fraction of unscattered reflected light in your reflection \texttt{MR} measurement.\\[1mm]
@@ -1665,15 +1703,12 @@ file named \texttt{basic1.txt}.
                  \textit{The default assumes all unscattered reflected light is collected, \texttt{-c 1}.}
                  
     \item[-C \#] The fraction of unscattered transmitted light in your transmission \texttt{MT} measurement.\\[1mm]
-                 This is a number from 0 to 1. Depending on the experiment, the third port in the sphere might be
-                 closed (or covered by a reflection standard) so that all the unscattered light transmitted through
-                 the sample is collected by the sphere \texttt{-C 1}.  Alternatively, in a double integrating sphere
-                 arrangement or when 
-                 reflected at the surface of the sample (or covering slides) is collected \texttt{-c 1} or it exits
-                 back out the entrance port \texttt{-c 0}.  If none of the light is collected, then this should be
-                 verified by inserting a piece of glass in the sample port and verifying that no light is detected
-                 in the sphere. If the light hits the sample at an angle (so that all the light is collected) then the 
-                 incidence angle option \texttt{-i} should also be used.\\[1mm]
+                 This is a number from 0 to 1.  If the third port is closed or covered so that all of the unscattered
+                 transmitted light is returned to the sphere, then use \texttt{-C 1}.  If the third port is open so that
+                 the unscattered transmitted light leaves the sphere, then use \texttt{-C 0}.  Intermediate values may be
+                 used to model partial collection of the unscattered transmitted light.  In the current one-sphere
+                 transmission model, any non-zero value of \texttt{-C} implies that the third port is filled by the
+                 calibration reflector during the sample measurement, while \texttt{-C 0} implies an open third port.\\[1mm]
                  \textit{The default assumes all unscattered transmitted light is collected, \texttt{-C 1}.}
   
     \item[-d \#] The thickness of the sample in mm.\\[1mm]
@@ -1738,11 +1773,51 @@ file named \texttt{basic1.txt}.
                  is common.\\[1mm]
                  \textit{With 1 or 2 measurements the default is isotropic scattering, \texttt{-g 0}.}
                  
-    \item[-G \#] type of boundary with various options
+    \item[-G \#] Specify the slide/boundary configuration.\\[1mm]
+                 Legal values are \texttt{0}, \texttt{2}, \texttt{t}, \texttt{b},
+                 \texttt{n}, and \texttt{f}.  The value \texttt{0} means no slides,
+                 \texttt{2} means identical slides on both sides, \texttt{t} means
+                 a single slide on the top surface (hit by the incident beam first),
+                 and \texttt{b} means a single slide on the bottom surface.  The
+                 values \texttt{n} and \texttt{f} describe a single slide by its
+                 position relative to the sphere that collects the light: near or far.\\[1mm]
+                 This option should be used together with \texttt{-N} to specify the
+                 slide index and, when needed, \texttt{-D} and \texttt{-E} to set the
+                 slide thickness and absorption.
     \item[-h] display help
-    \item[-H \#] baffle configuration options
-    \item[-L \#] specify the wavelength lambda
-    \item[-M \#] number of Monte Carlo iterations
+    \item[-H \#] Specify the integrating-sphere baffle configuration.\\[1mm]
+                 Use \texttt{-H 0} for no baffle in either sphere, \texttt{-H 1}
+                 for a baffle in the reflection sphere only, \texttt{-H 2} for a
+                 baffle in the transmission sphere only, and \texttt{-H 3} for
+                 baffles in both spheres.  The derivations and most examples in
+                 this manual use the fully baffled reference configuration
+                 \texttt{-H 3}.\\[1mm]
+                 This is an expert option that changes the gain expressions used
+                 for the sphere corrections.
+    \item[-i \#] Specify the incident angle in degrees.\\[1mm]
+                 This is primarily used when the unscattered reflected light is
+                 collected because the beam is intentionally oblique.  If an oblique
+                 angle is specified, then the quadrature order should be a multiple
+                 of 12 rather than just a multiple of 4.
+    \item[-j \#] Constrain the reduced scattering coefficient $\mu_s'$.\\[1mm]
+                 This is the reduced-scattering analogue of \texttt{-F}.  When
+                 \texttt{-g} is also fixed, the program converts this to
+                 $\mu_s=\mu_s'/(1-g)$ internally.  This is mainly useful for
+                 expert, single-parameter inversions.
+    \item[-J] Generate a grid after the inverse calculation.\\[1mm]
+                 This is a developer/debugging option that writes a grid of
+                 calculated values after the inversion, which is useful when
+                 inspecting the search surface or preparing plots.
+    \item[-l '\# \#'] Restrict processing to a wavelength interval.\\[1mm]
+                 The argument contains the lower and upper wavelength limits.
+                 For example, \texttt{-l '400 700'} processes only wavelengths
+                 between 400 and 700 in the input file.
+    \item[-L \#] Explicitly specify the wavelength $\lambda$.\\[1mm]
+                 This is mainly useful when the program is run entirely from the
+                 command line rather than from a file.  The value is recorded as
+                 the wavelength for the calculation and is also used by wavelength-
+                 dependent constraints such as the power-law version of \texttt{-F}.
+    \item[-M \#] maximum number of Monte Carlo lost-light iterations
     \item[-n \#] specify index of refraction of slab
     \item[-N \#] specify index of refraction of slides
     \item[-o filename] explicitly specify filename for output
@@ -1750,16 +1825,35 @@ file named \texttt{basic1.txt}.
     \item[-q \#] number of quadrature points (default=8)
     \item[-r \#] total reflection measurement
     \item[-R \#] actual reflectance for 100\% measurement
-    \item[-S \#] number of spheres used
+    \item[-s \#] Override the automatic inverse-search choice.\\[1mm]
+                 Normally the program determines the appropriate one- or two-
+                 parameter search from the available measurements and constraints.
+                 The \texttt{-s} option is an expert override for that choice and
+                 is mainly useful for debugging or reproducing earlier runs.
+    \item[-S \#] number of spheres used (\texttt{0}, \texttt{1}, or \texttt{2})
     \item[-t \#] total transmission measurement
     \item[-T \#] actual transmission for 100\% measurement
     \item[-u \#] unscattered transmission measurement
     \item[-v] version information
-    \item[-V 0 | 1 | 2] verbosity level
-    \item[-w \#] wall reflectivity for reflection sphere
-    \item[-W \#] wall reflectivity for transmission sphere
-    \item[-x \#] set debugging level
-    \item[-X] dual beam configuration
+    \item[-V 0 | 1 | 2] verbosity level.\\[1mm]
+                 Use \texttt{-V 0} for quiet output, \texttt{-V 1} for progress
+                 reporting while the file is processed, and \texttt{-V 2} for the
+                 default, more verbose behavior.  These are the canonical CWEB
+                 \texttt{iad} semantics; the Python CLI is being aligned to match them.
+    \item[-w \#] Wall reflectivity for the reflection sphere.\\[1mm]
+                 This is a convenient way to override just the reflection-sphere
+                 wall reflectance when the full \texttt{-1} sphere tuple is not
+                 being used.  If \texttt{-1} is supplied, then \texttt{-w} is
+                 redundant and the full sphere specification should be preferred.
+    \item[-W \#] Wall reflectivity for the transmission sphere.\\[1mm]
+                 This is the transmission-sphere analogue of \texttt{-w}.  If
+                 \texttt{-1} or \texttt{-2} already provides the sphere geometry
+                 and wall reflectivity, then \texttt{-W} should be omitted.
+    \item[-x \#] Set the debugging bit mask.\\[1mm]
+                 This is a developer-facing option that enables different classes
+                 of intermediate output such as grid selection, Monte Carlo
+                 iterations, sphere gains, or the full search trace.
+    \item[-X] dual beam configuration for \texttt{0} or \texttt{1} sphere only
     \item[-z] do forward calculation
 \end{description}
 
@@ -1782,7 +1876,8 @@ of the program.
 \begin{tabular}{lp{7cm}}
 \texttt{ -e \#               }& error tolerance (default 0.0001)           \\
 \texttt{ -q \#               }& number of quadrature points (default=8)    \\
-\texttt{ -M \#               }& number of Monte Carlo iterations           \\
+\texttt{ -M \#               }& maximum number of Monte Carlo lost-light iterations \\
+\texttt{ -s \#               }& expert override for the inverse search type \\
 \texttt{ -p \#               }& \# of Monte Carlo photons (default 100000),
                               (negative number is max time in milliseconds)\\[3mm]
 \end{tabular}
@@ -1801,12 +1896,9 @@ $$
 $$
 
 As an example, the optical properties for $M_R=0.3$ and $M_T=0.1$ for a 1\,mm thick sample
-are found using the command%
-\footnote{Here I have used the \texttt{-m} switch to eliminate the bulk
-of the output.  The eliminated output tells you what sample thickness was assumed and other 
-assumptions made by the program.}
+are found using the command
 \begin{verbatim}
-                prompt> iad -m -r 0.3 -t 0.1
+                prompt> iad -r 0.3 -t 0.1
 \end{verbatim}
 which produces
 \begin{verbatim}
@@ -1822,7 +1914,7 @@ $\mu_a=0.67$/mm, $\mu_s'=3.01$/mm, and $g=0.9$
 If the
 error tolerance is changed to 0.01 then
 \begin{verbatim}
-                prompt> iad -m -r 0.3 -t 0.1 -e 0.01
+                prompt> iad -r 0.3 -t 0.1 -e 0.01
 \end{verbatim}
 produces slightly different optical properties
 \begin{verbatim}
@@ -1837,11 +1929,17 @@ where the calculated and measured values for $M_R$ nearly match, but the
 
 The \texttt{-M \#} option allows you to control the \textit{maximum} number of Monte
 Carlo iterations.  The default setting is to do as many Monte Carlo iterations
-as necessary (up to 20) to ensure that the calculated values for scattering and absorption
-change by less than 0.01\,mm$^{-1}$ between iterations.  Now the number of Monte Carlo
-iterations is \textit{not} the same as the number of photons used
-in the Monte Carlo calculation of lost light.  Instead, the \texttt{-M \#} option
-controls the maximum number of times that the lost light calculation is done.  
+as necessary (up to 19) to ensure that the predicted $\mu_a$ and $\mu_s'$ have
+stabilized between successive MC/IAD updates.  The current implementation also
+continues iterating while the directly lost reflected or transmitted components
+are still changing appreciably, so that the direct-loss estimate settles before
+the loop stops.  Now the number of Monte Carlo iterations is \textit{not} the same as
+the number of photons used in the Monte Carlo calculation of lost light.
+Instead, the \texttt{-M \#} option controls the maximum number of times that the
+lost light calculation is done.  If you specify \texttt{-e}, then the same
+numeric tolerance is used for these successive-coefficient checks.  When
+\texttt{-S 0} is used, the lost-light model is not active and \texttt{-M}
+has no practical effect.
 
 This option is your friend.\footnote{\texttt{-M 0} is your bonus for reading this far and
 this deeply in the manual.} You'll almost always want to turn off the Monte Carlo
@@ -1886,6 +1984,9 @@ for each Monte Carlo simulation,
 \begin{verbatim}
                 prompt> iad -p -100 double
 \end{verbatim}
+In the canonical \texttt{iad} command-line interface, a negative value is
+interpreted as a time limit in milliseconds for a single Monte Carlo iteration,
+rather than as a photon count.
 
 \subsubsection{The Number Quadrature Points}
 The \texttt{-q \#} option allows you to specify the number of quadrature
@@ -1907,6 +2008,25 @@ takes only 0.1 seconds.  While
                 prompt> iad -q 16 double
 \end{verbatim}
 takes 1.3 seconds.
+When the incidence angle is oblique, as specified with \texttt{-i}, the
+quadrature order should be a multiple of 12.
+
+\subsubsection{Overriding the Search Type}
+
+The \texttt{-s \#} option overrides the search type that the program would
+normally choose automatically.  This is an expert/debugging option that is most
+useful when reproducing a previous run or when you want to inspect a specific
+inversion path.  The default is the automatic mode \texttt{-s 4}, which lets
+\iadprog{} choose the search based on the available measurements and the
+constraints that have been specified.  The supported search codes are
+\texttt{0}=\texttt{FIND\_A}, \texttt{1}=\texttt{FIND\_B},
+\texttt{2}=\texttt{FIND\_AB}, \texttt{3}=\texttt{FIND\_AG},
+\texttt{4}=\texttt{FIND\_AUTO}, \texttt{5}=\texttt{FIND\_BG},
+\texttt{6}=\texttt{FIND\_BaG}, \texttt{7}=\texttt{FIND\_BsG},
+\texttt{8}=\texttt{FIND\_Ba}, \texttt{9}=\texttt{FIND\_Bs},
+\texttt{10}=\texttt{FIND\_G}, \texttt{11}=\texttt{FIND\_B\_WITH\_NO\_ABSORPTION},
+and \texttt{12}=\texttt{FIND\_B\_WITH\_NO\_SCATTERING}.  In normal use, it is
+better to let the program choose this automatically.
 
 \subsection{Constraining the Optical Properties}
 
@@ -1916,6 +2036,7 @@ process.
 \begin{center}
 \begin{tabular}{lp{7cm}}
 \texttt{ -g \#               }& fixed anisotropy (default 0)               \\
+\texttt{ -j \#               }& fixed reduced scattering coefficient       \\
 \texttt{ -a \#               }& fixed albedo                               \\
 \texttt{ -b \#               }& fixed optical thickness                    \\
 \texttt{ -A \#               }& fixed absorption coefficient               \\
@@ -1928,10 +2049,7 @@ process.
 The \texttt{-g \#} option allows you to control the value of $g$ that is used in the inverse
 calculation.  The default value is 0.  This option is particularly useful when you have only made two measurements,
 but know approximately what the value of the average cosine of the phase function 
-should be.  For example,%
-\footnote{Here I have used the \texttt{-m} switch to eliminate the bulk
-of the output.  The eliminated output tells you what sample thickness was assumed and other 
-assumptions made by the program.}
+should be.  For example,
 \begin{verbatim}
                 prompt> iad -r 0.3 -t 0.1
 \end{verbatim}
@@ -1951,6 +2069,14 @@ produces
 or $\mu_a=0.55$/mm, $\mu_s'=3.16$/mm, and $g=0.9$.  Interestingly in this
 example, the reduced scattering coefficient changes by only 5\%, but the
 absorption changes nearly 40\%!
+
+\subsubsection{Constraining the Reduced Scattering Coefficient}
+
+The \texttt{-j \#} option fixes the reduced scattering coefficient
+$\mu_s'=\mu_s(1-g)$.  This is mainly useful when you know $\mu_s'$ more
+reliably than $\mu_s$, or when you want to force a one-parameter search while
+holding the reduced scattering fixed.  If you also specify \texttt{-g}, then
+the program converts the constraint to $\mu_s=\mu_s'/(1-g)$ internally.
 
 \subsubsection{Constraining the Albedo}
 
@@ -2021,11 +2147,17 @@ in a while it comes in handy.
 \texttt{ -r \#               }& total reflection measurement               \\
 \texttt{ -t \#               }& total transmission measurement             \\
 \texttt{ -u \#               }& unscattered transmission measurement       \\[3mm]
+\texttt{ -i \#               }& specify incidence angle                    \\
+\texttt{ -L \#               }& specify wavelength                         \\
 \texttt{ -n \#               }& specify index of refraction of sample      \\
 \texttt{ -N \#               }& specify index of refraction of slides      \\
+\texttt{ -G \#               }& specify slide or boundary configuration    \\
 \texttt{ -d \#               }& physical thickness of the sample           \\
 \texttt{ -D \#               }& physical thickness of the slides           \\
 \texttt{ -S \#               }& number of spheres used                     \\
+\texttt{ -H \#               }& specify baffle configuration               \\
+\texttt{ -w \#               }& reflection sphere wall reflectivity        \\
+\texttt{ -W \#               }& transmission sphere wall reflectivity      \\
 \texttt{ -1 '\# \# \# \# \#' }& reflection sphere parameters               \\
 \texttt{ -2 '\# \# \# \# \#' }& transmission sphere parameters             \\
 \end{tabular}
@@ -2045,6 +2177,18 @@ used in the calculation.  This number must be between 0 and 1.
 The \texttt{-u \#} option allows you to specify a unscattered transmittance to be
 used in the calculation.  This number must be between 0 and 1.
 
+\subsubsection{The Incidence Angle}
+The \texttt{-i \#} option allows you to specify the angle of incidence in
+degrees.  This is most often used when all of the unscattered reflected light
+is deliberately collected by using oblique incidence.  When \texttt{-i} is
+used, the quadrature order should be a multiple of 12.
+
+\subsubsection{The Wavelength}
+The \texttt{-L \#} option explicitly specifies the wavelength for a
+command-line calculation.  This is primarily useful when no input file is
+being read and when wavelength-dependent constraints, such as the power-law
+form of \texttt{-F}, are being used.
+
 \subsubsection{The Index of Refraction of the Slab}
 The \texttt{-n \#} option allows you to specify the index of refraction of
 the sample.  This number must be between 0.5 and 2.0.  The default is 1.0.
@@ -2053,7 +2197,17 @@ the sample.  This number must be between 0.5 and 2.0.  The default is 1.0.
 The \texttt{-N \#} option allows you to specify the index of refraction of
 the glass slides.  This number must be between 0.5 and 2.0.  The default is 1.0.
 
-\subsubsection{The Physical Thickness the Sample}
+\subsubsection{The Slide or Boundary Configuration}
+The \texttt{-G \#} option specifies how many slides are present and where a
+single slide is located.  Use \texttt{-G 0} for no slides, \texttt{-G 2} for
+identical slides on both sides, \texttt{-G t} when the incident beam hits the
+top slide first, and \texttt{-G b} when it hits the bottom slide first.  The
+values \texttt{-G n} and \texttt{-G f} describe a single slide by whether it is
+near or far from the collecting sphere.  This option is normally paired with
+\texttt{-N}, and often with \texttt{-D} and \texttt{-E}, to provide the slide
+index, thickness, and absorption.
+
+\subsubsection{The Physical Thickness of the Sample}
 The \texttt{-d \#} option allows you to specify the physical thickness of
 the sample.  This number must be positive and in millimeters.  The default is 1.0\,mm.
 
@@ -2067,22 +2221,41 @@ millimeters.
 
 \subsubsection{The Number of Spheres}
 The \texttt{-S \#} option allows you to specify the number of spheres used.
-This number must be 0, 1, or 2.  The default is zero.
+This number must be 0, 1, or 2.  The default is zero.  With \texttt{-S 0},
+the program applies no sphere correction and no lost-light model.  With
+\texttt{-S 1}, the program uses the single-sphere model and may be combined
+with \texttt{-X} for comparison-mode normalization.  With \texttt{-S 2}, the
+program uses the double-sphere substitution model; \texttt{-X} is not allowed.
+
+\subsubsection{The Baffle Configuration}
+The \texttt{-H \#} option chooses which integrating spheres include an internal
+baffle between the sample and the detector.  Use \texttt{-H 0} for no baffles,
+\texttt{-H 1} for a reflection-sphere baffle only, \texttt{-H 2} for a
+transmission-sphere baffle only, and \texttt{-H 3} for baffles in both spheres.
+The fully baffled case is the recommended reference geometry and is the one used
+for most derivations in this manual.
+
+\subsubsection{Sphere Wall Reflectivity Overrides}
+The \texttt{-w \#} and \texttt{-W \#} options set the wall reflectivity of the
+reflection and transmission spheres respectively.  These are convenient shorthands
+when you do not want to specify the full \texttt{-1} or \texttt{-2} sphere tuples.
+If the full sphere definitions are already being supplied, then these options are
+redundant and should be omitted.
 
 \subsubsection{The Reflection Sphere Properties}
 The \texttt{-1 '\# \# \# \# \#'} option allows you to specify the properties
-of the refection sphere. The five numbers (four diameters and the wall reflectance)
+of the reflection sphere. The five numbers (four diameters and the wall reflectance)
 must be surrounded by quotes.  The 
 five numbers must appear in this order (sphere diameter, sample port diameter,
 entrance port diameter, detector port diameter, and sphere wall reflectance).
 The units should be millimeters.
 
 \subsubsection{The Transmission Sphere Properties}
-The \texttt{-1 '\# \# \# \# \#'} option allows you to specify the properties
+The \texttt{-2 '\# \# \# \# \#'} option allows you to specify the properties
 of the transmission sphere. The five numbers (four diameters and the wall reflectance)
 must be surrounded by quotes.  The 
 five numbers must appear in this order (sphere diameter, sample port diameter,
-entrance port diameter, detector port diameter, and sphere wall reflectance).
+third port diameter, detector port diameter, and sphere wall reflectance).
 The units should be millimeters.
 \clearpage
 
@@ -2112,8 +2285,11 @@ will put the optical properties for the data in \texttt{double.rxt}
 
 \subsubsection{Controlling Verbosity}
 
-The \texttt{-V 0} option allows you to eliminate all the extra output from
-the \iadprog{} program.  This is not used by default. For example,
+The canonical \texttt{iad} command-line interface uses \texttt{-V 0},
+\texttt{-V 1}, and \texttt{-V 2} to control verbosity.  The Python CLI is
+being aligned to use the same convention.  The \texttt{-V 0} option allows you
+to eliminate all the extra output from the \iadprog{} program.  This is not
+used by default. For example,
 \begin{verbatim}
                 prompt> iad -r 0.3 -t 0.1
 \end{verbatim}
@@ -2164,17 +2340,22 @@ prints a message after processing the file.
 
 \subsubsection{Showing Intermediate Calculations}
 
+The debugging mask documented here is the full CWEB \texttt{iad} mask.  The
+Python interface is being brought into parity with these same flags.
+
 \begin{center}
 \begin{tabular}{lp{7cm}}
 \texttt{ -x 1                }& show sphere and light loss effects              \\
 \texttt{ -x 2                }& show grid calculations             \\
 \texttt{ -x 4                }& show Monte Carlo iterations              \\
 \texttt{ -x 8                }& show lost light          \\
-\texttt{ -x 16                }& show sphere effects              \\
-\texttt{ -x 32                }& starting guess for optical properties               \\
-\texttt{ -x 64                }& show every calculation              \\
-\texttt{ -x 128                }& show information about search               \\
-\texttt{ -x 255                }& all of the above         \\
+\texttt{ -x 16               }& show starting guess / best-grid choice         \\
+\texttt{ -x 32               }& show information about the search choice       \\
+\texttt{ -x 64               }& show grid calculations                         \\
+\texttt{ -x 128              }& show sphere gain calculations                  \\
+\texttt{ -x 256              }& show every calculation                         \\
+\texttt{ -x 512              }& show Monte Carlo internals                     \\
+\texttt{ -x 1023             }& all of the above                               \\
 \end{tabular}
 \end{center}
 

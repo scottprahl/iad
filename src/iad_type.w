@@ -25,6 +25,7 @@ the header file \.{iad\_type.h} and nothing else.
 
 @d RELATIVE 0
 @d ABSOLUTE 1
+@d L2_SCALED 2
 
 @d COLLIMATED 1.0
 @d DIFFUSE 0.0
@@ -170,6 +171,10 @@ typedef struct invert_type {
     double default_bs;
     double default_mua;
     double default_mus;
+
+    double mc_simplex_a_step; /* MC re-inversion: physical a step (0 = use cold-start default) */
+    double mc_simplex_b_step; /* MC re-inversion: physical b step (0 = use cold-start default) */
+    double mc_simplex_g_step; /* MC re-inversion: physical g step (0 = use cold-start default) */
 
     } IAD_invert_type;
 

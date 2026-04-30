@@ -12,7 +12,7 @@ DYNAMIC_LIB_OPT = -dynamiclib -install_name /usr/local/lib/libiad.dylib \
 
 CFLAGS = -fno-common -Wall $(ASSERT) -pedantic -g -fPIC -fsigned-char
 
-IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o   cache.o  mc_lost.o
+IAD_OBJ = iad_util.o  iad_calc.o iad_find.o iad_pub.o  iad_io.o   cache.o  mc_lost.o iad_agrid.o
 
 AD_OBJ  = nr_zbrak.o  ad_bound.o ad_doubl.o ad_frsnl.o ad_globl.o ad_matrx.o \
           ad_phase.o  ad_prime.o ad_radau.o ad_start.o ad_cone.o  ad_layers.o
@@ -146,7 +146,8 @@ iad_pub.o  : iad_pub.c iad_pub.h ad_globl.h ad_frsnl.h iad_type.h iad_util.h iad
 iad_util.o : iad_util.c iad_util.h ad_globl.h ad_frsnl.h ad_bound.h iad_type.h \
              iad_calc.h iad_pub.h nr_util.h
 iad_find.o : iad_find.c iad_find.h ad_globl.h iad_type.h iad_util.h iad_calc.h \
-             nr_mnbrk.h nr_brent.h nr_amoeb.h nr_util.h
+             nr_mnbrk.h nr_brent.h nr_amoeb.h nr_util.h iad_agrid.h
+iad_agrid.o : iad_agrid.c iad_agrid.h ad_globl.h iad_type.h iad_util.h iad_calc.h
 iad_main.o : iad_main.c ad_globl.h ad_frsnl.h ad_prime.h iad_type.h iad_pub.h iad_io.h \
              iad_calc.h iad_util.h mc_lost.h
 iad_io.o   : iad_io.c iad_io.h ad_globl.h iad_type.h iad_pub.h version.h

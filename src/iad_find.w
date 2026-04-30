@@ -12,11 +12,23 @@ March 1995.  Incorporated the |quick_guess| algorithm for low albedos.
 #include "iad_type.h"
 #include "iad_util.h"
 #include "iad_calc.h"
+#include "iad_agrid.h"
 #include "iad_find.h"
 
 #define NUMBER_OF_GUESSES 10
 
 guess_type guess[NUMBER_OF_GUESSES];
+
+static double scipy_bounded_initial_vertex(double value, double lower, double upper)
+{
+    if (value > upper)
+        value = 2.0 * upper - value;
+    if (value < lower)
+        value = lower;
+    if (value > upper)
+        value = upper;
+    return value;
+}
 
 int compare_guesses (const void *p1, const void *p2)
 {
@@ -84,11 +96,17 @@ This is the most common case.
     r->slab.g = (r->default_g == UNINITIALIZED) ? 0 : r->default_g;
     Set_Calc_State(m, *r);
 
-    @<Get the initial |a|, |b|, and |g|@>@;
+    @<Get the AGrid initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |a| and |b| simplex@>@;
     @<Evaluate the |a| and |b| simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_AB_fn, &r->AD_iterations);
+    {
+    double lo[3], hi[3];
+    lo[1] = 0.0;  hi[1] = 1.0;    /* a in [0, 1]       */
+    lo[2] = 0.0;  hi[2] = 1e10;   /* b in [0, +inf)    */
+    amoeba(p, y, 2, r->tolerance, Find_AB_fn, &r->AD_iterations, lo, hi);
+    }
     @<Choose the best node of the |a| and |b| simplex@>@;
+    @<Clamp |a| and |b| result to pure-scattering boundary if better@>@;
 
     @<Free simplex data structures@>@;
     @<Put final values in result@>@;
@@ -152,27 +170,37 @@ made in the analagous code for |a| and |b|.
 @ @<Initialize the nodes of the |a| and |b| simplex@>=
     {
     int k,kk;
+    double a0 = scipy_bounded_initial_vertex(guess[0].a, 0.0, 1.0);
+    double b0 = scipy_bounded_initial_vertex((guess[0].b < 1e8) ? guess[0].b : 1.0, 0.0, 1e10);
 
-    p[1][1] = a2acalc(guess[0].a);
-    p[1][2] = b2bcalc(guess[0].b);
+    /* Vertex 1: best AGrid candidate in physical space */
+    p[1][1] = scipy_bounded_initial_vertex(a0, 0.0, 1.0);
+    p[1][2] = scipy_bounded_initial_vertex(b0, 0.0, 1e10);
 
+    /* Vertices 2 and 3: 5% steps in physical space (scipy convention).
+       MC hot-start: r->mc_simplex_a/b_step already hold physical deltas. */
+    {
+    double a_step = (r->mc_simplex_a_step > 0.0) ? r->mc_simplex_a_step
+                                                  : (a0 != 0.0 ? 0.05 * a0 : 0.00025);
+    double b_step = (r->mc_simplex_b_step > 0.0) ? r->mc_simplex_b_step
+                                                  : (b0 != 0.0 ? 0.05 * b0 : 0.00025);
+    p[2][1] = scipy_bounded_initial_vertex(a0 + a_step, 0.0, 1.0);
+    p[2][2] = scipy_bounded_initial_vertex(b0, 0.0, 1e10);
+    p[3][1] = scipy_bounded_initial_vertex(a0, 0.0, 1.0);
+    p[3][2] = scipy_bounded_initial_vertex(b0 + b_step, 0.0, 1e10);
+    }
+
+    /* Search k and kk for DEBUG_MC lost-light seeding compatibility */
     for (k=1;k<7;k++) {
         if (guess[0].a != guess[k].a)
             break;
     }
-
-    p[2][1] = a2acalc(guess[k].a);
-    p[2][2] = b2bcalc(guess[k].b);
-
     for (kk=1;kk<7;kk++) {
         if (k == kk)
             continue;
         if (guess[0].b != guess[kk].b || guess[k].b != guess[kk].b)
             break;
     }
-
-    p[3][1] = a2acalc(guess[kk].a);
-    p[3][2] = b2bcalc(guess[kk].b);
 
     if (Debug(DEBUG_BEST_GUESS)) {
         fprintf(stderr, "-----------------------------------------------------\n");
@@ -181,16 +209,8 @@ made in the analagous code for |a| and |b|.
         fprintf(stderr, "%10.5f ", guess[0].b);
         fprintf(stderr, "%10.5f ", guess[0].g);
         fprintf(stderr, "%10.5f\n", guess[0].distance);
-        fprintf(stderr, "BEST: <2> ");
-        fprintf(stderr, "%10.5f ", guess[k].a);
-        fprintf(stderr, "%10.5f ", guess[k].b);
-        fprintf(stderr, "%10.5f ", guess[k].g);
-        fprintf(stderr, "%10.5f\n", guess[k].distance);
-        fprintf(stderr, "BEST: <3> ");
-        fprintf(stderr, "%10.5f ", guess[kk].a);
-        fprintf(stderr, "%10.5f ", guess[kk].b);
-        fprintf(stderr, "%10.5f ", guess[kk].g);
-        fprintf(stderr, "%10.5f\n", guess[kk].distance);
+        fprintf(stderr, "BEST: <2> (physical simplex, a+step)\n");
+        fprintf(stderr, "BEST: <3> (physical simplex, b+step)\n");
         fprintf(stderr, "\n");
     }
     if (Debug(DEBUG_MC)) {
@@ -213,9 +233,47 @@ made in the analagous code for |a| and |b|.
     r->final_distance=10;
     for(i=1;i<=3;i++) {
         if (y[i] < r->final_distance) {
-            r->slab.a = acalc2a(p[i][1]);
-            r->slab.b = bcalc2b(p[i][2]);
+            r->slab.a = p[i][1];
+            r->slab.b = p[i][2];
             r->final_distance = y[i];
+        }
+    }
+
+@ When albedo is very close to 1 (pure scattering), |a2acalc| diverges so
+the optimizer cannot reach $a=1$ in transform space.  After the simplex
+finishes, explicitly evaluate the distance at $a=1$ and accept it if
+it is better than the best simplex result.
+
+@<Clamp |a| and |b| result to pure-scattering boundary if better@>=
+    if (r->slab.a > 1.0 - 1e-3) {
+        double saved_fd   = r->final_distance;
+        double saved_a    = r->slab.a;
+        double saved_b    = r->slab.b;
+        int    saved_iter = r->AD_iterations;
+        double saved_default_a = r->default_a;
+        r->default_a = 1.0;
+        U_Find_B(m, r);
+        if (r->final_distance >= saved_fd) {
+            /* 1-D search at a=1 did not improve; restore the 2-D best */
+            r->slab.a = saved_a;
+            r->slab.b = saved_b;
+            r->final_distance = saved_fd;
+        }
+        r->default_a = saved_default_a;
+        r->AD_iterations += saved_iter;
+    }
+
+@ When albedo is very close to 1 (pure scattering), |a2acalc| diverges so
+the optimizer cannot reach $a=1$ in transform space.  Same boundary check
+for the |(a,g)| search.
+
+@<Clamp |a| and |g| result to pure-scattering boundary if better@>=
+    if (r->slab.a > 1.0 - 1e-3) {
+        guess_type boundary_guess;
+        abg_distance(1.0, r->slab.b, r->slab.g, &boundary_guess);
+        if (boundary_guess.distance < r->final_distance) {
+            r->slab.a = 1.0;
+            r->final_distance = boundary_guess.distance;
         }
     }
 
@@ -536,11 +594,17 @@ away.
         r->slab.b = r->default_b;
 
     Set_Calc_State(m, *r);
-    @<Get the initial |a|, |b|, and |g|@>@;
+    @<Get the AGrid initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |a| and |g| simplex@>@;
     @<Evaluate the |a| and |g| simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_AG_fn, &r->AD_iterations);
+    {
+    double lo[3], hi[3];
+    lo[1] = 0.0;   hi[1] = 1.0;   /* a in [0, 1]         */
+    lo[2] = -MAX_ABS_G; hi[2] = MAX_ABS_G; /* g in (-1, 1)      */
+    amoeba(p, y, 2, r->tolerance, Find_AG_fn, &r->AD_iterations, lo, hi);
+    }
     @<Choose the best node of the |a| and |g| simplex@>@;
+    @<Clamp |a| and |g| result to pure-scattering boundary if better@>@;
     @<Free simplex data structures@>@;
 
     @<Put final values in result@>@;
@@ -549,26 +613,37 @@ away.
 @ @<Initialize the nodes of the |a| and |g| simplex@>=
     {
     int k,kk;
+    double a0 = scipy_bounded_initial_vertex(guess[0].a, 0.0, 1.0);
+    double g0 = scipy_bounded_initial_vertex(guess[0].g, -MAX_ABS_G, MAX_ABS_G);
 
-    p[1][1] = a2acalc(guess[0].a);
-    p[1][2] = g2gcalc(guess[0].g);
+    /* Vertex 1: best AGrid candidate in physical space */
+    p[1][1] = scipy_bounded_initial_vertex(a0, 0.0, 1.0);
+    p[1][2] = scipy_bounded_initial_vertex(g0, -MAX_ABS_G, MAX_ABS_G);
 
+    /* Vertices 2 and 3: 5% steps in physical space (scipy convention).
+       MC hot-start: r->mc_simplex_a/g_step already hold physical deltas. */
+    {
+    double a_step = (r->mc_simplex_a_step > 0.0) ? r->mc_simplex_a_step
+                                                  : (a0 != 0.0 ? 0.05 * a0 : 0.00025);
+    double g_step = (r->mc_simplex_g_step > 0.0) ? r->mc_simplex_g_step
+                                                  : (g0 != 0.0 ? 0.05 * g0 : 0.00025);
+    p[2][1] = scipy_bounded_initial_vertex(a0 + a_step, 0.0, 1.0);
+    p[2][2] = scipy_bounded_initial_vertex(g0, -MAX_ABS_G, MAX_ABS_G);
+    p[3][1] = scipy_bounded_initial_vertex(a0, 0.0, 1.0);
+    p[3][2] = scipy_bounded_initial_vertex(g0 + g_step, -MAX_ABS_G, MAX_ABS_G);
+    }
+
+    /* Search k and kk for debug output compatibility */
     for (k=1;k<7;k++) {
         if (guess[0].a != guess[k].a)
             break;
     }
-
-    p[2][1] = a2acalc(guess[k].a);
-    p[2][2] = g2gcalc(guess[k].g);
-
     for (kk=1;kk<7;kk++) {
         if (kk == k)
             continue;
         if (guess[0].g != guess[kk].g || guess[k].g != guess[kk].g)
             break;
     }
-    p[3][1] = a2acalc(guess[kk].a);
-    p[3][2] = g2gcalc(guess[kk].g);
 
     if (Debug(DEBUG_BEST_GUESS)) {
         fprintf(stderr, "-----------------------------------------------------\n");
@@ -577,16 +652,8 @@ away.
         fprintf(stderr, "%10.5f ", guess[0].b);
         fprintf(stderr, "%10.5f ", guess[0].g);
         fprintf(stderr, "%10.5f\n", guess[0].distance);
-        fprintf(stderr, "BEST: <2> ");
-        fprintf(stderr, "%10.5f ", guess[k].a);
-        fprintf(stderr, "%10.5f ", guess[k].b);
-        fprintf(stderr, "%10.5f ", guess[k].g);
-        fprintf(stderr, "%10.5f\n", guess[k].distance);
-        fprintf(stderr, "BEST: <3> ");
-        fprintf(stderr, "%10.5f ", guess[kk].a);
-        fprintf(stderr, "%10.5f ", guess[kk].b);
-        fprintf(stderr, "%10.5f ", guess[kk].g);
-        fprintf(stderr, "%10.5f\n", guess[kk].distance);
+        fprintf(stderr, "BEST: <2> (physical simplex, a+step)\n");
+        fprintf(stderr, "BEST: <3> (physical simplex, g+step)\n");
         fprintf(stderr, "\n");
     }
 }
@@ -608,8 +675,8 @@ simplex for later use if needed.
     r->final_distance=10;
     for(i=1;i<=3;i++) {
         if (y[i] < r->final_distance) {
-            r->slab.a = acalc2a(p[i][1]);
-            r->slab.g = gcalc2g(p[i][2]);
+            r->slab.a = p[i][1];
+            r->slab.g = p[i][2];
             r->final_distance = y[i];
         }
     }
@@ -638,10 +705,15 @@ albedo).
     r->slab.a = (r->default_a == UNINITIALIZED) ? 0 : r->default_a;
     Set_Calc_State(m, *r);
 
-    @<Get the initial |a|, |b|, and |g|@>@;
+    @<Get the AGrid initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |b| and |g| simplex@>@;
     @<Evaluate the \\{bg} simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_BG_fn, &r->AD_iterations);
+    {
+    double lo[3], hi[3];
+    lo[1] = 0.0;    hi[1] = 1e10;    /* b in [0, +inf)    */
+    lo[2] = -MAX_ABS_G; hi[2] = MAX_ABS_G; /* g in (-1, 1)      */
+    amoeba(p, y, 2, r->tolerance, Find_BG_fn, &r->AD_iterations, lo, hi);
+    }
     @<Choose the best node of the |b| and |g| simplex@>@;
 
     @<Free simplex data structures@>@;
@@ -655,26 +727,37 @@ are fixed.
 @ @<Initialize the nodes of the |b| and |g| simplex@>=
     {
     int k,kk;
+    double b0 = scipy_bounded_initial_vertex((guess[0].b < 1e8) ? guess[0].b : 1.0, 0.0, 1e10);
+    double g0 = scipy_bounded_initial_vertex(guess[0].g, -MAX_ABS_G, MAX_ABS_G);
 
-    p[1][1] = b2bcalc(guess[0].b);
-    p[1][2] = g2gcalc(guess[0].g);
+    /* Vertex 1: best AGrid candidate in physical space */
+    p[1][1] = scipy_bounded_initial_vertex(b0, 0.0, 1e10);
+    p[1][2] = scipy_bounded_initial_vertex(g0, -MAX_ABS_G, MAX_ABS_G);
 
+    /* Vertices 2 and 3: 5% steps in physical space (scipy convention).
+       MC hot-start: r->mc_simplex_b/g_step already hold physical deltas. */
+    {
+    double b_step = (r->mc_simplex_b_step > 0.0) ? r->mc_simplex_b_step
+                                                  : (b0 != 0.0 ? 0.05 * b0 : 0.00025);
+    double g_step = (r->mc_simplex_g_step > 0.0) ? r->mc_simplex_g_step
+                                                  : (g0 != 0.0 ? 0.05 * g0 : 0.00025);
+    p[2][1] = scipy_bounded_initial_vertex(b0 + b_step, 0.0, 1e10);
+    p[2][2] = scipy_bounded_initial_vertex(g0, -MAX_ABS_G, MAX_ABS_G);
+    p[3][1] = scipy_bounded_initial_vertex(b0, 0.0, 1e10);
+    p[3][2] = scipy_bounded_initial_vertex(g0 + g_step, -MAX_ABS_G, MAX_ABS_G);
+    }
+
+    /* Search k and kk for debug output compatibility */
     for (k=1;k<7;k++) {
         if (guess[0].b != guess[k].b)
             break;
     }
-
-    p[2][1] = b2bcalc(guess[k].b);
-    p[2][2] = g2gcalc(guess[k].g);
-
     for (kk=1;kk<7;kk++) {
         if (kk == k)
             continue;
         if (guess[0].g != guess[kk].g || guess[k].g != guess[kk].g)
             break;
     }
-    p[3][1] = b2bcalc(guess[kk].b);
-    p[3][2] = g2gcalc(guess[kk].g);
 
     if (Debug(DEBUG_BEST_GUESS)) {
         fprintf(stderr, "-----------------------------------------------------\n");
@@ -683,16 +766,8 @@ are fixed.
         fprintf(stderr, "%10.5f ", guess[0].b);
         fprintf(stderr, "%10.5f ", guess[0].g);
         fprintf(stderr, "%10.5f\n", guess[0].distance);
-        fprintf(stderr, "BEST: <2> ");
-        fprintf(stderr, "%10.5f ", guess[k].a);
-        fprintf(stderr, "%10.5f ", guess[k].b);
-        fprintf(stderr, "%10.5f ", guess[k].g);
-        fprintf(stderr, "%10.5f\n", guess[k].distance);
-        fprintf(stderr, "BEST: <3> ");
-        fprintf(stderr, "%10.5f ", guess[kk].a);
-        fprintf(stderr, "%10.5f ", guess[kk].b);
-        fprintf(stderr, "%10.5f ", guess[kk].g);
-        fprintf(stderr, "%10.5f\n", guess[kk].distance);
+        fprintf(stderr, "BEST: <2> (physical simplex, b+step)\n");
+        fprintf(stderr, "BEST: <3> (physical simplex, g+step)\n");
         fprintf(stderr, "\n");
     }
 }
@@ -713,8 +788,8 @@ simplex for later use if needed.
     r->final_distance=10;
     for(i=1;i<=3;i++) {
         if (y[i] < r->final_distance) {
-            r->slab.b = bcalc2b(p[i][1]);
-            r->slab.g = gcalc2g(p[i][2]);
+            r->slab.b = p[i][1];
+            r->slab.g = p[i][2];
             r->final_distance = y[i];
         }
     }
@@ -740,7 +815,7 @@ $b$.
     @<Get the initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |ba| and |g| simplex@>@;
     @<Evaluate the \\{BaG} simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_BaG_fn, &r->AD_iterations);
+    amoeba(p, y, 2, r->tolerance, Find_BaG_fn, &r->AD_iterations, NULL, NULL);
     @<Choose the best node of the |ba| and |g| simplex@>@;
 
     @<Free simplex data structures@>@;
@@ -816,7 +891,7 @@ $b$.
     @<Get the initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |bs| and |g| simplex@>@;
     @<Evaluate the \\{BsG} simplex at the nodes@>@;
-    amoeba(p, y, 2, r->tolerance, Find_BsG_fn, &r->AD_iterations);
+    amoeba(p, y, 2, r->tolerance, Find_BsG_fn, &r->AD_iterations, NULL, NULL);
     @<Choose the best node of the |bs| and |g| simplex@>@;
 
     @<Free simplex data structures@>@;
@@ -853,3 +928,47 @@ $b$.
             r->final_distance = y[i];
         }
     }
+
+@*1 AGrid initial guess.
+
+Replace the dense $101\times101$ grid warm-start with the adaptive
+quadtree grid for |FIND_AB|, |FIND_AG|, and |FIND_BG|.
+The previous result |guess[0]| is always kept as a candidate; the AGrid
+contributes up to |NUMBER_OF_GUESSES-1| additional sorted entries.
+
+@<Get the AGrid initial |a|, |b|, and |g|@>=
+{
+    int n_agrid;
+    int k;
+    size_t count;
+
+    /* keep the previous result as candidate 0 */
+    abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
+
+    if (r->MC_iterations > 0) {
+        for (k = 1; k < NUMBER_OF_GUESSES; k++)
+            guess[k] = guess[0];
+        count = 1;
+    } else {
+        /* build or reuse the adaptive cache */
+        if (!AGrid_Valid(m, *r)) AGrid_Build(m, *r);
+
+        /* fill remaining slots from the cache */
+        n_agrid = AGrid_Fill_Guesses(m.m_r, m.m_t,
+                                     guess + 1, NUMBER_OF_GUESSES - 1);
+        count = (size_t)(1 + n_agrid);
+        qsort((void *) guess, count, sizeof(guess_type), compare_guesses);
+    }
+
+    if (Debug(DEBUG_BEST_GUESS)) {
+        fprintf(stderr, "BEST: AGRID + PREV GUESSES\n");
+        fprintf(stderr, "BEST:  k      albedo          b          g   distance\n");
+        for (k = 0; k < (int)count && k < 7; k++) {
+            fprintf(stderr, "BEST:%3d  ", k);
+            fprintf(stderr, "%10.5f ", guess[k].a);
+            fprintf(stderr, "%10.5f ", guess[k].b);
+            fprintf(stderr, "%10.5f ", guess[k].g);
+            fprintf(stderr, "%10.5f\n", guess[k].distance);
+        }
+    }
+}

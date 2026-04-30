@@ -294,14 +294,16 @@ transmission from the total transmission.
 Routines to convert optical properties to calculation space
 and back.
 
-@ |a2acalc| is used for the albedo transformations
-according to
+@ |a2acalc| maps albedo $a\in(0,1)$ to an unbounded calculation variable
+using the logit (log-odds) transform:
 $$
-a_{calc} = {2a-1\over a(1-a)}
+a_{calc} = \ln\!\left({a\over 1-a}\right)
 $$
-Care is taken to avoid division by zero.  Why was this
-function chosen?  Well mostly because it maps the region
-between $[0,1]\rightarrow (-\infty,+\infty)$.
+This is the same bijection used internally by scipy's bounded Nelder-Mead
+for parameters with both a lower and upper bound.  It is much better
+conditioned than the previous $(2a-1)/(a(1-a))$ formula: the logit grows
+only logarithmically near the boundaries, so the optimizer sees a
+well-scaled landscape across the full range $[0,1]$.
 
 @<Prototype for |a2acalc|@>=
     double a2acalc(double a)
@@ -313,25 +315,14 @@ between $[0,1]\rightarrow (-\infty,+\infty)$.
 
     if (a >= 1) return BIG_A_CALC_VALUE;
 
-    return ((2 * a - 1) / a / (1 - a));
+    return log(a / (1.0 - a));
 }
 
-@ |acalc2a| is used for the albedo transformations
-Now when we solve
+@ |acalc2a| is the inverse of |a2acalc|.
+The inverse of the logit is the sigmoid (logistic) function:
 $$
-a_calc = {2a-1\over a(1-a)}
+a = {1\over 1+e^{-a_{calc}}}
 $$
-we obtain the quadratic equation
-$$
-a_{calc} a^2 + (2-a_{calc}) a - 1 =0
-$$
-The only root of this equation between zero and one is
-$$
-a = {-2+a_{calc}+\sqrt{a_{calc}^2 +4}\over 2 a_{calc}}
-$$
-I suppose that I should spend the time to recast this using
-the more appropriate numerical solutions of the quadratic
-equation, but this worked and I will leave it as it is for now.
 
 @<Prototype for |acalc2a|@>=
     double acalc2a(double acalc)
@@ -345,18 +336,17 @@ equation, but this worked and I will leave it as it is for now.
     if (acalc <= -BIG_A_CALC_VALUE)
         return 0.0;
 
-    if (fabs(acalc) < SMALL_A_CALC_VALUE)
-        return 0.5;
-
-    return ((-2 + acalc + sqrt(acalc * acalc + 4)) / (2 * acalc));
+    return 1.0 / (1.0 + exp(-acalc));
 }
 
-@ |g2gcalc| is used for the anisotropy transformations
-according to
+@ |g2gcalc| maps anisotropy $g\in(-1,1)$ to an unbounded calculation
+variable using the inverse hyperbolic tangent (atanh):
 $$
-g_{calc} = {g\over 1+\vert g \vert}
+g_{calc} = \mathop{\rm atanh}(g) = {1\over2}\ln\!\left({1+g\over 1-g}\right)
 $$
-which maps $(-1,1)\rightarrow(-\infty,+\infty)$.
+Like the logit for albedo, this is the natural bijection for a parameter
+bounded symmetrically at $\pm1$ and is far better conditioned near the
+boundaries than the previous $g/(1-|g|)$ formula.
 
 @<Prototype for |g2gcalc|@>=
 double g2gcalc(double g)
@@ -365,17 +355,15 @@ double g2gcalc(double g)
 @<Prototype for |g2gcalc|@>
 {
     double gg = g;
-    if (g < -MAX_ABS_G) gg=-MAX_ABS_G;
-
-    if (g > MAX_ABS_G) gg=MAX_ABS_G;
-
-    return gg / (1 - fabs(gg));
+    if (g < -MAX_ABS_G) gg = -MAX_ABS_G;
+    if (g >  MAX_ABS_G) gg =  MAX_ABS_G;
+    return 0.5 * log((1.0 + gg) / (1.0 - gg));
 }
 
-@ |gcalc2g| is used for the anisotropy transformations
-it is the inverse of |g2gcalc|.  The relation is
+@ |gcalc2g| is the inverse of |g2gcalc|.
+The inverse of atanh is tanh:
 $$
-g = {g_{calc}\over 1+\vert g_{calc}\vert}
+g = \tanh(g_{calc})
 $$
 @<Prototype for |gcalc2g|@>=
 double gcalc2g(double gcalc)
@@ -383,7 +371,7 @@ double gcalc2g(double gcalc)
 @ @<Definition for |gcalc2g|@>=
 @<Prototype for |gcalc2g|@>
 {
-    return (gcalc / (1 + fabs(gcalc)));
+    return tanh(gcalc);
 }
 
 @ |b2bcalc| is used for the optical depth transformations

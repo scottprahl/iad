@@ -44,7 +44,9 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         fprintf(stderr, "      a         b          g   |");
         fprintf(stderr, "     M_R        calc   |");
         fprintf(stderr, "     M_T        calc   |");
-        if (r->metric == RELATIVE)
+        if (r->metric == L2_SCALED)
+            fprintf(stderr, " scaled L2 distance\n");
+        else if (r->metric == RELATIVE)
             fprintf(stderr, " relative distance\n");
         else
             fprintf(stderr, " absolute distance\n");
@@ -92,8 +94,18 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         r->found = FALSE;
     }
 
-    if (r->error != IAD_TOO_MANY_ITERATIONS)
-        r->error = measure_OK(m, *r, TRUE);
+    if (!r->found && r->final_distance < r->tolerance) {
+        r->error = IAD_NO_ERROR;
+        r->found = TRUE;
+    }
+
+    {
+        int data_err = measure_OK(m, *r, TRUE);
+        if (data_err != IAD_NO_ERROR)
+            r->error = data_err;
+        else if (r->error != IAD_TOO_MANY_ITERATIONS)
+            r->error = IAD_NO_ERROR;
+    }
 
     if (Debug(DEBUG_A_LITTLE)) {
         double M_R, M_T, mua, mus, musp;
@@ -448,11 +460,14 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
     r->tolerance = 0.0001;
     r->MC_tolerance = 0.01;
     r->search = FIND_AUTO;
-    r->metric = ABSOLUTE;
+    r->metric = L2_SCALED;
     r->final_distance = 10;
     r->AD_iterations = 4;
     r->MC_iterations = 0;
     r->error = IAD_NO_ERROR;
+    r->mc_simplex_a_step = 0.0;
+    r->mc_simplex_b_step = 0.0;
+    r->mc_simplex_g_step = 0.0;
 
     if (overwrite_defaults) {
         r->default_a = UNINITIALIZED;

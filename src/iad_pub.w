@@ -93,8 +93,19 @@ that are appropriate for your experiment.
 
     @<Find the optical properties@>@;
 
-    if (r->error != IAD_TOO_MANY_ITERATIONS)
-        r->error = measure_OK(m,*r, TRUE);
+    /* Always run the strict data-quality check.  When the search ran out of
+       iterations, |measure_OK| often pinpoints a real data problem
+       (M_R/M_T/M_U out of range), which is far more informative than the
+       generic ``+'' (did not converge).  Prefer the specific reason when
+       found; otherwise leave |r->error| alone (|IAD_NO_ERROR| if the
+       search succeeded, |IAD_TOO_MANY_ITERATIONS| if not). */
+    {
+        int data_err = measure_OK(m, *r, TRUE);
+        if (data_err != IAD_NO_ERROR)
+            r->error = data_err;
+        else if (r->error != IAD_TOO_MANY_ITERATIONS)
+            r->error = IAD_NO_ERROR;
+    }
 
     @<Print basic sphere and MC effects@>@;
 }
@@ -126,7 +137,9 @@ if (Debug(DEBUG_ITERATIONS)) {
     fprintf(stderr, "      a         b          g   |");
     fprintf(stderr, "     M_R        calc   |");
     fprintf(stderr, "     M_T        calc   |");
-    if (r->metric == RELATIVE)
+    if (r->metric == L2_SCALED)
+        fprintf(stderr, " scaled L2 distance\n");
+    else if (r->metric == RELATIVE)
         fprintf(stderr, " relative distance\n");
     else
         fprintf(stderr, " absolute distance\n");
@@ -162,6 +175,13 @@ if (Debug(DEBUG_ITERATIONS))
 if (r->AD_iterations>=IAD_MAX_ITERATIONS) {
     r->error=IAD_TOO_MANY_ITERATIONS;
     r->found=FALSE;
+}
+
+/* The boundary clamp (e.g. a=1 pure-scattering) may have set a valid
+   final_distance even after the amoeba hit its iteration limit. */
+if (!r->found && r->final_distance < r->tolerance) {
+    r->error = IAD_NO_ERROR;
+    r->found = TRUE;
 }
 
 @ This is to support -x 1
@@ -624,11 +644,14 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
     r->tolerance = 0.0001;
     r->MC_tolerance = 0.01;  /* percent */
     r->search = FIND_AUTO;
-    r->metric = ABSOLUTE;
+    r->metric = L2_SCALED;
     r->final_distance = 10;
     r->AD_iterations =4;
     r->MC_iterations =0;
     r->error = IAD_NO_ERROR;
+    r->mc_simplex_a_step = 0.0;
+    r->mc_simplex_b_step = 0.0;
+    r->mc_simplex_g_step = 0.0;
 
 @ The defaults might be handy
 

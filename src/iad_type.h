@@ -15,7 +15,8 @@
 #define FIND_B_WITH_NO_SCATTERING 12 \
 
 #define RELATIVE 0
-#define ABSOLUTE 1 \
+#define ABSOLUTE 1
+#define L2_SCALED 2 \
 
 #define COLLIMATED 1.0
 #define DIFFUSE 0.0 \
@@ -144,6 +145,10 @@ typedef struct invert_type {
     double default_bs;
     double default_mua;
     double default_mus;
+
+    double mc_simplex_a_step;
+    double mc_simplex_b_step;
+    double mc_simplex_g_step;
 
 } IAD_invert_type;
 

@@ -416,6 +416,7 @@ that this strips any quotes from the command line.
                     fprintf(stderr, "must be 0, 1, 2, or 3\n");
                     exit(EXIT_FAILURE);
                 }
+                break;
 
             case 'i':
                 cl_cos_angle = my_strtod(optarg);
@@ -698,6 +699,9 @@ specified, then the thickness is assumed infinite.
 
     {
         double mu_s, mu_sp, mu_a, m_r, m_t;
+        double ur1, ut1, uru, utu, ru, tu;
+        double cos_critical, theta_inc, theta_crit;
+        double thickness, denom;
         if (MAX_MC_iterations==0 || m.num_spheres==0) {
             Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
         } else {
@@ -705,12 +709,102 @@ specified, then the thickness is assumed infinite.
         }
 
         Calculate_Mua_Musp(m, r, &mu_s, &mu_sp, &mu_a);
-        if (cl_verbosity>0) {
-            Write_Header (m, r, -1, command_line);
-            print_results_header(stdout);
+
+        RT(r.method.quad_pts, &r.slab, &ur1, &ut1, &uru, &utu);
+        ez_RT_unscattered(r.method.quad_pts, r.slab.n_slab,
+                          r.slab.n_top_slide, r.slab.n_bottom_slide,
+                          0.0, r.slab.b, r.slab.g, &ru, &tu, &uru, &utu);
+
+        thickness = (m.slab_thickness > 0) ? m.slab_thickness : 1.0;
+        cos_critical = Cos_Critical_Angle(r.slab.n_slab, 1.0);
+        theta_inc  = acos(r.slab.cos_angle) * 180.0 / M_PI;
+        theta_crit = acos(cos_critical) * 180.0 / M_PI;
+
+        if (cl_verbosity > 0) {
+            printf("Intrinsic Properties\n");
+            printf("   albedo              = %.3f\n", r.slab.a);
+            if (r.slab.b == HUGE_VAL)
+                printf("   optical thickness   = inf\n");
+            else
+                printf("   optical thickness   = %.3f\n", r.slab.b);
+            printf("   anisotropy          = %.3f\n", r.slab.g);
+            printf("   thickness           = %.3f mm\n", m.slab_thickness);
+            printf("   sample index        = %.3f\n", r.slab.n_slab);
+            printf("   top slide index     = %.3f\n", r.slab.n_top_slide);
+            printf("   bottom slide index  = %.3f\n", r.slab.n_bottom_slide);
+            printf("   cos(theta incident) = %.3f\n", r.slab.cos_angle);
+            printf("   quadrature points   = %d\n", r.method.quad_pts);
+            printf("\n");
+            printf("Derived quantities\n");
+            denom = (r.slab.b == HUGE_VAL) ? 1.0 : thickness;
+            printf("   mu_a                = %.3f 1/mm\n",
+                   (r.slab.b == HUGE_VAL) ? ((r.slab.a > 0) ? (1.0 - r.slab.a)/r.slab.a : 1.0)
+                                          : (1.0 - r.slab.a) * r.slab.b / denom);
+            printf("   mu_s                = %.3f 1/mm\n",
+                   (r.slab.b == HUGE_VAL) ? 1.0 : r.slab.a * r.slab.b / denom);
+            printf("   mu_s*(1-g)          = %.3f 1/mm\n",
+                   (r.slab.b == HUGE_VAL) ? (1.0 - r.slab.g)
+                                          : (1.0 - r.slab.g) * r.slab.a * r.slab.b / denom);
+            printf("       theta incident  = %.1f\xc2\xb0\n", theta_inc);
+            printf("   cos(theta critical) = %.4f\n", cos_critical);
+            printf("       theta critical  = %.1f\xc2\xb0\n", theta_crit);
+
+            if (m.num_spheres > 0) {
+                printf("\n");
+                printf("\nSphere properties (%d sphere%s)\n",
+                       m.num_spheres, (m.num_spheres == 1) ? "" : "s");
+                @<Print one forward sphere block (reflection)@>@;
+                if (m.num_spheres == 2) {
+                    @<Print one forward sphere block (transmission)@>@;
+                }
+            }
+
+            printf("Calculated quantities\n");
+            printf("   R total         = %.3f\n", ur1);
+            printf("   R scattered     = %.3f\n", ur1 - ru);
+            printf("   R unscattered   = %.3f\n", ru);
+            printf("   T total         = %.3f\n", ut1);
+            printf("   T scattered     = %.3f\n", ut1 - tu);
+            printf("   T unscattered   = %.3f\n", tu);
+            if (m.num_spheres > 0) {
+                printf("   M_R (sphere)    = %.3f\n", m_r);
+                printf("   M_T (sphere)    = %.3f\n", m_t);
+            }
         }
-        print_optical_property_result(stdout,m,r,m_r,m_t,mu_a,mu_sp,0);
+        (void) mu_s; (void) mu_sp; (void) mu_a;
     }
+
+@ @<Print one forward sphere block (reflection)@>=
+{
+    const char *baffle_text = m.baffle_r ? "has a baffle" : "has no baffle";
+    printf("   Reflection sphere %s between sample and detector\n", baffle_text);
+    printf("                      sphere diameter = %7.1f mm\n", m.d_sphere_r);
+    printf("                 sample port diameter = %7.1f mm\n",
+           2 * m.d_sphere_r * sqrt(m.as_r));
+    printf("               entrance port diameter = %7.1f mm\n",
+           2 * m.d_sphere_r * sqrt(m.at_r));
+    printf("               detector port diameter = %7.1f mm\n",
+           2 * m.d_sphere_r * sqrt(m.ad_r));
+    printf("                 detector reflectance = %7.1f %%\n", m.rd_r * 100);
+    printf("                     wall reflectance = %7.1f %%\n", m.rw_r * 100);
+    printf("                 calibration standard = %7.1f %%\n", m.rstd_r * 100);
+}
+
+@ @<Print one forward sphere block (transmission)@>=
+{
+    const char *baffle_text = m.baffle_t ? "has a baffle" : "has no baffle";
+    printf("   Transmission sphere %s between sample and detector\n", baffle_text);
+    printf("                      sphere diameter = %7.1f mm\n", m.d_sphere_t);
+    printf("                 sample port diameter = %7.1f mm\n",
+           2 * m.d_sphere_t * sqrt(m.as_t));
+    printf("                  third port diameter = %7.1f mm\n",
+           2 * m.d_sphere_t * sqrt(m.at_t));
+    printf("               detector port diameter = %7.1f mm\n",
+           2 * m.d_sphere_t * sqrt(m.ad_t));
+    printf("                 detector reflectance = %7.1f %%\n", m.rd_t * 100);
+    printf("                     wall reflectance = %7.1f %%\n", m.rw_t * 100);
+    printf("                 calibration standard = %7.1f %%\n", m.rstd_t * 100);
+}
 
 @*1 Calculating a grid for graphing.
 
@@ -777,9 +871,23 @@ if (cl_grid_calc != UNINITIALIZED) {
     fprintf(stderr, "\n");
 }
 
-@ Make sure that the file is not named '-' and warn about too many files
+@ Make sure that the file is not named '-' and warn about too many files.
+On macOS/BSD, POSIX |getopt| stops at the first non-option argument, so
+|-o outfile| placed after the filename is left in the remaining |argv|.
+We scan for it explicitly before the "too many files" check.
 
 @<prepare file for reading@>=
+{
+    int i;
+    for (i = 0; i < argc - 1; i++) {
+        if (strcmp(argv[i], "-o") == 0 && g_out_name == NULL) {
+            g_out_name = strdup(argv[i+1]);
+            memmove(argv + i, argv + i + 2, (argc - i - 2) * sizeof(char *));
+            argc -= 2;
+            i--;
+        }
+    }
+}
     if (argc > 1) {
         fprintf(stderr, "Only a single file can be processed at a time\n");
         fprintf(stderr, "try 'apply iad file1 file2 ... fileN'\n");
@@ -988,18 +1096,37 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
+if (Debug(DEBUG_LOST_LIGHT)) {
+    print_results_header(stderr);
+    print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
+}
+
 if (m.num_spheres > 0) {
 
-    if (Debug(DEBUG_LOST_LIGHT)) {
-        print_results_header(stderr);
-        print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
+    {
+    int mc_failed = 0; /* 1 if loop exited because AD failed to converge */
+    double mc_prev_a = r.slab.a; /* physical a from previous Inverse_RT */
+    double mc_prev_b = r.slab.b; /* physical b from previous Inverse_RT */
+    double mc_prev_g = r.slab.g; /* physical g from previous Inverse_RT */
+
+    /* First MC re-inversion: fixed hot-start simplex steps matching Python's
+       _SIMPLEX_A_STEP=1e-3, _SIMPLEX_B_REL_STEP=1e-2, _SIMPLEX_G_STEP=1e-3. */
+    {
+        double b0 = (r.slab.b < 1e8) ? r.slab.b : 1.0;
+        r.mc_simplex_a_step = 1e-3;
+        r.mc_simplex_b_step = 1e-2 * (b0 > 1.0 ? b0 : 1.0);
+        r.mc_simplex_g_step = 1e-3;
     }
 
+    int has_prev_diff_ur1_lost = 0;
+    double prev_diff_ur1_lost = 0.0;
+
     while (r.MC_iterations < MAX_MC_iterations) {
+        long n_photons_this;
         double last_mu_sp, last_mu_a, last_final_distance;
         double current_ur1_lost, current_ut1_lost, current_uru_lost, current_utu_lost;
         double diff_ur1_lost, diff_ut1_lost, diff_uru_lost, diff_utu_lost;
-        double factor = 0.8;
+        double factor = 0.3;
         int too_much_lost;
         double tol = r.MC_tolerance;
 
@@ -1011,12 +1138,23 @@ if (m.num_spheres > 0) {
         if (Debug(DEBUG_ITERATIONS) || Debug(DEBUG_A_LITTLE)) {
             fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n", r.MC_iterations+1);
         }
-        MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu,
+        if (n_photons < 0)
+            n_photons_this = n_photons;
+        else if (!has_prev_diff_ur1_lost || prev_diff_ur1_lost > 0.01)
+            n_photons_this = (n_photons / 10 > 10000) ? n_photons / 10 : 10000;
+        else if (prev_diff_ur1_lost > 0.001)
+            n_photons_this = n_photons;
+        else
+            n_photons_this = (n_photons * 5 < 10000000) ? n_photons * 5 : 10000000;
+
+        MC_Lost(m, r, n_photons_this, &ur1, &ut1, &uru, &utu,
                 &current_ur1_lost, &current_ut1_lost, &current_uru_lost, &current_utu_lost);
         diff_ur1_lost= current_ur1_lost - m.ur1_lost;
         diff_uru_lost= current_uru_lost - m.uru_lost;
         diff_ut1_lost= current_ut1_lost - m.ut1_lost;
         diff_utu_lost= current_utu_lost - m.utu_lost;
+        prev_diff_ur1_lost = diff_ur1_lost;
+        has_prev_diff_ur1_lost = 1;
 
         if (diff_ur1_lost > 0.001 || diff_ut1_lost > 0.001)
             too_much_lost = 1;
@@ -1032,6 +1170,26 @@ if (m.num_spheres > 0) {
         r.MC_iterations++;
 
         Inverse_RT (m, &r);
+
+        /* Update adaptive simplex steps: clamp(|delta|, min_step, fixed_default),
+           matching Python's _SIMPLEX_ADAPTIVE_SCALE=1 with np.clip(delta, min, fixed). */
+        {
+            double new_a = r.slab.a, new_b = r.slab.b, new_g = r.slab.g;
+            double da = fabs(new_a - mc_prev_a);
+            double db = fabs(new_b - mc_prev_b);
+            double dg = fabs(new_g - mc_prev_g);
+            double b_safe = (new_b < 1e8) ? new_b : 1.0;
+            double a_fixed = 1e-3;
+            double b_fixed = 1e-2 * (b_safe > 1.0 ? b_safe : 1.0);
+            double g_fixed = 1e-3;
+            r.mc_simplex_a_step = (da < 1e-5) ? 1e-5 : (da > a_fixed ? a_fixed : da);
+            r.mc_simplex_b_step = (db < 1e-4) ? 1e-4 : (db > b_fixed ? b_fixed : db);
+            r.mc_simplex_g_step = (dg < 1e-5) ? 1e-5 : (dg > g_fixed ? g_fixed : dg);
+            mc_prev_a = new_a;
+            mc_prev_b = new_b;
+            mc_prev_g = new_g;
+        }
+
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
 
         if (0) {
@@ -1070,15 +1228,21 @@ if (m.num_spheres > 0) {
             break;
 
         } else {
-            if (last_final_distance - r.final_distance < r.MC_tolerance) {
-                if (Debug(DEBUG_ITERATIONS))
-                    fprintf(stderr, "MC does not make things better\n");
-                break;
-            } else {
-                if (Debug(DEBUG_ITERATIONS))
-                    fprintf(stderr, "Repeat MC because distance is reduced\n");
-            }
+            if (Debug(DEBUG_ITERATIONS))
+                fprintf(stderr, "AD did not converge — stopping MC loop\n");
+            mc_failed = 1;
+            break;
         }
+    }
+
+    if (mc_failed) {
+        r.found = 0;
+        /* Preserve the specific error code (e.g.\ |IAD_MT_TOO_SMALL|) that
+           the inner |Inverse_RT| just set; only fall back to the generic
+           ``did not converge'' marker if no more informative reason exists. */
+        if (r.error == IAD_NO_ERROR)
+            r.error = IAD_TOO_MANY_ITERATIONS;
+    }
     }
 }
 
@@ -1425,7 +1589,7 @@ static void calculate_coefficients(struct measure_type m,
     double delta, mus;
     *LR = 0;
     *LT = 0;
-    if (r.found || (!r.found && r.error == IAD_TOO_MANY_ITERATIONS)) {
+    if (r.error == IAD_NO_ERROR || r.error == IAD_TOO_MANY_ITERATIONS) {
         Calculate_Distance(LR, LT, &delta);
         Calculate_Mua_Musp(m, r, &mus, musp, mua);
     } else {
@@ -1478,6 +1642,8 @@ void print_optical_property_result(FILE *fp,
                            double mu_sp,
                            int line)
 {
+int display_error = (!r.found && r.error == IAD_NO_ERROR) ? IAD_TOO_MANY_ITERATIONS : r.error;
+
 if (Debug(DEBUG_LOST_LIGHT)) {
     if (m.lambda != 0)
         fprintf(fp, "%6.1f   ", m.lambda);
@@ -1498,7 +1664,7 @@ if (Debug(DEBUG_LOST_LIGHT)) {
     fprintf(fp, "%2d  ", r.MC_iterations);
     fprintf(fp, "%3d", r.AD_iterations);
 
-    fprintf(fp, "    %c \n",what_char(r.error));
+    fprintf(fp, "    %c \n",what_char(display_error));
 } else {
     if (m.lambda != 0)
         fprintf(fp, "%6.1f\t", m.lambda);
@@ -1513,7 +1679,7 @@ if (Debug(DEBUG_LOST_LIGHT)) {
     fprintf(fp, "% 9.4f\t", mu_a);
     fprintf(fp, "% 9.4f\t", mu_sp);
     fprintf(fp, "% 9.4f\t", r.g);
-    fprintf(fp, " %c \n",what_char(r.error));
+    fprintf(fp, " %c \n",what_char(display_error));
 }
     fflush(fp);
 }

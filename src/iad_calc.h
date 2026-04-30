@@ -61,6 +61,13 @@ double Calculate_Grid_Distance(int i, int j);
 
 void abg_distance(double a, double b, double g, guess_type * guess);
 
+void abg_eval(double a, double b, double g, double *ur1, double *ut1, double *uru, double *utu);
+
+double abg_stored_distance(double a, double b, double g, double ur1, double ut1, double uru, double utu);
+
+void abg_sphere_mr_mt(double a, double b, double g,
+    double ur1, double ut1, double uru, double utu, double *mr, double *mt);
+
 double maxloss(double f);
 
 void Max_Light_Loss(struct measure_type m, struct invert_type r, double *ur1_loss, double *ut1_loss);

@@ -50,6 +50,7 @@
 #define SWAP(a,b) {double swap=(a);(a)=(b);(b)=swap;}
 
 static int CALCULATING_GRID = 0;
+static int SKIP_DISTANCE_CLAMP = 0;
 static struct measure_type MM;
 static struct invert_type RR;
 static struct measure_type MGRID;
@@ -62,6 +63,14 @@ static double GG_bs;
 static double GG_ba;
 static boolean_type The_Grid_Initialized = FALSE;
 static boolean_type The_Grid_Search = -1;
+
+static double scaled_l2_component(double calculated, double measured)
+{
+    double residual = calculated - measured;
+    double scale = fabs(measured);
+    if (scale < 0.01) scale = 0.01;
+    return (residual / scale) * (residual / scale);
+}
 
     @<Definition for |Set_Calc_State|@>@;
     @<Definition for |Get_Calc_State|@>@;
@@ -92,6 +101,9 @@ static boolean_type The_Grid_Search = -1;
     @<Definition for |Calculate_Grid_Distance|@>@;
     @<Definition for |Calculate_Distance|@>@;
     @<Definition for |abg_distance|@>@;
+    @<Definition for |abg_eval|@>@;
+    @<Definition for |abg_stored_distance|@>@;
+    @<Definition for |abg_sphere_mr_mt|@>@;
 
     @<Definition for |Find_AG_fn|@>@;
     @<Definition for |Find_AB_fn|@>@;
@@ -139,6 +151,9 @@ static boolean_type The_Grid_Search = -1;
     @<Prototype for |Calculate_Distance|@>;
     @<Prototype for |Calculate_Grid_Distance|@>;
     @<Prototype for |abg_distance|@>;
+    @<Prototype for |abg_eval|@>;
+    @<Prototype for |abg_stored_distance|@>;
+    @<Prototype for |abg_sphere_mr_mt|@>;
     @<Prototype for |maxloss|@>;
     @<Prototype for |Max_Light_Loss|@>;
     @<Prototype for |RT_Flip|@>;
@@ -592,6 +607,142 @@ void abg_distance(double a, double b, double g, guess_type *guess)
     guess->b = b;
     guess->g = g;
     guess->distance = distance;
+}
+
+@ |abg_eval| evaluates the adding-doubling forward model at $(a,b,g)$
+without disturbing the global |MM|/|RR| state.  It is used by the
+adaptive grid (|iad\_agrid.c|) to populate the RT cache.
+
+@<Prototype for |abg_eval|@>=
+void abg_eval(double a, double b, double g,
+              double *ur1, double *ut1, double *uru, double *utu)
+
+@ @<Definition for |abg_eval|@>=
+    @<Prototype for |abg_eval|@>
+{
+    struct measure_type old_mm;
+    struct invert_type old_rr;
+
+    Get_Calc_State(&old_mm, &old_rr);
+
+    RR.slab.a = a;
+    RR.slab.b = (b < 1e-6) ? 1e-6 : b;
+    RR.slab.g = g;
+
+    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, ur1, ut1, uru, utu);
+
+    Set_Calc_State(old_mm, old_rr);
+}
+
+@ |abg_stored_distance| computes the sphere-corrected measurement-space
+distance for a pre-computed $(ur1,ut1,uru,utu)$ tuple.  Sphere-parameter
+changes between Monte Carlo iterations are reflected automatically because
+|Sp\_mu\_RT\_Flip| is called fresh each time.
+
+@<Prototype for |abg_stored_distance|@>=
+double abg_stored_distance(double a, double b, double g,
+                           double ur1, double ut1, double uru, double utu)
+
+@ @<Definition for |abg_stored_distance|@>=
+    @<Prototype for |abg_stored_distance|@>
+{
+    double mr, mt;
+    double residual, scale, dev;
+    int two_param, include_r;
+    struct measure_type old_mm;
+    struct invert_type old_rr;
+
+    /* Get sphere-corrected M_R, M_T (lost light zeroed inside abg_sphere_mr_mt
+       to match Python's include_lost=False convention). */
+    abg_sphere_mr_mt(a, b, g, ur1, ut1, uru, utu, &mr, &mt);
+
+    Get_Calc_State(&old_mm, &old_rr);
+    RR.slab.a = a;
+    RR.slab.b = (b < 1e-6) ? 1e-6 : b;
+    RR.slab.g = g;
+
+    /* Compute scaled L2 distance matching Python's measurement_distance:
+         component_x = ((calc_x - meas_x) / max(|meas_x|, 0.01))^2
+       For two-parameter searches always include T; include R unless
+       default_a is fixed at zero. */
+    two_param = (RR.search == FIND_AB || RR.search == FIND_AG || RR.search == FIND_BG);
+    dev = 0.0;
+
+    if (two_param) {
+        scale = fabs(MM.m_t);
+        if (scale < 0.01) scale = 0.01;
+        residual = mt - MM.m_t;
+        dev = (residual / scale) * (residual / scale);
+
+        include_r = (RR.default_a == UNINITIALIZED) ||
+                    (fabs(RR.default_a) > 1e-10);
+        if (include_r) {
+            scale = fabs(MM.m_r);
+            if (scale < 0.01) scale = 0.01;
+            residual = mr - MM.m_r;
+            dev += (residual / scale) * (residual / scale);
+        }
+    } else {
+        if (MM.m_r > 0) {
+            scale = fabs(MM.m_r);
+            if (scale < 0.01) scale = 0.01;
+            residual = mr - MM.m_r;
+            dev += (residual / scale) * (residual / scale);
+        }
+        if (MM.m_t > 0) {
+            scale = fabs(MM.m_t);
+            if (scale < 0.01) scale = 0.01;
+            residual = mt - MM.m_t;
+            dev += (residual / scale) * (residual / scale);
+        }
+    }
+
+    Set_Calc_State(old_mm, old_rr);
+
+    return dev;
+}
+
+@ |abg_sphere_mr_mt| computes the sphere-corrected forward-model predicted
+values $(M_R, M_T)$ for pre-computed raw RT values without lost-light
+corrections.  Lost light is excluded (set to zero) so that the result
+depends only on sphere geometry and optical parameters, not on Monte Carlo
+estimates.  This matches the Python |include\_lost=False| behaviour used
+during adaptive-grid subdivision.
+
+@<Prototype for |abg_sphere_mr_mt|@>=
+void abg_sphere_mr_mt(double a, double b, double g,
+                      double ur1, double ut1, double uru, double utu,
+                      double *mr, double *mt)
+
+@ @<Definition for |abg_sphere_mr_mt|@>=
+    @<Prototype for |abg_sphere_mr_mt|@>
+{
+    double Ru, Tu, dev;
+    struct measure_type old_mm;
+    struct invert_type old_rr;
+
+    Get_Calc_State(&old_mm, &old_rr);
+
+    RR.slab.a = a;
+    RR.slab.b = (b < 1e-6) ? 1e-6 : b;
+    RR.slab.g = g;
+
+    /* Zero out lost-light so result depends only on sphere geometry */
+    MM.ur1_lost = 0.0;
+    MM.ut1_lost = 0.0;
+    MM.uru_lost = 0.0;
+    MM.utu_lost = 0.0;
+
+    Sp_mu_RT_Flip(MM.flip_sample,
+             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
+             RR.slab.b_top_slide, RR.slab.b,      RR.slab.b_bottom_slide,
+             RR.slab.cos_angle, &Ru, &Tu);
+
+    CALCULATING_GRID = 1;
+    Calculate_Distance_With_Corrections(ur1, ut1, Ru, Tu, uru, utu, mr, mt, &dev);
+    CALCULATING_GRID = 0;
+
+    Set_Calc_State(old_mm, old_rr);
 }
 
 @ This just searches through the grid to find the minimum entry and returns the
@@ -1226,10 +1377,10 @@ Negative values are set to zero.
     double UR1_calc, UT1_calc, URU_calc, UTU_calc;
 
     URU_calc = URU - MM.uru_lost;
-    if (URU_calc < 0) URU_calc = 0;
+    if (!SKIP_DISTANCE_CLAMP && URU_calc < 0) URU_calc = 0;
 
     UTU_calc = UTU - MM.utu_lost;
-    if (UTU_calc < 0) UTU_calc = 0;
+    if (!SKIP_DISTANCE_CLAMP && UTU_calc < 0) UTU_calc = 0;
 
 @ The measurements for |UR1| and |UT1| need to be modified to accommodate light that
 misses the detector either because it is intentionally not collected
@@ -1239,10 +1390,10 @@ of one another.
 
 @<Determine calculated light to be used@>=
     UR1_calc = UR1 - (1.0 - MM.fraction_of_ru_in_mr) * Ru - MM.ur1_lost;
-    if (UR1_calc < 0) UR1_calc = 0;
+    if (!SKIP_DISTANCE_CLAMP && UR1_calc < 0) UR1_calc = 0;
 
     UT1_calc = UT1 - (1.0 - MM.fraction_of_tu_in_mt) * Tu - MM.ut1_lost;
-    if (UT1_calc < 0) UT1_calc = 0;
+    if (!SKIP_DISTANCE_CLAMP && UT1_calc < 0) UT1_calc = 0;
 
 @ When no spheres are used, then no corrections can or need to
 be made.  The lost light estimates in |MM.ur1_lost| and |MM.ut1_lost|
@@ -1379,7 +1530,7 @@ from the $r_\first$ calculation.  This leads to the following code for |M_R|
     if (MM.baffle_r) r_first = MM.rw_r * (1 - MM.at_r);
 
     UR1_calc = UR1 - Ru - MM.ur1_lost;
-    if (UR1_calc < 0) UR1_calc = 0;
+    if (!SKIP_DISTANCE_CLAMP && UR1_calc < 0) UR1_calc = 0;
 
     G_0      = Gain(REFLECTION_SPHERE, MM, 0.0, 0.0);
     G        = Gain(REFLECTION_SPHERE, MM, URU_calc, 0.0);
@@ -1538,7 +1689,7 @@ $$
     if (MM.baffle_t) r_first = MM.rw_t * (1-MM.at_t) + r_third * MM.at_t;
 
     UT1_calc = UT1 - Tu - MM.ut1_lost;
-    if (UT1_calc < 0) UT1_calc = 0;
+    if (!SKIP_DISTANCE_CLAMP && UT1_calc < 0) UT1_calc = 0;
 
     G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
     G_std = Gain(TRANSMISSION_SPHERE, MM, 0, r_cal);
@@ -1630,7 +1781,7 @@ T_0 = Two_Sphere_T(MM, 0, 0, 0, 0);
 }
 
 @ There are at least three things that need to be considered here.
-First, the number of measurements.  Second, is the metric is relative or absolute.
+First, the number of measurements.  Second, is the metric used for the deviation.
 And third, is the albedo fixed at zero which means that the transmission
 measurement should be used instead of the reflection measurement.
 
@@ -1652,7 +1803,13 @@ exists.
 
 @<One parameter deviation@>=
 
-if ( MM.m_t > 0 ){
+if (RR.metric == L2_SCALED) {
+    *dev = 0.0;
+    if (MM.m_r > 0)
+        *dev += scaled_l2_component(*M_R, MM.m_r);
+    if (MM.m_t > 0)
+        *dev += scaled_l2_component(*M_T, MM.m_t);
+} else if ( MM.m_t > 0 ){
     if (RR.metric == RELATIVE)
         *dev = fabs(MM.m_t - *M_T) / (MM.m_t + ABIT);
     else
@@ -1671,7 +1828,11 @@ both.  The albedo stuff might be able to be take out.  We'll see.
 
 @<Two parameter deviation@>=
 
-    if (RR.metric == RELATIVE) {
+    if (RR.metric == L2_SCALED) {
+        *dev = scaled_l2_component(*M_T, MM.m_t);
+        if ( RR.default_a != 0 )
+            *dev += scaled_l2_component(*M_R, MM.m_r);
+    } else if (RR.metric == RELATIVE) {
         if (MM.m_t > ABIT)
             *dev = T_TRUST_FACTOR* fabs(MM.m_t - *M_T) / (UTU_calc + ABIT);
         if ( RR.default_a != 0 ) {
@@ -1704,8 +1865,8 @@ double Find_AG_fn(double x[])
     @<Prototype for |Find_AG_fn|@>
 {
     double m_r,m_t,deviation;
-    RR.slab.a = acalc2a(x[1]);
-    RR.slab.g = gcalc2g(x[2]);
+    RR.slab.a = x[1];
+    RR.slab.g = x[2];
     Calculate_Distance(&m_r,&m_t,&deviation);
     return deviation;
 }
@@ -1717,8 +1878,8 @@ double Find_AB_fn(double x[])
     @<Prototype for |Find_AB_fn|@>
 {
     double m_r,m_t,deviation;
-    RR.slab.a = acalc2a(x[1]);
-    RR.slab.b = bcalc2b(x[2]);
+    RR.slab.a = x[1];
+    RR.slab.b = x[2];
     Calculate_Distance(&m_r,&m_t,&deviation);
     return deviation;
 }
@@ -1811,8 +1972,8 @@ double Find_BG_fn(double x[])
     @<Prototype for |Find_BG_fn|@>
 {
     double m_r,m_t,deviation;
-    RR.slab.b = bcalc2b(x[1]);
-    RR.slab.g = gcalc2g(x[2]);
+    RR.slab.b = x[1];
+    RR.slab.g = x[2];
     RR.slab.a = RR.default_a;
     Calculate_Distance(&m_r,&m_t,&deviation);
     return deviation;

@@ -85,7 +85,7 @@ double a2acalc(double a)
     if (a >= 1)
         return BIG_A_CALC_VALUE;
 
-    return ((2 * a - 1) / a / (1 - a));
+    return log(a / (1.0 - a));
 }
 
 double acalc2a(double acalc)
@@ -96,10 +96,7 @@ double acalc2a(double acalc)
     if (acalc <= -BIG_A_CALC_VALUE)
         return 0.0;
 
-    if (fabs(acalc) < SMALL_A_CALC_VALUE)
-        return 0.5;
-
-    return ((-2 + acalc + sqrt(acalc * acalc + 4)) / (2 * acalc));
+    return 1.0 / (1.0 + exp(-acalc));
 }
 
 double g2gcalc(double g)
@@ -107,16 +104,14 @@ double g2gcalc(double g)
     double gg = g;
     if (g < -MAX_ABS_G)
         gg = -MAX_ABS_G;
-
     if (g > MAX_ABS_G)
         gg = MAX_ABS_G;
-
-    return gg / (1 - fabs(gg));
+    return 0.5 * log((1.0 + gg) / (1.0 - gg));
 }
 
 double gcalc2g(double gcalc)
 {
-    return (gcalc / (1 + fabs(gcalc)));
+    return tanh(gcalc);
 }
 
 double b2bcalc(double b)
