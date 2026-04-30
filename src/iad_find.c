@@ -390,15 +390,6 @@ void U_Find_AG(struct measure_type m, struct invert_type *r)
         }
     }
 
-    if (r->slab.a > 1.0 - 1e-3) {
-        guess_type boundary_guess;
-        abg_distance(1.0, r->slab.b, r->slab.g, &boundary_guess);
-        if (boundary_guess.distance < r->final_distance) {
-            r->slab.a = 1.0;
-            r->final_distance = boundary_guess.distance;
-        }
-    }
-
     free_dvector(x, 1, 2);
     free_dvector(y, 1, 3);
     free_dmatrix(p, 1, 3, 1, 2);
@@ -538,24 +529,6 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
             r->slab.b = p[i][2];
             r->final_distance = y[i];
         }
-    }
-
-    if (r->slab.a > 1.0 - 1e-3) {
-        double saved_fd = r->final_distance;
-        double saved_a = r->slab.a;
-        double saved_b = r->slab.b;
-        int saved_iter = r->AD_iterations;
-        double saved_default_a = r->default_a;
-        r->default_a = 1.0;
-        U_Find_B(m, r);
-        if (r->final_distance >= saved_fd) {
-
-            r->slab.a = saved_a;
-            r->slab.b = saved_b;
-            r->final_distance = saved_fd;
-        }
-        r->default_a = saved_default_a;
-        r->AD_iterations += saved_iter;
     }
 
     free_dvector(x, 1, 2);

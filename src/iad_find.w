@@ -106,7 +106,6 @@ This is the most common case.
     amoeba(p, y, 2, r->tolerance, Find_AB_fn, &r->AD_iterations, lo, hi);
     }
     @<Choose the best node of the |a| and |b| simplex@>@;
-    @<Clamp |a| and |b| result to pure-scattering boundary if better@>@;
 
     @<Free simplex data structures@>@;
     @<Put final values in result@>@;
@@ -605,7 +604,6 @@ away.
     amoeba(p, y, 2, r->tolerance, Find_AG_fn, &r->AD_iterations, lo, hi);
     }
     @<Choose the best node of the |a| and |g| simplex@>@;
-    @<Clamp |a| and |g| result to pure-scattering boundary if better@>@;
     @<Free simplex data structures@>@;
 
     @<Put final values in result@>@;
