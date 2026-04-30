@@ -1123,7 +1123,7 @@ if (m.num_spheres > 0) {
 
     while (r.MC_iterations < MAX_MC_iterations) {
         long n_photons_this;
-        double last_mu_sp, last_mu_a, last_final_distance;
+        double last_mu_sp, last_mu_a;
         double current_ur1_lost, current_ut1_lost, current_uru_lost, current_utu_lost;
         double diff_ur1_lost, diff_ut1_lost, diff_uru_lost, diff_utu_lost;
         double factor = 0.3;
@@ -1133,7 +1133,6 @@ if (m.num_spheres > 0) {
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
         last_mu_sp = mu_sp;
         last_mu_a  = mu_a;
-        last_final_distance = r.final_distance;
 
         if (Debug(DEBUG_ITERATIONS) || Debug(DEBUG_A_LITTLE)) {
             fprintf(stderr, "\n------------- Monte Carlo Iteration %d -----------------\n", r.MC_iterations+1);

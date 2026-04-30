@@ -114,7 +114,7 @@ This is the most common case.
 
 @ To use the simplex algorithm, we need to vectors and a matrix.
 @<Allocate local simplex variables@>=
-    int i, i_best, j_best;
+    int i;
     double *x, *y, **p;
 
     x=dvector(1,2);
@@ -133,6 +133,7 @@ made in the analagous code for |a| and |b|.
 @<Get the initial |a|, |b|, and |g|@>=
 {
 /*  double a3,b3,g3;*/
+    int i_best, j_best;
     size_t  count = NUMBER_OF_GUESSES;
     /* distance to last result */
     abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
