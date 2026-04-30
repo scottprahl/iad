@@ -196,34 +196,15 @@ void Matrix_Sum(int n, double **A, double **B, double **C)
 	separate dimensions to this routine.
 	
 	The usual way matrix multiplication uses an algorithm something
-	similar to:
-
-	@<unused fragment one@>=
-	for (i = 1; i <= n; i++) {
-		for (j = 1; j <= n; j++) {
-			C[i][j] = 0.0;
-			for (k = 1; k <= n; k++)
-				C[i][j] += A[i][k] * B[k][j];
-		}
-	}
+	similar to looping over |i|, then |j|, then |k|, while accumulating
+	|C[i][j] += A[i][k] * B[k][j]|.
 
 	@ This has the unfortunate problem that the innermost loop indexes
 	successive columns of |A| and successive rows of |B|.  Because 
 	indexing successive rows requires something other than a unit
 	increment of the matrix pointer, a different algorithm is used.  
-	In this case,
-
-		@<unused fragment two@>=
-	for (i = 1; i <= n; i++) 
-		for (j = 1; j <= n; j++) 
-			C[i][j] = 0.0;
-
-	for (i = 1; i <= n; i++) {
-		for (k = 1; k <= n; k++) {
-			for (j = 1; j <= n; j++)
-				C[i][j] += A[i][k] * B[k][j];
-		}
-	}
+	In this case, |C| is first zeroed and the loops are ordered as
+	|i|, then |k|, then |j|.
 
 	@ This particular form of indexing was chosen to take advantage of the 
 	row storage of matrices designated by the Numerical Recipes scheme.

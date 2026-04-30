@@ -232,43 +232,6 @@ made in the analagous code for |a| and |b|.
         }
     }
 
-@ When albedo is very close to 1 (pure scattering), |a2acalc| diverges so
-the optimizer cannot reach $a=1$ in transform space.  After the simplex
-finishes, explicitly evaluate the distance at $a=1$ and accept it if
-it is better than the best simplex result.
-
-@<Clamp |a| and |b| result to pure-scattering boundary if better@>=
-    if (r->slab.a > 1.0 - 1e-3) {
-        double saved_fd   = r->final_distance;
-        double saved_a    = r->slab.a;
-        double saved_b    = r->slab.b;
-        int    saved_iter = r->AD_iterations;
-        double saved_default_a = r->default_a;
-        r->default_a = 1.0;
-        U_Find_B(m, r);
-        if (r->final_distance >= saved_fd) {
-            r->slab.a = saved_a;
-            r->slab.b = saved_b;
-            r->final_distance = saved_fd;
-        }
-        r->default_a = saved_default_a;
-        r->AD_iterations += saved_iter;
-    }
-
-@ When albedo is very close to 1 (pure scattering), |a2acalc| diverges so
-the optimizer cannot reach $a=1$ in transform space.  Same boundary check
-for the |(a,g)| search.
-
-@<Clamp |a| and |g| result to pure-scattering boundary if better@>=
-    if (r->slab.a > 1.0 - 1e-3) {
-        guess_type boundary_guess;
-        abg_distance(1.0, r->slab.b, r->slab.g, &boundary_guess);
-        if (boundary_guess.distance < r->final_distance) {
-            r->slab.a = 1.0;
-            r->final_distance = boundary_guess.distance;
-        }
-    }
-
 @ @<Put final values in result@>=
     r->a = r->slab.a;
     r->b = r->slab.b;

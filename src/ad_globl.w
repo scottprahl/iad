@@ -426,31 +426,3 @@ void wrarray(int n, double *a)
     printf("\n\n");
 }
 
-@ Just print out an array without mucking @<Prototype for |swrarray|@>=
-void swrarray(int n, double *a)
-
-@ @<Definition for |swrarray|@>=
-    @<Prototype for |swrarray|@>
-{
-    int i;
-    double sum;
-
-    for (i = 1; i <= n; i++)
-        printf("%9.5f", angle[i]);
-    printf("%9s\n", "*2aw");
-    sum = 0.0;
-    for (i = 1; i <= n; i++) {
-        if (a[i] > 10 || a[i] < -10)
-            printf("    *****");
-        else
-            printf("%9.5f", a[i]/twoaw[i]);
-
-    if (a[i] < 10 && a[i] < -10)
-        sum += a[i];
-    }
-    printf("%9.5f\n", sum);
-    for (i = 1; i <= (n + 2); i++)
-        printf("*********");
-    printf("\n\n");
-}
-

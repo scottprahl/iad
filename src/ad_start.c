@@ -99,6 +99,18 @@ void Choose_Cone_Method(struct AD_slab_type *slab, struct AD_method_type *method
     if (slab->cos_angle == 0 || slab->cos_angle == 1) {
         Choose_Method(slab, method);
 
+        {
+            printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
+                acos(slab->cos_angle) * 180.0 / M_PI, slab->cos_angle);
+            double sum = 0;
+            for (i = 1; i <= n; i++) {
+                sum += twoaw[i];
+                printf("%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
+                    i, acos(angle[i]) / M_PI * 180.0, angle[i], weight[i], twoaw[i]);
+            }
+            printf("twoaw sum = %8.4f\n", sum);
+        }
+
         return;
     }
 
@@ -122,6 +134,18 @@ void Choose_Cone_Method(struct AD_slab_type *slab, struct AD_method_type *method
         twoaw_changed = 1;
 
         method->b_thinnest = Get_Start_Depth(angle[1], method->b_calc);
+
+        {
+            printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
+                acos(slab->cos_angle) * 180.0 / M_PI, slab->cos_angle);
+            double sum = 0;
+            for (i = 1; i <= n; i++) {
+                sum += twoaw[i];
+                printf("%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
+                    i, acos(angle[i]) / M_PI * 180.0, angle[i], weight[i], twoaw[i]);
+            }
+            printf("twoaw sum = %8.4f\n", sum);
+        }
 
         return;
     }
@@ -152,6 +176,18 @@ void Choose_Cone_Method(struct AD_slab_type *slab, struct AD_method_type *method
     twoaw_changed = 1;
 
     method->b_thinnest = Get_Start_Depth(angle[1], method->b_calc);
+
+    {
+        printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
+            acos(slab->cos_angle) * 180.0 / M_PI, slab->cos_angle);
+        double sum = 0;
+        for (i = 1; i <= n; i++) {
+            sum += twoaw[i];
+            printf("%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
+                i, acos(angle[i]) / M_PI * 180.0, angle[i], weight[i], twoaw[i]);
+        }
+        printf("twoaw sum = %8.4f\n", sum);
+    }
 
 }
 

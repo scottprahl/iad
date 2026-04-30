@@ -611,7 +611,7 @@ void abg_distance(double a, double b, double g, guess_type *guess)
 
 @ |abg_eval| evaluates the adding-doubling forward model at $(a,b,g)$
 without disturbing the global |MM|/|RR| state.  It is used by the
-adaptive grid (|iad\_agrid.c|) to populate the RT cache.
+adaptive grid (\.{iad\_agrid.c}) to populate the RT cache.
 
 @<Prototype for |abg_eval|@>=
 void abg_eval(double a, double b, double g,
@@ -637,7 +637,7 @@ void abg_eval(double a, double b, double g,
 @ |abg_stored_distance| computes the sphere-corrected measurement-space
 distance for a pre-computed $(ur1,ut1,uru,utu)$ tuple.  Sphere-parameter
 changes between Monte Carlo iterations are reflected automatically because
-|Sp\_mu\_RT\_Flip| is called fresh each time.
+|Sp_mu_RT_Flip| is called fresh each time.
 
 @<Prototype for |abg_stored_distance|@>=
 double abg_stored_distance(double a, double b, double g,
@@ -2081,55 +2081,4 @@ void Max_Light_Loss(struct measure_type m, struct invert_type r,
     Set_Calc_State(m_old, r_old);
     if (Debug(DEBUG_LOST_LIGHT))
         fprintf(stderr, "lost after  ur1=%7.5f, ut1=%7.5f\n", *ur1_loss, *ut1_loss);
-}
-
-@ this is currently unused
-
-@<Unused diffusion fragment@>=
-typedef struct {
-  double f;
-  double aprime;
-  double bprime;
-  double gprime;
-  double boundary_method;
-  double n_top;
-  double n_bottom;
-  double slide_top;
-  double slide_bottom;
-  double F0;
-  double depth;
-  double Exact_coll_flag;
-} slabtype;
-@#
-static void DE_RT(int nfluxes, AD_slab_type slab,
-double *UR1, double *UT1, double *URU, double *UTU)
-{
-    slabtype s;
-    double rp, tp, rs, ts;
-
-    s.f = slab.g * slab.g;
-    s.gprime = slab.g / (1 + slab.g);
-    s.aprime = (1 - s.f) * slab.a / (1 - slab.a * s.f);
-    s.bprime = (1 - slab.a * s.f) * slab.b;
-    s.boundary_method = Egan;
-    s.n_top = slab.n_slab;
-    s.n_bottom = slab.n_slab;
-    s.slide_top = slab.n_top_slide;
-    s.slide_bottom = slab.n_bottom_slide;
-    s.F0 = 1 / M_PI;
-    s.depth = 0.0;
-    s.Exact_coll_flag = FALSE;
-    if (MM.illumination == collimated) {
-        compute_R_and_T(&s, 1.0, &rp, &rs, &tp, &ts);
-        *UR1 = rp + rs;
-        *UT1 = tp + ts;
-        *URU = 0.0;
-        *UTU = 0.0;
-        return;
-    }
-    quad_Dif_Calc_R_and_T(&s, &rp, &rs, &tp, &ts);
-    *URU = rp + rs;
-    *UTU = tp + ts;
-    *UR1 = 0.0;
-    *UT1 = 0.0;
 }

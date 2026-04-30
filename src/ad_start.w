@@ -210,8 +210,6 @@ a couple of special cases.
 }
 
 @ @<print angles@>=
-
-@ @<debug print angles@>=
     {
         printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
                 acos(slab->cos_angle)*180.0/M_PI,slab->cos_angle);

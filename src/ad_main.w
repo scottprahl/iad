@@ -345,14 +345,6 @@ static double my_strtod(const char *str)
     return val;
 }
 
-@ @<print short version function@>=
-
-static void print_short_version(void)
-{
-    fprintf(stdout, "%s", VersionShort);
-}
-
-
 @ Make sure that the input values are correct
 @<validate slab function@>=
 static void validate_slab(struct AD_slab_type slab, int nstreams, int machine)

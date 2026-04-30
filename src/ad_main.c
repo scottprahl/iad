@@ -137,8 +137,8 @@ return val;
 /*:13*/
 #line 35 "../src/ad_main.w"
 
-/*15:*/
-#line 357 "../src/ad_main.w"
+/*14:*/
+#line 349 "../src/ad_main.w"
 
 static void validate_slab(struct AD_slab_type slab,int nstreams,int machine)
 {
@@ -194,7 +194,7 @@ fprintf(stderr,"Bad Number of Quadrature Points npts=%d\n",nstreams);
 fprintf(stderr,"Should be a multiple of four!\n");
 exit(EXIT_FAILURE);
 }
-}/*:15*/
+}/*:14*/
 #line 36 "../src/ad_main.w"
 
 
