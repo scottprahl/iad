@@ -356,7 +356,7 @@ static void print_results_header(FILE *fp)
 {
     if (Debug(DEBUG_LOST_LIGHT)) {
         fprintf(fp, "#      | Meas      M_R  | Meas      M_T  |  calc   calc   calc  |");
-        fprintf(fp, "  Lost   Lost   Lost   Lost  | MC   IAD  Error\n");
+        fprintf(fp, "  Lost   Lost   Lost   Lost  | MC    AD  Error\n");
 
         fprintf(fp, "# wave |  M_R      fit  |  M_T      fit  |  mu_a   mu_s'   g    |  ");
         fprintf(fp, " UR1    URU    UT1    UTU  |  #    #   Type\n");
@@ -1543,12 +1543,12 @@ int main(int argc, char **argv)
 
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                if (Debug(DEBUG_LOST_LIGHT)) {
-                    print_results_header(stderr);
-                    print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
-                }
-
                 if (m.num_spheres > 0) {
+
+                    if (Debug(DEBUG_LOST_LIGHT)) {
+                        print_results_header(stderr);
+                        print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
+                    }
 
                     {
                         int mc_failed = 0;
@@ -2020,12 +2020,12 @@ int main(int argc, char **argv)
 
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
 
-                if (Debug(DEBUG_LOST_LIGHT)) {
-                    print_results_header(stderr);
-                    print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
-                }
-
                 if (m.num_spheres > 0) {
+
+                    if (Debug(DEBUG_LOST_LIGHT)) {
+                        print_results_header(stderr);
+                        print_optical_property_result(stderr, m, r, LR, LT, mu_a, mu_sp, rt_total);
+                    }
 
                     {
                         int mc_failed = 0;

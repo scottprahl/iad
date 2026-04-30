@@ -1096,12 +1096,12 @@ otherwise the beam size and the port size are unknown.
 
 @<Improve result using Monte Carlo@>=
 
-if (Debug(DEBUG_LOST_LIGHT)) {
-    print_results_header(stderr);
-    print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
-}
-
 if (m.num_spheres > 0) {
+
+    if (Debug(DEBUG_LOST_LIGHT)) {
+        print_results_header(stderr);
+        print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
+    }
 
     {
     int mc_failed = 0; /* 1 if loop exited because AD failed to converge */
@@ -1602,7 +1602,7 @@ static void print_results_header(FILE *fp)
 {
     if (Debug(DEBUG_LOST_LIGHT)) {
         fprintf(fp,"#      | Meas      M_R  | Meas      M_T  |  calc   calc   calc  |");
-        fprintf(fp,"  Lost   Lost   Lost   Lost  | MC   IAD  Error\n");
+        fprintf(fp,"  Lost   Lost   Lost   Lost  | MC    AD  Error\n");
 
         fprintf(fp,"# wave |  M_R      fit  |  M_T      fit  |  mu_a   mu_s'   g    |  ");
         fprintf(fp," UR1    URU    UT1    UTU  |  #    #   Type\n");
