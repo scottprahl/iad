@@ -204,6 +204,29 @@ clean:
 	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost
 	rm -rf tests/.jupyter tests/.ipynb_checkpoints .jupyter .ipynb_checkpoints
 
+clean-generated-dry-run:
+	tools/clean_generated.py
+
+clean-generated:
+	tools/clean_generated.py --execute
+
+clean-generated-all-dry-run:
+	tools/clean_generated.py --include-tracked-generated
+
+clean-generated-all:
+	tools/clean_generated.py --execute --include-tracked-generated
+
+clean-generated-archives-dry-run:
+	tools/clean_generated.py --include-archives
+
+clean-generated-archives:
+	tools/clean_generated.py --execute --include-archives
+
+scratch-build: clean-generated-all
+	$(MAKE) tidy
+	$(MAKE) docs
+	$(MAKE) all
+
 realclean:
 	make clean
 	cd src ; make realclean
@@ -285,6 +308,12 @@ help::
 	echo "  install-lib   install interface and library programs";\
 	echo "  lib           create library binary and interface files";\
 	echo "  windist       create a windows distribution";\
+	echo "CLEANING";\
+	echo "  clean-generated-dry-run  list generated files that would be removed";\
+	echo "  clean-generated          remove ignored build/doc/test outputs";\
+	echo "  clean-generated-all      remove generated outputs and tracked generated deliverables";\
+	echo "  clean-generated-archives remove generated release archives";\
+	echo "  scratch-build            remove generated deliverables, then rebuild tidy/docs/all";\
 	echo "TESTING";\
 	echo "  longtest      run iad program on a bunch of test files";\
 	echo "  shorttest     same as test below";\
@@ -299,5 +328,8 @@ help::
 
 .SECONDARY: $(HSRC) $(CSRC)
 
-.PHONY: clean realclean dists docs test lib install tidy dist windist \
+.PHONY: clean realclean clean-generated-dry-run clean-generated \
+        clean-generated-all-dry-run clean-generated-all scratch-build \
+        clean-generated-archives-dry-run clean-generated-archives \
+        dists docs test lib install tidy dist windist \
         test veryshorttest shorttest longtest layertest wintest
