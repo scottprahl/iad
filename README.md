@@ -70,29 +70,29 @@ produces output that ends with
 
 Often one wants the optical properties over an entire spectrum.  A good example was
 recently provide by @anishabahl.  This measurement was made with a spectrophotometer 
-equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides.rxt) looks includes the total reflection and transmission as well a header that describes the
+equipped with a dual beam integrating sphere.  The [input data](https://github.com/scottprahl/iad/blob/main/docs/phantom_with_no_slides.rxt) looks includes the total reflection and transmission as well a header that describes the
 experiment.  The reflection and transmission data look like this
 
-![r and t graph](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides-RTU.svg)
+![r and t graph](https://github.com/scottprahl/iad/blob/main/docs/phantom_with_no_slides_RTU.svg)
 
 The input file is processed with
 
 ```bash
-    iad -X -i 8 -g 0.9 phantom-with-no-slides.rxt
+    iad -X -i 8 -g 0.9 phantom_with_no_slides.rxt
 ```
 
 The option `i 8` indicates that light is incident on the sample at an angle of 8°, `-X` indicates that a sphere with dual beams was used, and `-g 0.9` indicates  the default
 scattering anisotropy.  Note that in the PDMS file, the refractive index of the
 sample changes with each data point
 
-This command will produce an [output file](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides.txt) that when plotted looks like
+This command will produce an [output file](https://github.com/scottprahl/iad/blob/main/docs/phantom_with_no_slides.txt) that when plotted looks like
 
-![calculated mua](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides-mua.svg)
+![calculated mua](https://github.com/scottprahl/iad/blob/main/docs/phantom_with_no_slides_mua.svg)
 
 which matches the 
 intrinsic absorption of Wacker PDMS found in Cai's 2008 [Disseration](https://dx.doi.org/10.17877/DE290R-8242)
 
-![calculated mus](https://github.com/scottprahl/iad/blob/main/docs/phantom-with-no-slides-mus.svg)
+![calculated mus](https://github.com/scottprahl/iad/blob/main/docs/phantom_with_no_slides_mus.svg)
 
 This is an excellent set of measurements because there is
 almost no influence of the absorption coefficient on the scattering coefficient.  

@@ -1,5 +1,5 @@
 # Inverse Adding-Doubling 3-16-2 (24 Apr 2024) 
-# iad -X -i 8 -g 0.9 -J phantom-with-no-slides-notebook/phantom-with-no-slides.rxt 
+# iad -X -i 8 -g 0.9 -J phantom_with_no_slides-notebook/phantom_with_no_slides.rxt 
 #                        Beam diameter =    10.0 mm
 #                     Sample thickness =   2.650 mm
 #                  Top slide thickness =   0.000 mm

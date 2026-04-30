@@ -26,9 +26,9 @@ command-line
 
     ./iad -r 0.09636 -t 0.67004 -d 0.5
 
-    ./iad -M 0 -q 4 test/vio-A
+    ./iad -M 0 -q 4 test/vio_A
 
-The last of these processes the file `test/vio-A.rxt` to create `test/vio-A.txt`.  To install the program
+The last of these processes the file `test/vio_A.rxt` to create `test/vio_A.txt`.  To install the program
 
     sudo make install
 

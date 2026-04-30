@@ -301,7 +301,7 @@ def append_file_cell(nb, header, file):
 
 def get_thickness(output_filename):
     # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
-    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic-B.txt test/basic-B.rxt
+    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic_B.txt test/basic_B.rxt
     with open(output_filename, 'r', encoding='utf-8') as file:
         file.readline()
         file.readline()
@@ -316,7 +316,7 @@ def get_thickness(output_filename):
 
 def append_header(nb, output_filename):
     # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
-    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic-B.txt test/basic-B.rxt
+    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic_B.txt test/basic_B.rxt
     with open(output_filename, 'r', encoding='utf-8') as file:
         first_line = file.readline()
         second_line = file.readline()

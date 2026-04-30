@@ -37,21 +37,21 @@ DOCS =  CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
         docs/ad_src.pdf       docs/iad_src.pdf           docs/manual.pdf      \
         docs/ch3RTcorr.pdf    docs/ch3spheremeas.pdf     docs/ch3spheresR.pdf \
         docs/ch3spheresT.pdf  docs/ch3Doublespheres.pdf  docs/colltrans.pdf   \
-        docs/lightloss.pdf    docs/niek_graph.pdf        docs/glass-slide.pdf \
+        docs/lightloss.pdf    docs/niek_graph.pdf        docs/glass_slide.pdf \
         docs/cmdexe.png       docs/valid.png             docs/dual8.png       \
         docs/dual90.png       docs/iad.bib
 
-TEST =  test/Makefile       test/basic-A.rxt    test/basic-B.rxt      test/basic-C.rxt    test/basic-D.rxt    \
-        test/double.rxt     test/example2.rxt   test/il-A.rxt         test/il-B.rxt       test/il-C.rxt       \
-        test/ink-A.rxt      test/ink-B.rxt      test/ink-C.rxt        test/kenlee-A.rxt   test/kenlee-B.rxt   \
-        test/kenlee-C.rxt   test/newton.rxt     test/royston2.rxt     test/royston3-A.rxt test/royston3-B.rxt \
-        test/royston3-C.rxt test/royston3-D.rxt test/royston3-E.rxt   test/royston9-A.rxt test/royston9-B.rxt \
-        test/royston9-C.rxt test/royston9-D.rxt test/royston1.rxt     test/sample-A.rxt   test/sample-B.rxt   \
-        test/sample-C.rxt   test/sample-D.rxt   test/sample-E.rxt     test/sample-F.rxt   test/sample-G.rxt   \
-        test/sevick-A.rxt   test/sevick-B.rxt   test/terse-A.rxt      test/terse-B.rxt    test/tio2_vis.rxt   \
-        test/uterus.rxt     test/valid.bat      test/vio-A.rxt        test/vio-B.rxt      test/x_bad_data.rxt \
-        test/ville1.rxt     test/fairway-A.rxt  test/fairway-B.rxt    test/fairway-C.rxt  test/fairway-D.rxt  \
-        test/fairway-E.rxt  test/basic-E.rxt    test/combo_0.rxt
+TEST =  test/Makefile       test/basic_A.rxt    test/basic_B.rxt      test/basic_C.rxt    test/basic_D.rxt    \
+        test/double.rxt     test/example2.rxt   test/il_A.rxt         test/il_B.rxt       test/il_C.rxt       \
+        test/ink_A.rxt      test/ink_B.rxt      test/ink_C.rxt        test/kenlee_A.rxt   test/kenlee_B.rxt   \
+        test/kenlee_C.rxt   test/newton.rxt     test/royston2.rxt     test/royston3_A.rxt test/royston3_B.rxt \
+        test/royston3_C.rxt test/royston3_D.rxt test/royston3_E.rxt   test/royston9_A.rxt test/royston9_B.rxt \
+        test/royston9_C.rxt test/royston9_D.rxt test/royston1.rxt     test/sample_A.rxt   test/sample_B.rxt   \
+        test/sample_C.rxt   test/sample_D.rxt   test/sample_E.rxt     test/sample_F.rxt   test/sample_G.rxt   \
+        test/sevick_A.rxt   test/sevick_B.rxt   test/terse_A.rxt      test/terse_B.rxt    test/tio2_vis.rxt   \
+        test/uterus.rxt     test/valid.bat      test/vio_A.rxt        test/vio_B.rxt      test/x_bad_data.rxt \
+        test/ville1.rxt     test/fairway_A.rxt  test/fairway_B.rxt    test/fairway_C.rxt  test/fairway_D.rxt  \
+        test/fairway_E.rxt  test/basic_E.rxt    test/combo_0.rxt
 
 export WSRC =  src/ad.w     src/ad_frsnl.w       src/ad_prime.w        src/iad_io.w          \
         src/ad_globl.w      src/ad_radau.w       src/iad_main.w                              \

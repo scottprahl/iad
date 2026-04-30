@@ -4,32 +4,32 @@
 
 IAD_EXECUTABLE ?= ../iad
 
-TST_FILES = basic-A.rxt     basic-B.rxt    basic-C.rxt    basic-D.rxt    basic-E.rxt   \
-            double.rxt      example2.rxt   fairway-A.rxt  fairway-B.rxt  fairway-C.rxt \
-            fairway-D.rxt   fairway-E.rxt  il-A.rxt       il-B.rxt       il-C.rxt      \
-            ink-A.rxt       ink-B.rxt      ink-C.rxt      kenlee-A.rxt   kenlee-B.rxt  \
-            kenlee-C.rxt    newton.rxt     royston1.rxt   royston2.rxt   royston3-A.rxt\
-            royston3-B.rxt  royston3-C.rxt royston3-D.rxt royston3-E.rxt royston9-A.rxt\
-            royston9-B.rxt  royston9-C.rxt royston9-D.rxt sample-A.rxt   sample-B.rxt  \
-            sample-C.rxt    sample-D.rxt   sample-E.rxt   sample-F.rxt   sample-G.rxt  \
-            sevick-A.rxt    sevick-b.rxt   terse-A.rxt    terse-B.rxt    tio2_vis.rxt  \
-            uterus.rxt      ville1.rxt     vio-A.rxt      vio-B.rxt      x_bad_data.rxt
+TST_FILES = basic_A.rxt     basic_B.rxt    basic_C.rxt    basic_D.rxt    basic_E.rxt   \
+            double.rxt      example2.rxt   fairway_A.rxt  fairway_B.rxt  fairway_C.rxt \
+            fairway_D.rxt   fairway_E.rxt  il_A.rxt       il_B.rxt       il_C.rxt      \
+            ink_A.rxt       ink_B.rxt      ink_C.rxt      kenlee_A.rxt   kenlee_B.rxt  \
+            kenlee_C.rxt    newton.rxt     royston1.rxt   royston2.rxt   royston3_A.rxt\
+            royston3_B.rxt  royston3_C.rxt royston3_D.rxt royston3_E.rxt royston9_A.rxt\
+            royston9_B.rxt  royston9_C.rxt royston9_D.rxt sample_A.rxt   sample_B.rxt  \
+            sample_C.rxt    sample_D.rxt   sample_E.rxt   sample_F.rxt   sample_G.rxt  \
+            sevick_A.rxt    sevick_B.rxt   terse_A.rxt    terse_B.rxt    tio2_vis.rxt  \
+            uterus.rxt      ville1.rxt     vio_A.rxt      vio_B.rxt      x_bad_data.rxt
 
-OUT_FILES = basic-A.txt    basic-B.txt    basic-C.txt    basic-D.txt    basic-E.txt    \
-            double.txt     example2.txt   fairway-B.txt  fairway-C.txt  fairway-D.txt  \
-            il-A.txt       ink-A.txt      ink-B.txt      ink-C.txt      kenlee-A.txt   \
-            kenlee-B.txt   kenlee-C.txt   newton.txt     royston1.txt   royston2.txt   \
-            royston3-A.txt royston3-B.txt royston3-C.txt royston3-D.txt royston3-E.txt \
-            royston9-A.txt royston9-B.txt royston9-C.txt  \
-            sample-A.txt   sample-B.txt   sample-C.txt   sample-D.txt   sample-E.txt   \
-            sample-F.txt   sample-G.txt   terse-A.txt    terse-B.txt    vio-A.txt      \
-            vio-B.txt      x_bad_data.txt il-B.txt       il-C.txt
+OUT_FILES = basic_A.txt    basic_B.txt    basic_C.txt    basic_D.txt    basic_E.txt    \
+            double.txt     example2.txt   fairway_B.txt  fairway_C.txt  fairway_D.txt  \
+            il_A.txt       ink_A.txt      ink_B.txt      ink_C.txt      kenlee_A.txt   \
+            kenlee_B.txt   kenlee_C.txt   newton.txt     royston1.txt   royston2.txt   \
+            royston3_A.txt royston3_B.txt royston3_C.txt royston3_D.txt royston3_E.txt \
+            royston9_A.txt royston9_B.txt royston9_C.txt  \
+            sample_A.txt   sample_B.txt   sample_C.txt   sample_D.txt   sample_E.txt   \
+            sample_F.txt   sample_G.txt   terse_A.txt    terse_B.txt    vio_A.txt      \
+            vio_B.txt      x_bad_data.txt il_B.txt       il_C.txt
 
 SPECIAL_FILES = ville1.txt 
 
-NO_MC_FILES = royston1.txt tio2_vis.txt royston9-D.txt
+NO_MC_FILES = royston1.txt tio2_vis.txt royston9_D.txt
 
-NO_RC_FILES = fairway-A.txt fairway-E.txt
+NO_RC_FILES = fairway_A.txt fairway_E.txt
 
 OPTIONS   =  
 
@@ -42,17 +42,17 @@ ville1.txt: ville1.rxt
 	$(IAD_EXECUTABLE) -a 0 $<
 
 # These files all have too little reflected light collected
-fairway-A.txt: fairway-A.rxt
+fairway_A.txt: fairway_A.rxt
 	$(IAD_EXECUTABLE) -c 0 -M 0 $<
 
-fairway-E.txt: fairway-E.rxt
+fairway_E.txt: fairway_E.rxt
 	$(IAD_EXECUTABLE) -c 0 -M 0 $<
 
 # These files fail when lost light is calculated
 tio2_vis.txt: tio2_vis.rxt
 	$(IAD_EXECUTABLE) -M 0 $<
 
-royston9-D.txt: royston9-D.rxt
+royston9_D.txt: royston9_D.rxt
 	$(IAD_EXECUTABLE) -e 0.005 $<
 
 clean:
