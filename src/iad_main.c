@@ -184,21 +184,18 @@ static double my_strtod(const char *str)
     double val = strtod(str, &endptr);
 
     if (endptr == str) {
-
         fprintf(stderr, "Error in the command line\n");
         fprintf(stderr, "    No conversion could be performed for `%s`.\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (*endptr != '\0') {
-
         fprintf(stderr, "Error in the command line\n");
         fprintf(stderr, "    Partial conversion of string = '%s'\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (errno == ERANGE) {
-
         fprintf(stderr, "Error in the command line\n");
         printf("    The value '%s' is out of range of double.\n", str);
         exit(EXIT_FAILURE);
@@ -679,7 +676,6 @@ int main(int argc, char **argv)
             break;
 
         case 'F':
-
             if (isdigit(optarg[0])) {
                 cl_default_mus = my_strtod(optarg);
                 if (cl_default_mus < 0) {
@@ -1708,7 +1704,6 @@ int main(int argc, char **argv)
 
                         if (mc_failed) {
                             r.found = 0;
-
                             if (r.error == IAD_NO_ERROR)
                                 r.error = IAD_TOO_MANY_ITERATIONS;
                         }
@@ -2386,7 +2381,6 @@ int main(int argc, char **argv)
 
                         if (mc_failed) {
                             r.found = 0;
-
                             if (r.error == IAD_NO_ERROR)
                                 r.error = IAD_TOO_MANY_ITERATIONS;
                         }

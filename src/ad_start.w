@@ -158,7 +158,6 @@ to
         exit(EXIT_FAILURE);
     }
 
-    /* use regular quadrature for the two extremes */
     if (0 < slab->cos_angle && slab->cos_angle < 1) {
         Choose_Cone_Method(slab,method);
         return;
@@ -609,7 +608,7 @@ the identity matrix!
         Solve(n, G, work, ipvt);
         for (j = 1; j <= n; j++)
             T[i][j] = work[j]/twoaw[j];
-        T[i][i] -= 1.0/twoaw[i];            /* Subtract Identity Matrix */
+        T[i][i] -= 1.0/twoaw[i];
 
 @ Pretty standard stuff here.  Allocate memory and
 print a warning if the thickness is too small.
@@ -665,16 +664,7 @@ Space must previously been allocated for |R| and |T|.
         return;
     }
 
-    /* (Re)allocate redistribution function when |n| changes, since |h|
-       is indexed over $[-n,n]\times[-n,n]$ and the static cache from a
-       previous call with a smaller |n| would be too small. */
-    if (h == NULL || current_n != n) {
-        if (h != NULL)
-            free_dmatrix(h, -current_n, current_n, -current_n, current_n);
-        h = dmatrix(-n, n, -n, n);
-        current_n = n;
-        current_g = 10.0;  /* force |Get_Phi| recompute below */
-    }
+    @<Ensure redistribution function is allocated for the current quadrature@>@;
 
     if (current_g != method.g_calc || twoaw_changed) {
         current_g = method.g_calc;
@@ -684,3 +674,24 @@ Space must previously been allocated for |R| and |T|.
 
     Get_Diamond_Layer(method, h, R, T);
 }
+
+@ Regular quadrature is used at the two angular extremes; interior cone
+illumination needs the cone-specific quadrature setup.
+
+@ The identity matrix is subtracted from the solved transmission row after
+the linear system is solved.
+
+@ The redistribution function |h| is indexed over
+$[-n,n]\times[-n,n]$.  Since it is cached between calls, any change in |n|
+requires reallocation; otherwise a later call with a larger quadrature would
+reuse storage that is too small.  Changing the allocation also forces the
+phase function to be recomputed.
+
+@<Ensure redistribution function is allocated for the current quadrature@>=
+    if (h == NULL || current_n != n) {
+        if (h != NULL)
+            free_dmatrix(h, -current_n, current_n, -current_n, current_n);
+        h = dmatrix(-n, n, -n, n);
+        current_n = n;
+        current_g = 10.0;
+    }

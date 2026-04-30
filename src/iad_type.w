@@ -141,14 +141,18 @@ typedef struct measure_type {
 
 @ This describes how the inversion process should proceed
 and also contains the results of that inversion process.
+The public |a|, |b|, and |g| fields hold the calculated albedo, optical
+depth, and anisotropy.  The |mc_simplex_*_step| fields are physical
+Monte Carlo re-inversion steps; a zero value asks the search code to use
+the cold-start default.
 
 @s invert_type int
 
 @<Structs to export from IAD Types@>=
 typedef struct invert_type {
-    double a;       /* the calculated albedo */
-    double b;       /* the calculated optical depth */
-    double g;       /* the calculated anisotropy */
+    double a;
+    double b;
+    double g;
 
     int found;
     int search;
@@ -172,9 +176,9 @@ typedef struct invert_type {
     double default_mua;
     double default_mus;
 
-    double mc_simplex_a_step; /* MC re-inversion: physical a step (0 = use cold-start default) */
-    double mc_simplex_b_step; /* MC re-inversion: physical b step (0 = use cold-start default) */
-    double mc_simplex_g_step; /* MC re-inversion: physical g step (0 = use cold-start default) */
+    double mc_simplex_a_step;
+    double mc_simplex_b_step;
+    double mc_simplex_g_step;
 
     } IAD_invert_type;
 

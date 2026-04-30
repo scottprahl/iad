@@ -652,8 +652,6 @@ double abg_stored_distance(double a, double b, double g,
     struct measure_type old_mm;
     struct invert_type old_rr;
 
-    /* Get sphere-corrected M_R, M_T (lost light zeroed inside abg_sphere_mr_mt
-       to match Python's include_lost=False convention). */
     abg_sphere_mr_mt(a, b, g, ur1, ut1, uru, utu, &mr, &mt);
 
     Get_Calc_State(&old_mm, &old_rr);
@@ -661,10 +659,6 @@ double abg_stored_distance(double a, double b, double g,
     RR.slab.b = (b < 1e-6) ? 1e-6 : b;
     RR.slab.g = g;
 
-    /* Compute scaled L2 distance matching Python's measurement_distance:
-         component_x = ((calc_x - meas_x) / max(|meas_x|, 0.01))^2
-       For two-parameter searches always include T; include R unless
-       default_a is fixed at zero. */
     two_param = (RR.search == FIND_AB || RR.search == FIND_AG || RR.search == FIND_BG);
     dev = 0.0;
 
@@ -706,8 +700,8 @@ double abg_stored_distance(double a, double b, double g,
 values $(M_R, M_T)$ for pre-computed raw RT values without lost-light
 corrections.  Lost light is excluded (set to zero) so that the result
 depends only on sphere geometry and optical parameters, not on Monte Carlo
-estimates.  This matches the Python |include\_lost=False| behaviour used
-during adaptive-grid subdivision.
+estimates.  The adaptive-grid subdivision uses this lost-light-free
+prediction.
 
 @<Prototype for |abg_sphere_mr_mt|@>=
 void abg_sphere_mr_mt(double a, double b, double g,
@@ -727,7 +721,6 @@ void abg_sphere_mr_mt(double a, double b, double g,
     RR.slab.b = (b < 1e-6) ? 1e-6 : b;
     RR.slab.g = g;
 
-    /* Zero out lost-light so result depends only on sphere geometry */
     MM.ur1_lost = 0.0;
     MM.ut1_lost = 0.0;
     MM.uru_lost = 0.0;
@@ -921,8 +914,8 @@ void Fill_AB_Grid(struct measure_type m, struct invert_type r)
     @<Prototype for |Fill_AB_Grid|@>
 {
     int i,j;
-    double min_log_b = -8;  /* exp(-10) is smallest thickness */
-    double max_log_b = +8;   /* exp(+8) is greatest thickness */
+    double min_log_b = -8;
+    double max_log_b = +8;
 
     if (Debug(DEBUG_GRID))
         fprintf(stderr, "GRID: Filling AB grid (g=%.5f)\n", RR.slab.g);
@@ -1060,8 +1053,8 @@ void Fill_BG_Grid(struct measure_type m, struct invert_type r)
     @<Prototype for |Fill_BG_Grid|@>
 {
     int i,j;
-    double min_log_b = -8;  /* exp(-10) is smallest thickness */
-    double max_log_b = +10;  /* exp(+8)  is greatest thickness */
+    double min_log_b = -8;
+    double max_log_b = +10;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
@@ -1107,8 +1100,8 @@ void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
     double max_a = -10;
     double min_a = 10;
     double bs = r.default_bs;
-    double min_log_ba = -8;  /* exp(-10) is smallest thickness */
-    double max_log_ba = +10;  /* exp(+8)  is greatest thickness */
+    double min_log_ba = -8;
+    double max_log_ba = +10;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
@@ -1163,8 +1156,8 @@ void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
     double max_a = -10;
     double min_a = 10;
     double ba = r.default_ba;
-    double min_log_bs = -8;  /* exp(-10) is smallest thickness */
-    double max_log_bs = +10;  /* exp(+8)  is greatest thickness */
+    double min_log_bs = -8;
+    double max_log_bs = +10;
 
     if (The_Grid==NULL) Allocate_Grid(r.search);
     @<Zero \\{GG}@>@;
@@ -1897,12 +1890,12 @@ for the optical thickness and then switched back at the end of the routine.
 
     bs        = RR.slab.b;
     ba        = bcalc2b(x);
-    RR.slab.b = ba+bs;        /* unswindle */
+    RR.slab.b = ba+bs;
     RR.slab.a = bs/(ba+bs);
 
     Calculate_Distance(&m_r,&m_t,&deviation);
 
-    RR.slab.b = bs;          /* swindle */
+    RR.slab.b = bs;
     return deviation;
 }
 
@@ -1917,14 +1910,14 @@ double Find_Bs_fn(double x)
 {
     double m_r,m_t,deviation,ba,bs;
 
-    ba        = RR.slab.b;  /* unswindle */
+    ba        = RR.slab.b;
     bs        = bcalc2b(x);
     RR.slab.b = ba+bs;
     RR.slab.a = bs/(ba+bs);
 
     Calculate_Distance(&m_r,&m_t,&deviation);
 
-    RR.slab.b = ba;         /* swindle */
+    RR.slab.b = ba;
     return deviation;
 }
 

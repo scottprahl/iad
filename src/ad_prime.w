@@ -74,14 +74,19 @@ double **R, double **T)
     n = method->quad_pts;
     Init_Layer(*slab, *method, R, T);
 
-    if (slab->b == HUGE_VAL)
-        d = 1.0; /* Ignored ... just set it something. */
-    else
-        d = method->b_thinnest * slab->b / method->b_calc;
-
+    @<Choose initial doubling thickness@>@;
     Double_Until(n, R, T, d, slab->b);
 }
 
+@ For an infinitely thick slab the initial thin-layer optical thickness is
+ignored after |Double_Until| sees |HUGE_VAL|, so any positive placeholder is
+adequate.
+
+@<Choose initial doubling thickness@>=
+    if (slab->b == HUGE_VAL)
+        d = 1.0;
+    else
+        d = method->b_thinnest * slab->b / method->b_calc;
 
 @*1 Total reflection and transmission.
 
@@ -486,8 +491,12 @@ This has not been adequately tested.
     struct AD_method_type method;
     int i, j;
 
+@ Temporarily replace the slab thickness with |zmin| to find the 02 matrix
+for the slab above all layers; save the real thickness so it can be restored
+later.
+
 @   @<Find the 02 matrix for the slab above all layers@>=
-    slab_thickness = slab->b; /* save it for later */
+    slab_thickness = slab->b;
     slab->b = zmin;
     R12 = dmatrix(1, n, 1, n);
     T12 = dmatrix(1, n, 1, n);
@@ -610,4 +619,3 @@ This has not been adequately tested.
 
     free_dmatrix(Lup, 1, n, 1, n);
     free_dmatrix(Ldown, 1, n, 1, n);
-

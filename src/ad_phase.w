@@ -159,7 +159,12 @@ void Get_Phi(int n, int phase_function, double g, double **h)
         for (j = -n; j <= n; j++)
             h[i][j] = 1;
 
-    /* zero the zero column and zero row */
+    @<Zero the central row and column of the phase function matrix@>@;
+
+@ The phase function matrix is indexed from $-n$ to $n$.  The zero row and
+column are not physical quadrature directions and should not contribute.
+
+@<Zero the central row and column of the phase function matrix@>=
     for (i = -n; i <= n; i++) {
         h[i][0] = 0.0;
         h[0][i] = 0.0;
@@ -304,4 +309,3 @@ all the symmetries present.
 @ @<Free |p| and |chi|@>=
     free_dmatrix(p, 0, n, -n, n);
     free_dvector(chi, 1, n);
-

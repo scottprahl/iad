@@ -15,7 +15,7 @@
 #include "version.h"
 
 /*10:*/
-#line 242 "../src/ad_main.w"
+#line 241 "../src/ad_main.w"
 
 
 static void print_version(void)
@@ -32,7 +32,7 @@ fprintf(stdout,"FOR A PARTICULAR PURPOSE.\n");
 #line 32 "../src/ad_main.w"
 
 /*11:*/
-#line 254 "../src/ad_main.w"
+#line 253 "../src/ad_main.w"
 
 static void print_usage(void)
 {
@@ -79,7 +79,7 @@ fprintf(stdout,"Report bugs to <scott.prahl@oit.edu>\n\n");
 #line 33 "../src/ad_main.w"
 
 /*12:*/
-#line 297 "../src/ad_main.w"
+#line 296 "../src/ad_main.w"
 
 static char*strdup_together(char*s,char*t)
 {
@@ -106,7 +106,7 @@ return both;
 #line 34 "../src/ad_main.w"
 
 /*13:*/
-#line 320 "../src/ad_main.w"
+#line 321 "../src/ad_main.w"
 
 
 static double my_strtod(const char*str)
@@ -117,19 +117,16 @@ errno= 0;
 double val= strtod(str,&endptr);
 
 if(endptr==str){
-
 fprintf(stderr,"Error: No conversion could be performed for `%s`.\n",str);
 exit(EXIT_FAILURE);
 }
 
 if(*endptr!='\0'){
-
 printf("Partial conversion: converted value = %f, remaining string = %s\n",val,endptr);
 exit(EXIT_FAILURE);
 }
 
 if(errno==ERANGE){
-
 printf("Error: The value is out of range of double.\n");
 exit(EXIT_FAILURE);
 }
@@ -141,7 +138,7 @@ return val;
 #line 35 "../src/ad_main.w"
 
 /*15:*/
-#line 359 "../src/ad_main.w"
+#line 357 "../src/ad_main.w"
 
 static void validate_slab(struct AD_slab_type slab,int nstreams,int machine)
 {
@@ -290,7 +287,6 @@ exit(EXIT_SUCCESS);
 default:
 fprintf(stderr,"unknown option '%c'\n",c);
 
-
 case'h':
 print_usage();
 exit(EXIT_SUCCESS);
@@ -308,7 +304,7 @@ argv+= optind;
 
 if(argc>=1){
 /*8:*/
-#line 213 "../src/ad_main.w"
+#line 212 "../src/ad_main.w"
 
 if(argc> 1){
 fprintf(stderr,"Only a single file can be processed at a time\n");
@@ -331,7 +327,7 @@ g_out_name= strdup_together(argv[0],".rt");
 #line 50 "../src/ad_main.w"
 
 /*9:*/
-#line 233 "../src/ad_main.w"
+#line 232 "../src/ad_main.w"
 
 
 if(g_out_name!=NULL){

@@ -82,5 +82,4 @@ void Get_Phi(int n, int phase_function, double g, double **h)
 
     free_dmatrix(p, 0, n, -n, n);
     free_dvector(chi, 1, n);
-
 }

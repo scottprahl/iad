@@ -345,7 +345,6 @@ that this strips any quotes from the command line.
                 break;
 
             case 'F':
-                /* initial digit means that mus is constant */
                 if (isdigit(optarg[0])) {
                     cl_default_mus = my_strtod(optarg);
                     if (cl_default_mus < 0) {
@@ -356,7 +355,6 @@ that this strips any quotes from the command line.
                     break;
                 }
 
-                /* should be a string like 'P 1000 1.2 -1.8' */
                 n=sscanf(optarg, "%c %lf %lf %lf",&cc, &cl_mus0_lambda, &cl_mus0, &cl_mus0_pwr);
 
                 if (n != 4 || (cc != 'P' && cc != 'p')) {
@@ -620,7 +618,6 @@ that this strips any quotes from the command line.
 
             default:
                 fprintf(stderr, "unknown option '%c'\n", c);
-                /* fall through */
 
             case 'h':
                 print_usage();
@@ -911,7 +908,7 @@ We scan for it explicitly before the "too many files" check.
         }
     }
 
-    if (argc == 1 && strcmp(argv[0],"-")!=0) {  /* filename exists and != "-" */
+    if (argc == 1 && strcmp(argv[0],"-")!=0) {
         int n;
         char *base_name, *rt_name;
         base_name = strdup(argv[0]);
@@ -1150,6 +1147,16 @@ Monte Carlo when spheres are used and the first inverse calculation
 converged without error.  The sphere parameters must be known because
 otherwise the beam size and the port size are unknown.
 
+The first Monte Carlo re-inversion uses small fixed hot-start simplex steps:
+|a| changes by $10^{-3}$, |b| changes by one percent of the current value
+(but at least $10^{-2}$), and |g| changes by $10^{-3}$.  Later iterations
+adapt those steps from the last physical change, clamped between a small
+floor and the same fixed defaults.
+
+If a Monte Carlo re-inversion fails, preserve its specific error code when
+one exists.  Fall back to |IAD_TOO_MANY_ITERATIONS| only when the inverse
+routine did not leave a more informative reason.
+
 @<Improve result using Monte Carlo@>=
 
 if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
@@ -1160,13 +1167,11 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
     }
 
     {
-    int mc_failed = 0; /* 1 if loop exited because AD failed to converge */
-    double mc_prev_a = r.slab.a; /* physical a from previous Inverse_RT */
-    double mc_prev_b = r.slab.b; /* physical b from previous Inverse_RT */
-    double mc_prev_g = r.slab.g; /* physical g from previous Inverse_RT */
+    int mc_failed = 0;
+    double mc_prev_a = r.slab.a;
+    double mc_prev_b = r.slab.b;
+    double mc_prev_g = r.slab.g;
 
-    /* First MC re-inversion: fixed hot-start simplex steps matching Python's
-       _SIMPLEX_A_STEP=1e-3, _SIMPLEX_B_REL_STEP=1e-2, _SIMPLEX_G_STEP=1e-3. */
     {
         double b0 = (r.slab.b < 1e8) ? r.slab.b : 1.0;
         r.mc_simplex_a_step = 1e-3;
@@ -1226,8 +1231,6 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
 
         Inverse_RT (m, &r);
 
-        /* Update adaptive simplex steps: clamp(|delta|, min_step, fixed_default),
-           matching Python's _SIMPLEX_ADAPTIVE_SCALE=1 with np.clip(delta, min, fixed). */
         {
             double new_a = r.slab.a, new_b = r.slab.b, new_g = r.slab.g;
             double da = fabs(new_a - mc_prev_a);
@@ -1292,9 +1295,6 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
 
     if (mc_failed) {
         r.found = 0;
-        /* Preserve the specific error code (e.g.\ |IAD_MT_TOO_SMALL|) that
-           the inner |Inverse_RT| just set; only fall back to the generic
-           ``did not converge'' marker if no more informative reason exists. */
         if (r.error == IAD_NO_ERROR)
             r.error = IAD_TOO_MANY_ITERATIONS;
     }
@@ -1810,21 +1810,18 @@ static double my_strtod(const char *str)
     double val = strtod(str, &endptr);
 
     if (endptr == str) {
-        // No digits were found
         fprintf(stderr, "Error in the command line\n");
         fprintf(stderr, "    No conversion could be performed for `%s`.\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (*endptr != '\0') {
-        // String contains extra characters after the number
         fprintf(stderr, "Error in the command line\n");
         fprintf(stderr, "    Partial conversion of string = '%s'\n", str);
         exit(EXIT_FAILURE);
     }
 
     if (errno == ERANGE) {
-        // The converted value is out of range of representable values by a double
         fprintf(stderr, "Error in the command line\n");
         printf("    The value '%s' is out of range of double.\n", str);
         exit(EXIT_FAILURE);
@@ -1859,18 +1856,15 @@ static int parse_string_into_array(char *s, double *a, int n)
 
     while(t<last) {
 
-        /* a space should mark the end of number */
         r = t;
         while (*r != ' ' && *r != '\0') r++;
         *r = '\0';
 
-        /* parse the number and save it */
         if (sscanf(t, "%lf", &(a[i]) )==0) return 1;
         i++;
 
-        /* are we done? */
         if (i==n) {
-            if (i==5) { /* sphere parameters case */
+            if (i==5) {
                 if (a[i-1] <= 0 || a[i-1] > 1) {
                     fprintf(stderr, "Sphere wall reflectivity (r_w=%g) must be a fraction less than one.\n", a[i-1]);
                     exit(EXIT_FAILURE);
@@ -1879,7 +1873,6 @@ static int parse_string_into_array(char *s, double *a, int n)
             return 0;
         }
 
-        /* move pointer just after last number */
         t=r+1;
     }
 

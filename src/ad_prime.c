@@ -460,7 +460,6 @@ void Flux_Fluence(int n, struct AD_slab_type *slab, double zmin, double zmax, in
 
     free_dmatrix(Lup, 1, n, 1, n);
     free_dmatrix(Ldown, 1, n, 1, n);
-
 }
 
 void ez_RT_unscattered(int n,

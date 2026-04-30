@@ -298,21 +298,26 @@ slab.g = 0.875;
 slab.phase_function = HENYEY_GREENSTEIN;
 slab.cos_angle = 1.0;
 
-/* set up abs/scat/clear/scat/clear/scat/abs */
+@<Set up alternating absorbing, scattering, and clear layers@>@;
+RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
+RT_Layers(N, 1.0, 1.0, 1.0, 7, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
+PrintTestResults(5,1,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
+
+@ The seven-layer comparison uses alternating absorbing, scattering, and
+clear layers: absorbing, scattering, clear, scattering, clear, scattering,
+absorbing.
+
+@<Set up alternating absorbing, scattering, and clear layers@>=
 for (i=0; i<7; i++) {
     a[i]=0.5;
     b[i]=0.02;
     g[i]=0.875;
 }
 
-a[0]=0.0;   /* top layer only absorbs */
-b[2]=0.0;   /* third layer is clear   */
-b[4]=0.0;   /* fifth layer is clear   */
-a[6]=0.0;   /* seventh layer is abs   */
-
-RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
-RT_Layers(N, 1.0, 1.0, 1.0, 7, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
-PrintTestResults(5,1,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);
+a[0]=0.0;
+b[2]=0.0;
+b[4]=0.0;
+a[6]=0.0;
 
 slab.n_slab = 1.4;
 slab.n_top_slide = 1.4;
@@ -402,4 +407,3 @@ PrintTestResults(7,5,bUR1,bUT1,bURU,bUTU,0,0,0,0);
 
 RT_Layers(64, 1.4, 1.0, 1.0, 5, a, b, g, &bUR1, &bUT1, &bURU, &bUTU);
 PrintTestResults(7,6,bUR1,bUT1,bURU,bUTU,0,0,0,0);
-

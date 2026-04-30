@@ -195,7 +195,6 @@ of the bottom slide.  The slides are assumed to have no absorption.
                 
             default:
                 fprintf(stderr, "unknown option '%c'\n", c);
-                /* fall through */
 
             case 'h':
                 print_usage();
@@ -217,7 +216,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
         exit(EXIT_FAILURE);
     }
 
-    if (argc == 1 && strcmp(argv[0],"-")!=0) {  /* filename exists and != "-" */
+    if (argc == 1 && strcmp(argv[0],"-")!=0) {
 
         if (freopen(argv[0],"r",stdin)==NULL) {
             fprintf(stderr, "Could not open file '%s'\n", argv[0]);
@@ -316,7 +315,9 @@ static char *  strdup_together(char *s, char *t)
     return both;
 }
 
-@ catch parsing errors in strtod
+@ Catch parsing errors in |strtod|.  The helper reports three distinct
+cases: no digits were found, extra characters followed the number, or the
+converted value was outside the representable range of a |double|.
 @<mystrtod function@>=
 
 static double my_strtod(const char *str) 
@@ -327,19 +328,16 @@ static double my_strtod(const char *str)
     double val = strtod(str, &endptr);
 
     if (endptr == str) { 
-        // No digits were found
         fprintf(stderr, "Error: No conversion could be performed for `%s`.\n", str);
         exit(EXIT_FAILURE);
     }
     
     if (*endptr != '\0') {
-        // String contains extra characters after the number
         printf("Partial conversion: converted value = %f, remaining string = %s\n", val, endptr);
         exit(EXIT_FAILURE);
     } 
     
     if (errno == ERANGE) {
-        // The converted value is out of range of representable values by a double
         printf("Error: The value is out of range of double.\n");
         exit(EXIT_FAILURE);
     }

@@ -101,6 +101,10 @@ double mua,musp,mus,d;
 or with a full cone (diffuse irradiance).  We begin simple and progressively
 turn on more and more functionality.
 
+@ Detailed |PrintTestResults| calls are useful while debugging individual
+cone cases.  The generated test output keeps only the compact comparison
+table for the collected-light sweep.
+
 @<Tests with full cone@>=
 
 
@@ -355,6 +359,7 @@ musp=11.5;
 
 slab.g=0.1;
 d=0.08;
+
 while (slab.g<0.9) {
 mus=musp/(1-slab.g);
 slab.a=mus/(mua+mus);
@@ -363,11 +368,9 @@ RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
 
 slab.cos_angle = cos(atan2(10,150));
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
 printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
 slab.cos_angle = cos(atan2(10,70));
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
 printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
 slab.g += 0.2;
 }
@@ -383,11 +386,9 @@ RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
 
 slab.cos_angle = cos(atan2(10,150));
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
 printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
 slab.cos_angle = cos(atan2(10,70));
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
 printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
 slab.g += 0.2;
 }
@@ -403,11 +404,9 @@ RT(N, &slab, &aUR1, &aUT1, &aURU, &aUTU);
 
 slab.cos_angle = cos(atan2(10,150));
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,1,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
 printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,150.0,slab.g,slab.b,aUT1,bUT1);
 slab.cos_angle = cos(atan2(10,70));
 RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-/*PrintTestResults(9,2,&slab,aUR1,aUT1,aURU,aUTU,bUR1,bUT1,bURU,bUTU);*/
 printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n",d,70.0,slab.g,slab.b,aUT1,bUT1);
 slab.g += 0.2;
 }

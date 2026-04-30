@@ -415,16 +415,17 @@ of the kth pivot row |ipvt(n) = (-1)|$^{\rm (number of interchanges)}$
 		ipvt[k] = m;
 		if (m != k)
 			ipvt[n] *= -1;
-		t = A[m][k];
-		A[m][k] = A[k][k];
-		A[k][k] = t;
-		
-		 /* skip step if pivot is zero */
-		if (t == 0)  continue;
-		
-@ @<Compute multipliers@>=
-		for (i = k+1; i <= n; i++)
-			A[i][k] /= -t;
+			t = A[m][k];
+			A[m][k] = A[k][k];
+			A[k][k] = t;
+			
+			if (t == 0)  continue;
+			
+	@ If the pivot is zero, the multiplier step is skipped.
+
+	@ @<Compute multipliers@>=
+			for (i = k+1; i <= n; i++)
+				A[i][k] /= -t;
 			
 @ @<Interchange and eliminate by columns@>=
 		for (j = k+1; j <= n; j++) {
@@ -534,6 +535,10 @@ void Left_Inverse_Multiply(int n, double **D, double **C, double **A)
 and |D| are all |n| by |n| matrices.  This is faster than inverting and 
 then multiplying by a factor of six.  Space for |A| should be allocated 
 before calling this routine.
+The decomposition result is checked for singularity before any solve is
+attempted.  Each row of |C| is copied into the work vector, solved, and then
+stored directly into the corresponding row of |A|, avoiding an extra
+transpose.
 
 @<Definition for |Left_Inverse_Multiply|@>=
 	@<Prototype for |Left_Inverse_Multiply|@>
@@ -545,23 +550,22 @@ before calling this routine.
 
 	Transpose_Matrix(n, D);
 	ipvt = ivector(1, n);
-	Decomp(n, D, &condition, ipvt);
+		Decomp(n, D, &condition, ipvt);
 
-	/* Check for singular result */
-	if (condition == (condition + 1) || condition == 1e32) {
+		if (condition == (condition + 1) || condition == 1e32) {
 		free_ivector(ipvt, 1, n);
 		AD_error("Singular Matrix ... failed in Left_Inverse_Multiply\n");
 	}
 	
-	work = dvector(1, n);
-	for (i = 1; i <= n; i++) {		/* Cycle through all the row in |C| */
-	
-		for (j = 1; j <= n; j++)	/* put a row of |C| into work */
-			work[j] = C[i][j];		/* and avoid a Transpose Matrix */
-		Solve(n, D, work, ipvt);
-		for (j = 1; j <= n; j++)	/* Again avoiding a Transpose Matrix */
-			A[i][j] = work[j];		/* stuff the results into a row of |A| */
-	}
+		work = dvector(1, n);
+		for (i = 1; i <= n; i++) {
+		
+			for (j = 1; j <= n; j++)
+				work[j] = C[i][j];
+			Solve(n, D, work, ipvt);
+			for (j = 1; j <= n; j++)
+				A[i][j] = work[j];
+		}
 
 	free_dvector(work, 1, n);
 	free_ivector(ipvt, 1, n);
@@ -574,6 +578,9 @@ void Right_Inverse_Multiply(int n, double **D, double **C, double **A)
 and |D| are all |n| by |n| matrices.  This is faster than inverting and 
 then multiplying by a factor of six.  Space for |A| should be allocated 
 before calling this routine.
+The decomposition result is checked for singularity before any solve is
+attempted.  Each column of |C| is copied into the work vector, solved, and
+stored into the corresponding column of |A|.
 
 @<Definition for |Right_Inverse_Multiply|@>=
 	@<Prototype for |Right_Inverse_Multiply|@>
@@ -584,23 +591,22 @@ before calling this routine.
 	double          condition;
 
 	ipvt = ivector(1, n);
-	Decomp(n, D, &condition, ipvt);
+		Decomp(n, D, &condition, ipvt);
 
-	/* Check for singular result */
-	if (condition == (condition + 1) || condition == 1e32) {
+		if (condition == (condition + 1) || condition == 1e32) {
 		free_ivector(ipvt, 1, n);
 		AD_error("Singular Matrix ... failed in Right_Inverse_Multiply\n");
 	}
 	
-	work = dvector(1, n);
-	for (i = 1; i <= n; i++) {		/* Cycle through all the rows */
-	
-		for (j = 1; j <= n; j++)	/* put a column of |C| into work */
-			work[j] = C[j][i];	
-		Solve(n, D, work, ipvt);
-		for (j = 1; j <= n; j++)	/* stuff the results into a column of |A| */
-			A[j][i] = work[j];		
-	}
+		work = dvector(1, n);
+		for (i = 1; i <= n; i++) {
+		
+			for (j = 1; j <= n; j++)
+				work[j] = C[j][i];	
+			Solve(n, D, work, ipvt);
+			for (j = 1; j <= n; j++)
+				A[j][i] = work[j];		
+		}
 
 	free_dvector(work, 1, n);
 	free_ivector(ipvt, 1, n);

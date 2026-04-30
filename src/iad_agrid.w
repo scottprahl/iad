@@ -60,15 +60,22 @@ are declared in \.{iad\_calc.h}.  Everything else is local to this file.
 
 @*1 Constants.
 
+|AGRID_TOL| is the subdivision threshold in sphere-corrected |M_R| and
+|M_T| space.  Every cell is subdivided to |AGRID_MIN_DEPTH|, but no cell
+is subdivided past |AGRID_MAX_DEPTH|.  The cache starts with
+|AGRID_INIT_CAP| slots, and |AGRID_CLOSURE_N| controls how many promising
+entries seed the local closure search.  The |FIND_AB| and |FIND_AG| grids
+share one upper |b| range; |FIND_BG| gets a wider |b| range.
+
 @<AGrid constants@>=
-#define AGRID_TOL           0.05    /* subdivision threshold (sphere-corrected M_R+M_T space) */
-#define AGRID_MIN_DEPTH     2       /* always subdivide to this depth */
-#define AGRID_MAX_DEPTH     4       /* never go deeper */
-#define AGRID_INIT_CAP      512     /* initial cache capacity */
-#define AGRID_CLOSURE_N     4       /* top-N entries used in local closure */
+#define AGRID_TOL           0.05
+#define AGRID_MIN_DEPTH     2
+#define AGRID_MAX_DEPTH     4
+#define AGRID_INIT_CAP      512
+#define AGRID_CLOSURE_N     4
 #define AGRID_MIN_LOG_B     (-8.0)
-#define AGRID_MAX_LOG_B_AB  8.0     /* find_ab, find_ag use this upper b limit */
-#define AGRID_MAX_LOG_B_BG  10.0    /* find_bg uses a wider b range */
+#define AGRID_MAX_LOG_B_AB  8.0
+#define AGRID_MAX_LOG_B_BG  10.0
 
 @*1 Cache.
 
@@ -77,6 +84,8 @@ results.  The distance is NOT cached---it is recomputed at query time
 from the stored RT values so that sphere-parameter changes (which happen
 between Monte Carlo iterations) are reflected without rebuilding the RT
 table.
+The scalar cache variables store the number of valid entries, the allocated
+capacity, and the search mode used to build the table.
 
 @<AGrid cache storage@>=
 
@@ -86,15 +95,18 @@ typedef struct {
 } agrid_entry_t;
 
 static agrid_entry_t *AGrid_Cache = NULL;
-static int AGrid_N = 0;     /* number of valid entries */
-static int AGrid_Cap = 0;   /* allocated capacity */
-static int AGrid_Search = -1;   /* search mode at last build */
+static int AGrid_N = 0;
+static int AGrid_Cap = 0;
+static int AGrid_Search = -1;
 
 @*1 Stale-context.
 
 We store the key fields that determine whether a rebuild is needed.
 These mirror the checks in |Valid_Grid| (|iad_calc.c|) plus the
 search-specific fixed-axis value.
+Lost-light terms are not part of this context because the adaptive grid
+stores raw adding-doubling results; query-time distance calculations apply
+the current lost-light values.
 
 @<AGrid stale-context storage@>=
 
@@ -108,28 +120,27 @@ static double AGrid_slab_cos_angle = 0;
 static int    AGrid_num_spheres    = -1;
 static int    AGrid_num_measures   = -1;
 static double AGrid_m_u            = 0;
-/* Lost-light variables removed: subdivision uses include_lost=False */
-static double AGrid_fixed_g        = 0;  /* FIND_AB: fixed anisotropy */
-static double AGrid_fixed_b        = 0;  /* FIND_AG: fixed thickness */
-static double AGrid_fixed_a        = 0;  /* FIND_BG: fixed albedo */
+static double AGrid_fixed_g        = 0;
+static double AGrid_fixed_b        = 0;
+static double AGrid_fixed_a        = 0;
 
 @*1 Coordinate transforms.
 
 The same nonlinear map used by the dense grid concentrates sample
 points near the boundaries of the albedo and anisotropy ranges where
 the inverse problem is most sensitive.
+The albedo transform maps $u\in[0,1]$ to $a\in[0,1]$; the anisotropy
+transform maps $v\in[0,1]$ to $g\in[-|MAX_ABS_G|,+|MAX_ABS_G|]$.
 
 @<Definition for |agrid_nonlinear_a|@>=
 static double agrid_nonlinear_a(double u)
 {
-    /* u in [0,1] -> a in [0,1], denser near 0 and 1 */
     return 1.0 - (1.0 - u) * (1.0 - u) * (1.0 + 2.0 * u);
 }
 
 @ @<Definition for |agrid_nonlinear_g|@>=
 static double agrid_nonlinear_g(double v)
 {
-    /* v in [0,1] -> g in [-MAX_ABS_G, +MAX_ABS_G] */
     double vv = (1.0 - v) * (1.0 - v) * (1.0 + 2.0 * v);
     return (1.0 - 2.0 * vv) * MAX_ABS_G;
 }
@@ -137,6 +148,10 @@ static double agrid_nonlinear_g(double v)
 @ Convert the 2D adaptive coordinates $(u,v)$ to physical $(a,b,g)$.
 The mapping depends on which axis is held fixed (i.e.\ which search is
 active).
+For |FIND_AB|, |u| is albedo and |v| is logarithmic |b|.  For |FIND_AG|,
+|u| is albedo and |v| is anisotropy.  For |FIND_BG|, |u| is logarithmic
+|b| and |v| is anisotropy.  The final values are clamped to the physical
+range.
 
 @<Definition for |agrid_make_abg|@>=
 static void agrid_make_abg(double u, double v, int search,
@@ -144,19 +159,16 @@ static void agrid_make_abg(double u, double v, int search,
 {
     switch (search) {
     case FIND_AB:
-        /* u = a-coordinate [0,1], v = log_b in [MIN_LOG_B, MAX_LOG_B_AB] */
         *a = agrid_nonlinear_a(u);
         *b = exp(v);
         *g = AGrid_fixed_g;
         break;
     case FIND_AG:
-        /* u = a-coordinate [0,1], v = g-coordinate [0,1] */
         *a = agrid_nonlinear_a(u);
         *b = AGrid_fixed_b;
         *g = agrid_nonlinear_g(v);
         break;
     case FIND_BG:
-        /* u = log_b in [MIN_LOG_B, MAX_LOG_B_BG], v = g-coordinate [0,1] */
         *a = AGrid_fixed_a;
         *b = exp(u);
         *g = agrid_nonlinear_g(v);
@@ -166,7 +178,6 @@ static void agrid_make_abg(double u, double v, int search,
         break;
     }
 
-    /* clamp to physical range */
     if (*b < 1e-8)       *b = 1e-8;
     if (*g < -MAX_ABS_G) *g = -MAX_ABS_G;
     if (*g >  MAX_ABS_G) *g =  MAX_ABS_G;
@@ -231,9 +242,8 @@ static int agrid_add_or_get(double a, double b, double g)
 
 @*1 Subdivision error metric.
 
-The subdivision uses sphere-corrected predicted $(M_R, M_T)$ values (without
-lost-light corrections, matching the Python |include\_lost=False| convention)
-as the interpolation-error estimate.  Sphere corrections can amplify small
+The subdivision uses sphere-corrected predicted $(M_R, M_T)$ values without
+lost-light corrections as the interpolation-error estimate.  Sphere corrections can amplify small
 $(ur1, ut1)$ differences into large $(M_R, M_T)$ differences in the
 high-albedo region, so a criterion in corrected space naturally places finer
 grid points where they are needed.
@@ -281,7 +291,14 @@ static void agrid_subdivide(double u0, double u1, double v0, double v1,
     double err;
     int need_split;
 
-    /* evaluate the four corners and the centre */
+    @<Evaluate AGrid cell corners and center@>@;
+    @<Split AGrid cell if interpolation error is too large@>@;
+}
+
+@ Each adaptive cell evaluates the four corners and the center.  Repeated
+points are folded together by |agrid_add_or_get|.
+
+@<Evaluate AGrid cell corners and center@>=
     agrid_make_abg(u0, v0, search, &a00, &b00, &g00);
     agrid_make_abg(u1, v0, search, &a10, &b10, &g10);
     agrid_make_abg(u0, v1, search, &a01, &b01, &g01);
@@ -294,6 +311,10 @@ static void agrid_subdivide(double u0, double u1, double v0, double v1,
     c11 = agrid_add_or_get(a11, b11, g11);
     cc  = agrid_add_or_get(amm, bmm, gmm);
 
+@ The raw interpolation error controls further subdivision.  The minimum
+depth is always honored, and the maximum depth is a hard stop.
+
+@<Split AGrid cell if interpolation error is too large@>=
     err = agrid_raw_interp_error(c00, c10, c01, c11, cc);
     need_split = (depth < AGRID_MIN_DEPTH) ||
                  (err > AGRID_TOL && depth < AGRID_MAX_DEPTH);
@@ -304,10 +325,13 @@ static void agrid_subdivide(double u0, double u1, double v0, double v1,
         agrid_subdivide(u0, um, vm, v1, depth + 1, search);
         agrid_subdivide(um, u1, vm, v1, depth + 1, search);
     }
-    /* leaf cell: corners and centre are already in the cache */
-}
 
 @*1 Stale-context helpers.
+
+The saved context records all sample and slab fields that can change the raw
+adding-doubling table, plus the fixed axis for the active search.  Lost-light
+values are intentionally absent so the grid can be reused during Monte Carlo
+iterations at the same wavelength.
 
 @<Definition for |agrid_save_context|@>=
 static void agrid_save_context(struct measure_type m, struct invert_type r)
@@ -321,9 +345,6 @@ static void agrid_save_context(struct measure_type m, struct invert_type r)
     AGrid_num_spheres    = m.num_spheres;
     AGrid_num_measures   = m.num_measures;
     AGrid_m_u            = m.m_u;
-    /* Lost-light values are NOT saved: subdivision uses include_lost=False,
-       so the grid is valid across MC iterations for the same wavelength. */
-
     AGrid_fixed_g = r.slab.g;
     AGrid_fixed_b = r.slab.b;
     AGrid_fixed_a = (r.default_a == UNINITIALIZED) ? 0.0 : r.default_a;
@@ -337,6 +358,9 @@ static void agrid_save_context(struct measure_type m, struct invert_type r)
 |AGrid_Valid| returns non-zero if the current cache was built for the
 same physical state as $(m, r)$.  The check mirrors |Valid_Grid| in
 \.{iad\_calc.c} but is independent of the dense-grid allocation.
+The fixed-axis value must still match the current search, but lost-light
+changes alone do not invalidate the cache because distances are recomputed
+when candidates are requested.
 
 @<Prototype for |AGrid_Valid|@>=
 int AGrid_Valid(struct measure_type m, struct invert_type r)
@@ -358,11 +382,6 @@ int AGrid_Valid(struct measure_type m, struct invert_type r)
     if (m.num_measures           != AGrid_num_measures)  return 0;
     if (m.num_measures == 3 && m.m_u != AGrid_m_u)      return 0;
 
-    /* Subdivision uses include_lost=False so lost-light terms do NOT
-       invalidate the grid (matches Python AGrid stale-check behaviour).
-       The distance at query time recomputes with current lost-light values. */
-
-    /* fixed-axis value for the current search */
     if (r.search == FIND_AB && r.slab.g != AGrid_fixed_g) return 0;
     if (r.search == FIND_AG && r.slab.b != AGrid_fixed_b) return 0;
     if (r.search == FIND_BG) {
@@ -375,6 +394,9 @@ int AGrid_Valid(struct measure_type m, struct invert_type r)
 
 @ |AGrid_Build| resets the cache and fills it via adaptive quadtree
 subdivision.  Call |AGrid_Valid| first to avoid unnecessary rebuilds.
+Before the global calculation state is set, the search-specific fixed axis
+is saved.  Then the coordinate range is selected for the active search and
+the quadtree is recursively filled.
 
 @<Prototype for |AGrid_Build|@>=
 void AGrid_Build(struct measure_type m, struct invert_type r)
@@ -385,16 +407,13 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
     double u0, u1, v0, v1;
     int search = r.search;
 
-    /* reset cache */
     AGrid_N = 0;
 
-    /* save fixed-axis values before setting calc state */
     if (search == FIND_AB) AGrid_fixed_g = r.slab.g;
     if (search == FIND_AG) AGrid_fixed_b = r.slab.b;
     if (search == FIND_BG)
         AGrid_fixed_a = (r.default_a == UNINITIALIZED) ? 0.0 : r.default_a;
 
-    /* set global MM/RR state so abg_eval uses the right sphere parameters */
     Set_Calc_State(m, r);
 
     if (Debug(DEBUG_GRID)) {
@@ -414,7 +433,6 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
         }
     }
 
-    /* determine coordinate ranges */
     switch (search) {
     case FIND_AB:
         u0 = 0.0; u1 = 1.0;
@@ -451,6 +469,11 @@ The function also performs a local Cartesian closure: the top-|AGRID_CLOSURE_N|
 candidates contribute their axis values to a small cross-product set, and all
 cross-combinations are evaluated.  This catches the case where the true minimum
 lies between diagonal samples.
+Candidate filling proceeds in phases: compute distances for all cache entries,
+keep the best few, collect promising values independently on each axis, enrich
+those axis values with midpoints, evaluate the resulting cross-combinations,
+sort by distance, and copy the winners into |guesses|.  Midpoints are
+geometric only for a logarithmic |b| axis; otherwise they are arithmetic.
 
 @<Prototype for |AGrid_Fill_Guesses|@>=
 int AGrid_Fill_Guesses(double m_r, double m_t,
@@ -467,7 +490,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
 
     if (AGrid_N == 0) return 0;
 
-    /* -- step 1: compute distances for all entries; keep top AGRID_CLOSURE_N -- */
     all_dist = (double *) malloc((size_t) AGrid_N * sizeof(double));
     if (all_dist == NULL) {
         fprintf(stderr, "AGrid: out of memory in AGrid_Fill_Guesses\n");
@@ -494,7 +516,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
             best_idx [n_best] = i;
             n_best++;
         } else {
-            /* replace worst */
             int worst = 0;
             for (j = 1; j < n_best; j++)
                 if (best_dist[j] > best_dist[worst]) worst = j;
@@ -505,29 +526,16 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
         }
     }
 
-    /* -- step 2: local Cartesian closure over unique axis values --
-       Scan ALL cache entries in order of increasing distance (matching
-       Python AGrid._candidate_axis_values) and collect up to
-       AGRID_CLOSURE_N distinct values per axis independently.  Python
-       scans the full sorted ranked list for each axis separately, which
-       finds good axis values even when they appear in low-ranked entries.
-       Then enrich with midpoints between consecutive sorted axis values
-       (geometric for b, arithmetic for a and g), matching Python's
-       _enriched_axis_values. */
     {
         double axis0[AGRID_CLOSURE_N * 2];
         double axis1[AGRID_CLOSURE_N * 2];
         int n0 = 0, n1 = 0;
         int k, l, found;
-        int use_geo0, use_geo1; /* use geometric midpoint for this axis? */
+        int use_geo0, use_geo1;
 
-        /* axis0 uses geometric mean only for the b axis in find_bg */
         use_geo0 = (AGrid_Search == FIND_BG);
-        /* axis1 uses geometric mean only for the b axis in find_ab */
         use_geo1 = (AGrid_Search == FIND_AB);
 
-        /* collect top-AGRID_CLOSURE_N distinct axis0 values in order of
-           increasing distance across the full cache */
         while (n0 < AGRID_CLOSURE_N) {
             double best_d = 1e30;
             int    best_i = -1;
@@ -546,7 +554,7 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
                     best_i = i;
                 }
             }
-            if (best_i < 0) break; /* no more distinct values */
+            if (best_i < 0) break;
             switch (AGrid_Search) {
             case FIND_AB: axis0[n0++] = AGrid_Cache[best_i].a; break;
             case FIND_AG: axis0[n0++] = AGrid_Cache[best_i].a; break;
@@ -555,7 +563,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
             }
         }
 
-        /* collect top-AGRID_CLOSURE_N distinct axis1 values similarly */
         while (n1 < AGRID_CLOSURE_N) {
             double best_d = 1e30;
             int    best_i = -1;
@@ -583,10 +590,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
             }
         }
 
-        /* enrich axis0 with midpoints between consecutive ORIGINAL sorted
-           values.  Mirrors Python _enriched_axis_values: sort the originals,
-           then append (not insert) midpoints so further iterations don't
-           cascade midpoints-of-midpoints. */
         if (n0 >= 2) {
             double sorted0[AGRID_CLOSURE_N];
             int n_sorted = n0;
@@ -606,7 +609,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
             }
         }
 
-        /* enrich axis1 similarly */
         if (n1 >= 2) {
             double sorted1[AGRID_CLOSURE_N];
             int n_sorted = n1;
@@ -626,7 +628,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
             }
         }
 
-        /* evaluate all cross-combinations and update top candidates */
         for (k = 0; k < n0; k++) {
             for (l = 0; l < n1; l++) {
                 double a, b, g;
@@ -653,7 +654,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
                                           AGrid_Cache[idx].uru,
                                           AGrid_Cache[idx].utu);
 
-                /* update top-AGRID_CLOSURE_N if better */
                 if (n_best < AGRID_CLOSURE_N) {
                     best_dist[n_best] = d;
                     best_idx [n_best] = idx;
@@ -673,7 +673,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
 
     free(all_dist);
 
-    /* -- step 3: sort best_idx by distance (insertion sort, tiny N) -- */
     for (i = 1; i < n_best; i++) {
         int    ti = best_idx[i];
         double td = best_dist[i];
@@ -687,7 +686,6 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
         best_idx [j+1] = ti;
     }
 
-    /* -- step 4: copy into caller's guesses array -- */
     n_out = (n_best < max_n) ? n_best : max_n;
     for (i = 0; i < n_out; i++) {
         agrid_entry_t *e = &AGrid_Cache[best_idx[i]];

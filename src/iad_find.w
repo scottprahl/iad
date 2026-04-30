@@ -101,8 +101,8 @@ This is the most common case.
     @<Evaluate the |a| and |b| simplex at the nodes@>@;
     {
     double lo[3], hi[3];
-    lo[1] = 0.0;  hi[1] = 1.0;    /* a in [0, 1]       */
-    lo[2] = 0.0;  hi[2] = 1e10;   /* b in [0, +inf)    */
+    lo[1] = 0.0;  hi[1] = 1.0;
+    lo[2] = 0.0;  hi[2] = 1e10;
     amoeba(p, y, 2, r->tolerance, Find_AB_fn, &r->AD_iterations, lo, hi);
     }
     @<Choose the best node of the |a| and |b| simplex@>@;
@@ -131,15 +131,12 @@ made in the analagous code for |a| and |b|.
 
 @<Get the initial |a|, |b|, and |g|@>=
 {
-/*  double a3,b3,g3;*/
     int i_best, j_best;
     size_t  count = NUMBER_OF_GUESSES;
-    /* distance to last result */
     abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 
     if (!Valid_Grid(m, *r)) Fill_Grid(m,*r,1);
 
-    /* distance to nearest grid point */
     Near_Grid_Points(m.m_r,m.m_t,r->search, &i_best, &j_best);
     Grid_ABG(i_best  ,j_best  ,&(guess[1]));
     Grid_ABG(i_best+1,j_best  ,&(guess[2]));
@@ -173,12 +170,9 @@ made in the analagous code for |a| and |b|.
     double a0 = scipy_bounded_initial_vertex(guess[0].a, 0.0, 1.0);
     double b0 = scipy_bounded_initial_vertex((guess[0].b < 1e8) ? guess[0].b : 1.0, 0.0, 1e10);
 
-    /* Vertex 1: best AGrid candidate in physical space */
     p[1][1] = scipy_bounded_initial_vertex(a0, 0.0, 1.0);
     p[1][2] = scipy_bounded_initial_vertex(b0, 0.0, 1e10);
 
-    /* Vertices 2 and 3: 5% steps in physical space (scipy convention).
-       MC hot-start: r->mc_simplex_a/b_step already hold physical deltas. */
     {
     double a_step = (r->mc_simplex_a_step > 0.0) ? r->mc_simplex_a_step
                                                   : (a0 != 0.0 ? 0.05 * a0 : 0.00025);
@@ -190,7 +184,6 @@ made in the analagous code for |a| and |b|.
     p[3][2] = scipy_bounded_initial_vertex(b0 + b_step, 0.0, 1e10);
     }
 
-    /* Search k and kk for DEBUG_MC lost-light seeding compatibility */
     for (k=1;k<7;k++) {
         if (guess[0].a != guess[k].a)
             break;
@@ -254,7 +247,6 @@ it is better than the best simplex result.
         r->default_a = 1.0;
         U_Find_B(m, r);
         if (r->final_distance >= saved_fd) {
-            /* 1-D search at a=1 did not improve; restore the 2-D best */
             r->slab.a = saved_a;
             r->slab.b = saved_b;
             r->final_distance = saved_fd;
@@ -337,14 +329,13 @@ value of |ba| or $d \cdot \mu_a$ when the |Find_Bs_fn| is used.
     r->slab.g = (r->default_g  == UNINITIALIZED) ? 0        : r->default_g;
     r->slab.b = (r->default_ba == UNINITIALIZED) ? HUGE_VAL : r->default_ba;
 
-    Set_Calc_State(m,*r);   /* store ba in RR.slab.b */
+    Set_Calc_State(m,*r);
 
-    ax = b2bcalc(0.1);      /* first try for bs */
+    ax = b2bcalc(0.1);
     bx = b2bcalc(1.0);
     mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_Bs_fn, &r->AD_iterations);
     r->final_distance=brent(ax,bx,cx,Find_Bs_fn,r->tolerance,&bs, &r->AD_iterations);
 
-    /* recover true values */
     r->slab.a = bcalc2b(bs)/(bcalc2b(bs)+r->slab.b);
     r->slab.b = bcalc2b(bs) + r->slab.b;
 
@@ -388,16 +379,15 @@ value of |bs| or $d \cdot \mu_s$ when the |Find_Ba_fn| is used.
         return;
     }
 
-    Set_Calc_State(m,*r);   /* store bs in RR.slab.b */
+    Set_Calc_State(m,*r);
 
-    ax = b2bcalc(0.1);      /* first try for ba */
+    ax = b2bcalc(0.1);
     bx = b2bcalc(1.0);
     mnbrak(&ax,&bx,&cx,&fa,&fb,&fc, Find_Ba_fn, &r->AD_iterations);
     r->final_distance=brent(ax,bx,cx,Find_Ba_fn,r->tolerance,&ba, &r->AD_iterations);
 
-    /* recover true values */
     r->slab.a = (r->slab.b)/(bcalc2b(ba)+r->slab.b);
-    r->slab.b = bcalc2b(ba) + r->slab.b;   /*actual value of b */
+    r->slab.b = bcalc2b(ba) + r->slab.b;
 
     @<Put final values in result@>@;
 }
@@ -599,8 +589,8 @@ away.
     @<Evaluate the |a| and |g| simplex at the nodes@>@;
     {
     double lo[3], hi[3];
-    lo[1] = 0.0;   hi[1] = 1.0;   /* a in [0, 1]         */
-    lo[2] = -MAX_ABS_G; hi[2] = MAX_ABS_G; /* g in (-1, 1)      */
+    lo[1] = 0.0;   hi[1] = 1.0;
+    lo[2] = -MAX_ABS_G; hi[2] = MAX_ABS_G;
     amoeba(p, y, 2, r->tolerance, Find_AG_fn, &r->AD_iterations, lo, hi);
     }
     @<Choose the best node of the |a| and |g| simplex@>@;
@@ -615,12 +605,9 @@ away.
     double a0 = scipy_bounded_initial_vertex(guess[0].a, 0.0, 1.0);
     double g0 = scipy_bounded_initial_vertex(guess[0].g, -MAX_ABS_G, MAX_ABS_G);
 
-    /* Vertex 1: best AGrid candidate in physical space */
     p[1][1] = scipy_bounded_initial_vertex(a0, 0.0, 1.0);
     p[1][2] = scipy_bounded_initial_vertex(g0, -MAX_ABS_G, MAX_ABS_G);
 
-    /* Vertices 2 and 3: 5% steps in physical space (scipy convention).
-       MC hot-start: r->mc_simplex_a/g_step already hold physical deltas. */
     {
     double a_step = (r->mc_simplex_a_step > 0.0) ? r->mc_simplex_a_step
                                                   : (a0 != 0.0 ? 0.05 * a0 : 0.00025);
@@ -632,7 +619,6 @@ away.
     p[3][2] = scipy_bounded_initial_vertex(g0 + g_step, -MAX_ABS_G, MAX_ABS_G);
     }
 
-    /* Search k and kk for debug output compatibility */
     for (k=1;k<7;k++) {
         if (guess[0].a != guess[k].a)
             break;
@@ -709,8 +695,8 @@ albedo).
     @<Evaluate the \\{bg} simplex at the nodes@>@;
     {
     double lo[3], hi[3];
-    lo[1] = 0.0;    hi[1] = 1e10;    /* b in [0, +inf)    */
-    lo[2] = -MAX_ABS_G; hi[2] = MAX_ABS_G; /* g in (-1, 1)      */
+    lo[1] = 0.0;    hi[1] = 1e10;
+    lo[2] = -MAX_ABS_G; hi[2] = MAX_ABS_G;
     amoeba(p, y, 2, r->tolerance, Find_BG_fn, &r->AD_iterations, lo, hi);
     }
     @<Choose the best node of the |b| and |g| simplex@>@;
@@ -729,12 +715,9 @@ are fixed.
     double b0 = scipy_bounded_initial_vertex((guess[0].b < 1e8) ? guess[0].b : 1.0, 0.0, 1e10);
     double g0 = scipy_bounded_initial_vertex(guess[0].g, -MAX_ABS_G, MAX_ABS_G);
 
-    /* Vertex 1: best AGrid candidate in physical space */
     p[1][1] = scipy_bounded_initial_vertex(b0, 0.0, 1e10);
     p[1][2] = scipy_bounded_initial_vertex(g0, -MAX_ABS_G, MAX_ABS_G);
 
-    /* Vertices 2 and 3: 5% steps in physical space (scipy convention).
-       MC hot-start: r->mc_simplex_b/g_step already hold physical deltas. */
     {
     double b_step = (r->mc_simplex_b_step > 0.0) ? r->mc_simplex_b_step
                                                   : (b0 != 0.0 ? 0.05 * b0 : 0.00025);
@@ -746,7 +729,6 @@ are fixed.
     p[3][2] = scipy_bounded_initial_vertex(g0 + g_step, -MAX_ABS_G, MAX_ABS_G);
     }
 
-    /* Search k and kk for debug output compatibility */
     for (k=1;k<7;k++) {
         if (guess[0].b != guess[k].b)
             break;
@@ -941,7 +923,6 @@ contributes up to |NUMBER_OF_GUESSES-1| additional sorted entries.
     int k;
     size_t count;
 
-    /* keep the previous result as candidate 0 */
     abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 
     if (r->MC_iterations > 0) {
@@ -949,10 +930,8 @@ contributes up to |NUMBER_OF_GUESSES-1| additional sorted entries.
             guess[k] = guess[0];
         count = 1;
     } else {
-        /* build or reuse the adaptive cache */
         if (!AGrid_Valid(m, *r)) AGrid_Build(m, *r);
 
-        /* fill remaining slots from the cache */
         n_agrid = AGrid_Fill_Guesses(m.m_r, m.m_t,
                                      guess + 1, NUMBER_OF_GUESSES - 1);
         count = (size_t)(1 + n_agrid);

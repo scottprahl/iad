@@ -35,9 +35,7 @@ static void Basic_Add_Layers(int n,
     Left_Inverse_Multiply(n, a, T12, b);
 
     Matrix_Multiply(n, b, R10, a);
-
     Star_Multiply(n, a, T21, a);
-
     Matrix_Sum(n, R21, a, R20);
     Copy_Matrix(n, T01, a);
     Matrix_Multiply(n, b, a, T02);
@@ -53,9 +51,7 @@ static void Basic_Add_Layers_With_Sources(int n,
     Left_Inverse_Multiply(n, a, T12, b);
 
     Matrix_Multiply(n, b, R10, a);
-
     Star_Multiply(n, a, T21, a);
-
     Matrix_Sum(n, R21, a, R20);
     Copy_Matrix(n, T01, a);
     Matrix_Multiply(n, b, a, T02);
@@ -63,7 +59,6 @@ static void Basic_Add_Layers_With_Sources(int n,
     Star_Multiply(n, R10, J21, a);
     Matrix_Sum(n, J01, a, a);
     Matrix_Multiply(n, b, a, J02);
-
     Matrix_Sum(n, J02, J12, J02);
 }
 

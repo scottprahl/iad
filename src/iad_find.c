@@ -303,7 +303,6 @@ void U_Find_AG(struct measure_type m, struct invert_type *r)
             count = 1;
         }
         else {
-
             if (!AGrid_Valid(m, *r))
                 AGrid_Build(m, *r);
 
@@ -438,7 +437,6 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
             count = 1;
         }
         else {
-
             if (!AGrid_Valid(m, *r))
                 AGrid_Build(m, *r);
 
@@ -577,7 +575,6 @@ void U_Find_BG(struct measure_type m, struct invert_type *r)
             count = 1;
         }
         else {
-
             if (!AGrid_Valid(m, *r))
                 AGrid_Build(m, *r);
 
@@ -689,10 +686,8 @@ void U_Find_BaG(struct measure_type m, struct invert_type *r)
     Set_Calc_State(m, *r);
 
     {
-
         int i_best, j_best;
         size_t count = NUMBER_OF_GUESSES;
-
         abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 
         if (!Valid_Grid(m, *r))
@@ -791,10 +786,8 @@ void U_Find_BsG(struct measure_type m, struct invert_type *r)
     Set_Calc_State(m, *r);
 
     {
-
         int i_best, j_best;
         size_t count = NUMBER_OF_GUESSES;
-
         abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 
         if (!Valid_Grid(m, *r))

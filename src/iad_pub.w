@@ -93,12 +93,6 @@ that are appropriate for your experiment.
 
     @<Find the optical properties@>@;
 
-    /* Always run the strict data-quality check.  When the search ran out of
-       iterations, |measure_OK| often pinpoints a real data problem
-       (M_R/M_T/M_U out of range), which is far more informative than the
-       generic ``+'' (did not converge).  Prefer the specific reason when
-       found; otherwise leave |r->error| alone (|IAD_NO_ERROR| if the
-       search succeeded, |IAD_TOO_MANY_ITERATIONS| if not). */
     {
         int data_err = measure_OK(m, *r, TRUE);
         if (data_err != IAD_NO_ERROR)
@@ -109,6 +103,13 @@ that are appropriate for your experiment.
 
     @<Print basic sphere and MC effects@>@;
 }
+
+@ Always run the strict data-quality check.  When the search ran out of
+iterations, |measure_OK| often pinpoints a real data problem
+(|M_R|, |M_T|, or |M_U| out of range), which is far more informative than
+the generic ``+'' for did not converge.  Prefer the specific reason when
+found; otherwise leave |r->error| alone: |IAD_NO_ERROR| if the search
+succeeded, |IAD_TOO_MANY_ITERATIONS| if it did not.
 
 @ There is no sense going to all the trouble to try a multivariable
 minimization if the input data is bogus.  So I wrote a
@@ -177,12 +178,13 @@ if (r->AD_iterations>=IAD_MAX_ITERATIONS) {
     r->found=FALSE;
 }
 
-/* The boundary clamp (e.g. a=1 pure-scattering) may have set a valid
-   final_distance even after the amoeba hit its iteration limit. */
 if (!r->found && r->final_distance < r->tolerance) {
     r->error = IAD_NO_ERROR;
     r->found = TRUE;
 }
+
+@ The boundary clamp, for example |a=1| pure scattering, may have set a
+valid |final_distance| even after the amoeba hit its iteration limit.
 
 @ This is to support -x 1
 
@@ -292,7 +294,6 @@ no need to check \.{MR} because it is ignored.
         if (m.m_r > 1)
             return IAD_MR_TOO_BIG;
 
-        /* one parameter search only needs one good measurement */
         if (flag_bad) {
             if (m.m_r < mr)
                 return IAD_MR_TOO_SMALL;
@@ -487,7 +488,6 @@ optical properties to determine.
         @<Two parameter search@>@;
     }
 
-    /* three real parameters with information! */
     else {
         search = FIND_AG;
     }
@@ -642,7 +642,7 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
 @<Fill |r| with reasonable values@>=
     r->found = FALSE;
     r->tolerance = 0.0001;
-    r->MC_tolerance = 0.01;  /* percent */
+    r->MC_tolerance = 0.01;
     r->search = FIND_AUTO;
     r->metric = L2_SCALED;
     r->final_distance = 10;
@@ -899,8 +899,8 @@ results.
     m.slab_bottom_slide_index = m.slab_top_slide_index;
     m.slab_bottom_slide_thickness = m.slab_top_slide_thickness;
 
-    fprintf(stderr,"**** executing FIXME ****/n");
-    m.slab_cos_angle = 1.0; /* FIXME */
+    fprintf(stderr,"executing FIXME\n");
+    m.slab_cos_angle = 1.0;
 
 }
 
@@ -1139,10 +1139,6 @@ int MinMax_MR_MT(struct measure_type m,
 to spend time to figure out how to integrate items 2, 3, and 4
 @<handle2 illumination @>=
     m.d_beam                       = illumination[0];
-/*  m.lambda                       = illumination[1]; */
-/*  m.specular-reflection-excluded = illumination[2]; */
-/*  m.direct-transmission-excluded = illumination[3]; */
-/*  m.diffuse-illumination         = illumination[4]; */
     m.num_spheres                  = illumination[5];
 
 @  @<handle2 reflection sphere @>=

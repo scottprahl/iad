@@ -267,6 +267,7 @@ int main(int argc, char **argv)
 
     slab.g = 0.1;
     d = 0.08;
+
     while (slab.g < 0.9) {
         mus = musp / (1 - slab.g);
         slab.a = mus / (mua + mus);
@@ -275,11 +276,9 @@ int main(int argc, char **argv)
 
         slab.cos_angle = cos(atan2(10, 150));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-
         printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g, slab.b, aUT1, bUT1);
         slab.cos_angle = cos(atan2(10, 70));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-
         printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g, slab.b, aUT1, bUT1);
         slab.g += 0.2;
     }
@@ -295,11 +294,9 @@ int main(int argc, char **argv)
 
         slab.cos_angle = cos(atan2(10, 150));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-
         printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g, slab.b, aUT1, bUT1);
         slab.cos_angle = cos(atan2(10, 70));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-
         printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g, slab.b, aUT1, bUT1);
         slab.g += 0.2;
     }
@@ -315,11 +312,9 @@ int main(int argc, char **argv)
 
         slab.cos_angle = cos(atan2(10, 150));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-
         printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 150.0, slab.g, slab.b, aUT1, bUT1);
         slab.cos_angle = cos(atan2(10, 70));
         RT_Cone(N, &slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
-
         printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g, slab.b, aUT1, bUT1);
         slab.g += 0.2;
     }

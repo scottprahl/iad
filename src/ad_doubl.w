@@ -88,6 +88,15 @@ Note:  it should be possible to eliminate the need for the matrix
 like |Left_Inverse_Multiply(n,A,B,A)|.  A quick glance at the code suggests
 that this would just force the allocation of the matrix into the 
 |Left_Inverse_Multiply| routine and no net gain would result.
+The temporary matrix |a| first holds
+$\bfr^{10}\star\bfr^{12}$ and then
+$\bfe-\bfr^{10}\star\bfr^{12}$.  The temporary matrix |b| holds
+$\bft^{12}(\bfe-\bfr^{10}\bfr^{12})^{-1}$.  Later |a| is reused for
+$\bft^{12}(\bfe-\bfr^{10}\star\bfr^{12})^{-1}\bfr^{10}$ and finally
+$\bft^{12}(\bfe-\bfr^{10}\star\bfr^{12})^{-1}\bfr^{10}\star\bft^{21}$.
+The source version uses the same temporary matrices, then forms
+$\bfr^{10}\star\bfJ^{21}$, adds $\bfJ^{01}$, multiplies by the inverse
+term, and finally adds $\bfJ^{12}$ to obtain |J02|.
 
 @<Definition for |Basic_Add_Layers|@>=
 
@@ -97,16 +106,13 @@ static void Basic_Add_Layers(int n,
     double **R20, double **T02,
     double **a, double **b)
 {
-  Star_Multiply(n, R10, R12, a);/* |a=|$\,\bfr^{10}\star\bfr^{12}$ */
-  Star_One_Minus(n, a);/* |a=|$\,\bfe-\bfr^{10}\star\bfr^{12}$ */
+  Star_Multiply(n, R10, R12, a);
+  Star_One_Minus(n, a);
   Left_Inverse_Multiply(n, a, T12, b);  
-          /* |b=|$\,\bft^{12}(\bfe-\bfr^{10}\bfr^{12})^{-1}$ */
   
 
   Matrix_Multiply(n, b, R10, a);
-          /* |a=|$\,\bft^{12}(\bfe-\bfr^{10}\star\bfr^{12})^{-1}\bfr^{10}$ */
   Star_Multiply(n, a, T21, a);
-          /* |a=|$\,\bft^{12}(\bfe-\bfr^{10}\star\bfr^{12})^{-1}\bfr^{10}\star\bft^{21}$ */
   Matrix_Sum(n, R21, a, R20);
   Copy_Matrix(n, T01, a);
   Matrix_Multiply(n, b, a, T02);
@@ -156,25 +162,20 @@ static void Basic_Add_Layers_With_Sources(int n,
     double **J01, double **J12, double **J21, double **J02,
     double **a, double **b)
 {
-  Star_Multiply(n, R10, R12, a);/* |a=|$\,\bfr^{10}\star\bfr^{12}$ */
-  Star_One_Minus(n, a);/* |a=|$\,\bfe-\bfr^{10}\star\bfr^{12}$ */
+  Star_Multiply(n, R10, R12, a);
+  Star_One_Minus(n, a);
   Left_Inverse_Multiply(n, a, T12, b);  
-          /* |b=|$\,\bft^{12}(\bfe-\bfr^{10}\bfr^{12})^{-1}$ */
   
 
   Matrix_Multiply(n, b, R10, a);
-          /* |a=|$\,\bft^{12}(\bfe-\bfr^{10}\star\bfr^{12})^{-1}\bfr^{10}$ */
   Star_Multiply(n, a, T21, a);
-          /* |a=|$\,\bft^{12}(\bfe-\bfr^{10}\star\bfr^{12})^{-1}\bfr^{10}\star\bft^{21}$ */
   Matrix_Sum(n, R21, a, R20);
   Copy_Matrix(n, T01, a);
   Matrix_Multiply(n, b, a, T02);
   
-  Star_Multiply(n,R10,J21,a);      /* |a=|$\,\bfr^{10}\star\bfJ^{21}$ */
-  Matrix_Sum(n,J01,a,a);              /* |a=|$\,\bfJ^{01}+\bfr^{10}\star\bfJ^{21}$ */
+  Star_Multiply(n,R10,J21,a);
+  Matrix_Sum(n,J01,a,a);
   Matrix_Multiply(n,b,a,J02);      
-  /* |J02=|$\,\bft^{12}(\bfe-\bfr^{10}\star\bfr^{12})^{-1}
-  (\bfJ^{01}+\bfr^{10}\star\bfJ^{21})$ */
   Matrix_Sum(n,J02,J12,J02);
 }
 
