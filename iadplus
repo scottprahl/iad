@@ -12,8 +12,16 @@ import re
 import subprocess
 import shlex
 import shutil
+import tempfile
 import urllib.parse
 import numpy as np
+
+if not os.access(os.environ.get('MPLCONFIGDIR', ''), os.W_OK):
+    os.environ['MPLCONFIGDIR'] = os.path.join(tempfile.gettempdir(), 'iad-matplotlib')
+
+import matplotlib
+
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import nbformat
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
@@ -128,8 +136,8 @@ def plot_gridlines(filename_base):
     plt.title(cmd)
     plt.grid(False)
 
-def plot_grid(mr, cr, mt, ct, success, filename_base):
-    out_filename = filename_base + '-grid.svg'
+def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
+    out_filename = filename_base + '-grid' + figure_ext
     plt.figure(figsize=(8,8))
     plt.gca().set_aspect(1)
     plt.xlim(-0.05,1.05)
@@ -150,9 +158,9 @@ def plot_grid(mr, cr, mt, ct, success, filename_base):
     plt.close()
     return os.path.basename(out_filename)
 
-def plot_rt(lam, mr, mt, filename_base):
+def plot_rt(lam, mr, mt, filename_base, figure_ext):
     """Plot measured r, t, and u."""
-    out_filename = filename_base + '-RTU.svg'
+    out_filename = filename_base + '-RTU' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plt.plot(lam, mr, 'ob', markersize=2, label='$M_R$')
     plt.plot(lam, mt, 'or', markersize=2, label='$M_T$')
@@ -165,9 +173,9 @@ def plot_rt(lam, mr, mt, filename_base):
     plt.close()
     return os.path.basename(out_filename)
 
-def plot_r(lam, mr, cr, success, filename_base):
+def plot_r(lam, mr, cr, success, filename_base, figure_ext):
     """Plot measured reflection and fitted reflection."""
-    out_filename = filename_base + '-R.svg'
+    out_filename = filename_base + '-R' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, cr, success, True)
     plt.plot(lam, mr, 'ok', markersize=2, label='measured')
@@ -179,9 +187,9 @@ def plot_r(lam, mr, cr, success, filename_base):
     return os.path.basename(out_filename)
 
 
-def plot_t(lam, mt, ct, success, filename_base):
+def plot_t(lam, mt, ct, success, filename_base, figure_ext):
     """Plot measured reflection and fitted transmission."""
-    out_filename = filename_base + '-T.svg'
+    out_filename = filename_base + '-T' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, ct, success, True)
     plt.plot(lam, mt, 'ok', markersize=2, label='measured')
@@ -193,9 +201,9 @@ def plot_t(lam, mt, ct, success, filename_base):
     return os.path.basename(out_filename)
 
 
-def plot_mua(lam, mua, success, filename_base):
+def plot_mua(lam, mua, success, filename_base, figure_ext):
     """Plot calculated absorption coefficient."""
-    out_filename = filename_base + '-mua.svg'
+    out_filename = filename_base + '-mua' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mua, success)
     add_x_label(lam)
@@ -208,9 +216,9 @@ def plot_mua(lam, mua, success, filename_base):
 def scattering_model(x, a, b):
     return a * (x / 1000) ** (-b)
 
-def plot_musp(lam, musp, success, filename_base, fit=False):
+def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
     """Plot calculated reduced scattering coefficient."""
-    out_filename = filename_base + '-musp.svg'
+    out_filename = filename_base + '-musp' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, musp, success)
     if fit and lam[0]>300:
@@ -228,9 +236,9 @@ def plot_musp(lam, musp, success, filename_base, fit=False):
     return os.path.basename(out_filename)
 
 
-def plot_mus(lam, mus, success, filename_base, fit=False):
+def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
     """Plot calculated scattering coefficient."""
-    out_filename = filename_base + '-mus.svg'
+    out_filename = filename_base + '-mus' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mus, success)
     if fit and lam[0]>300:
@@ -247,9 +255,9 @@ def plot_mus(lam, mus, success, filename_base, fit=False):
     return os.path.basename(out_filename)
 
 
-def plot_g(lam, g, success, filename_base):
+def plot_g(lam, g, success, filename_base, figure_ext):
     """Plot calculated scattering coefficient."""
-    out_filename = filename_base + '-g.svg'
+    out_filename = filename_base + '-g' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, g, success)
     add_x_label(lam)
@@ -258,9 +266,9 @@ def plot_g(lam, g, success, filename_base):
     plt.close()
     return os.path.basename(out_filename)
 
-def plot_a(lam, a, success, filename_base):
+def plot_a(lam, a, success, filename_base, figure_ext):
     """Plot calculated albedo."""
-    out_filename = filename_base + '-a.svg'
+    out_filename = filename_base + '-a' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, a, success)
     add_x_label(lam)
@@ -269,9 +277,9 @@ def plot_a(lam, a, success, filename_base):
     plt.close()
     return os.path.basename(out_filename)
 
-def plot_b(lam, b, success, filename_base):
+def plot_b(lam, b, success, filename_base, figure_ext):
     """Plot calculated scattering coefficient."""
-    out_filename = filename_base + '-b.svg'
+    out_filename = filename_base + '-b' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, b, success)
     add_x_label(lam)
@@ -299,19 +307,82 @@ def append_file_cell(nb, header, file):
     nb.cells.append(new_code_cell(cell_text))
 
 
-def get_thickness(output_filename):
-    # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
-    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic_B.txt test/basic_B.rxt
-    with open(output_filename, 'r', encoding='utf-8') as file:
-        file.readline()
-        file.readline()
-        file.readline()
-        fourth_line = file.readline()
+def latex_escape(text):
+    """Escape text for normal LaTeX paragraphs."""
+    replacements = {
+        '\\': r'\textbackslash{}',
+        '&': r'\&',
+        '%': r'\%',
+        '$': r'\$',
+        '#': r'\#',
+        '_': r'\_',
+        '{': r'\{',
+        '}': r'\}',
+        '~': r'\textasciitilde{}',
+        '^': r'\textasciicircum{}',
+    }
+    return ''.join(replacements.get(char, char) for char in text)
 
-    pattern = r'=\s*(\d+\.?\d*)'
-    match = re.search(pattern, fourth_line)
-    d_str = match.group(1)
-    return float(d_str)
+
+def latex_path(filename):
+    """Return a LaTeX-safe path argument."""
+    return r'\detokenize{%s}' % filename
+
+
+def _numbers_in_row(line):
+    """Return numeric values before any inline comment."""
+    line = line.split('#', 1)[0]
+    values = []
+    for token in line.split():
+        try:
+            values.append(float(token))
+        except ValueError:
+            return []
+    return values
+
+
+def _read_rxt_column(input_filename, label):
+    """Read a labeled numeric column from an IAD .rxt file."""
+    label_index = None
+    values = []
+
+    with open(input_filename, 'r', encoding='utf-8') as file:
+        for line in file:
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            if label_index is None:
+                candidate = stripped.lstrip('#').split('#', 1)[0].split()
+                labels = [item.lower() for item in candidate]
+                if label in labels:
+                    label_index = labels.index(label)
+                continue
+
+            row = _numbers_in_row(stripped)
+            if row and len(row) > label_index:
+                values.append(row[label_index])
+
+    if label_index is None or not values:
+        raise ValueError('Could not find column "%s" in %s' % (label, input_filename))
+
+    return np.asarray(values)
+
+
+def get_thickness(output_filename, input_filename=None):
+    """Return the sample thickness from the output header or input rows."""
+    pattern = r'Sample thickness\s*=\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)'
+    with open(output_filename, 'r', encoding='utf-8') as file:
+        for line in file:
+            match = re.search(pattern, line)
+            if match:
+                return float(match.group(1))
+            if 'Sample thickness' in line and 'varies with input row' in line:
+                if input_filename is None:
+                    input_filename = os.path.splitext(output_filename)[0] + '.rxt'
+                return _read_rxt_column(input_filename, 'd')
+
+    raise ValueError('Could not determine sample thickness from %s' % output_filename)
 
 
 def append_header(nb, output_filename):
@@ -338,8 +409,60 @@ def append_header(nb, output_filename):
     cell_text += "    " + second_line + "\n"
     nb.cells.append(new_markdown_cell(cell_text))
 
-def create_notebook_directory(input_name, directory, subdirectory):
-    """Create a notebook directory and copy the .rxt file into it."""
+def write_latex_report(tex_path, output_filename, graph_sections, base):
+    """Write LaTeX source using the same sections as the notebook."""
+    with open(output_filename, 'r', encoding='utf-8') as file:
+        first_line = file.readline()
+        second_line = file.readline()
+
+    pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
+    match = re.search(pattern, first_line)
+    if not match:
+        raise ValueError('File %s contains bad contents' % output_filename)
+    version = match.group(1)
+    build = match.group(2)
+
+    today = datetime.today()
+    formatted_date = today.strftime('%d %b %Y')
+
+    with open(tex_path, 'w', encoding='utf-8') as file:
+        file.write(r'\documentclass[11pt]{article}' + '\n')
+        file.write(r'\usepackage[margin=1in]{geometry}' + '\n')
+        file.write(r'\usepackage{graphicx}' + '\n')
+        file.write(r'\usepackage{float}' + '\n')
+        file.write(r'\usepackage{fancyvrb}' + '\n')
+        file.write(r'\usepackage[hidelinks]{hyperref}' + '\n')
+        file.write(r'\setlength{\parindent}{0pt}' + '\n')
+        file.write(r'\setlength{\parskip}{0.8em}' + '\n')
+        file.write(r'\begin{document}' + '\n')
+        file.write(r'\section*{Inverse Adding-Doubling Analysis}' + '\n\n')
+        file.write('iad version %s built on %s\n\n' %
+                   (latex_escape(version), latex_escape(build)))
+        file.write('This analysis was done on %s\n\n' % latex_escape(formatted_date))
+        file.write('The command-line was\n\n')
+        file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
+        file.write(second_line.lstrip('# '))
+        file.write(r'\end{Verbatim}' + '\n\n')
+
+        for header, graph in graph_sections:
+            file.write(r'\section*{%s}' % latex_escape(header) + '\n')
+            file.write(r'\begin{figure}[H]' + '\n')
+            file.write(r'\centering' + '\n')
+            file.write(r'\includegraphics[width=0.8\linewidth]{%s}' %
+                       latex_path(graph) + '\n')
+            file.write(r'\end{figure}' + '\n\n')
+
+        for header, suffix in [('Input file', '.rxt'), ('Output file', '.txt')]:
+            file.write(r'\clearpage' + '\n')
+            file.write(r'\section*{%s}' % latex_escape(header) + '\n')
+            file.write(r'\VerbatimInput[fontsize=\small]{%s}' %
+                       latex_path(base + suffix) + '\n\n')
+
+        file.write(r'\end{document}' + '\n')
+
+
+def create_output_directory(input_name, directory, subdirectory, suffix):
+    """Create an output directory and copy the .rxt file into it."""
     
     # ensure that file.rxt exists and support omitting .rxt
     if not os.path.exists(input_name):
@@ -356,36 +479,36 @@ def create_notebook_directory(input_name, directory, subdirectory):
 
     if subdirectory is None:
         if directory is None:
-            # notebook directory will be in same directory as file_name
-            notebook_dir = os.path.join(local_dir, base + '-notebook')
+            # output directory will be in same directory as file_name
+            output_dir = os.path.join(local_dir, base + suffix)
         else:
-            notebook_dir = os.path.join(local_dir, directory)
-            if os.path.exists(notebook_dir) and os.path.isfile(notebook_dir):
-                print("Sorry, but '%s' is an existing file!" % notebook_dir)
+            output_dir = os.path.join(local_dir, directory)
+            if os.path.exists(output_dir) and os.path.isfile(output_dir):
+                print("Sorry, but '%s' is an existing file!" % output_dir)
                 print("Use a new or existing directory with --dir option.")
                 sys.exit()
     else:
-        # notebook directory will be in subdir/file_name
-            notebook_dir = os.path.join(subdirectory, base)
+        # output directory will be in subdir/file_name
+            output_dir = os.path.join(subdirectory, base)
 
-    if not os.path.exists(notebook_dir):
-        os.makedirs(notebook_dir)
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    # copy file.rxt to notebook directory
-    shutil.copy(input_name, notebook_dir)
+    # copy file.rxt to output directory
+    shutil.copy(input_name, output_dir)
 
-    # if file.txt exists, copy it to the notebook directory
+    # if file.txt exists, copy it to the output directory
     txt_name = os.path.join(local_dir, base + '.txt')
     if os.path.exists(txt_name):
-        shutil.copy(txt_name, notebook_dir)
+        shutil.copy(txt_name, output_dir)
 
-    # if file.grid exists, copy it to the notebook directory
+    # if file.grid exists, copy it to the output directory
     grid_name = os.path.join(local_dir, base + '.grid')
     if os.path.exists(grid_name):
-        shutil.copy(grid_name, notebook_dir)
+        shutil.copy(grid_name, output_dir)
 
     # the base name for all created files
-    base_path = os.path.join(notebook_dir, base)
+    base_path = os.path.join(output_dir, base)
 
     return base, base_path
 
@@ -404,13 +527,18 @@ def main():
                         help='Force reanalysis of files')
     parser.add_argument('--fit', action='store_true',
                         help='Fit scattering data to a*(λ/1000nm)**(-b)')
+    parser.add_argument('--pdf', action='store_true',
+                        help='Create LaTeX source and PDF-ready figures instead of a notebook')
     args = parser.parse_args()
 
     # You can then iterate over this list to open and process each file
-    notebooks = []
+    outputs = []
     for file_name in args.input_files:
 
-        base, base_path = create_notebook_directory(file_name, args.dir, args.sdir)
+        suffix = '_pdf' if args.pdf else '_notebook'
+        figure_ext = '.pdf' if args.pdf else '.svg'
+
+        base, base_path = create_output_directory(file_name, args.dir, args.sdir, suffix)
         if base_path == '':
             continue
 
@@ -449,7 +577,7 @@ def main():
         status = np.atleast_1d(status)
         success = status == '*'
 
-        d = get_thickness(txt_path)
+        d = get_thickness(txt_path, base_path + '.rxt')
         mus = musp/(1-g)
         b = (mua + mus)*d
 
@@ -457,48 +585,61 @@ def main():
         safe_denominator = np.where(denominator == 0, np.inf, denominator)
         a = mus / safe_denominator
 
-        rt_graph = plot_rt(lam, mr, mt, base_path)
-        r_graph = plot_r(lam, mr, cr, success, base_path)
-        t_graph = plot_t(lam, mt, ct, success, base_path)
-        mua_graph = plot_mua(lam, mua, success, base_path)
-        musp_graph = plot_musp(lam, musp, success, base_path, fit=args.fit)
-        mus_graph = plot_mus(lam, mus, success, base_path, fit=args.fit)
-        a_graph = plot_a(lam, a, success, base_path)
-        b_graph = plot_b(lam, b, success, base_path)
-        g_graph = plot_g(lam, g, success, base_path)
-        grid_graph = plot_grid(mr, cr, mt, ct, success, base_path)
+        rt_graph = plot_rt(lam, mr, mt, base_path, figure_ext)
+        r_graph = plot_r(lam, mr, cr, success, base_path, figure_ext)
+        t_graph = plot_t(lam, mt, ct, success, base_path, figure_ext)
+        mua_graph = plot_mua(lam, mua, success, base_path, figure_ext)
+        musp_graph = plot_musp(lam, musp, success, base_path, figure_ext, fit=args.fit)
+        mus_graph = plot_mus(lam, mus, success, base_path, figure_ext, fit=args.fit)
+        a_graph = plot_a(lam, a, success, base_path, figure_ext)
+        b_graph = plot_b(lam, b, success, base_path, figure_ext)
+        g_graph = plot_g(lam, g, success, base_path, figure_ext)
+        grid_graph = plot_grid(mr, cr, mt, ct, success, base_path, figure_ext)
 
-        nb = new_notebook()
-        nb.metadata['kernelspec'] = {
-            'display_name': 'Python 3',
-            'language': 'python',
-            'name': 'python3'
-        }
+        graph_sections = [
+            ('Reflection', r_graph),
+            ('Transmission', t_graph),
+            ('Absorption Coefficient', mua_graph),
+            ('Reduced Scattering Coefficient', musp_graph),
+            ('Single Scattering Albedo', a_graph),
+            ('Optical Thickness', b_graph),
+            ('Scattering Anisotropy', g_graph),
+            ('Scattering Coefficient', mus_graph),
+            ('Original Measurements', rt_graph),
+            ('Grid Graph', grid_graph),
+        ]
 
-        append_header(nb, txt_path)
-        append_graph_cell(nb, '## Reflection', r_graph)
-        append_graph_cell(nb, '## Transmission', t_graph)
-        append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
-        append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
-        append_graph_cell(nb, '## Single Scattering Albedo', a_graph)
-        append_graph_cell(nb, '## Optical Thickness', b_graph)
-        append_graph_cell(nb, '## Scattering Anisotropy', g_graph)
-        append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
-        append_graph_cell(nb, '## Original Measurements', rt_graph)
-        append_graph_cell(nb, '## Grid Graph', grid_graph)
+        if args.pdf:
+            tex_path = base_path + '.tex'
+            write_latex_report(tex_path, txt_path, graph_sections, base)
+            outputs.append(base_path + '.pdf')
+        else:
+            nb = new_notebook()
+            nb.metadata['kernelspec'] = {
+                'display_name': 'Python 3',
+                'language': 'python',
+                'name': 'python3'
+            }
 
-        nb.cells.append(new_markdown_cell("## Input file\n"))
-        append_file_cell(nb, '# input file', base + '.rxt')
+            append_header(nb, txt_path)
+            for header, graph in graph_sections:
+                append_graph_cell(nb, '## ' + header, graph)
 
-        nb.cells.append(new_markdown_cell("## Output file\n"))
-        append_file_cell(nb, '# output file', base + '.txt')
+            nb.cells.append(new_markdown_cell("## Input file\n"))
+            append_file_cell(nb, '# input file', base + '.rxt')
 
-        # Save the notebook
-        ipynb_path = base_path + '.ipynb'
-        with open(ipynb_path, "w", encoding="utf-8") as f:
-            nbformat.write(nb, f)
+            nb.cells.append(new_markdown_cell("## Output file\n"))
+            append_file_cell(nb, '# output file', base + '.txt')
 
-        notebooks.append(ipynb_path)
+            # Save the notebook
+            ipynb_path = base_path + '.ipynb'
+            with open(ipynb_path, "w", encoding="utf-8") as f:
+                nbformat.write(nb, f)
+
+            outputs.append(ipynb_path)
+
+    for output in outputs:
+        print('created: ' + os.path.abspath(output))
 
 
 if __name__ == "__main__":

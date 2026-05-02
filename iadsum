@@ -8,9 +8,17 @@ from datetime import datetime
 import argparse
 import os
 import re
+import tempfile
 import urllib.parse
 from enum import Enum
 import numpy as np
+
+if not os.access(os.environ.get('MPLCONFIGDIR', ''), os.W_OK):
+    os.environ['MPLCONFIGDIR'] = os.path.join(tempfile.gettempdir(), 'iad-matplotlib')
+
+import matplotlib
+
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import nbformat
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
@@ -118,19 +126,60 @@ def append_file_cell(nb, header, file):
     nb.cells.append(new_code_cell(cell_text))
 
 
-def get_thickness(output_filename):
-    # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
-    # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic_B.txt test/basic_B.rxt
-    with open(output_filename, 'r', encoding='utf-8') as file:
-        file.readline()
-        file.readline()
-        file.readline()
-        fourth_line = file.readline()
+def _numbers_in_row(line):
+    """Return numeric values before any inline comment."""
+    line = line.split('#', 1)[0]
+    values = []
+    for token in line.split():
+        try:
+            values.append(float(token))
+        except ValueError:
+            return []
+    return values
 
-    pattern = r'=\s*(\d+\.?\d*)'
-    match = re.search(pattern, fourth_line)
-    d_str = match.group(1)
-    return float(d_str)
+
+def _read_rxt_column(input_filename, label):
+    """Read a labeled numeric column from an IAD .rxt file."""
+    label_index = None
+    values = []
+
+    with open(input_filename, 'r', encoding='utf-8') as file:
+        for line in file:
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            if label_index is None:
+                candidate = stripped.lstrip('#').split('#', 1)[0].split()
+                labels = [item.lower() for item in candidate]
+                if label in labels:
+                    label_index = labels.index(label)
+                continue
+
+            row = _numbers_in_row(stripped)
+            if row and len(row) > label_index:
+                values.append(row[label_index])
+
+    if label_index is None or not values:
+        raise ValueError('Could not find column "%s" in %s' % (label, input_filename))
+
+    return np.asarray(values)
+
+
+def get_thickness(output_filename, input_filename=None):
+    """Return the sample thickness from the output header or input rows."""
+    pattern = r'Sample thickness\s*=\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)'
+    with open(output_filename, 'r', encoding='utf-8') as file:
+        for line in file:
+            match = re.search(pattern, line)
+            if match:
+                return float(match.group(1))
+            if 'Sample thickness' in line and 'varies with input row' in line:
+                if input_filename is None:
+                    input_filename = os.path.splitext(output_filename)[0] + '.rxt'
+                return _read_rxt_column(input_filename, 'd')
+
+    raise ValueError('Could not determine sample thickness from %s' % output_filename)
 
 
 def append_header(nb, txts, rel_txts):
