@@ -285,7 +285,22 @@ test shorttest: iad ad
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) AD_EXECUTABLE=$(AD_EXECUTABLE) tests/cli/run_cli_tests.sh basic
 
 longtest: iad
-	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt nomc
+
+test0: iad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt/0_sphere
+
+test1: iad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt/1_sphere
+
+test2: iad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt/2_sphere
+
+test1_nomc: iad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt/1_sphere nomc
+
+test2_nomc: iad
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt/2_sphere nomc
 
 layertest: $(WSRC) $(NRSRC)
 	cd src ; make layer_test
@@ -317,6 +332,11 @@ help::
 	echo "TESTING";\
 	echo "  longtest      run iad program on a bunch of test files";\
 	echo "  shorttest     same as test below";\
+	echo "  test0         run tests/rxt/0_sphere files";\
+	echo "  test1         run tests/rxt/1_sphere files";\
+	echo "  test2         run tests/rxt/2_sphere files";\
+	echo "  test1_nomc    run tests/rxt/1_sphere files with -M 0";\
+	echo "  test2_nomc    run tests/rxt/2_sphere files with -M 0";\
 	echo "  veryshorttest github action test target";\
 	echo "  wintest       windows command-line and file tests using wine";\
 	echo "MAINTENANCE";\
@@ -332,4 +352,5 @@ help::
         clean-generated-all-dry-run clean-generated-all scratch-build \
         clean-generated-archives-dry-run clean-generated-archives \
         dists docs test lib install tidy dist windist \
-        test veryshorttest shorttest longtest layertest wintest
+        test veryshorttest shorttest longtest test0 test1 test2 test1_nomc test2_nomc \
+        layertest wintest
