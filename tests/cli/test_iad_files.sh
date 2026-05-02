@@ -23,8 +23,20 @@ run_file_case() {
 }
 
 if [ "${1:-}" = "--batch" ]; then
+    batch_dir=${2:-tests/rxt}
+    batch_mode=${3:-default}
+    case "$batch_dir" in
+        tests/rxt|tests/rxt/*) ;;
+        *) fail "batch directory must be under tests/rxt: $batch_dir" ;;
+    esac
+    case "$batch_mode" in
+        default|nomc) ;;
+        *) fail "unknown batch mode: $batch_mode" ;;
+    esac
+
     manifest="$TEST_TMP/rxt_files.txt"
-    git -C "$ROOT_DIR" ls-files tests/rxt > "$manifest"
+    (cd "$ROOT_DIR" && find "$batch_dir" -type f -name "*.rxt" | sort) > "$manifest"
+    total=$(wc -l < "$manifest" | tr -d ' ')
     count=0
     while IFS= read -r path; do
         case "$path" in
@@ -38,27 +50,31 @@ if [ "${1:-}" = "--batch" ]; then
         mkdir -p "$work"
         cp "$ROOT_DIR/$path" "$work/$base"
 
-        opts="-M 0 -q 4"
+        opts="-q 4"
+        if [ "$batch_mode" = "nomc" ]; then
+            opts="-M 0 $opts"
+        fi
         case "$base" in
             fairway_A.rxt|fairway_E.rxt) opts="-c 0 -M 0 -q 4" ;;
-            royston9_D.rxt) opts="-e 0.005 -q 4" ;;
+            royston9_D.rxt) opts="-e 0.005 $opts" ;;
+            thinh*) opts="-c 0 $opts" ;;
             tio2_vis.rxt|royston1.rxt) opts="-M 0 -q 4" ;;
-            ville1.rxt) opts="-a 0 -q 4" ;;
+            ville1.rxt) opts="-a 0 $opts" ;;
         esac
 
-        echo "inverting $path"
+        count=$((count + 1))
+        printf '[%s/%s] iad %s %s\n' "$count" "$total" "$opts" "$path" >&2
         (
             cd "$work"
             # shellcheck disable=SC2086
-            "$IAD_EXECUTABLE" $opts "$base" > stdout 2>&1
+            "$IAD_EXECUTABLE" $opts "$base" > stdout
         ) || {
             cat "$work/stdout" >&2
             fail "iad batch case failed for $path"
         }
         assert_exists "$work/$stem.txt"
-        count=$((count + 1))
     done < "$manifest"
-    echo "processed $count tracked .rxt fixtures"
+    echo "processed $count .rxt fixtures" >&2
     exit 0
 fi
 

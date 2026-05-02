@@ -22,7 +22,8 @@ case "${1:-full}" in
         "$(dirname "$0")/test_iad_two_sphere.sh"
         ;;
     batch)
-        "$(dirname "$0")/test_iad_files.sh" --batch
+        shift
+        "$(dirname "$0")/test_iad_files.sh" --batch "$@"
         ;;
     *)
         echo "usage: $0 [veryshort|basic|full|batch]" >&2
