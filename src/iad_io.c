@@ -3,6 +3,8 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define MAX_COLUMNS 256
 char COLUMN_LABELS[MAX_COLUMNS] = "";
+int COLUMN_IS_CONSTANT[MAX_COLUMNS] = { 0 };
+double COLUMN_CONSTANT_VALUE[MAX_COLUMNS] = { 0 };
 
 #include <string.h>
 #include <stdio.h>
@@ -119,10 +121,86 @@ void remove_first_char(char *str)
     }
 }
 
+double column_value_from_state(char c, struct measure_type m, struct invert_type r)
+{
+    switch (c) {
+    case 'B':
+        return m.d_beam;
+    case 'c':
+        return m.fraction_of_ru_in_mr;
+    case 'C':
+        return m.fraction_of_tu_in_mt;
+    case 'd':
+        return m.slab_thickness;
+    case 'D':
+        return m.slab_top_slide_thickness;
+    case 'n':
+        return m.slab_index;
+    case 'N':
+        return m.slab_top_slide_index;
+    case 'R':
+        return m.rstd_r;
+    case 'w':
+        return m.rw_r;
+    case 'W':
+        return m.rw_t;
+    case 'g':
+        return r.default_g;
+    case 'S':
+        return (double) m.num_spheres;
+    default:
+        return HUGE_VAL;
+    }
+}
+
+void analyze_constant_columns(FILE *fp, struct measure_type m, struct invert_type r, int params)
+{
+    long original_position;
+    int i;
+
+    for (i = 0; i < MAX_COLUMNS; i++) {
+        COLUMN_IS_CONSTANT[i] = FALSE;
+        COLUMN_CONSTANT_VALUE[i] = 0;
+    }
+
+    if (COLUMN_LABELS[0] == '\0')
+        return;
+
+    for (i = 0; i < params; i++) {
+        unsigned char label = (unsigned char) COLUMN_LABELS[i];
+        double value = column_value_from_state((char) label, m, r);
+        if (value != HUGE_VAL) {
+            COLUMN_IS_CONSTANT[label] = TRUE;
+            COLUMN_CONSTANT_VALUE[label] = value;
+        }
+    }
+
+    original_position = ftell(fp);
+    if (original_position < 0)
+        return;
+
+    while (TRUE) {
+        double value;
+        int count;
+
+        for (count = 0; count < params; count++) {
+            unsigned char label = (unsigned char) COLUMN_LABELS[count];
+            if (read_number(fp, &value)) {
+                fseek(fp, original_position, SEEK_SET);
+                return;
+            }
+            if (COLUMN_IS_CONSTANT[label] && fabs(value - COLUMN_CONSTANT_VALUE[label]) > 1e-12)
+                COLUMN_IS_CONSTANT[label] = FALSE;
+        }
+    }
+}
+
 void print_maybe(char c, char *format, double x)
 {
     char *result = strchr(COLUMN_LABELS, c);
     if (result == NULL)
+        printf(format, x);
+    else if (COLUMN_IS_CONSTANT[(unsigned char) c])
         printf(format, x);
     else
         printf(" (varies with input row)\n");
@@ -366,6 +444,7 @@ int Read_Header(FILE *fp, struct measure_type *m, int *params)
 
 void Write_Header(struct measure_type m, struct invert_type r, int params, char *cmd)
 {
+    analyze_constant_columns(stdin, m, r, params);
 
     double xx;
 

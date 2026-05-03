@@ -6,6 +6,8 @@ The special define below is to get Visual C to suppress silly warnings.
 #define _CRT_SECURE_NO_WARNINGS
 #define MAX_COLUMNS 256
 char COLUMN_LABELS[MAX_COLUMNS] = "";
+int COLUMN_IS_CONSTANT[MAX_COLUMNS] = {0};
+double COLUMN_CONSTANT_VALUE[MAX_COLUMNS] = {0};
 
 #include <string.h>
 #include <stdio.h>
@@ -28,6 +30,8 @@ char COLUMN_LABELS[MAX_COLUMNS] = "";
 @<Definition for |remove_whitespace|@>@;
 @<Definition for |remove_comment|@>@;
 @<Definition for |remove_first_char|@>@;
+@<Definition for |column_value_from_state|@>@;
+@<Definition for |analyze_constant_columns|@>@;
 @<Definition for |print_maybe|@>@;
 @<Definition for |Read_Data_Legend|@>@;
 @<Definition for |Read_Data_Line_Per_Labels|@>@;
@@ -390,6 +394,7 @@ void Write_Header(struct measure_type m, struct invert_type r, int params, char 
 @ @<Definition for |Write_Header|@>=
         @<Prototype for |Write_Header|@>
 {
+analyze_constant_columns(stdin, m, r, params);
 @<Write slab info@>@;
 @<Write irradiation info@>@;
 @<Write general sphere info@>@;
@@ -675,10 +680,85 @@ void remove_first_char(char *str) {
     }
 }
 
+@ Return the current value associated with a labeled input column.
+This is used after the first data row has been read to seed the
+constant-column check.
+
+@ @<Definition for |column_value_from_state|@>=
+double column_value_from_state(char c, struct measure_type m, struct invert_type r) {
+    switch (c) {
+        case 'B': return m.d_beam;
+        case 'c': return m.fraction_of_ru_in_mr;
+        case 'C': return m.fraction_of_tu_in_mt;
+        case 'd': return m.slab_thickness;
+        case 'D': return m.slab_top_slide_thickness;
+        case 'n': return m.slab_index;
+        case 'N': return m.slab_top_slide_index;
+        case 'R': return m.rstd_r;
+        case 'w': return m.rw_r;
+        case 'W': return m.rw_t;
+        case 'g': return r.default_g;
+        case 'S': return (double) m.num_spheres;
+        default:  return HUGE_VAL;
+    }
+}
+
+@ If a column is present in the input labels, then the output header used
+to say that value varied with the input row.  This is too pessimistic for
+files where a column is present but all its entries are identical.  At the
+time the header is written, the first data row has already been read.  This
+routine seeds the comparison with that row, scans the remaining rows, and
+then restores the input stream so the normal data loop continues unchanged.
+
+@ @<Definition for |analyze_constant_columns|@>=
+void analyze_constant_columns(FILE *fp, struct measure_type m, struct invert_type r, int params) {
+    long original_position;
+    int i;
+
+    for (i = 0; i < MAX_COLUMNS; i++) {
+        COLUMN_IS_CONSTANT[i] = FALSE;
+        COLUMN_CONSTANT_VALUE[i] = 0;
+    }
+
+    if (COLUMN_LABELS[0] == '\0')
+        return;
+
+    for (i = 0; i < params; i++) {
+        unsigned char label = (unsigned char) COLUMN_LABELS[i];
+        double value = column_value_from_state((char) label, m, r);
+        if (value != HUGE_VAL) {
+            COLUMN_IS_CONSTANT[label] = TRUE;
+            COLUMN_CONSTANT_VALUE[label] = value;
+        }
+    }
+
+    original_position = ftell(fp);
+    if (original_position < 0)
+        return;
+
+    while (TRUE) {
+        double value;
+        int count;
+
+        for (count = 0; count < params; count++) {
+            unsigned char label = (unsigned char) COLUMN_LABELS[count];
+            if (read_number(fp, &value)) {
+                fseek(fp, original_position, SEEK_SET);
+                return;
+            }
+            if (COLUMN_IS_CONSTANT[label] &&
+                fabs(value - COLUMN_CONSTANT_VALUE[label]) > 1e-12)
+                COLUMN_IS_CONSTANT[label] = FALSE;
+        }
+    }
+}
+
 @ @<Definition for |print_maybe|@>=
 void print_maybe(char c, char *format, double x) {
     char *result = strchr(COLUMN_LABELS, c);
     if (result == NULL) 
+        printf(format, x);
+    else if (COLUMN_IS_CONSTANT[(unsigned char) c])
         printf(format, x);
     else
         printf(" (varies with input row)\n");
@@ -712,4 +792,3 @@ void print_maybe(char c, char *format, double x) {
 
     return n;
 }
-

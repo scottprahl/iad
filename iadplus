@@ -289,7 +289,9 @@ def plot_b(lam, b, success, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 def append_graph_cell(nb, header, graph):
-    cell_text = header + "\n"
+    cell_text = ''
+    if header and header.strip('# '):
+        cell_text = header + "\n"
     url_encoded_filename = urllib.parse.quote(graph)
     cell_text += "<center>\n"
     cell_text += '    <img src="' + url_encoded_filename + '" width="80%" />\n'
@@ -305,6 +307,92 @@ def append_file_cell(nb, header, file):
     cell_text += '\n'
     cell_text += 'print(file_contents)\n'
     nb.cells.append(new_code_cell(cell_text))
+
+
+def normalize_output_header_value(value):
+    """Normalize values from the generated .txt header."""
+    value = value.strip()
+    value = value.replace('(varies with input row)', 'varies')
+    value = value.replace('varies with input row', 'varies')
+    return value
+
+
+def split_output_header_value(value):
+    """Return the table value and any units or notes from a header value."""
+    value = normalize_output_header_value(value)
+    if not value:
+        return '', ''
+
+    match = re.match(r'(\S+)(?:\s+(.*))?$', value)
+    if not match:
+        return value, ''
+
+    number = match.group(1)
+    units = (match.group(2) or '').strip()
+    return number, units
+
+
+def format_output_header_description(description, units):
+    """Append units from the value field to the output header description."""
+    if not units:
+        return description
+
+    note = ''
+    match = re.match(r'(.+?)\s+(\(.*\))$', units)
+    if match:
+        units = match.group(1).strip()
+        note = ' ' + match.group(2).strip()
+
+    return '%s [%s]%s' % (description, units, note)
+
+
+def parse_output_header(output_filename):
+    """Parse the generated .txt header through the photons-used line."""
+    table_rows = []
+
+    with open(output_filename, 'r', encoding='utf-8') as file:
+        for line_number, line in enumerate(file, start=1):
+            if line_number <= 2:
+                continue
+
+            text = line.lstrip('#').strip()
+            if not text:
+                continue
+
+            if '=' in text:
+                description, value = text.split('=', 1)
+                description = description.strip()
+                value, units = split_output_header_value(value)
+                description = format_output_header_description(description, units)
+                table_rows.append((value, description))
+
+                if description.startswith('Photons used'):
+                    break
+            else:
+                table_rows.append(('', text))
+
+    return table_rows
+
+
+def markdown_escape(text):
+    """Escape text for a Markdown table cell."""
+    return text.replace('\\', '\\\\').replace('|', '\\|')
+
+
+def markdown_header_table(output_filename):
+    """Return Markdown for the generated output header summary."""
+    table_rows = parse_output_header(output_filename)
+    lines = []
+
+    if table_rows:
+        lines.append('| Number | Description |')
+        lines.append('| --- | --- |')
+        for value, description in table_rows:
+            lines.append('| %s | %s |' %
+                         (markdown_escape(value), markdown_escape(description)))
+        lines.append('')
+
+    return '\n'.join(lines)
 
 
 def latex_escape(text):
@@ -327,6 +415,32 @@ def latex_escape(text):
 def latex_path(filename):
     """Return a LaTeX-safe path argument."""
     return r'\detokenize{%s}' % filename
+
+
+def latex_artifact_name(name):
+    """Return a filename stem that pdflatex can safely open."""
+    safe = name.replace('%', 'pct')
+    safe = re.sub(r'[^A-Za-z0-9_.-]+', '_', safe)
+    return safe.strip('._') or 'iadplus_report'
+
+
+def write_latex_header_table(file, output_filename):
+    """Write the generated output header summary as LaTeX."""
+    table_rows = parse_output_header(output_filename)
+
+    if table_rows:
+        file.write(r'\begin{longtable}{|p{15mm}p{0.78\linewidth}|}' + '\n')
+        file.write(r'\hline' + '\n')
+        for value, description in table_rows:
+            if value:
+                file.write('%s & %s\\\\\n' %
+                           (latex_escape(value), latex_escape(description)))
+            else:
+                file.write(r'\multicolumn{2}{|p{\dimexpr0.78\linewidth+15mm+2\tabcolsep\relax}|}{}\\[0.5em]' + '\n')
+                file.write(r'\multicolumn{2}{|p{\dimexpr0.78\linewidth+15mm+2\tabcolsep\relax}|}{\textit{%s}}\\' %
+                           latex_escape(description) + '\n')
+        file.write(r'\hline' + '\n')
+        file.write(r'\end{longtable}' + '\n\n')
 
 
 def _numbers_in_row(line):
@@ -409,7 +523,29 @@ def append_header(nb, output_filename):
     cell_text += "    " + second_line + "\n"
     nb.cells.append(new_markdown_cell(cell_text))
 
-def write_latex_report(tex_path, output_filename, graph_sections, base):
+def write_verbatim_file(file, filename):
+    """Embed a text file in a LaTeX Verbatim environment."""
+    file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
+    with open(filename, 'r', encoding='utf-8') as input_file:
+        for line in input_file:
+            file.write(line)
+    file.write(r'\end{Verbatim}' + '\n\n')
+
+
+def write_latex_graph_group(file, graph_group):
+    """Write a group of one or more graph sections to LaTeX."""
+    max_height = r'0.78\textheight' if len(graph_group) == 1 else r'0.42\textheight'
+    for header, graph in graph_group:
+        if header:
+            file.write(r'\section*{%s}' % latex_escape(header) + '\n')
+        file.write(r'\begin{figure}[H]' + '\n')
+        file.write(r'\centering' + '\n')
+        file.write(r'\includegraphics[width=\linewidth,height=%s,keepaspectratio]{%s}' %
+                   (max_height, latex_path(graph)) + '\n')
+        file.write(r'\end{figure}' + '\n\n')
+
+
+def write_latex_report(tex_path, input_filename, output_filename, graph_groups):
     """Write LaTeX source using the same sections as the notebook."""
     with open(output_filename, 'r', encoding='utf-8') as file:
         first_line = file.readline()
@@ -431,9 +567,15 @@ def write_latex_report(tex_path, output_filename, graph_sections, base):
         file.write(r'\usepackage{graphicx}' + '\n')
         file.write(r'\usepackage{float}' + '\n')
         file.write(r'\usepackage{fancyvrb}' + '\n')
+        file.write(r'\usepackage{longtable}' + '\n')
+        file.write(r'\usepackage{titlesec}' + '\n')
         file.write(r'\usepackage[hidelinks]{hyperref}' + '\n')
         file.write(r'\setlength{\parindent}{0pt}' + '\n')
         file.write(r'\setlength{\parskip}{0.8em}' + '\n')
+        file.write(r'\setlength{\intextsep}{0.35em}' + '\n')
+        file.write(r'\setlength{\textfloatsep}{0.35em}' + '\n')
+        file.write(r'\setlength{\floatsep}{0.35em}' + '\n')
+        file.write(r'\titlespacing*{\section}{0pt}{0.6em}{0.2em}' + '\n')
         file.write(r'\begin{document}' + '\n')
         file.write(r'\section*{Inverse Adding-Doubling Analysis}' + '\n\n')
         file.write('iad version %s built on %s\n\n' %
@@ -443,34 +585,52 @@ def write_latex_report(tex_path, output_filename, graph_sections, base):
         file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
         file.write(second_line.lstrip('# '))
         file.write(r'\end{Verbatim}' + '\n\n')
+        write_latex_graph_group(file, graph_groups[0])
+        file.write(r'\clearpage' + '\n\n')
+        write_latex_header_table(file, output_filename)
+        file.write(r'\clearpage' + '\n\n')
 
-        for header, graph in graph_sections:
-            file.write(r'\section*{%s}' % latex_escape(header) + '\n')
-            file.write(r'\begin{figure}[H]' + '\n')
-            file.write(r'\centering' + '\n')
-            file.write(r'\includegraphics[width=0.8\linewidth]{%s}' %
-                       latex_path(graph) + '\n')
-            file.write(r'\end{figure}' + '\n\n')
+        remaining_groups = graph_groups[1:]
+        for index, graph_group in enumerate(remaining_groups):
+            write_latex_graph_group(file, graph_group)
+            if index < len(remaining_groups) - 1:
+                file.write(r'\clearpage' + '\n\n')
 
         for header, suffix in [('Input file', '.rxt'), ('Output file', '.txt')]:
             file.write(r'\clearpage' + '\n')
             file.write(r'\section*{%s}' % latex_escape(header) + '\n')
-            file.write(r'\VerbatimInput[fontsize=\small]{%s}' %
-                       latex_path(base + suffix) + '\n\n')
+            filename = input_filename if suffix == '.rxt' else output_filename
+            write_verbatim_file(file, filename)
 
         file.write(r'\end{document}' + '\n')
+
+
+def run_pdflatex(tex_path):
+    """Compile a generated LaTeX report and return the PDF path."""
+    tex_dir = os.path.dirname(tex_path)
+    tex_file = os.path.basename(tex_path)
+    pdf_path = os.path.splitext(tex_path)[0] + '.pdf'
+    command = ['pdflatex', '-interaction=nonstopmode', tex_file]
+    print('running:', ' '.join(command), flush=True)
+    subprocess.run(command, cwd=tex_dir, check=True)
+    return pdf_path
 
 
 def create_output_directory(input_name, directory, subdirectory, suffix):
     """Create an output directory and copy the .rxt file into it."""
     
     # ensure that file.rxt exists and support omitting .rxt
-    if not os.path.exists(input_name):
-        if not input_name.endswith('.rxt') :
-            input_name += '.rxt'
+    if os.path.exists(input_name):
+        if not os.path.isfile(input_name) or not input_name.endswith('.rxt'):
+            return '', ''
+    elif not input_name.endswith('.rxt'):
+        input_name += '.rxt'
         if not os.path.exists(input_name):
             print('input file "%s" not found' % input_name)
             return '', ''
+    else:
+        print('input file "%s" not found' % input_name)
+        return '', ''
     
     local_dir = os.path.dirname(input_name)
 
@@ -542,6 +702,11 @@ def main():
         if base_path == '':
             continue
 
+        artifact_base_path = base_path
+        if args.pdf:
+            artifact_base = latex_artifact_name(base)
+            artifact_base_path = os.path.join(os.path.dirname(base_path), artifact_base)
+
         # doing the iad analysis can be slow, avoid if possible
         txt_path = base_path + '.txt'
         exists_and_is_non_zero = os.path.exists(txt_path) and os.path.getsize(txt_path) > 0
@@ -585,34 +750,39 @@ def main():
         safe_denominator = np.where(denominator == 0, np.inf, denominator)
         a = mus / safe_denominator
 
-        rt_graph = plot_rt(lam, mr, mt, base_path, figure_ext)
-        r_graph = plot_r(lam, mr, cr, success, base_path, figure_ext)
-        t_graph = plot_t(lam, mt, ct, success, base_path, figure_ext)
-        mua_graph = plot_mua(lam, mua, success, base_path, figure_ext)
-        musp_graph = plot_musp(lam, musp, success, base_path, figure_ext, fit=args.fit)
-        mus_graph = plot_mus(lam, mus, success, base_path, figure_ext, fit=args.fit)
-        a_graph = plot_a(lam, a, success, base_path, figure_ext)
-        b_graph = plot_b(lam, b, success, base_path, figure_ext)
-        g_graph = plot_g(lam, g, success, base_path, figure_ext)
-        grid_graph = plot_grid(mr, cr, mt, ct, success, base_path, figure_ext)
+        if args.pdf and artifact_base_path != base_path and os.path.exists(base_path + '.grid'):
+            shutil.copy(base_path + '.grid', artifact_base_path + '.grid')
 
-        graph_sections = [
-            ('Reflection', r_graph),
-            ('Transmission', t_graph),
-            ('Absorption Coefficient', mua_graph),
-            ('Reduced Scattering Coefficient', musp_graph),
-            ('Single Scattering Albedo', a_graph),
-            ('Optical Thickness', b_graph),
-            ('Scattering Anisotropy', g_graph),
-            ('Scattering Coefficient', mus_graph),
-            ('Original Measurements', rt_graph),
-            ('Grid Graph', grid_graph),
+        rt_graph = plot_rt(lam, mr, mt, artifact_base_path, figure_ext)
+        r_graph = plot_r(lam, mr, cr, success, artifact_base_path, figure_ext)
+        t_graph = plot_t(lam, mt, ct, success, artifact_base_path, figure_ext)
+        mua_graph = plot_mua(lam, mua, success, artifact_base_path, figure_ext)
+        musp_graph = plot_musp(lam, musp, success, artifact_base_path, figure_ext, fit=args.fit)
+        mus_graph = plot_mus(lam, mus, success, artifact_base_path, figure_ext, fit=args.fit)
+        a_graph = plot_a(lam, a, success, artifact_base_path, figure_ext)
+        b_graph = plot_b(lam, b, success, artifact_base_path, figure_ext)
+        g_graph = plot_g(lam, g, success, artifact_base_path, figure_ext)
+        grid_graph = plot_grid(mr, cr, mt, ct, success, artifact_base_path, figure_ext)
+
+        graph_groups = [
+            [('', rt_graph)],
+            [('Reflection', r_graph), ('Transmission', t_graph)],
+            [('Scattering Coefficient', mus_graph),
+             ('Reduced Scattering Coefficient', musp_graph)],
+            [('Absorption Coefficient', mua_graph),
+             ('Scattering Anisotropy', g_graph)],
+            [('Single Scattering Albedo', a_graph), ('Optical Thickness', b_graph)],
+            [('Grid Graph', grid_graph)],
         ]
 
         if args.pdf:
-            tex_path = base_path + '.tex'
-            write_latex_report(tex_path, txt_path, graph_sections, base)
-            outputs.append(base_path + '.pdf')
+            tex_path = artifact_base_path + '.tex'
+            write_latex_report(tex_path, base_path + '.rxt', txt_path, graph_groups)
+            try:
+                outputs.append(run_pdflatex(tex_path))
+            except (FileNotFoundError, subprocess.CalledProcessError):
+                print("Sorry, pdflatex failed for %s" % tex_path)
+                continue
         else:
             nb = new_notebook()
             nb.metadata['kernelspec'] = {
@@ -622,8 +792,14 @@ def main():
             }
 
             append_header(nb, txt_path)
-            for header, graph in graph_sections:
+            for header, graph in graph_groups[0]:
                 append_graph_cell(nb, '## ' + header, graph)
+
+            nb.cells.append(new_markdown_cell(markdown_header_table(txt_path)))
+
+            for graph_group in graph_groups[1:]:
+                for header, graph in graph_group:
+                    append_graph_cell(nb, '## ' + header, graph)
 
             nb.cells.append(new_markdown_cell("## Input file\n"))
             append_file_cell(nb, '# input file', base + '.rxt')
