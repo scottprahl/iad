@@ -34,23 +34,26 @@ warnings.filterwarnings(
 )
 
 skyblue = '#00bfff'
+yellow = '#FFEA00'
 ocean= '#009dc4'
 azure = '#1520a6'
 axis_label_size = 12
 
 GRID_EXPLANATION = (
-    "The grid graph is an orientation map in measured reflectance/transmittance "
-    "space. The colored triangular region shows physically possible measured "
-    "values, the black curves are calculated by rerunning iad on a fixed 7 by "
-    "7 grid of reduced albedo a' and reduced optical thickness b', and the data "
-    "points show the measured and fitted values. The grid uses the sample and "
-    "sphere geometry from the input file and a single fixed anisotropy g, shown "
-    "in the plot title. It is therefore a useful visual guide to where the "
-    "measurements sit, but it is not a separate wavelength-by-wavelength "
-    "uncertainty calculation. When no integrating spheres are used, the grid "
-    "is a direct adding-doubling calculation. When sphere corrections and "
-    "Monte Carlo lost-light corrections are enabled, each grid point includes "
-    "a Monte Carlo estimate."
+    "The yellow triangular region shows all possible reflection and transmission "
+    "values.  The blue region includes all values that can be reached for the "
+    "measurement parameters specified. The black curves show curves of constant "
+    "reduced albedo $a'$ or reduced optical thickness $b'$ for the value of $g$ shown in "
+    "the graph title. Reduced values mitigate anisotropic scattering "
+    "effects for data points with different $g$ values. The measured $M_R$ and $M_T$ "
+    "values (along with fits) are included to show their relationship "
+    "to the boundaries. Appropriate corrections are applied when integrating "
+    "spheres are used. \n\n"
+    "Exposed yellow along the vertical axis are created when unscattered reflectance "
+    "is not collected.  Yellow next to the horizontal axis occurs when unscattered "
+    "transmittance is not included or for very thick samples with extremely low "
+    "absorption.  Yellow along the diagonal boundary arises when "
+    "lost light effects are included. "
 )
 
 def scattered_light(g=0, n=1, quad_pts=4):
@@ -116,6 +119,8 @@ def plot_gridlines(filename_base):
         cmd = file.readline()
     cmd = cmd[2:]
     cmd = cmd.replace('-J ', '')
+    match = re.search(r"g=([0-9.]+)", cmd)
+    g_value = float(match.group(1)) if match else None
 
     N = len(a)
 
@@ -145,11 +150,11 @@ def plot_gridlines(filename_base):
     r = r + r1[::-1] + r2[::-1]
     t = t + t1[::-1] + t2[::-1]
     rt = np.array([r,t]).T
-    poly = plt.Polygon(rt, closed=True, facecolor=ocean, edgecolor='none')
+    poly = plt.Polygon(rt, closed=True, facecolor=skyblue, edgecolor='none')
     plt.gca().add_patch(poly)
     
     plt.plot(r, t, 'k', lw=0.5)
-    plt.title(cmd)
+    plt.title(os.path.basename(filename_base) + ".rxt (assuming g=%.3f)" % g_value)
     plt.grid(False)
 
 def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
@@ -164,7 +169,7 @@ def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
     plt.plot(mr[success], mt[success], 'o', markersize=2, color=azure, label='measured')
     if any(~success):
         plt.plot(mr[~success], mt[~success], 'x', markersize=5, color='red', label='failed')
-    poly = plt.Polygon([[0,0],[0,1],[1,0]], closed=True, facecolor=skyblue, edgecolor='none', alpha=1)
+    poly = plt.Polygon([[0,0],[0,1],[1,0]], closed=True, facecolor=yellow, edgecolor='none', alpha=1)
     plt.gca().add_patch(poly)
     plot_gridlines(filename_base)
     plt.xlabel('$M_R$ (Normalized Reflectance)',fontsize=axis_label_size)
@@ -436,6 +441,8 @@ def latex_grid_explanation():
     text = latex_escape(GRID_EXPLANATION)
     text = text.replace("a'", r"$a'$")
     text = text.replace("b'", r"$b'$")
+    text = text.replace("M_R", r"$M_R$")
+    text = text.replace("M_T'", r"$M_T$")
     text = text.replace('anisotropy g,', r'anisotropy $g$,')
     return text
 
@@ -738,7 +745,7 @@ def write_latex_graph_group(file, graph_group):
         if header:
             file.write(r'\section*{%s}' % latex_escape(header) + '\n')
             if header == 'Grid Graph':
-                file.write(latex_grid_explanation() + '\n\n')
+                file.write(GRID_EXPLANATION+ '\n\n')
         file.write(r'\begin{figure}[H]' + '\n')
         file.write(r'\centering' + '\n')
         file.write(r'\includegraphics[width=\linewidth,height=%s,keepaspectratio]{%s}' %
