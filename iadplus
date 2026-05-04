@@ -1038,7 +1038,7 @@ def main():
                 print("Sorry, iad failed.  check header maybe?")
                 continue
         else:
-            print('Skipping...')
+            print('Using existing %s' % txt_path)
 
         try:
             result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
