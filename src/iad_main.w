@@ -856,7 +856,7 @@ if (cl_grid_calc != UNINITIALIZED) {
             r.slab.a = r.a;
             r.slab.b = r.b;
             r.slab.g = r.g;
-            if (MAX_MC_iterations==0) {
+            if (MAX_MC_iterations==0 || m.num_spheres==0) {
                 Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
             } else {
                 Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
@@ -1670,13 +1670,13 @@ static void print_results_header(FILE *fp)
         fprintf(fp,"#---------------------------------------------------------");
         fprintf(fp,"--------------------------------------------------------\n");
     } else {
-        fprintf(fp,"#     \tMeasured \t   M_R   \tMeasured \t   M_T   \tEstimated\tEstimated\tEstimated");
+        fprintf(fp,"#     \t Meas \t Fit  \t Meas \t Fit  \t      \t      \t      \t");
         fprintf(fp,"\n");
 
-        fprintf(fp,"##wave\t   M_R   \t   fit   \t   M_T   \t   fit   \t  mu_a   \t  mu_s'  \t    g    ");
+        fprintf(fp,"##wave\t M_R  \t M_R  \t M_T  \t M_T  \t mu_a \t mu_s'\t   g  \t");
         fprintf(fp,"\n");
 
-        fprintf(fp,"# [nm]\t  [---]  \t  [---]  \t  [---]  \t  [---]  \t  1/mm   \t  1/mm   \t  [---]  ");
+        fprintf(fp,"# [nm]\t[---] \t[---] \t[---] \t[---] \t[1/mm]\t[1/mm]\t[---] \t");
         fprintf(fp,"\n");
     }
 }
@@ -1730,11 +1730,11 @@ if (Debug(DEBUG_LOST_LIGHT)) {
     if (mu_a >= 200) mu_a = 199.9999;
     if (mu_sp >= 1000) mu_sp = 999.9999;
 
-    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_r, LR);
-    fprintf(fp, "% 9.4f\t% 9.4f\t", m.m_t, LT);
-    fprintf(fp, "% 9.4f\t", mu_a);
-    fprintf(fp, "% 9.4f\t", mu_sp);
-    fprintf(fp, "% 9.4f\t", r.g);
+    fprintf(fp, "%6.4f\t%6.4f\t", m.m_r, LR);
+    fprintf(fp, "%6.4f\t%6.4f\t", m.m_t, LT);
+    fprintf(fp, "%6.4f\t", mu_a);
+    fprintf(fp, "%6.4f\t", mu_sp);
+    fprintf(fp, "%6.4f\t", r.g);
     fprintf(fp, " %c \n",what_char(display_error));
 }
     fflush(fp);

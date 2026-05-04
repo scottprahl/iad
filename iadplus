@@ -36,6 +36,22 @@ warnings.filterwarnings(
 skyblue = '#00bfff'
 ocean= '#009dc4'
 azure = '#1520a6'
+axis_label_size = 12
+
+GRID_EXPLANATION = (
+    "The grid graph is an orientation map in measured reflectance/transmittance "
+    "space. The colored triangular region shows physically possible measured "
+    "values, the black curves are calculated by rerunning iad on a fixed 7 by "
+    "7 grid of reduced albedo a' and reduced optical thickness b', and the data "
+    "points show the measured and fitted values. The grid uses the sample and "
+    "sphere geometry from the input file and a single fixed anisotropy g, shown "
+    "in the plot title. It is therefore a useful visual guide to where the "
+    "measurements sit, but it is not a separate wavelength-by-wavelength "
+    "uncertainty calculation. When no integrating spheres are used, the grid "
+    "is a direct adding-doubling calculation. When sphere corrections and "
+    "Monte Carlo lost-light corrections are enabled, each grid point includes "
+    "a Monte Carlo estimate."
+)
 
 def scattered_light(g=0, n=1, quad_pts=4):
     """Max scattered light for all optical thicknesses.""" 
@@ -53,9 +69,9 @@ def active_polygon():
 
 def add_x_label(lambda0):
     if lambda0[0] > 300:
-        plt.xlabel('Wavelength (nm)', fontsize=12)
+        plt.xlabel('Wavelength (nm)', fontsize=axis_label_size)
     else:
-        plt.xlabel('Measurement Number', fontsize=12)
+        plt.xlabel('Measurement Number', fontsize=axis_label_size)
 
 def plot_good(x, y, success, big_points=False):
     if big_points:
@@ -151,8 +167,8 @@ def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
     poly = plt.Polygon([[0,0],[0,1],[1,0]], closed=True, facecolor=skyblue, edgecolor='none', alpha=1)
     plt.gca().add_patch(poly)
     plot_gridlines(filename_base)
-    plt.xlabel('$M_R$ (Normalized Reflectance)',fontsize=12)
-    plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=12)
+    plt.xlabel('$M_R$ (Normalized Reflectance)',fontsize=axis_label_size)
+    plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=axis_label_size)
     plt.legend()
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -165,7 +181,7 @@ def plot_rt(lam, mr, mt, filename_base, figure_ext):
     plt.plot(lam, mr, 'ob', markersize=2, label='$M_R$')
     plt.plot(lam, mt, 'or', markersize=2, label='$M_T$')
     plt.plot(lam, mr+mt, 'ok', markersize=2, label='$M_R + M_T$')
-    plt.ylabel('Measurement')
+    plt.ylabel('Measurement', fontsize=axis_label_size)
     add_x_label(lam)
     plt.legend()
     plt.grid(True)
@@ -180,7 +196,7 @@ def plot_r(lam, mr, cr, success, filename_base, figure_ext):
     plot_good_and_bad(lam, cr, success, True)
     plt.plot(lam, mr, 'ok', markersize=2, label='measured')
     add_x_label(lam)
-    plt.ylabel('$M_R$ (Normalized Reflectance)',fontsize=12)
+    plt.ylabel('$M_R$ (Normalized Reflectance)',fontsize=axis_label_size)
     plt.legend()
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -194,7 +210,7 @@ def plot_t(lam, mt, ct, success, filename_base, figure_ext):
     plot_good_and_bad(lam, ct, success, True)
     plt.plot(lam, mt, 'ok', markersize=2, label='measured')
     add_x_label(lam)
-    plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=12)
+    plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=axis_label_size)
     plt.legend()
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -207,7 +223,7 @@ def plot_mua(lam, mua, success, filename_base, figure_ext):
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mua, success)
     add_x_label(lam)
-    plt.ylabel('Absorption Coefficient (mm⁻¹)')
+    plt.ylabel('Absorption Coefficient (mm⁻¹)', fontsize=axis_label_size)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
@@ -229,7 +245,7 @@ def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
         plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
         plt.legend()
 
-    plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)')
+    plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)', fontsize=axis_label_size)
     add_x_label(lam)
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -248,7 +264,7 @@ def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
         fn_str = "mus=%g * (lamba_nm/1000)**(-%g)" % (a_opt, b_opt)
         plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
         plt.legend()
-    plt.ylabel('Scattering Coefficient (mm⁻¹)')
+    plt.ylabel('Scattering Coefficient (mm⁻¹)', fontsize=axis_label_size)
     add_x_label(lam)
     plt.savefig(out_filename, dpi=300)
     plt.close()
@@ -261,7 +277,7 @@ def plot_g(lam, g, success, filename_base, figure_ext):
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, g, success)
     add_x_label(lam)
-    plt.ylabel('Scattering Anisotropy')
+    plt.ylabel('Scattering Anisotropy', fontsize=axis_label_size)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
@@ -272,7 +288,8 @@ def plot_a(lam, a, success, filename_base, figure_ext):
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, a, success)
     add_x_label(lam)
-    plt.ylabel(r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$')
+    plt.ylabel(r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$',
+               fontsize=axis_label_size)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
@@ -283,7 +300,7 @@ def plot_b(lam, b, success, filename_base, figure_ext):
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, b, success)
     add_x_label(lam)
-    plt.ylabel(r'Optical Thickness $(\mu_a+\mu_s)d$')
+    plt.ylabel(r'Optical Thickness $(\mu_a+\mu_s)d$', fontsize=axis_label_size)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
@@ -292,6 +309,8 @@ def append_graph_cell(nb, header, graph):
     cell_text = ''
     if header and header.strip('# '):
         cell_text = header + "\n"
+        if header.strip('# ') == 'Grid Graph':
+            cell_text += "\n" + GRID_EXPLANATION + "\n\n"
     url_encoded_filename = urllib.parse.quote(graph)
     cell_text += "<center>\n"
     cell_text += '    <img src="' + url_encoded_filename + '" width="80%" />\n'
@@ -412,6 +431,15 @@ def latex_escape(text):
     return ''.join(replacements.get(char, char) for char in text)
 
 
+def latex_grid_explanation():
+    """Return the grid explanation with optical-property symbols in math mode."""
+    text = latex_escape(GRID_EXPLANATION)
+    text = text.replace("a'", r"$a'$")
+    text = text.replace("b'", r"$b'$")
+    text = text.replace('anisotropy g,', r'anisotropy $g$,')
+    return text
+
+
 def latex_path(filename):
     """Return a LaTeX-safe path argument."""
     return r'\detokenize{%s}' % filename
@@ -422,6 +450,171 @@ def latex_artifact_name(name):
     safe = name.replace('%', 'pct')
     safe = re.sub(r'[^A-Za-z0-9_.-]+', '_', safe)
     return safe.strip('._') or 'iadplus_report'
+
+
+def get_github_base_url():
+    """Return the GitHub repository URL for this checkout."""
+    try:
+        result = subprocess.run(['git', 'remote', 'get-url', 'origin'],
+                                check=True, capture_output=True, text=True)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return 'https://github.com/scottprahl/iad'
+
+    url = result.stdout.strip()
+    match = re.match(r'git@github\.com:(.+?)(?:\.git)?$', url)
+    if match:
+        return 'https://github.com/' + match.group(1)
+
+    match = re.match(r'https://github\.com/(.+?)(?:\.git)?$', url)
+    if match:
+        return 'https://github.com/' + match.group(1)
+
+    return 'https://github.com/scottprahl/iad'
+
+
+def version_to_tag(version):
+    """Convert iad's printed version string to the release tag form."""
+    return 'v' + version.replace('-', '.')
+
+
+def git_tag_exists(tag):
+    """Return True when a release tag exists in the local checkout."""
+    try:
+        subprocess.run(['git', 'rev-parse', '--verify', '--quiet', 'refs/tags/' + tag],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+
+def git_head_commit():
+    """Return the current git commit hash, or an empty string if unavailable."""
+    try:
+        result = subprocess.run(['git', 'rev-parse', 'HEAD'],
+                                check=True, capture_output=True, text=True)
+        return result.stdout.strip()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ''
+
+
+def git_head_tag():
+    """Return the tag exactly at HEAD, or an empty string if there is none."""
+    try:
+        result = subprocess.run(['git', 'describe', '--tags', '--exact-match', 'HEAD'],
+                                check=True, capture_output=True, text=True)
+        return result.stdout.strip()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ''
+
+
+def git_worktree_is_clean():
+    """Return True when tracked files match HEAD."""
+    try:
+        subprocess.run(['git', 'diff', '--quiet'], check=True)
+        subprocess.run(['git', 'diff', '--cached', '--quiet'], check=True)
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+
+def github_version_links(version):
+    """Return link names and URLs for the iad and iadplus versions used."""
+    base_url = get_github_base_url()
+    tag = version_to_tag(version)
+
+    if git_tag_exists(tag) and git_head_tag() == tag and git_worktree_is_clean():
+        release_url = base_url + '/releases/tag/' + tag
+        return [('iad', release_url), ('iadplus', release_url)]
+
+    commit = git_head_commit()
+    if commit:
+        source_url = base_url + '/tree/' + commit
+    else:
+        source_url = base_url
+
+    return [('iad', source_url), ('iadplus', source_url)]
+
+
+def iadplus_command_line():
+    """Return the current iadplus invocation in a reproducible form."""
+    return ' '.join(shlex.quote(arg) for arg in ['iadplus'] + sys.argv[1:])
+
+
+def display_input_path(input_name):
+    """Return the user-facing input path without an unnecessary absolute prefix."""
+    if os.path.isabs(input_name):
+        try:
+            return os.path.relpath(input_name, os.getcwd())
+        except ValueError:
+            return input_name
+    return input_name
+
+
+def iad_command_line(input_name, options):
+    """Return the user-facing iad command used for this input."""
+    display_name = input_name
+    if not os.path.exists(display_name) and not display_name.endswith('.rxt'):
+        display_name += '.rxt'
+
+    command = ['./iad']
+    if options:
+        command.extend(shlex.split(options))
+    command.extend(['-J', display_input_path(display_name)])
+    return ' '.join(shlex.quote(arg) for arg in command)
+
+
+CITATIONS = [
+    ('Prahl, S. iad: C code for Forward and Inverse Radiative Transport '
+     'using the Adding-Doubling method [Computer software]. '
+     'https://doi.org/10.5281/zenodo.102147394'),
+    ('Pickering, J. W., Prahl, S. A., van Wieringen, N., Beek, J. F., '
+     'Sterenborg, H. J. C. M., and van Gemert, M. J. C. '
+     '"Double-Integrating-Sphere System for Measuring the Optical '
+     'Properties of Tissue", Appl. Opt., 32, 399-410, 1993. '
+     'https://doi.org/10.1364/AO.32.000399'),
+    ('Prahl, S. A., van Gemert, M. J. C., and Welch, A. J. '
+     '"Determining the Optical Properties of Turbid Media by Using the '
+     'Adding-Doubling Method", Appl. Opt., 32, 559-568, 1993. '
+     'https://doi.org/10.1364/AO.32.000559'),
+]
+
+
+def markdown_citations():
+    """Return the citation section for the notebook."""
+    lines = ['Cite as:', '']
+    for index, citation in enumerate(CITATIONS, start=1):
+        citation = re.sub(r'(https?://\S+)', r'[\1](\1)', citation)
+        lines.append('%d. %s' % (index, citation))
+        lines.append('')
+    return '\n'.join(lines)
+
+
+def latex_url(url):
+    """Return a blue underlined clickable URL."""
+    escaped_url = latex_escape(url)
+    return r'\href{%s}{\textcolor{blue}{\uline{%s}}}' % (escaped_url, escaped_url)
+
+
+def latex_citations():
+    """Return the citation section for the PDF."""
+    lines = ['Cite as:', '', r'\begin{enumerate}']
+    for citation in CITATIONS:
+        parts = re.split(r'(https?://\S+)', citation)
+        latex_parts = []
+        for part in parts:
+            if part.startswith('http://') or part.startswith('https://'):
+                latex_parts.append(latex_url(part))
+            else:
+                latex_parts.append(latex_escape(part))
+        lines.append(r'\item ' + ''.join(latex_parts))
+    lines.append(r'\end{enumerate}')
+    lines.append('')
+    return '\n'.join(lines)
+
+
+def latex_straight_quotes(text):
+    """Preserve straight quote characters in LaTeX typewriter text."""
+    return text.replace('"', r'{\textquotedbl}')
 
 
 def write_latex_header_table(file, output_filename):
@@ -499,35 +692,41 @@ def get_thickness(output_filename, input_filename=None):
     raise ValueError('Could not determine sample thickness from %s' % output_filename)
 
 
-def append_header(nb, output_filename):
+def append_header(nb, input_filename, output_filename, iadplus_command, iad_command):
     # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
     # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic_B.txt test/basic_B.rxt
     with open(output_filename, 'r', encoding='utf-8') as file:
         first_line = file.readline()
-        second_line = file.readline()
+        file.readline()
 
     pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
     match = re.search(pattern, first_line)
     if not match:
         raise ValueError('File %s contains bad contents' % output_filename)
     version = match.group(1)
-    build = match.group(2)
 
     today = datetime.today()
-    formatted_date = today.strftime('%d %b %Y')
+    formatted_date = '%d %s' % (today.day, today.strftime('%b %Y'))
+    rxt_name = os.path.basename(input_filename)
 
-    cell_text = "# Inverse Adding-Doubling Analysis\n\n"
-    cell_text += "iad version %s built on %s\n\n" % (version,build)
-    cell_text += "This analysis was done on %s\n\n" % formatted_date
-    cell_text += "The command-line was\n\n"
-    cell_text += "    " + second_line + "\n"
+    cell_text = "# Inverse Adding-Doubling Analysis of %s\n\n" % rxt_name
+    cell_text += "Created on %s\n\n" % formatted_date
+    cell_text += "The commands used to create this document were\n\n"
+    cell_text += "`%s`\n\n\n" % iadplus_command
+    cell_text += "`%s`\n\n" % iad_command
+    cell_text += "Software version used:\n\n"
+    for name, url in github_version_links(version):
+        cell_text += "- %s: [%s](%s)\n\n" % (name, url, url)
+    cell_text += markdown_citations()
     nb.cells.append(new_markdown_cell(cell_text))
 
-def write_verbatim_file(file, filename):
+def write_verbatim_file(file, filename, replace_tabs=False):
     """Embed a text file in a LaTeX Verbatim environment."""
     file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
     with open(filename, 'r', encoding='utf-8') as input_file:
         for line in input_file:
+            if replace_tabs:
+                line = line.replace('\t', ' ')
             file.write(line)
     file.write(r'\end{Verbatim}' + '\n\n')
 
@@ -538,6 +737,8 @@ def write_latex_graph_group(file, graph_group):
     for header, graph in graph_group:
         if header:
             file.write(r'\section*{%s}' % latex_escape(header) + '\n')
+            if header == 'Grid Graph':
+                file.write(latex_grid_explanation() + '\n\n')
         file.write(r'\begin{figure}[H]' + '\n')
         file.write(r'\centering' + '\n')
         file.write(r'\includegraphics[width=\linewidth,height=%s,keepaspectratio]{%s}' %
@@ -545,21 +746,22 @@ def write_latex_graph_group(file, graph_group):
         file.write(r'\end{figure}' + '\n\n')
 
 
-def write_latex_report(tex_path, input_filename, output_filename, graph_groups):
+def write_latex_report(tex_path, input_filename, output_filename, graph_groups, iadplus_command,
+                       iad_command):
     """Write LaTeX source using the same sections as the notebook."""
     with open(output_filename, 'r', encoding='utf-8') as file:
         first_line = file.readline()
-        second_line = file.readline()
+        file.readline()
 
     pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
     match = re.search(pattern, first_line)
     if not match:
         raise ValueError('File %s contains bad contents' % output_filename)
     version = match.group(1)
-    build = match.group(2)
 
     today = datetime.today()
-    formatted_date = today.strftime('%d %b %Y')
+    formatted_date = '%d %s' % (today.day, today.strftime('%b %Y'))
+    rxt_name = os.path.basename(input_filename)
 
     with open(tex_path, 'w', encoding='utf-8') as file:
         file.write(r'\documentclass[11pt]{article}' + '\n')
@@ -569,7 +771,9 @@ def write_latex_report(tex_path, input_filename, output_filename, graph_groups):
         file.write(r'\usepackage{fancyvrb}' + '\n')
         file.write(r'\usepackage{longtable}' + '\n')
         file.write(r'\usepackage{titlesec}' + '\n')
-        file.write(r'\usepackage[hidelinks]{hyperref}' + '\n')
+        file.write(r'\usepackage{xcolor}' + '\n')
+        file.write(r'\usepackage[normalem]{ulem}' + '\n')
+        file.write(r'\usepackage[colorlinks=true,urlcolor=blue]{hyperref}' + '\n')
         file.write(r'\setlength{\parindent}{0pt}' + '\n')
         file.write(r'\setlength{\parskip}{0.8em}' + '\n')
         file.write(r'\setlength{\intextsep}{0.35em}' + '\n')
@@ -577,14 +781,17 @@ def write_latex_report(tex_path, input_filename, output_filename, graph_groups):
         file.write(r'\setlength{\floatsep}{0.35em}' + '\n')
         file.write(r'\titlespacing*{\section}{0pt}{0.6em}{0.2em}' + '\n')
         file.write(r'\begin{document}' + '\n')
-        file.write(r'\section*{Inverse Adding-Doubling Analysis}' + '\n\n')
-        file.write('iad version %s built on %s\n\n' %
-                   (latex_escape(version), latex_escape(build)))
-        file.write('This analysis was done on %s\n\n' % latex_escape(formatted_date))
-        file.write('The command-line was\n\n')
-        file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
-        file.write(second_line.lstrip('# '))
-        file.write(r'\end{Verbatim}' + '\n\n')
+        file.write(r'\section*{Inverse Adding-Doubling Analysis of %s}' %
+                   latex_escape(rxt_name) + '\n\n')
+        file.write('Created on %s\n\n' % latex_escape(formatted_date))
+        file.write('The commands used to create this document were\n\n')
+        file.write(r'\texttt{%s}\\' % latex_straight_quotes(latex_escape(iadplus_command)) + '\n')
+        file.write(r'\texttt{%s}' % latex_straight_quotes(latex_escape(iad_command)) + '\n\n')
+        file.write('Software version used:\n\n')
+        for name, url in github_version_links(version):
+            file.write('%s: ' % latex_escape(name))
+            file.write(latex_url(url) + r'\\' + '\n')
+        file.write('\n' + latex_citations() + '\n')
         write_latex_graph_group(file, graph_groups[0])
         file.write(r'\clearpage' + '\n\n')
         write_latex_header_table(file, output_filename)
@@ -600,7 +807,7 @@ def write_latex_report(tex_path, input_filename, output_filename, graph_groups):
             file.write(r'\clearpage' + '\n')
             file.write(r'\section*{%s}' % latex_escape(header) + '\n')
             filename = input_filename if suffix == '.rxt' else output_filename
-            write_verbatim_file(file, filename)
+            write_verbatim_file(file, filename, replace_tabs=True)
 
         file.write(r'\end{document}' + '\n')
 
@@ -690,6 +897,7 @@ def main():
     parser.add_argument('--pdf', action='store_true',
                         help='Create LaTeX source and PDF-ready figures instead of a notebook')
     args = parser.parse_args()
+    iadplus_command = iadplus_command_line()
 
     # You can then iterate over this list to open and process each file
     outputs = []
@@ -701,6 +909,7 @@ def main():
         base, base_path = create_output_directory(file_name, args.dir, args.sdir, suffix)
         if base_path == '':
             continue
+        iad_command = iad_command_line(file_name, args.options)
 
         artifact_base_path = base_path
         if args.pdf:
@@ -777,7 +986,8 @@ def main():
 
         if args.pdf:
             tex_path = artifact_base_path + '.tex'
-            write_latex_report(tex_path, base_path + '.rxt', txt_path, graph_groups)
+            write_latex_report(tex_path, base_path + '.rxt', txt_path, graph_groups,
+                               iadplus_command, iad_command)
             try:
                 outputs.append(run_pdflatex(tex_path))
             except (FileNotFoundError, subprocess.CalledProcessError):
@@ -791,7 +1001,7 @@ def main():
                 'name': 'python3'
             }
 
-            append_header(nb, txt_path)
+            append_header(nb, base_path + '.rxt', txt_path, iadplus_command, iad_command)
             for header, graph in graph_groups[0]:
                 append_graph_cell(nb, '## ' + header, graph)
 
