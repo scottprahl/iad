@@ -1710,6 +1710,9 @@ int main(int argc, char **argv)
                     }
                 }
 
+                if (!r.found && r.error == IAD_NO_ERROR)
+                    r.error = IAD_TOO_MANY_ITERATIONS;
+
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                 print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);
 
@@ -2386,6 +2389,9 @@ int main(int argc, char **argv)
                         }
                     }
                 }
+
+                if (!r.found && r.error == IAD_NO_ERROR)
+                    r.error = IAD_TOO_MANY_ITERATIONS;
 
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                 print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);
