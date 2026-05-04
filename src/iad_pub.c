@@ -143,7 +143,9 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
 
 int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
 {
-    double ru, tu;
+    double ru, tu, mr_limit, mt_limit, distance;
+    struct measure_type old_mm;
+    struct invert_type old_rr;
 
     if (m.num_spheres != 2) {
 
@@ -155,8 +157,13 @@ int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
 
         Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide,
             r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
+        Get_Calc_State(&old_mm, &old_rr);
+        Set_Calc_State(m, r);
+        Calculate_Distance_With_Corrections(ru, tu, ru, tu, 0, 0, &mr_limit, &mt_limit, &distance);
+        Set_Calc_State(old_mm, old_rr);
 
-        if (m.num_spheres != 2 && m.m_t > tu)
+        fprintf(stderr, "\n mt=%8.4f mlimit=%8.4f\n", m.m_t, mt_limit);
+        if (m.m_t > mt_limit)
             return IAD_MT_TOO_BIG;
 
         {
@@ -197,7 +204,7 @@ int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
     if (m.m_u < 0)
         return IAD_MU_TOO_SMALL;
 
-    if (m.m_t > 0 && m.m_u > m.m_t)
+    if (m.m_t > 0 && m.fraction_of_tu_in_mt * m.m_u > m.m_t)
         return IAD_MU_TOO_BIG;
 
     if (m.num_spheres != 0) {

@@ -241,12 +241,21 @@ of the reflectance and transmittance is less than one.  Instead we use
 the transmittance to bound the values for the reflectance --- see the
 routine |MinMax_MR_MT| below.
 
+The \.{-c} and \.{-C} command-line flags control how much unscattered
+reflection and transmission are included in the measured \.{M_R} and
+\.{M_T}.  Consequently, the input checks must compare against the
+largest measurements that could be produced with the same collected
+unscattered fractions, rather than against the raw unscattered reflection
+or transmission alone.
+
 @s error x
 
 @<Definition for |measure_OK|@>=
 @<Prototype for |measure_OK|@>
 {
-    double ru, tu;
+    double ru, tu, mr_limit, mt_limit, distance;
+    struct measure_type old_mm;
+    struct invert_type old_rr;
 
     if (m.num_spheres != 2) {
         @<Check \.{MT} for zero or one spheres@>@;
@@ -265,11 +274,11 @@ routine |MinMax_MR_MT| below.
 }
 
 @ The reflectance is constrained by the index of refraction of the material
-and the transmission.  The upper bound for the reflectance is just one minus the
-transmittance.  The specular (unscattered) reflectance from the boundaries
-imposes minimum for the reflectance. Obviously, the reflected light cannot be
-less than that from the first boundary.  This might be calculated by assuming an
-infinite layer thickness.  But we can do better.
+and the transmission.  The specular (unscattered) reflectance from the
+boundaries imposes a minimum for the reflectance. Obviously, the reflected light
+cannot be less than the portion of unscattered reflection that is collected in
+\.{M_R}.  This might be calculated by assuming an infinite layer thickness.  But
+we can do better.
 
 There is a definite bound on the minimum reflectance from a sample. If you
 have a sample with a given transmittance |m_t|, the minimum reflectance possible
@@ -312,10 +321,11 @@ no need to check \.{MR} because it is ignored.
     }
 
 @ The transmittance is also constrained by the index of refraction of the
-material.  The minimum transmittance is zero, but the maximum transmittance
-cannot exceed the total light passing through the sample when there is no
-scattering or absorption.  This is calculated by assuming an infinitely thin (to
-eliminate any scattering or absorption effects).
+material.  The minimum transmittance is zero, but the maximum measured
+transmittance cannot exceed the light that would be collected when there is no
+scattering or absorption.  This is calculated by assuming an infinitely thin slab
+(to eliminate any scattering or absorption effects) and then applying the same
+unscattered-light collection fraction used for the measurement.
 
 There is a problem when two spheres are present.  The estimated values
 for the transmittance using |Sp_mu_RT| are not actually limiting cases.
@@ -332,20 +342,26 @@ when two spheres are used.
 
     Sp_mu_RT_Flip(m.flip_sample, r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide,
              r.slab.b_top_slide, 0, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
+    Get_Calc_State(&old_mm, &old_rr);
+    Set_Calc_State(m, r);
+    Calculate_Distance_With_Corrections(ru, tu, ru, tu, 0, 0,
+             &mr_limit, &mt_limit, &distance);
+    Set_Calc_State(old_mm, old_rr);
 
-    if (m.num_spheres != 2 && m.m_t > tu)
+    fprintf(stderr,"\n mt=%8.4f mlimit=%8.4f\n", m.m_t, mt_limit);
+    if (m.m_t > mt_limit)
         return IAD_MT_TOO_BIG;
 
-@  The unscattered transmission is now always included in the total
-transmittance.  Therefore the unscattered transmittance must fall betwee
-zero and |M_T|
+@  Only the fraction of unscattered transmission specified by \.{-C} is
+included in the total transmittance measurement.  Therefore the collected
+unscattered contribution must fall between zero and |M_T|.
 
 @<Check MU @>=
 
     if (m.m_u < 0)
         return IAD_MU_TOO_SMALL;
 
-    if (m.m_t > 0 && m.m_u > m.m_t)
+    if (m.m_t > 0 && m.fraction_of_tu_in_mt * m.m_u > m.m_t)
         return IAD_MU_TOO_BIG;
 
 
