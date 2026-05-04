@@ -33,6 +33,9 @@ warnings.filterwarnings(
     message="Input line .* contained no data and will not be counted",
 )
 
+IAD_OPTIONS_WITH_VALUES = set('12aAbBcCdDeEfFgGHijlLMnNopqrRsStTuVwWx')
+IAD_OPTIONS_WITHOUT_VALUES = set('JhXv')
+
 skyblue = '#00bfff'
 yellow = '#FFEA00'
 ocean= '#009dc4'
@@ -557,15 +560,14 @@ def display_input_path(input_name):
     return input_name
 
 
-def iad_command_line(input_name, options):
+def iad_command_line(input_name, iad_args):
     """Return the user-facing iad command used for this input."""
     display_name = input_name
     if not os.path.exists(display_name) and not display_name.endswith('.rxt'):
         display_name += '.rxt'
 
     command = ['./iad']
-    if options:
-        command.extend(shlex.split(options))
+    command.extend(iad_args)
     command.extend(['-J', display_input_path(display_name)])
     return ' '.join(shlex.quote(arg) for arg in command)
 
@@ -873,12 +875,14 @@ def create_output_directory(input_name, directory, subdirectory, suffix):
 
     # if file.txt exists, copy it to the output directory
     txt_name = os.path.join(local_dir, base + '.txt')
-    if os.path.exists(txt_name):
+    output_txt_name = os.path.join(output_dir, base + '.txt')
+    if os.path.exists(txt_name) and not os.path.exists(output_txt_name):
         shutil.copy(txt_name, output_dir)
 
     # if file.grid exists, copy it to the output directory
     grid_name = os.path.join(local_dir, base + '.grid')
-    if os.path.exists(grid_name):
+    output_grid_name = os.path.join(output_dir, base + '.grid')
+    if os.path.exists(grid_name) and not os.path.exists(output_grid_name):
         shutil.copy(grid_name, output_dir)
 
     # the base name for all created files
@@ -886,13 +890,94 @@ def create_output_directory(input_name, directory, subdirectory, suffix):
 
     return base, base_path
 
+def txt_matches_iad_command(txt_path, command_str):
+    """Return True when an existing output file was made by command_str."""
+    if not os.path.exists(txt_path) or os.path.getsize(txt_path) == 0:
+        return False
+
+    with open(txt_path, 'r', encoding='utf-8') as file:
+        for line in file:
+            if not line.startswith('#'):
+                break
+            header_line = line[1:].strip()
+            if header_line == command_str:
+                return True
+
+    return False
+
+def split_iadplus_arguments(argv, parser):
+    """Split iadplus arguments from short options that should pass to iad."""
+    iadplus_argv = []
+    iad_args = []
+    input_files = []
+    iadplus_options_with_values = {'--options', '--dir', '--sdir'}
+    index = 0
+
+    while index < len(argv):
+        arg = argv[index]
+
+        if arg == '--':
+            input_files.extend(argv[index + 1:])
+            break
+
+        if arg == '-h' or arg == '--help':
+            iadplus_argv.append(arg)
+            index += 1
+            continue
+
+        if arg.startswith('--'):
+            option_name = arg.split('=', 1)[0]
+            if option_name in iadplus_options_with_values and '=' not in arg:
+                index += 1
+                if index >= len(argv):
+                    parser.error('%s requires an argument' % arg)
+                if option_name == '--options':
+                    iadplus_argv.append(arg + '=' + argv[index])
+                else:
+                    iadplus_argv.extend([arg, argv[index]])
+            else:
+                iadplus_argv.append(arg)
+            index += 1
+            continue
+
+        if arg.startswith('-') and arg != '-':
+            option_text = arg[1:]
+            while option_text:
+                option = option_text[0]
+                remainder = option_text[1:]
+
+                if option == 'z':
+                    parser.error('iadplus does not support passing -z to iad')
+
+                if option in IAD_OPTIONS_WITH_VALUES:
+                    if remainder:
+                        value = remainder[1:] if remainder.startswith('=') else remainder
+                    else:
+                        index += 1
+                        if index >= len(argv):
+                            parser.error('-%s requires an argument' % option)
+                        value = argv[index]
+                    iad_args.extend(['-' + option, value])
+                    option_text = ''
+                elif option in IAD_OPTIONS_WITHOUT_VALUES:
+                    iad_args.append('-' + option)
+                    option_text = remainder
+                else:
+                    parser.error('unknown iad option -%s' % option)
+            index += 1
+            continue
+
+        input_files.append(arg)
+        index += 1
+
+    return iadplus_argv, iad_args, input_files
+
 def main():
     desc =  'A wrapper for the iad program that creates a Jupyter notebook with plots '
     desc += 'of the input, the fitted results, and the derived optical properties.'
     parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument('input_files', nargs='+', help='List of .rxt files to process')
-    parser.add_argument('--options', metavar='OPTIONS', type=str, nargs='?',
-                        help='options to pass to iad program, e.g., "-c 0"')
+    parser.add_argument('--options', metavar='OPTIONS', type=str, default='',
+                        help='legacy way to pass options to iad, e.g., "-c 0"')
     parser.add_argument('--dir',  metavar='DIRECTORY', default=None,
                         help='explicit name of directory to store notebook and files')
     parser.add_argument('--sdir',  metavar='SUBDIRECTORY', default=None,
@@ -903,7 +988,19 @@ def main():
                         help='Fit scattering data to a*(λ/1000nm)**(-b)')
     parser.add_argument('--pdf', action='store_true',
                         help='Create LaTeX source and PDF-ready figures instead of a notebook')
-    args = parser.parse_args()
+    iadplus_argv, direct_iad_args, input_files = split_iadplus_arguments(sys.argv[1:], parser)
+    args = parser.parse_args(iadplus_argv)
+    args.input_files = input_files
+    args.iad_args = []
+    if args.options:
+        _, legacy_iad_args, legacy_input_files = split_iadplus_arguments(
+            shlex.split(args.options), parser)
+        if legacy_input_files:
+            parser.error('--options should only contain iad options')
+        args.iad_args.extend(legacy_iad_args)
+    args.iad_args.extend(direct_iad_args)
+    if not args.input_files:
+        parser.error('at least one input file is required')
     iadplus_command = iadplus_command_line()
 
     # You can then iterate over this list to open and process each file
@@ -916,7 +1013,7 @@ def main():
         base, base_path = create_output_directory(file_name, args.dir, args.sdir, suffix)
         if base_path == '':
             continue
-        iad_command = iad_command_line(file_name, args.options)
+        iad_command = iad_command_line(file_name, args.iad_args)
 
         artifact_base_path = base_path
         if args.pdf:
@@ -925,24 +1022,36 @@ def main():
 
         # doing the iad analysis can be slow, avoid if possible
         txt_path = base_path + '.txt'
-        exists_and_is_non_zero = os.path.exists(txt_path) and os.path.getsize(txt_path) > 0
-        if args.force or not exists_and_is_non_zero:
-            command = ['iad']
-            if args.options:
-                command.extend(shlex.split(args.options))
-            command.append('-J')
-            command.extend([shlex.quote(base_path+'.rxt')])
-            command_str = ' '.join(command)
+        command = ['iad']
+        command.extend(args.iad_args)
+        command.append('-J')
+        command.append(base_path + '.rxt')
+        command_str = ' '.join(shlex.quote(item) for item in command)
+        ran_iad = False
+        current_output = txt_matches_iad_command(txt_path, command_str)
+        if args.force or not current_output:
             print('running:', command_str)
             try:
                 subprocess.run(command, shell=False, check=True)
+                ran_iad = True
             except subprocess.CalledProcessError:
                 print("Sorry, iad failed.  check header maybe?")
                 continue
         else:
             print('Skipping...')
 
-        result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
+        try:
+            result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
+        except ValueError:
+            if ran_iad:
+                raise
+            print('Existing output could not be parsed, rerunning...')
+            try:
+                subprocess.run(command, shell=False, check=True)
+            except subprocess.CalledProcessError:
+                print("Sorry, iad failed.  check header maybe?")
+                continue
+            result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
         lam, mr, cr, mt, ct, mua, musp, g = result.T
         lam = np.atleast_1d(lam)
         mr = np.atleast_1d(mr)
