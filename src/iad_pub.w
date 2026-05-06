@@ -242,8 +242,8 @@ the transmittance to bound the values for the reflectance --- see the
 routine |MinMax_MR_MT| below.
 
 The \.{-c} and \.{-C} command-line flags control how much unscattered
-reflection and transmission are included in the measured \.{M_R} and
-\.{M_T}.  Consequently, the input checks must compare against the
+reflection and transmission are included in the measured \.{M\_R} and
+\.{M\_T}.  Consequently, the input checks must compare against the
 largest measurements that could be produced with the same collected
 unscattered fractions, rather than against the raw unscattered reflection
 or transmission alone.
@@ -277,7 +277,7 @@ or transmission alone.
 and the transmission.  The specular (unscattered) reflectance from the
 boundaries imposes a minimum for the reflectance. Obviously, the reflected light
 cannot be less than the portion of unscattered reflection that is collected in
-\.{M_R}.  This might be calculated by assuming an infinite layer thickness.  But
+\.{M\_R}.  This might be calculated by assuming an infinite layer thickness.  But
 we can do better.
 
 There is a definite bound on the minimum reflectance from a sample. If you
