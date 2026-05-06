@@ -428,6 +428,249 @@ contract phantoms that we made were now consistent!
 \subsubsection*{User Issues 3}
 
 \clearpage
+\section{How IAD works}
+
+This section describes how \iadprog{} turns measured reflection and transmission
+values into optical properties.  The adding-doubling calculation itself is
+treated here as a forward calculation: given an albedo $a$, optical thickness
+$b$, anisotropy $g$, boundary indices, slide properties, and illumination
+geometry, it returns the slab reflection and transmission values needed by the
+inverse program.  The inverse part of \iadprog{} is the machinery that chooses
+trial optical properties, predicts what the experiment would measure for those
+properties, and decides whether the prediction is close enough to the data.
+
+\subsection{The main data flow}
+
+For each wavelength, \iadprog{} works with two central records.  The measurement
+record describes the experiment: measured $M_R$, measured $M_T$, optional
+$M_U$, sample and slide geometry, integrating-sphere geometry, unscattered-light
+collection fractions, beam diameter, and the current estimates of light lost
+outside the spheres.  The inversion record describes the analysis: the current
+slab optical properties, user-specified constraints, the selected search mode,
+the distance metric, tolerances, iteration counts, and the final status.
+
+The inversion entry point validates the measurements, chooses a search mode
+when the user has not explicitly specified one, and then calls the appropriate
+one- or two-parameter search.  Each trial follows the same path:
+\begin{enumerate}
+\item start from a trial optical state $(a,b,g)$,
+\item run the forward adding-doubling and boundary calculations to obtain
+      ideal slab reflection and transmission values,
+\item convert those ideal slab values into predicted instrument measurements
+      by applying unscattered-light, sphere, and lost-light corrections,
+\item calculate a scalar distance between predicted and measured values, and
+\item let the optimizer choose the next trial state.
+\end{enumerate}
+After a successful inversion, the reported $\mu_a$, $\mu_s$, and $\mu_s'$ are
+derived from the best values of $a$, $b$, $g$, and the physical sample
+thickness.  In this notation, $b$ is the total optical depth and $a$ is the
+fraction of that optical depth due to scattering.
+
+\subsection{Choosing the unknowns}
+
+The program does not always solve for the same variables.  The search mode is
+chosen from the independent measurements and the constraints supplied by the
+user.  One-parameter searches solve for one of $a$, $b$, $g$, $\mu_a d$, or
+$\mu_s d$ when the remaining information is fixed or implied.  Two-parameter
+searches solve for pairs such as $(a,b)$, $(a,g)$, $(b,g)$,
+$(\mu_a d,g)$, or $(\mu_s d,g)$.  The common case with measured $M_R$ and
+$M_T$ and a fixed or default $g$ is an $(a,b)$ search.
+
+The search-selection code first counts available measurements and constraints.
+It then removes measurements that do not contain useful diffuse information in
+the current limiting case.  If the number of constraints plus measurements is
+larger than the three optical properties can support, \iadprog{} warns that the
+problem is over-constrained, but it still tries to choose a reasonable search.
+
+\subsection{Forward prediction}
+
+Every optimizer callback updates the trial optical properties and asks for the
+distance.  The distance calculation first obtains the four ideal slab values
+\[
+  \mathrm{UR1},\quad \mathrm{UT1},\quad \mathrm{URU},\quad \mathrm{UTU}.
+\]
+The first two are total reflection and transmission for direct illumination;
+the second two are the corresponding quantities for diffuse illumination.
+The code also calculates the unscattered reflected and transmitted parts,
+called $R_u$ and $T_u$, from specular propagation through the boundaries,
+sample, and slides.
+
+These ideal slab quantities are not yet the measurements.  They are passed to
+the measurement model, which accounts for what the instrument actually collects.
+This separation is important: adding-doubling predicts what an infinite slab
+does, while the \iadprog{} measurement model predicts what the integrating
+sphere experiment reports.
+
+\subsection{Integrating-sphere corrections}
+
+Integrating spheres change the relationship between slab reflectance and the
+normalized measurements $M_R$ and $M_T$.  Before the sphere formulas are
+applied, \iadprog{} forms corrected slab values.  Diffuse values are reduced by
+diffuse lost light,
+\[
+  \mathrm{URU}_\mathit{calc}=\mathrm{URU}-\mathrm{URU}_\mathit{lost}, \qquad
+  \mathrm{UTU}_\mathit{calc}=\mathrm{UTU}-\mathrm{UTU}_\mathit{lost}.
+\]
+Direct values are reduced both by intentionally uncollected unscattered light
+and by scattered light lost outside the sphere ports,
+\[
+  \mathrm{UR1}_\mathit{calc}=\mathrm{UR1}-(1-f_{R_u})R_u-\mathrm{UR1}_\mathit{lost},
+\]
+\[
+  \mathrm{UT1}_\mathit{calc}=\mathrm{UT1}-(1-f_{T_u})T_u-\mathrm{UT1}_\mathit{lost}.
+\]
+Here $f_{R_u}$ and $f_{T_u}$ are the fractions of unscattered reflection and
+transmission included in the measured totals.
+
+With no spheres, the predicted measurements are simply the corrected direct
+reflection and transmission.  With one sphere, \iadprog{} models reflection
+and transmission measurements separately, including wall reflectivity, sample,
+detector, and third-port areas, baffles, standards, entrance-port effects,
+unscattered-light collection, and sphere gain.  With two spheres, the
+double-sphere formulas account for light exchanged between the reflection and
+transmission spheres before detection.
+
+Sphere correction is part of every distance evaluation.  The optimizer is
+therefore fitting sphere-normalized measurements, not raw slab values.
+
+\subsection{The adaptive grid}
+
+Two-parameter inverse searches are nonlinear and a poor starting point can lead
+to slow convergence or to the wrong local region.  For this reason \iadprog{}
+builds an adaptive forward grid before launching the local optimizer.  The grid
+is used for the main two-parameter searches $(a,b)$, $(a,g)$, and $(b,g)$.
+
+The grid is built in transformed coordinates.  The albedo and anisotropy axes
+use nonlinear maps that place more samples near sensitive boundaries, while the
+optical-thickness axis is logarithmic because useful $b$ values span many
+orders of magnitude.  Each grid entry stores the physical $(a,b,g)$ and the raw
+adding-doubling values $\mathrm{UR1}$, $\mathrm{UT1}$, $\mathrm{URU}$, and
+$\mathrm{UTU}$.
+The final distance is not cached.  Instead, distances are recalculated when
+candidate guesses are requested, so current sphere settings and current
+lost-light estimates are always reflected.
+
+The grid is rebuilt only when the physical context changes: the search mode,
+sample or slide indices, slide thicknesses, illumination angle, number of
+spheres, number of measurements, $M_U$ when present, or the fixed axis for the
+active search.  Lost-light terms alone do not invalidate the grid because the
+raw adding-doubling values can be reused.
+
+The adaptive subdivision criterion is based on sphere-corrected
+$(M_R,M_T)$ space.  A cell is refined when the value calculated at its center
+differs too much from bilinear interpolation of its corners.  This puts more
+forward calculations where the measurement response is changing rapidly,
+instead of spending a fixed rectangular grid everywhere.
+
+After the grid has been built, the best candidates are ranked using the same
+measurement-space distance used by the optimizer.  The program also tries a
+small local closure search by taking promising axis values, adding midpoints,
+and evaluating their cross-combinations.  This helps find good starts when the
+best point lies between diagonal grid samples.
+
+\subsection{Seeding the simplex}
+
+For two-parameter searches, the best grid or previous-result candidate becomes
+the first vertex of the Nelder-Mead simplex.  The other vertices are formed by
+small positive steps along the active coordinates.  The search is bounded in
+physical coordinates: $0\le a\le1$, $b>0$, and
+$-\mathtt{MAX\_ABS\_G}\le g\le\mathtt{MAX\_ABS\_G}$.
+
+Under ordinary inversion, the default step is five percent of the current
+coordinate, with a small floor when the coordinate is zero.  During Monte Carlo
+re-inversion, the code supplies smaller hot-start steps because the previous
+solution should already be close to the new solution after the lost-light
+estimate has changed.  The grid gives the search a global starting region; the
+small physical simplex gives the local optimizer a stable shape near that
+region.
+
+One-parameter searches do not use a simplex.  They use bracketing and Brent
+minimization, with transformed coordinates where needed to keep the result in
+the physical range.
+
+\subsection{Lost light}
+
+Adding-doubling is one-dimensional and assumes an infinite lateral slab.  Real
+samples are finite.  Scattered photons can leave through the sample edge or
+emerge outside a finite sphere port, reducing the light that the detector sees.
+\iadprog{} estimates this finite-sample correction with an internal Monte Carlo
+calculation.
+
+The Monte Carlo calculation uses the current optical properties, sample and
+slide indices, sample and slide thicknesses, beam diameter, illumination angle,
+and sphere-port diameters inferred from the port areas.  It returns lost-light
+fractions for direct reflection and transmission, and, for substitution sphere
+measurements, diffuse reflection and transmission.
+
+The command-line program feeds this result back into the inversion as a
+fixed-point iteration:
+\begin{enumerate}
+\item run the ordinary sphere-corrected inversion with zero lost light,
+\item run Monte Carlo for the current optical properties,
+\item compare the new lost-light estimates with the stored estimates,
+\item update the stored lost light by a relaxation factor rather than taking
+      the full jump,
+\item re-run the inversion using the updated lost-light values, and
+\item repeat until the optical coefficients and lost-light estimates stabilize
+      or the Monte Carlo iteration limit is reached.
+\end{enumerate}
+The number of photons is adapted during this process.  Early iterations can use
+fewer photons to move cheaply; later iterations use more photons to reduce
+Monte Carlo noise.
+
+This feedback is needed because lost light depends on the optical properties,
+but the optical properties inferred from $M_R$ and $M_T$ depend on the amount
+of lost light.  The iterative loop solves these coupled estimates together.
+\iadprog{} also checks whether the estimated lost light exceeds what is
+physically compatible with the measurements and can scale the lost-light terms
+down when necessary.
+
+\subsection{What is minimized}
+
+\iadprog{} does not minimize error in $a$, $b$, $g$, $\mu_a$, or $\mu_s'$.
+It minimizes a scalar distance between the measured instrument values and the
+predicted instrument values:
+\[
+  D = f(M_{R,\mathit{calc}}-M_{R,\mathit{meas}},
+        M_{T,\mathit{calc}}-M_{T,\mathit{meas}}).
+\]
+The predicted values already include boundary handling, unscattered-light
+collection choices, sphere gain, standards, ports, and current lost-light
+estimates.
+
+The default metric is a scaled $L^2$ distance.  Each residual is divided by
+the larger of the measured value and 0.01, and then squared.  For
+two-parameter searches, transmission is included and reflection is included
+unless the albedo is fixed at zero.  For one-parameter searches, transmission
+is used when a transmission measurement exists; otherwise reflection is used.
+Older relative and absolute metrics are also available through the command-line
+options.
+
+Thus, success means success in corrected measurement space.  A small final
+distance means that the final optical properties reproduce the measured
+$M_R$ and $M_T$ under the specified instrument model.  It does not prove that
+the assumed sphere geometry, standards, sample thickness, or fixed anisotropy
+are correct.
+
+\subsection{Success criteria}
+
+The immediate success criterion is that the final distance is smaller than the
+requested tolerance.  The default inversion tolerance is $10^{-4}$.  If the
+optimizer reaches the iteration limit before satisfying this tolerance, the row
+is marked as not found.  A later check can still accept a boundary case if the
+final distance is already below tolerance.
+
+After inversion, the measurements are checked again against physical and
+instrument-specific limits.  When the data violate these limits, \iadprog{}
+reports the more specific data-quality error rather than only reporting a
+generic convergence failure.
+
+When Monte Carlo lost-light correction is enabled, success also requires each
+re-inversion to converge and the derived $\mu_a$ and $\mu_s'$ to stop changing
+by more than the Monte Carlo tolerance.  If a Monte Carlo re-inversion fails,
+the program preserves the most specific error code available.
+
+\clearpage
 \section{Installation}
 
 \subsection{Obtaining the code}
@@ -542,25 +785,297 @@ macOS it is usually \texttt{.dylib}; on Linux you'll want to set
 
 \subsubsection{Testing}
 
-Once the code has been compiled, \iadprog{} can be tested by running
+Once the code has been compiled, the quickest check is
 \begin{verbatim}
-    prompt> make veryshorttest
+prompt> make veryshorttest
 \end{verbatim}
-
-A more extensive set of command-line tests can be run using
+For routine development, use
 \begin{verbatim}
-    prompt> make test
+prompt> make test
 \end{verbatim}
+The complete validation targets are described in the next section.
 
-Finally, if you want to run tests against the example datasets in
-\texttt{tests/rxt}, then do
+\clearpage
+
+\section{Validation}
+
+The repository includes command-line regression tests, batch tests over
+\texttt{.rxt} files, and a few lower-level executable tests.  These tests are
+not a proof that every possible experiment is correct, but they do exercise the
+main pathways through \iadprog{}: command-line parsing, inverse searches,
+forward calculations, sphere corrections, glass-slide boundary handling,
+unscattered light handling, Monte Carlo lost-light correction, and file
+processing.
+
+Most tests use the shell scripts in \texttt{tests/cli}.  The scripts run the
+program in a temporary directory, extract numeric output, and compare it against
+stored reference values with a small tolerance.  The batch tests instead verify
+that each \texttt{.rxt} file can be processed and that an output file is
+created.
+
+\subsection{Primary test targets}
+
+\begin{description}
+\item[\texttt{make veryshorttest}]
+Builds \iadprog{} and runs the smallest deterministic command-line suite.  This
+is the best installation smoke test.  It covers one-measurement, two-measurement,
+and three-measurement inversions; no-sphere operation; a minimal one-sphere
+case with Monte Carlo disabled; and the basic search paths used when $M_R$,
+$M_T$, and $M_U$ are supplied from the command line.
+
+\item[\texttt{make test} or \texttt{make shorttest}]
+Builds \iadprog{} and \texttt{ad}, then runs the normal deterministic CLI
+regression suite.  This includes all \texttt{veryshorttest} cases plus forward
+mode \texttt{-z}, no-sphere file processing, one-sphere and two-sphere
+deterministic sphere corrections, multiple input-file workflows, option
+validation, and the basic \texttt{ad} forward-calculation checks.  Use this
+target after ordinary code changes.
+
+\item[\texttt{make longtest}]
+Builds \iadprog{} and processes every \texttt{.rxt} file under
+\texttt{tests/rxt} with Monte Carlo disabled.  This is a broad compatibility
+test for the file parser, header interpretation, wavelength-row processing,
+output-file creation, and the many historical data-file formats represented in
+the test directory.  Because it disables Monte Carlo updates, it is slower than
+\texttt{make test} but still deterministic.
+
+\item[\texttt{make test0}]
+Runs the batch file workflow only for \texttt{tests/rxt/0\_sphere}.  These
+fixtures exercise inverse calculations when no integrating sphere correction is
+applied.  They cover command-file inputs for simple reflectance-only,
+reflectance/transmittance, and constrained optical-property searches.
+
+\item[\texttt{make test1}]
+Runs the batch file workflow for \texttt{tests/rxt/1\_sphere}.  These fixtures
+exercise single-sphere reflectance and transmittance correction, sphere header
+fields, wall reflectance, baffle choices, calibration standards, wavelength
+ranges, and a wide collection of historical one-sphere data files.  Some cases
+also exercise lost-light handling unless the target-specific options disable it.
+
+\item[\texttt{make test2}]
+Runs the batch file workflow for \texttt{tests/rxt/2\_sphere}.  These fixtures
+exercise double-sphere substitution measurements, simultaneous $M_R$ and $M_T$
+geometry, double-sphere gain calculations, and the two-sphere normalization used
+for files such as \texttt{double.rxt}.
+
+\item[\texttt{make test1\_nomc}]
+Runs the one-sphere batch tests with \texttt{-M 0}.  This isolates the
+deterministic single-sphere gain and normalization code from Monte Carlo
+lost-light updates.  It is useful when checking changes to sphere correction,
+input parsing, or search logic without introducing random Monte Carlo variation.
+
+\item[\texttt{make test2\_nomc}]
+Runs the two-sphere batch tests with \texttt{-M 0}.  This isolates deterministic
+double-sphere normalization and search behavior from lost-light updates.
+\end{description}
+
+\subsection{What the short test suite covers}
+
+The \texttt{make test} target is the most useful day-to-day validation target
+because it combines focused numeric regressions with file-workflow checks.
+Internally it runs the following scripts:
+
+\begin{description}
+\item[\texttt{test\_iad\_basic.sh}]
+Checks command-line inversions from direct measurements.  It covers
+reflectance-only, reflectance/transmittance, and reflectance/transmittance/
+unscattered-transmittance cases; index mismatch; top, bottom, and paired glass
+slides; slide absorption; fixed $g$, albedo, optical thickness, absorption, and
+scattering constraints; and oblique incidence.
+
+\item[\texttt{test\_iad\_forward.sh}]
+Checks forward mode using \texttt{-z}.  It verifies total reflectance, total
+transmittance, unscattered transmittance, oblique illumination, sample and slide
+indices, slide configuration, quadrature selection, and quiet output with
+\texttt{-V 0}.
+
+\item[\texttt{test\_iad\_no\_sphere.sh}]
+Checks file-based operation when \texttt{-S 0} is used.  This exercises the
+\texttt{.rxt} parser, default output-file naming, explicit output naming, and
+the no-sphere inverse path.
+
+\item[\texttt{test\_iad\_one\_sphere\_no\_mc.sh}]
+Checks deterministic one-sphere calculations with \texttt{-M 0}.  It covers
+reflection-only, $M_R/M_T$, and $M_R/M_T/M_U$ inversions, plus a fully baffled
+one-sphere geometry.
+
+\item[\texttt{test\_iad\_two\_sphere\_no\_mc.sh}]
+Checks deterministic double-sphere calculations with \texttt{-M 0}.  It covers
+reflection-only, $M_R/M_T$, $M_R/M_T/M_U$, and lower-reflectance/lower-
+transmittance cases using explicit reflection and transmission sphere
+parameters.
+
+\item[\texttt{test\_iad\_files.sh}]
+Checks ordinary file workflows.  It verifies default \texttt{.txt} output,
+\texttt{-o} output naming, multiple input files on one command line, globbed
+inputs, and ignoring non-\texttt{.rxt} files.
+
+\item[\texttt{test\_iad\_options.sh}]
+Checks option parsing and error handling.  It covers help and version output,
+standard reflectance/transmittance options \texttt{-R} and \texttt{-T},
+unscattered collection fractions \texttt{-c} and \texttt{-C}, wall-first light
+\texttt{-f}, fixed-property constraints, power-law scattering with wavelength,
+wall-reflectance shorthands \texttt{-w} and \texttt{-W}, search override
+\texttt{-s}, baffle selection \texttt{-H}, grid output \texttt{-J}, wavelength
+filtering \texttt{-l}, and expected failures for invalid options or missing
+files.
+
+\item[\texttt{test\_ad\_basic.sh}]
+Checks the forward adding-doubling executable \texttt{ad}.  This is not an
+\iadprog{} inversion test, but it validates the forward solver that
+\iadprog{} depends on.  It covers normal illumination, oblique illumination,
+glass slides, help/version output, and file input/output for \texttt{ad}.
+\end{description}
+
+\subsection{Monte Carlo and helper executable targets}
+
+\begin{description}
+\item[\texttt{make mc\_test}]
+Builds and runs the internal Monte Carlo test executable.  This checks the
+lost-light machinery used by \iadprog{} when \texttt{-M} is non-zero.
+
+\item[\texttt{make mc\_lost\_test}]
+Builds \texttt{mc\_lost} and runs several command-line lost-light cases.  These
+exercise photon launch settings, normal incidence, refractive-index mismatch,
+slide-index mismatch, and anisotropic scattering in the stand-alone lost-light
+driver.
+
+\item[\texttt{make layer\_test} and \texttt{make layertest}]
+Build and run the layered-slab test executable.  This checks the lower-level
+adding-doubling layer combination code.  It is mostly a forward-solver test, but
+that solver is the numerical base used by \iadprog{}.
+
+\item[\texttt{make cone\_test}]
+Builds and runs the conical-illumination test executable.  This checks support
+code for finite cone illumination in the forward adding-doubling routines.
+
+\item[\texttt{make oblique\_test}]
+Builds and runs the oblique-incidence test executable.  This checks angular
+quadrature and boundary behavior for non-normal illumination.
+
+\item[\texttt{make wintest}]
+Cross-builds the Windows executables and runs tests under \texttt{wine}.  It
+checks that the Windows command-line programs behave like the native build,
+including basic CLI tests and batch processing of \texttt{.rxt} files.
+\end{description}
+
+\subsection{Choosing a validation target}
+
+During normal installation, run \texttt{make veryshorttest}.  During ordinary
+development, run \texttt{make test}.  Before a release, run \texttt{make test},
+\texttt{make longtest}, the sphere-specific batch targets, and the Monte Carlo
+helper targets.  Use \texttt{make wintest} when preparing or checking a Windows
+release.
+
+\subsection{Numerical Validation}
+
+This program has been validated in a number of different ways.  The first is using the
+test files \texttt{basic1.rxt}, \texttt{basic2.rxt} and \texttt{basic3.rxt}.
+These contain total reflectance and transmittance values for known optical properties.
+
+For example \texttt{basic1.rxt} contains
 \begin{verbatim}
-    prompt> make longtest
+#M_R                #mua  mus  g
+0.2992621379268361  #0.1  1.0  0.0
+0.1722475379306846  #0.3  1.0  0.0
+0.1308339701159747  #0.5  1.0  0.0
+0.1096241197070925  #0.7  1.0  0.0
+0.0966223181570366  #0.9  1.0  0.0
 \end{verbatim}
+and the output of \texttt{iad basic1} is
+\begin{verbatim}
+Meas    Calc    Meas    Calc    Calc    Calc    Calc    Error
+M_R     M_R     M_T     M_T     mu_a    mu_s'   g       Number
+[---]   [---]   [---]   [---]   [1/mm]  [1/mm]  [---]   [---]
+0.2993  0.2993  0.0000  0.0000  0.1008  1.0000  0.0000   0
+0.1722  0.1722  0.0000  0.0000  0.3022  1.0000  0.0000   0
+0.1308  0.1308  0.0000  0.0000  0.5036  1.0000  0.0000   0
+0.1096  0.1096  0.0000  0.0000  0.7049  1.0000  0.0000   0
+0.0966  0.0966  0.0000  0.0000  0.9062  1.0000  0.0000   0
+\end{verbatim}
+and the absorption coefficients are recovered with an error of about
+0.5\% when only the reflectance measurement is available.
 
-The long tests are useful before a release, but they take longer because they
-process many \texttt{.rxt} files.  During normal installation
-\texttt{make veryshorttest} is the best smoke test.
+The following tables show that these results remain valid when experiments
+with two or three measurements are analyzed.  The effect of including
+spheres is detailed in a paper that will soon be submitted to JBO.
+
+\begin{table}[p]
+\begin{center}
+\begin{tabular}{cc|cc}
+True & Calc & True & Calc\\
+$\mu_a$ & $\mu_a$ & $\mu_s'$ & $\mu_s'$\\
+\hbox{}[1/mm] & [1/mm] & [1/mm] & [1/mm]  \\
+\hline
+0.1 & 0.1006 & 5  & 4.9840  \\
+0.3 & 0.3016 & 5  & 4.9850  \\
+0.5 & 0.5025 & 5  & 4.9853 \\
+0.7 & 0.7034 & 5  & 4.9853  \\
+0.9 & 0.9042 & 5  & 4.9853  \\[2mm]
+0.1 & 0.1005 & 10 & 9.9597  \\
+0.3 & 0.3015 & 10 & 9.9613  \\
+0.5 & 0.5024 & 10 & 9.9626  \\
+0.7 & 0.7033 & 10 & 9.9632  \\
+0.9 & 0.9041 & 10 & 9.9642  \\[2mm]
+0.1 & 0.1005 & 15 & 14.9353  \\
+0.3 & 0.3015 & 15 & 14.9383  \\
+0.5 & 0.5023 & 15 & 14.9417  \\
+0.7 & 0.7033 & 15 & 14.9413  \\
+0.9 & 0.9042 & 15 & 14.9413  \\[2mm]
+0.1 & 0.1005 & 20 & 19.9106  \\
+0.3 & 0.3015 & 20 & 19.9130  \\
+0.5 & 0.5024 & 20 & 19.9148 \\
+0.7 & 0.7033 & 20 & 19.9169  \\
+0.9 & 0.9041 & 20 & 19.9197  \\[2mm]
+0.1 & 0.1005 & 25 & 24.8870  \\
+0.3 & 0.3014 & 25 & 24.8929  \\
+0.5 & 0.5024 & 25 & 24.8901  \\
+0.7 & 0.7033 & 25 & 24.8928  \\
+0.9 & 0.9042 & 25 & 24.8947  \\
+\end{tabular}
+\end{center}
+\caption{Analysis of \texttt{basic2.rxt} that shows an inversion error
+of approximately 0.5\% when two measurements $M_R$ and $M_T$
+are available. }
+\end{table}
+
+\begin{table}
+\begin{center}
+\begin{tabular}{cc|cc|cc}
+True & Calc & True & Calc& True & Calc\\
+$\mu_a$ & $\mu_a$ & $\mu_s'$ & $\mu_s'$ & $g$ &$g$\\
+\hbox{}[1/mm] & [1/mm] & [1/mm] & [1/mm]& [---]& [---]  \\
+\hline
+0.1 & 0.1008 & 0.5 & 0.5035 & 0.9 & 0.8993\\
+0.3 & 0.3023 & 0.5 & 0.5017 & 0.9 & 0.8996\\
+0.5 & 0.5045 & 0.5 & 0.4995 & 0.9 & 0.9000\\
+0.7 & 0.7072 & 0.5 & 0.4969 & 0.9 & 0.9005\\
+0.9 & 0.9105 & 0.5 & 0.4940 & 0.9 & 0.9010\\[2mm]
+0.1 & 0.1007 & 1.0 & 0.9994 & 0.9 & 0.9000\\
+0.3 & 0.3023 & 1.0 & 0.9976 & 0.9 & 0.9002\\
+0.5 & 0.5041 & 1.0 & 0.9955 & 0.9 & 0.9004\\
+0.7 & 0.7061 & 1.0 & 0.9932 & 0.9 & 0.9006\\
+0.9 & 0.9085 & 1.0 & 0.9909 & 0.9 & 0.9008\\[2mm]
+0.1 & 0.1007 & 1.5 & 1.4967 & 0.9 & 0.9002\\
+0.3 & 0.3022 & 1.5 & 1.4949 & 0.9 & 0.9003\\
+0.5 & 0.5037 & 1.5 & 1.4929 & 0.9 & 0.9004\\
+0.7 & 0.7055 & 1.5 & 1.4909 & 0.9 & 0.9006\\
+0.9 & 0.9073 & 1.5 & 1.4888 & 0.9 & 0.9007\\[2mm]
+0.1 & 0.1007 & 2.0 & 1.9938 & 0.9 & 0.9003\\
+0.3 & 0.3020 & 2.0 & 1.9921 & 0.9 & 0.9004\\
+0.5 & 0.5035 & 2.0 & 1.9903 & 0.9 & 0.9005\\
+0.7 & 0.7050 & 2.0 & 1.9885 & 0.9 & 0.9006\\
+0.9 & 0.9066 & 2.0 & 1.9865 & 0.9 & 0.9006\\[2mm]
+0.1 & 0.1007 & 2.5 & 2.4910 & 0.9 & 0.9004\\
+0.3 & 0.3020 & 2.5 & 2.4896 & 0.9 & 0.9004\\
+0.5 & 0.5033 & 2.5 & 2.4880 & 0.9 & 0.9005\\
+0.7 & 0.7047 & 2.5 & 2.4862 & 0.9 & 0.9005\\
+\end{tabular}
+\caption{Analysis of \texttt{basic3.rxt} that shows an inversion error
+of approximately 0.5\% when three measurements $M_R$, $M_T$ and $M_U$ are
+used.}
+\end{center}
+\end{table}
 
 \clearpage
 
@@ -2650,119 +3165,6 @@ then both transmittance and reflectance need to increase.
  602.0  0.0230  0.0222  0.0237  0.0208
 ...
 \end{verbatim}
-
-\clearpage
-
-\section{Validation}
-
-This program has been validated in a number of different ways.  The first is using the
-test files \texttt{basic1.rxt}, \texttt{basic2.rxt} and \texttt{basic3.rxt}.
-These contain total reflectance and transmittance values for known optical properties.
-
-For example \texttt{basic1.rxt} contains
-\begin{verbatim}
-#M_R                #mua  mus  g
-0.2992621379268361  #0.1  1.0  0.0
-0.1722475379306846  #0.3  1.0  0.0
-0.1308339701159747  #0.5  1.0  0.0
-0.1096241197070925  #0.7  1.0  0.0
-0.0966223181570366  #0.9  1.0  0.0
-\end{verbatim}
-and the output of \texttt{iad basic1} is
-\begin{verbatim}
-Meas    Calc    Meas    Calc    Calc    Calc    Calc    Error
-M_R     M_R     M_T     M_T     mu_a    mu_s'   g       Number
-[---]   [---]   [---]   [---]   [1/mm]  [1/mm]  [---]   [---]
-0.2993  0.2993  0.0000  0.0000  0.1008  1.0000  0.0000   0
-0.1722  0.1722  0.0000  0.0000  0.3022  1.0000  0.0000   0
-0.1308  0.1308  0.0000  0.0000  0.5036  1.0000  0.0000   0
-0.1096  0.1096  0.0000  0.0000  0.7049  1.0000  0.0000   0
-0.0966  0.0966  0.0000  0.0000  0.9062  1.0000  0.0000   0
-\end{verbatim}
-and the absorption coefficients are recovered with an error of about
-0.5\% when only the reflectance measurement is available.
-
-Tables 4 and 5 show that these results remain valid when experiments
-with two or three measurements are analyzed.  The effect of including
-spheres is detailed in a paper that will soon be submitted to JBO.
-
-\begin{table}[p]
-\begin{center}
-\begin{tabular}{cc|cc}
-True & Calc & True & Calc\\
-$\mu_a$ & $\mu_a$ & $\mu_s'$ & $\mu_s'$\\
-\hbox{}[1/mm] & [1/mm] & [1/mm] & [1/mm]  \\
-\hline
-0.1 & 0.1006 & 5  & 4.9840  \\
-0.3 & 0.3016 & 5  & 4.9850  \\
-0.5 & 0.5025 & 5  & 4.9853 \\
-0.7 & 0.7034 & 5  & 4.9853  \\
-0.9 & 0.9042 & 5  & 4.9853  \\[2mm]
-0.1 & 0.1005 & 10 & 9.9597  \\
-0.3 & 0.3015 & 10 & 9.9613  \\
-0.5 & 0.5024 & 10 & 9.9626  \\
-0.7 & 0.7033 & 10 & 9.9632  \\
-0.9 & 0.9041 & 10 & 9.9642  \\[2mm]
-0.1 & 0.1005 & 15 & 14.9353  \\
-0.3 & 0.3015 & 15 & 14.9383  \\
-0.5 & 0.5023 & 15 & 14.9417  \\
-0.7 & 0.7033 & 15 & 14.9413  \\
-0.9 & 0.9042 & 15 & 14.9413  \\[2mm]
-0.1 & 0.1005 & 20 & 19.9106  \\
-0.3 & 0.3015 & 20 & 19.9130  \\
-0.5 & 0.5024 & 20 & 19.9148 \\
-0.7 & 0.7033 & 20 & 19.9169  \\
-0.9 & 0.9041 & 20 & 19.9197  \\[2mm]
-0.1 & 0.1005 & 25 & 24.8870  \\
-0.3 & 0.3014 & 25 & 24.8929  \\
-0.5 & 0.5024 & 25 & 24.8901  \\
-0.7 & 0.7033 & 25 & 24.8928  \\
-0.9 & 0.9042 & 25 & 24.8947  \\
-\end{tabular}
-\end{center}
-\caption{Analysis of \texttt{basic2.rxt} that shows an inversion error
-of approximately 0.5\% when two measurements $M_R$ and $M_T$
-are available. }
-\end{table}
-
-\begin{table}
-\begin{center}
-\begin{tabular}{cc|cc|cc}
-True & Calc & True & Calc& True & Calc\\
-$\mu_a$ & $\mu_a$ & $\mu_s'$ & $\mu_s'$ & $g$ &$g$\\
-\hbox{}[1/mm] & [1/mm] & [1/mm] & [1/mm]& [---]& [---]  \\
-\hline
-0.1 & 0.1008 & 0.5 & 0.5035 & 0.9 & 0.8993\\
-0.3 & 0.3023 & 0.5 & 0.5017 & 0.9 & 0.8996\\
-0.5 & 0.5045 & 0.5 & 0.4995 & 0.9 & 0.9000\\
-0.7 & 0.7072 & 0.5 & 0.4969 & 0.9 & 0.9005\\
-0.9 & 0.9105 & 0.5 & 0.4940 & 0.9 & 0.9010\\[2mm]
-0.1 & 0.1007 & 1.0 & 0.9994 & 0.9 & 0.9000\\
-0.3 & 0.3023 & 1.0 & 0.9976 & 0.9 & 0.9002\\
-0.5 & 0.5041 & 1.0 & 0.9955 & 0.9 & 0.9004\\
-0.7 & 0.7061 & 1.0 & 0.9932 & 0.9 & 0.9006\\
-0.9 & 0.9085 & 1.0 & 0.9909 & 0.9 & 0.9008\\[2mm]
-0.1 & 0.1007 & 1.5 & 1.4967 & 0.9 & 0.9002\\
-0.3 & 0.3022 & 1.5 & 1.4949 & 0.9 & 0.9003\\
-0.5 & 0.5037 & 1.5 & 1.4929 & 0.9 & 0.9004\\
-0.7 & 0.7055 & 1.5 & 1.4909 & 0.9 & 0.9006\\
-0.9 & 0.9073 & 1.5 & 1.4888 & 0.9 & 0.9007\\[2mm]
-0.1 & 0.1007 & 2.0 & 1.9938 & 0.9 & 0.9003\\
-0.3 & 0.3020 & 2.0 & 1.9921 & 0.9 & 0.9004\\
-0.5 & 0.5035 & 2.0 & 1.9903 & 0.9 & 0.9005\\
-0.7 & 0.7050 & 2.0 & 1.9885 & 0.9 & 0.9006\\
-0.9 & 0.9066 & 2.0 & 1.9865 & 0.9 & 0.9006\\[2mm]
-0.1 & 0.1007 & 2.5 & 2.4910 & 0.9 & 0.9004\\
-0.3 & 0.3020 & 2.5 & 2.4896 & 0.9 & 0.9004\\
-0.5 & 0.5033 & 2.5 & 2.4880 & 0.9 & 0.9005\\
-0.7 & 0.7047 & 2.5 & 2.4862 & 0.9 & 0.9005\\
-\end{tabular}
-\caption{Analysis of \texttt{basic3.rxt} that shows an inversion error
-of approximately 0.5\% when three measurements $M_R$, $M_T$ and $M_U$ are
-used.}
-\end{center}
-\end{table}
-
 
 \clearpage
 \section{Experimental Procedure}
