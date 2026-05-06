@@ -537,7 +537,7 @@ prompt> make lib
 prompt> sudo make install-lib
 \end{verbatim}
 The default library extension is chosen near the top of the Makefile.  On
-macOS it is usually \texttt{.dylib}; on Linux you may want to set
+macOS it is usually \texttt{.dylib}; on Linux you'll want to set
 \texttt{LIB\_EXT=.so} before building the library.
 
 \subsubsection{Testing}
@@ -564,21 +564,26 @@ process many \texttt{.rxt} files.  During normal installation
 
 \clearpage
 
-\section{Experimental Choice}
+\section{Experimental Overview}
 
-OK, now you need to decide how you will actually make the measurements. The table
+A sample has three optical properties: scattering, absorption, and scattering anisotropy.
+To determine all three, we need three measurements. Typically these are
+total reflection, total transmission, and unscattered transmission. In practice,  
+you often do not need $g$ and therefor can measure total reflection and total transmission,
+to determine only $\mu_a$ and $\mu_s$.  Sometimes the sample is really thick and some
+scattering or absorption value must be assumed.now you need to decide how you will actually make the measurements. The table
 below relates the basic premise that you can't get something for nothing; it gives
 the necessary measurements for each set of optical properties.
 
 \begin{table}[h!]
 \begin{center}
 \begin{tabular}{c|c|p{7cm}}
- Optical               & Measured                      & \\
- Property              & Values                        & Comments\\
+ Desired               & Measured           & \\
+ Property              & Values             & \\
 \hline
- $\mu_a$               & $M_R$                         & The sample thickness is assumed to be too thick to get any light through.  To estimate $\mu_a$, the anisotropy is fixed (default $g=0$), and $\mu_s=1$/mm.\\
- $\mu_a$, $\mu_s'$     & $M_R$, $M_T$, $\delta$        & The anisotropy is fixed (default $g=0$).\\
- $\mu_a$, $\mu_s$, $g$ & $M_R$, $M_T$, $M_C$, $\delta$ & Three measurements are made.\\
+ $\mu_a$, $\mu_s$, $g$ & $M_R$, $M_T$, $M_U$& \\
+ $\mu_a$, $\mu_s'$     & $M_R$, $M_T$       & Default assumption is $g=0$\\
+ $\mu_a$               & $M_R$              & Default assumption is $g=0$, $\mu_s=1$/mm.\\
 \end{tabular}
 \end{center}
 \end{table}
@@ -589,21 +594,24 @@ the necessary measurements for each set of optical properties.
 The \iadprog{} code is quite flexible.  In the initial releases, I thought that
 it was important to expose all this functionality.  This had the unfortunate
 side effect of making easy things hard.  This release is intended to
-make the easy things
-easy, while hard things remain possible (you can write your own code
-that calls the subroutines in \iadprog{}).
+make the easy things easy, while hard things remain possible.
 
 \begin{center}
 \fbox{\it I have made a bunch of decisions for you.}
 \end{center}
 
-For example, \iadprog{} requires that the \textit{total} reflection $M_R$
-and \textit{total} transmission $M_T$ be measured.  You 
-do not need to decide if the unscattered reflection or unscattered
-transmission should be included.  Sometimes people like to bounce the
-specular reflection of the glass slide out of the entrance port (or into
-a beam block) so that 
-their diffuse reflection measurement will be cleaner.  Alternatively, 
+For example, \iadprog{} assumes that the \textit{total} reflection $M_R$
+and \textit{total} transmission $M_T$ are measured: $M_R$ and $M_T$ include
+the unscattered reflection or unscattered transmission respectively.  
+Another reasonable alterative is to allow the specular (unscattered) reflection from the sample
+to exit entrance port so $M_R$ is only diffuse light (use the \texttt{-c 0} command
+line option.%
+\footnote{Since the unscattered reflectance does not interact with the sample (much)
+it does not provide any information about the scattering or
+absorption properties.  If you go this route, then make sure all the unscattered
+light leaves --- any of the unscattered light will collected will increase 
+the measured scattering.}
+  Alternatively, 
 some people like to allow the unscattered transmitted light to
 leave the sphere so that their diffuse transmittance measurement will be
 better.  I decided that, in general, both approaches are bad ideas.
