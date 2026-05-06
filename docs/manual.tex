@@ -137,12 +137,12 @@ been omitted).}
 \clearpage
 \section{Introduction}
 
-% what is this
-Inverse adding-doubling is a method for generating the optical properties of
-scattering and absorbing materials.  Reflection and transmission measurements (typically made with an
-integrating sphere) are converted to the optical properties of the sample
-(scattering, absorption, and anisotropy) using the computer program \iadprog{}.
-The \iadprog{} has been extensively tested and validated for accuracy and 
+Inverse adding-doubling is a method for estimating the optical properties of
+scattering and absorbing materials.  Reflection and transmission measurements,
+typically made with an integrating sphere, are converted to the optical
+properties of the sample (scattering, absorption, and anisotropy) using the
+computer program \iadprog{}.
+\iadprog{} has been extensively tested and validated for accuracy and
 precision; it is widely used\cite{chen06,chandra06,gebhart06,mishra06,degrand06,
 giraev06,bargo05,bashkatov05,itoh05,zhao05,sardar05,chen05,thennadil05,jaeger05,
 drakaki05,bashkatov05a,gebhart05,ramella-roman05,genina05,liu05,collier05,
@@ -160,7 +160,7 @@ vanstaveren94,durkin93,pickering93,pickering93a}.
 
 \subsection{Overview}
 To use the \iadprog{} program, create a data file with
-the appropriate header for your experiment and then append your your
+the appropriate header for your experiment and then append your
 experimental measurements of reflectance and transmittance.  If the file is
 called \texttt{data.rxt}%
 \footnote{The \texttt{.rxt} extension is the default extension
@@ -170,28 +170,27 @@ then the file can be processed by the \iadprog{} program by typing
 \begin{center}
 \texttt{prompt> iad data}
 \end{center}
-You'll get back a file \texttt{data.txt}
-that contains a set of optical properties---the scattering, absorption, and
-anisotropy coefficients that correspond to each measurement set.   
+You will get back a file \texttt{data.txt} that contains a set of optical
+properties---the scattering, absorption, and anisotropy coefficients that
+correspond to each measurement set.
 
-The \iadprog{} program finds the optical properties characterizing a sample by using
-the measured total reflectance $M_R$, the measured total transmittance $M_T$ values,
-and potentially the measured unscattered transmittance values $M_U$.  
-A set of optical properties is guessed
-and values for $M_R$ and $M_T$ are calculated.  These values are compared
-with the measured values.  If they match then the
-optical properties for the sample have been found.  If they do not match then a
-new set of optical properties is guessed and the process is repeated. As van
-de~Hulst pointed out, the approach is fairly brute force.  Oh, well it works.
+\iadprog{} finds the optical properties characterizing a sample by using
+the measured total reflectance $M_R$, the measured total transmittance $M_T$,
+and, when available, the measured unscattered transmittance $M_U$.
+A set of optical properties is guessed and values for $M_R$ and $M_T$ are
+calculated.  These calculated values are compared with the measured values.
+If they match, then the optical properties for the sample have been found.
+If they do not match, then a new set of optical properties is guessed and the
+process is repeated.  As van de~Hulst pointed out, the approach is fairly
+brute force.  Oh well, it works.
 
 The \iadprog{} program has a number of parameters that can be modified to 
 account for
-different experimental situations.  One, two, or three measurements can be used 
-to determine one, two, or
-three optical properties.  \iadprog{} is intended to be used from the command line.  
-The processed output file
-contains a summary of the experimental conditions as well as all the 
-calculated optical properties.\footnote{The optical properties are readily graphed using 
+different experimental situations.  One, two, or three measurements can be used
+to determine one, two, or three optical properties.  \iadprog{} is intended to
+be used from the command line.  The processed output file contains a summary of
+the experimental conditions as well as all the calculated optical
+properties.\footnote{The optical properties are readily graphed using
 \texttt{gnuplot} or \texttt{python} because all the comment lines at the
 top of the file are preceded by a hash mark (\texttt{\#}).}
 
@@ -201,14 +200,14 @@ The adding-doubling method is used to calculate reflectance and transmittance.
 Since the adding-doubling method is an accurate solution of the radiative
 transport equation for all albedos, all optical depths, and all phase functions
 this method can be applied to any medium for which the radiative transport
-equation is valid.  However, a number of restrictions apply
+equation is valid.  However, a number of restrictions apply:
 \begin{enumerate}
 \item
-distribution of light is independent of time,
+the distribution of light is independent of time,
 \item
-samples have homogeneous optical properties,
+the sample has homogeneous optical properties,
 \item
-tissue geometry is an infinite plane-parallel slab,
+the sample geometry is an infinite plane-parallel slab,
 \item
 boundaries are smooth,
 \item
@@ -216,26 +215,24 @@ internal reflectance is governed by Fresnel's law, and
 \item
 polarization effects may be ignored.
 \end{enumerate}
-Despite these constraints, inverse adding-doubling has a number of positive features
+Despite these constraints, inverse adding-doubling has a number of positive features:
 \begin{enumerate}
 \item
-works for any combination of optical properties.
+it works for any combination of optical properties,
 \item
-takes into account all the interactions of a sample sandwiched
-between glass slides
+it takes into account the interactions of a sample sandwiched between glass slides,
 \item
-incorporates the effects of the integrating spheres on the
-measured values
+it incorporates the effects of the integrating spheres on the measured values,
 \item
-accounts for lost light (light that is not collected by the spheres)
+it accounts for lost light (light that is not collected by the spheres), and
 \item
-has a reasonable trade-off between accuracy and speed.
+it has a reasonable trade-off between accuracy and speed.
 \end{enumerate}
 
 \subsection{Background}
 
 \subsubsection*{The graduate student days}
-The \iadprog{} program started its life as an inverse diffusion equation program.Steve Jacques (then at the Wellman
+\iadprog{} started its life as an inverse diffusion equation program. Steve Jacques (then at the Wellman
 Laboratories of Photomedicine) and I (a graduate student at the University of Texas at
 Austin) wanted a way to find the optical properties of tissues based on observed quantities. We published a 
 paper~\cite{jacques87a} and thought that was that.  We subsequently discovered that
@@ -244,8 +241,8 @@ anisotropic scattering ($g=0.9$).  Steve encouraged me to improve the inverse di
 program.  I subsequently improved that program in two important ways.  First, I
 adapted the diffusion code to the $\delta$-Eddington approximation to eliminate the problem with highly
 anisotropic scattering. Second, I replaced my simple-minded minimization method with the
-simplex method of Nelder and Weaver.  I used the inverse $\delta$-Eddington
-model in my 1982 thesis supervised by the Dr.\ Jon Valvano and the late Dr.\ A.\ J.\ Welch.
+simplex method of Nelder and Mead.  I used the inverse $\delta$-Eddington
+model in my 1982 thesis, supervised by Dr.\ Jon Valvano and the late Dr.\ A.\ J.\ Welch.
 
 \subsubsection*{The post-doc era}
 About the time I was giving my final defense I realized that I could not
@@ -253,11 +250,11 @@ recommend my inverse program to anyone because I had no idea how accurate it
 was.  The $\delta$-Eddington model is a good solution to the radiative
 transport equation but it only uses the first two terms of the infinite series
 of spherical Legendre polynomials.  I started working on a paper to estimate the errors but it seemed pretty
-pointless.  
+pointless.
 
 Instead of continuing, I decided to use the adding-doubling program (which can use an arbitrary number of
 spherical Legendre polynomials) that I had included in a different section of my thesis to replace the
-$\delta$-Eddington program in the inverse algorithm. This
+$\delta$-Eddington program in the inverse algorithm.  This
 led to the inverse adding-doubling (\iadprog{}) program.  This was done in 1983 in Amsterdam
 under the auspices of Dr.\ Martin van~Gemert and the necessary guilders came from the Fundamenteel
 Onderzoek voor Materie.  This program was much more accurate.  In fact, you can
@@ -269,16 +266,16 @@ accurate implementation required breaking the angular integration into two parts
 all totally internally reflected angles and the other part over the angles that escape
 the sample.
 
-One implementation challenge is the selection of initial optical properties for use as guesses. 
-Starting with poor guesses can easily lead to convergence at a local minimum, thereby missing the 
-desired global minimum. In 1984, I spent a week working with Steve Jacques at the M.D. Anderson 
+One implementation challenge is the selection of initial optical properties for use as guesses.
+Starting with poor guesses can easily lead to convergence at a local minimum, thereby missing the
+desired global minimum.  In 1984, I spent a week working with Steve Jacques at the M.D. Anderson
 Cancer Center in Houston, attempting to address this issue.
 
-Choosing initial values is akin to approximately solving the entire inverse problem. I eventually 
-adopted the $\delta$-Eddington method to generate starting values. Further refinement of the 
-starting routine occurred over a couple of months at the University of Utah Laser Institute in Salt 
-Lake City, with generous support from Dr.\ Richard Straight. Here, the starting routine was 
-completely rewritten.  There I developed heuristics for calculating starting values, which were later published in the adding-doubling paper \cite{prahl93a}. Large portions of the code were modularized into smaller files, and the first version of this documentation was drafted. After considerable refinement---quite a lot, in fact---this method remained in use until 2004.
+Choosing initial values is akin to approximately solving the entire inverse problem.  I eventually
+adopted the $\delta$-Eddington method to generate starting values.  Further refinement of the
+starting routine occurred over a couple of months at the University of Utah Laser Institute in Salt
+Lake City, with generous support from Dr.\ Richard Straight.  The starting routine was
+completely rewritten there.  I developed heuristics for calculating starting values, which were later published in the adding-doubling paper \cite{prahl93a}. Large portions of the code were modularized into smaller files, and the first version of this documentation was drafted. After considerable refinement---quite a lot, in fact---this method remained in use until 2004.
 
 While I worked at Wellman Laboratories (1984-1985) in Boston as a post-doc under Dr.\ Rox Anderson, 
 I fixed a number of minor bugs and adapted the header for the input data files to bring the sphere
@@ -287,16 +284,16 @@ others.
 
 \subsubsection*{Version 1.0.0 --- The beginning}
 
-Until this stage, \iadprog{} was developed in Pascal. I must confess, despite its waning popularity, I had a fondness for Pascal. By 1986, however, it was becoming increasingly difficult to find robust Pascal compilers, as Pascal had fallen out of favor. The programming community had shifted its preference to C.
+Until this stage, \iadprog{} was developed in Pascal.  I must confess, despite its waning popularity, I had a fondness for Pascal.  By 1986, however, it was becoming increasingly difficult to find robust Pascal compilers, as Pascal had fallen out of favor. The programming community had shifted its preference to C.
 
-Simultaneously, I became fascinated with the exceptional typesetting capabilities of \TeX{}---the same system used to compose this document. Given that \iadprog{} is mathematically complex, I desired aesthetically pleasing and clear typesetting for my comments. This led me to adopt the \footnote{\href{https://github.com/ascherer/cwebbin}{\texttt{CWEB} system}}, which allows for the creation of elegant documentation, albeit at the expense of a preprocessing step.
+At the same time, I became fascinated with the exceptional typesetting capabilities of \TeX{}---the same system used to compose this document.  Given that \iadprog{} is mathematically complex, I wanted aesthetically pleasing and clear typesetting for my comments.  This led me to adopt \texttt{CWEB}\footnote{\href{https://github.com/ascherer/cwebbin}{\texttt{CWEB} system}}, which allows for the creation of elegant documentation, albeit at the expense of a preprocessing step.
 
-Upon joining the Oregon Medical Laser Center, one of my initial tasks was to convert the entire program to ANSI C. This conversion not only modernized \iadprog{} but also enhanced its speed and reliability, for instance, through the implementation of a stored-grid approach. This effort was supported by the Collins Foundation and concluded in the early 1990s.
+Upon joining the Oregon Medical Laser Center, one of my initial tasks was to convert the entire program to ANSI C.  This conversion not only modernized \iadprog{} but also enhanced its speed and reliability, for instance, through the implementation of a stored-grid approach.  This effort was supported by the Collins Foundation and concluded in the early 1990s.
 
-The stored-grid addresses the initial guess problem.  This is, once again, a
-brute-force approach that is done before the inversion process starts. So, for example, when the albedo $a$ and optical thickness
+The stored-grid approach addresses the initial guess problem.  This is, once again, a
+brute-force calculation done before the inversion process starts.  For example, when the albedo $a$ and optical thickness
 $b$ are being sought, I create a grid of $a$ and $b$ values and store the reflection 
-and transmission values for each grid point. The initial guesses for the inversion process are
+and transmission values for each grid point.  The initial guesses for the inversion process are
 the values of $a$ and $b$ that most closely match the measured reflection and transmission.  This finally solved the local versus global minimum problem once and for all.
 
 The stored-grid results in much faster solutions when the sample has constant
@@ -310,7 +307,7 @@ converge to the correct global minimum is a crucial improvement.
 \subsubsection*{User Issues 1}
 
 The next stage in the life of this program has been due to my most excellent
-interaction with Dr.\ David Royston then at the FDA \cite{royston96}.  He did many careful experiments and kept asking what was going wrong.  This led to a rapid series of \iadprog{}
+interaction with Dr.\ David Royston, then at the FDA \cite{royston96}.  He did many careful experiments and kept asking what was going wrong.  This led to a rapid series of \iadprog{}
 releases as I addressed shortcomings in the program.
 
 David provided the incentive to incorporate light absorption by slides sandwiching the sample.
@@ -322,7 +319,7 @@ This feature becomes important in the near-IR and solved a user problem twenty y
 In the intervening ten years or so, I would correspond with users and add
 features or fix bugs as needed.  In 2004, I looked at the code base and realized that I had added
 stuff (multiple-layers, conical irradiation) and that 
-compiling the code was a huge hassle.  This led to version 2.0.0 --- the first major version increase.  For this release, I reorganized the code
+compiling the code was a huge hassle.  This led to version 2.0.0---the first major version increase.  For this release, I reorganized the code
 base and cleaned up the build process.  Then I discovered that this document was
 severely out of date.  I ignored the urge to update it.
 
@@ -332,7 +329,7 @@ In 2006, I needed to revisit the whole problem of measuring optical
 properties.  I had a contract to build a bunch of optical phantoms with closely
 specified tolerances for optical properties.  We made a bunch of measurements
 to show that the optical properties were the same as the promised ones.  These measurements 
-included two thicknesses of identical polyurethane material as well as on phantoms with the
+included two thicknesses of identical polyurethane material as well as phantoms with the
 same scattering coefficient, but with different absorbing properties.  Unfortunately
 not all of these measurements were consistent!
 
@@ -346,7 +343,7 @@ The first problem could potentially be solved experimentally by
 \begin{itemize}
 \item determining the wall reflectivity of the integrating sphere, 
 \item using smaller sample port diameters, 
-\item using a reflectance standard whose reflectance was closer that of sample. 
+\item using a reflectance standard whose reflectance was closer to that of the sample, and
 \item making dual-beam measurements.
 \end{itemize}
 The second problem could presumably be solved
@@ -355,7 +352,7 @@ by using larger samples.  Little did I know.
 \subsubsection*{Integrating sphere corrections}
 
 Integrating spheres are wonderful devices, but 
-suffer from having a non-linear response to the presence of a sample.  For 
+they suffer from having a non-linear response to the presence of a sample.  For
 example, even after correcting for dark noise, the detector on a sphere 
 containing a sample with 25\% reflectance will not measure exactly one-half 
 the value of a 50\% sample. (The presence of the sample changes the number
@@ -364,8 +361,8 @@ more bounces and a greater chance of being captured by the detector.  Thus
 the 50\% sample will record slightly more than twice the value of the
 25\% sample.  See figure~\ref{spherecorr}).
 
-Now \iadprog{} has had code to account for the integrating sphere effect since
-the early 1990's.  These
+\iadprog{} has had code to account for the integrating sphere effect since
+the early 1990s.  These
 corrections tended to be small and were easy to ignore.  Moreover,
 the nomenclature we used was horribly obtuse \textit{and} the derivation in the published
 papers contained minor errors~\cite{pickering93a}.  This made it more or less impossible
@@ -380,7 +377,7 @@ physical significance.  I also eliminated unnecessary frills (e.g., baffles
 are now required).  As a consequence we came up with formulas that 
 only required the experimentalist to know the various port sizes on the
 integrating sphere and the reflectance of the sphere walls.  
-Incorporating these new formulas to the \iadprog{} code also gave me the chance
+Incorporating these new formulas into the \iadprog{} code also gave me the chance
 to develop a new input data file format.  After forcing my students to use about 
 twenty different versions,
 I finally came up with a file format that I liked.  This new format forces
@@ -394,8 +391,8 @@ that the experiments were performed correctly and I was equally sure that
 the light interactions with the spheres were correct.  This indicated that the
 lost light was probably the source of any remaining discrepancies.
 
-More recently, we now know that it is quite important to know the sphere
-wall reflectivity.  For example on one sample the reduced scattering $\mu_s'$
+We now know that it is quite important to know the sphere
+wall reflectivity.  For example, on one sample the reduced scattering $\mu_s'$
 increased from 1.66 to 1.91\,mm$^{-1}$ when the sphere reflectivity was 
 changed from 0.960 to 0.973; consequently, it is important to measure
 the wall reflectivity of your spheres.
@@ -404,11 +401,11 @@ the wall reflectivity of your spheres.
 
 The light loss problem is simple.  Light hits the front of a sample and the
 reflected light is collected by a sphere with a finite port size.  Consequently,
-some light reflected by the sample will not collected (because it emerges on
+some light reflected by the sample will not be collected (because it emerges on
 the reflection side outside the port).  This light is lost.
 Furthermore, light collected by the sphere will uniformly and diffusely 
 re-illuminate the sample.  Some of this diffuse incident light will hit near the
-the edge of the sample port; when this light re-emerges from the front of
+edge of the sample port; when this light re-emerges from the front of
 the sample it will also have a chance of not being collected by the sphere.
 
 The only way that I knew of to properly account for these two types of light
@@ -420,14 +417,13 @@ slower than the adding-doubling method.  I finally conceived of a hybrid
 approach that uses the inverse adding-doubling to quickly find the optical properties
 for a sample.  
 
-A Monte Carlo program is used to estimate the amount of light
-lost for this set of optical properties.  This lost light is incorporated 
-back into the next inverse adding-doubling estimate of the optical
-properties.  This process is repeated until the optical properties
-stabilize.  Most experimental situations only require
-a few Monte Carlo iterations before stabilizing.  Furthermore, when analyzed
-with the new \iadprog{} that accounted for lost light, all the earlier 
-results for the contract phantoms that we made were now consistent!
+A Monte Carlo program is used to estimate the amount of light lost for this
+set of optical properties.  This lost light is incorporated back into the next
+inverse adding-doubling estimate of the optical properties.  The process is
+repeated until the optical properties stabilize.  Most experimental situations
+require only a few Monte Carlo iterations.  Furthermore, when analyzed with the
+new \iadprog{} that accounted for lost light, all the earlier results for the
+contract phantoms that we made were now consistent!
 
 \subsubsection*{User Issues 3}
 
@@ -436,44 +432,113 @@ results for the contract phantoms that we made were now consistent!
 
 \subsection{Obtaining the code}
 
-The source code is available as a \texttt{git} repository or as a zip archive
-of individual releases at
+The source code, release archives, and Windows binaries are available from the
+\texttt{iad} project page
 
 \begin{center}
 \url{https://github.com/scottprahl/iad}
 \end{center}
 
-The two distributions are \texttt{iad-3-16-2.zip} and \texttt{iad-win-3-16-2.zip}.
-The former contains the source files and the latter contains the same sources along 
-with pre-built binaries \texttt{ad.exe} and \texttt{iad.exe} for Windows.  
+For most users the easiest path is to download the latest release archive from
+the releases page.  The source archive is named like
+\texttt{iad-\textit{version}.zip}.  The Windows archive is named like
+\texttt{iad-win-\textit{version}.zip} and includes pre-built
+\texttt{ad.exe} and \texttt{iad.exe} executables.  If you want the current
+development version instead of a release, clone the repository with
+\texttt{git}.
+
+\begin{verbatim}
+prompt> git clone https://github.com/scottprahl/iad.git
+prompt> cd iad
+\end{verbatim}
+
+On Windows, the pre-built executables can be run from \texttt{cmd.exe} or
+PowerShell without compiling anything.  On macOS and Linux, building from
+source is usually just a normal \texttt{make} build.
 
 The original source files \texttt{foo.w} are written in \texttt{CWEB}, from which the
 source code files \texttt{foo.c} and \texttt{foo.h} files are 
 generated.  The documentation \texttt{foo.tex} is also generated from the same
 base \texttt{foo.w} files.  This keeps the code and the documentation in one
 place and furthermore allows me to use the typesetting  capabilities of \TeX\ in
-the program comments (see \texttt{docs/ad\_src.pdf} and \texttt{docs/iad\_src.pdf}.
+the program comments (see \texttt{docs/ad\_src.pdf} and \texttt{docs/iad\_src.pdf}).
 
-(The \texttt{CWEB} system really does produce beautiful documentation, but I do not 
-think that offsets the fact that the code that is worth the hassles associated
-with debugging or the need to keep separate \texttt{.c} and \texttt{.h} versions
-in sync with the distributions.)
+The generated \texttt{.c} and \texttt{.h} files are included in the repository
+and release archives.  This means that ordinary users do not need
+\texttt{CWEB} just to compile \texttt{ad} and \iadprog{}.  You need
+\texttt{CWEB} only if you edit the \texttt{.w} files or want to regenerate the
+woven source listings.
 
 \subsubsection{Building}
 
-This code has been compiled and tested on a variety of unix computers (MacOS X PPC, MacOS X Intel,
-Red Hat Linux x86, and SUSE Linux x86) and microprocessors (PPC, x86, and Arm (Raspberry Pi and
-Apple M-Series).
+This code has been compiled and tested on macOS and Linux systems, including
+x86, Apple silicon, and Raspberry Pi class ARM machines.  A C compiler and
+\texttt{make} are required.  On macOS these are provided by the Xcode command
+line tools; on Linux they are usually provided by the system compiler package
+such as \texttt{build-essential}.
 
-To compile an executable
+To compile both command-line programs from a source archive,
 \begin{verbatim}
-prompt> unzip iad-3-16-2.zip
-prompt> cd iad-3-16-2
+prompt> unzip iad-version.zip
+prompt> cd iad-version
 prompt> make
 \end{verbatim}
-This should produce two executable files \texttt{ad} and \iadprog{}.%
-\footnote{To recreate all the files
-from the originals you'll need \texttt{perl}, \pdflatex{}, \texttt{cweb} and \texttt{gindent}.}
+or, from a cloned repository,
+\begin{verbatim}
+prompt> make
+\end{verbatim}
+This produces two executable files in the top-level directory:
+\texttt{ad}, the forward adding-doubling calculator, and \iadprog{}, the
+inverse adding-doubling program.
+
+Several more specific build targets are available:
+\begin{center}
+\begin{tabular}{lp{7cm}}
+\texttt{make ad}          & build only the forward program \texttt{ad}\\
+\texttt{make iad}         & build only the inverse program \iadprog{}\\
+\texttt{make executables} & build \texttt{ad}, \iadprog{}, and developer test programs\\
+\texttt{make lib}         & build \texttt{libiad} and the public \texttt{libiad.h} header\\
+\texttt{make docs}        & rebuild the manual and CWEB source listings\\
+\texttt{make clean}       & remove compiled binaries and intermediate files\\
+\end{tabular}
+\end{center}
+
+Most users only need \texttt{make}.  Rebuilding the documentation or
+regenerating generated source files requires extra developer tools, including
+\texttt{perl}, \pdflatex{}, \texttt{bibtex}, \texttt{CWEB}, and GNU
+\texttt{indent}.
+
+\subsubsection{Installing}
+
+The programs can be run directly from the build directory:
+\begin{verbatim}
+prompt> ./iad -r 0.3 -t 0.1
+prompt> ./ad -a 0.9 -b 1 -g 0.8
+\end{verbatim}
+
+To install the programs into a system location, use
+\begin{verbatim}
+prompt> sudo make install
+\end{verbatim}
+By default this copies \texttt{ad} and \iadprog{} into \texttt{/usr/local/bin}.
+The installation prefix can be changed by overriding \texttt{DESTDIR}; for
+example,
+\begin{verbatim}
+prompt> make DESTDIR=$HOME/.local install
+\end{verbatim}
+installs the executables in \texttt{\$HOME/.local/bin}.  Make sure that
+directory is on your shell path if you want to run \iadprog{} without typing
+its full path.
+
+The library interface is optional.  If you need \texttt{libiad}, build and
+install it with
+\begin{verbatim}
+prompt> make lib
+prompt> sudo make install-lib
+\end{verbatim}
+The default library extension is chosen near the top of the Makefile.  On
+macOS it is usually \texttt{.dylib}; on Linux you may want to set
+\texttt{LIB\_EXT=.so} before building the library.
 
 \subsubsection{Testing}
 
@@ -487,19 +552,23 @@ A more extensive set of command-line tests can be run using
     prompt> make test
 \end{verbatim}
 
-
-Finally, if you want to run tests against various datasets in the \texttt{test} directory, then do
+Finally, if you want to run tests against the example datasets in
+\texttt{tests/rxt}, then do
 \begin{verbatim}
     prompt> make longtest
 \end{verbatim}
 
+The long tests are useful before a release, but they take longer because they
+process many \texttt{.rxt} files.  During normal installation
+\texttt{make veryshorttest} is the best smoke test.
+
 \clearpage
 
-\section{Experimental Decisions}
+\section{Experimental Choice}
 
 OK, now you need to decide how you will actually make the measurements. The table
 below relates the basic premise that you can't get something for nothing; it gives
-the necessary measurements for a particular of optical properties.
+the necessary measurements for each set of optical properties.
 
 \begin{table}[h!]
 \begin{center}
@@ -519,34 +588,34 @@ the necessary measurements for a particular of optical properties.
 
 The \iadprog{} code is quite flexible.  In the initial releases, I thought that
 it was important to expose all this functionality.  This had the unfortunate
-side effect of making easy things hard.  This release is intended to 
+side effect of making easy things hard.  This release is intended to
 make the easy things
-easy and while hard things remain possible (you can write your own code
+easy, while hard things remain possible (you can write your own code
 that calls the subroutines in \iadprog{}).
 
 \begin{center}
 \fbox{\it I have made a bunch of decisions for you.}
 \end{center}
 
-For example, the \iadprog{} requires that the \textit{total} reflection $M_R$
+For example, \iadprog{} requires that the \textit{total} reflection $M_R$
 and \textit{total} transmission $M_T$ be measured.  You 
-did not need to decide if the unscattered reflection or unscattered
+do not need to decide if the unscattered reflection or unscattered
 transmission should be included.  Sometimes people like to bounce the
 specular reflection of the glass slide out of the entrance port (or into
 a beam block) so that 
 their diffuse reflection measurement will be cleaner.  Alternatively, 
 some people like to allow the unscattered transmitted light to
 leave the sphere so that their diffuse transmittance measurement will be
-better.  I decided that, in general, both of these are bad ideas.
+better.  I decided that, in general, both approaches are bad ideas.
 
 My rationale was that experimentally separating the unscattered light
 from the slightly scattered light is difficult.  Handling the unscattered
-light in the program is trivial, estimating the loss of scattered light
+light in the program is trivial; estimating the loss of scattered light
 accurately is hopeless.  In the reflectance case, the specular beam
 reflected from the sample must travel a good distance before exiting the
 sphere.  Ideally, this light would be a nice laser beam that would not
-diverge appreciably.  Unfortunately, illumination is nearly alwyas
-a white light source and an indefinite fraction of light will be lost out
+diverge appreciably.  Unfortunately, illumination is nearly always
+a white light source, and an indefinite fraction of light will be lost out
 the port by which the unscattered light leaves.
 (Similar arguments hold for the transmitted light, with the additional
 caveat that the transmitted light that is only scattered a few times
@@ -554,24 +623,24 @@ is strongly directional and therefore constitutes another unknown.)
 
 Another decision I have made is how you must measure $M_R$ and $M_T$.  If
 you look at figure~\ref{spherert}, then it seems like a pretty reasonable
-set of measurements.  However, we tried a couple of other schemes, like 
+set of measurements.  However, we tried a couple of other schemes, such as
 making $R(0,0)$ more like an $R_\mathit{dark}$ experiment, i.e., just block
 the illumination beam.  The problem with this method is that usually
 one does not have a small, tight illumination beam and therefore there is
 usually a non-negligible amount of light that misses the sample and hits
 the sphere walls directly, $R(0,0) > 0$.  A similar situation exists for
 the transmission sphere, but because the light never enters the sphere,
-the background problem is much smaller.\footnote{Using a two
+the background problem is much smaller.\footnote{Using two
 glass slides surrounding air or water sounds like a plausible 100\%
 transmission (or 0\% reflection) experiment.  Unfortunately, interference within the slides
 leads to disturbingly large variations in this important reference
-experiment. Try it, you will be surprised how variable your results
+experiment. Try it; you will be surprised how variable your results
 can be.}
 
 I have also selected the experimental parameters needed in the header of the 
 data files.  You are forced to enter these values for every experiment that
 you analyze.  These are parameters that I, and hopefully you, will readily
-comprehend.  For example, the header
+understand.  For example, the header
 used to contain the value of $a_s$, but I could not look at the file header and
 know what the sphere size was.  Similarly, instead of the easily understandable
 detector diameter, a weird $b_2$ factor was used because it made things a little 
@@ -588,11 +657,11 @@ for the equations and examples in this manual.
 
 \subsection{Which reflectance standard?}
 
-You will need some reflectance standards for the reflection measurement.  Common NIST (no longer NBS)
+You will need some reflectance standards for the reflection measurement.  Common NIST (formerly NBS)
 traceable standards are obtainable from LabSphere.  I suggest buying from
 Avian Technologies\footnote{
 \texttt{http://www.aviantechnologies.com}}
-If you have little money, but lots of time, then you can make your
+If you have little money but lots of time, then you can make your
 own spheres and plates.  These should be freshly coated with magnesium oxide
 (MgO) or you can use barium sulfate (BaSO$_4$).  Both coatings are somewhat
 fragile and the MgO coating has poor reflectance in the blue and UV region.
@@ -604,7 +673,7 @@ to interpolate your measurements between two known points rather than
 extrapolate past them.}  The background reflection (nothing in the sample port)
 establishes the lowest amount of light reflected by a sample.  The maximum
 amount of light should occur when 100\% of the light is reflected by the sample.
-When such a standard is used, then all the sample measurements
+When such a standard is used, all the sample measurements
 will fall between these two extremes (0\% and 100\%).  
 
 \begin{figure}[!t]
@@ -615,7 +684,7 @@ and the true values.  In this
 graph, it is assumed that the dark measurement was completely dark and that
 the reflectance standard was 100\%.  These effects are typical for a relatively
 large sample port (50\,mm port) in a moderate size integrating sphere (200\,mm diameter).
-In general the measured values using an integrating sphere will tend to underestimate reflectance measurements ($M_R<R$)
+In general, the measured values using an integrating sphere will tend to underestimate reflectance measurements ($M_R<R$)
 and overestimate transmittance ($M_T>T$).}
 \label{spherecorr}
 \end{figure}
@@ -623,7 +692,7 @@ and overestimate transmittance ($M_T>T$).}
 Unfortunately integrating spheres do not
 have a linear response to different sample reflectances (see Figure~\ref{spherecorr}).
 This graph shows that the corrections needed for the sphere are least at
-the two ends, and highest in the center.  The corrections needed for the
+the two ends and highest in the center.  The corrections needed for the
 center depend on the geometric size of the sphere and ports as well as
 on the sphere wall reflectance.  To minimize the need for these corrections,
 it is best to use a reflectance standard that is slightly higher than all
@@ -634,21 +703,21 @@ sphere parameters.
 The magnitude of the sphere correction can be huge.  For example, we were making
 measurements\footnote{Hi Beatriz!} on non-scattering, dark polyurethane samples
 using the substitution (single-beam) method.
-Now, the index of refraction of polyurethane is $\sim$1.5 and therefore the 
+The index of refraction of polyurethane is $\sim$1.5 and therefore the
 reflectance of the sample will be at least 4\% due to specular reflectance.
 However, our measurements were consistently giving us 3\%.  The ultimate reason
 was that the sphere efficiency (gain) was so much greater for the standard reflectance
-measurement than it was for the sample reflectance measurement that when
-calculating $M_R$ it came out 25\% lower than expected.  Obviously, this effect
+measurement than it was for the sample reflectance measurement that, when
+calculating $M_R$, it came out 25\% lower than expected.  Obviously, this effect
 would have been mitigated if we had followed my own advice and used a dark
 reflectance standard, but I am sure that I had a good reason for ignoring myself.
 
 \subsection{Which integrating sphere?}
 There is a long history of the use of integrating spheres%
-\cite{sumpner92,ulbricht00,taylor20,jacquez55,goebel67,pickering92}.  Good 'ole  Ulbricht
+\cite{sumpner92,ulbricht00,taylor20,jacquez55,goebel67,pickering92}.  Good old Ulbricht
 proposed the first one a hundred years ago\cite{ulbricht00}.  You can make your own easily.  Just
 get a sphere, e.g., a child's ball and cut it in half.  Paint the inside with
-BaSO$_4$, glue it back together attach detectors and voil\'{a}!  Or you can plunk
+BaSO$_4$, glue it back together, attach detectors, and voil\'{a}!  Or you can plunk
 down a thousand bucks and buy one from LabSphere.  
 
 The integrating sphere is characterized by its diameter, its ports, its baffle,
@@ -668,8 +737,8 @@ The size of the sphere is usually determined by what sphere you happen to
 have in the lab.  The sphere diameter pretty much determines the maximum
 sample port size.  The theory of integrating spheres assumes that the sphere
 is spherical in shape.  Obviously if you create a port in the sphere by 
-slicing off a large chunk of the sphere and then place a flat sample 
-on of the sample port you will no longer have a perfect sphere.  A rule of
+slicing off a large chunk of the sphere and then place a flat sample
+on the sample port, you will no longer have a perfect sphere.  A rule of
 thumb is that you do not want the sample area to be more than 10\% of the
 sphere wall area.  
 
@@ -692,20 +761,20 @@ in the reflectance measurement.
 
 The sample size is also connected to the sample thickness.  Generally, one
 wants to have large aspect ratios for the sample (port diameter is ten times
-the sample thickness.)  So for example, a beam 1\,mm in diameter, 
+the sample thickness).  So for example, a beam 1\,mm in diameter,
 a sample 1\,mm thick, a port 10\,mm in diameter, and a sphere 100\,mm in diameter 
 are all reasonable, practical values.
 
 \subsection{How many spheres?}
 
-This seems simple right?  Why have a whole section devoted to counting the number 
+This seems simple, right?  Why have a whole section devoted to counting the number
 of spheres?  Well, mostly because the program treats the cases of 0, 1, and 2
 spheres differently.  The \iadprog{} program always reads the same number of sphere parameters at the beginning of each data file (i.e., from the header).  Therefore, even
 if you specify zero spheres, you will need to include values for two spheres 
 in every data file.\footnote{Insane, I know, but the original \iadprog{} did not require this,
 and automated processing became tricky.  It was surprisingly
 hard to maintain the code and unnecessarily confusing.  Now I figure that it is easier
-for me to make you copy-and-paste sphere parameters than it is for me to continually update
+for me to make you copy and paste sphere parameters than it is for me to continually update
 \iadprog{}.}
 
 \subsubsection{Zero}
@@ -721,19 +790,19 @@ reasons for choosing this are
 \item
 You just want to get a quick estimate and can't be bothered to type in the
 five parameters needed to characterize the sphere (even though I made it really,
-really, easy for you.)
+really easy for you).
 \item
 You are making your measurements using the comparison method (dual beam) \textit{and}
 you don't think that the uncollected light from the initial direct illumination
 is significant.
 \item
-You want to evaluate how much an effect the sphere corrections are having on
+You want to evaluate how much effect the sphere corrections are having on
 your final derived optical properties.\footnote{There is a simpler
-way to do this, just specify \texttt{-s} as a command line switch when processing
+way to do this: just specify \texttt{-s} as a command line switch when processing
 your data.}
 \item
-You don't know the sphere wall reflectivity.  If you want to have robust measurements
-then there is some merit in determining the reflectivity as outlined in this document.
+You don't know the sphere wall reflectivity.  If you want robust measurements,
+there is some merit in determining the reflectivity as outlined in this document.
 This measurement is consistent with the basic assumptions made in the program and
 helps to eliminate some sorts of systematic errors.
 \end{itemize}
@@ -744,10 +813,10 @@ helps to eliminate some sorts of systematic errors.
 When you specify 1 sphere, then a single sphere is assumed to have been used to 
 measure the sample reflectance and transmittance.  This does not have to be the
 same sphere, but it is assumed that a second sphere is not present in a way that
-it affects the results of the sphere making the measurements.
+affects the results of the sphere making the measurements.
 \textit{The program will use the values in the header to make corrections
 for a single sphere.}  The values for the reflection sphere and the transmission
-sphere do not need to be identical --- a single sphere means that one sphere is
+sphere do not need to be identical---a single sphere means that one sphere is
 used at a time for all measurements.  For one-sphere work, the default
 normalization is the substitution method, but comparison-mode normalization is
 also available with \texttt{-X}.  The baffle state for the reflection and
@@ -762,7 +831,7 @@ changed during high power irradiation, I tried to measure the changes in optical
 properties as they changed.}
 There are a few good reasons to use two spheres.  First, if the
 sample has dynamically changing optical properties, then it is critical
-that both $M_R$ and $M_T$ be measured at the same time.  Another reason 
+that both $M_R$ and $M_T$ be measured at the same time.  Another reason
 might be that you would like to measure the greatest number of samples in
 the shortest possible time.  
 
@@ -772,7 +841,7 @@ the samples with the spheres.\footnote{One of our spheres was dropped and
 one port is not parallel to the port on the opposite face.  Since the internal
 light baffles pretty much determine the necessary sphere orientation, this makes
 double integrating sphere measurements tricky.}
-One does not want to squish one side of the sample so that just barely adequate
+One does not want to squish one side of the sample so that barely adequate
 optical contact is reached on both sides.  The second drawback is that it is
 a pain in the neck to make the calibration experiments.  The command-line
 programs treat the two-sphere case as a substitution-mode model only; the
@@ -783,10 +852,10 @@ for other \texttt{-H} baffle settings.
 
 \subsection{What about dual-beam spectrometers?}
 
-Dual-beam spectrometers use two beams:  the sample is placed in one beam
+Dual-beam spectrometers use two beams: the sample is placed in one beam
 and a reference is placed in the second beam.  Two measurements are made (usually
-sequentially) and the reference beam is used to correct for system effects like
-lamp variation with wavelength or detector changes or anything that affects the 
+sequentially), and the reference beam is used to correct for system effects like
+lamp variation with wavelength, detector changes, or anything that affects the
 light path.  For example, two cuvettes might be used with one cuvette being a
 reference that allows most of the effects of specular reflection from surfaces to
 be corrected.
@@ -795,7 +864,7 @@ The two common beam geometries are shown below
 \\
 \includegraphics[width=2.3in]{dual90.png}
 \includegraphics[width=2.3in]{dual8.png}\\
-in these two (modified) images~\cite{wendlandt66}.  In both these examples
+in these two modified images~\cite{wendlandt66}.  In both examples,
 the beam is incident perpendicular to the samples, but the angle between
 the beams might be ninety degrees (left) or shallow (twelve degrees on the right).
 
@@ -803,7 +872,7 @@ So why do I, or actually you, care?  The geometry implies a different method
 of normalization.  The good part is that ``sphere corrections'' are not needed
 any longer.  Because both the reference and the sample are present in the sphere
 during reference and sample measurements, the sphere efficiency remains constant
-and no ``sphere corrections are needed.''  
+and no sphere corrections are needed.
 
 Light losses are another issue.  The direct light loss is completely unaccounted
 for in the dual-beam sphere.  Oddly, the diffuse light loss \textit{is} properly
@@ -816,7 +885,7 @@ as a separate modeling step: \texttt{-S 0 -X} disables both sphere and lost-ligh
 corrections, while \texttt{-S 1 -X} uses the beam and sphere geometry for the
 Monte Carlo lost-light estimate.
 
-Anyhow, if you are using a dual beam system, then if your system automatically
+Anyhow, if you are using a dual-beam system and your system automatically
 gives you the ratio of the sample reflectance to the standard reflectance, you
 will want to calculate $M_R$ 
 $$
@@ -824,15 +893,15 @@ M_R = r_{\mathit{std}} (R_s - R_0)
 $$
 where $R_0$ is a measurement obtained with nothing in the sample reflection port and is present
 to correct for light that misses the sample and hits the
-sphere wall first.  The value for  $M_T$ is similar
+sphere wall first.  The value for $M_T$ is similar
 $$
 M_T = t_{\mathit{std}} (T_s - T_0)
 $$
 although now $T_0$ is made with a blocked sample port and represents the least amount
 of light that may be measured.
 
-How does one analyze these in practice with IAD?  Well, the simplest way is to just
-to use the \texttt{-X} option\footnote{The `X' is for crossed beams.} and specify
+How does one analyze these in practice with IAD?  Well, the simplest way is to
+use the \texttt{-X} option\footnote{The `X' is for crossed beams.} and specify
 the sphere parameters that you used.  In the current programs, \texttt{-X} may be
 combined only with \texttt{-S 0} or \texttt{-S 1}; \texttt{-S 2 -X} is rejected.
 In addition, \texttt{-X} assumes that no light hits the reflection sphere wall
@@ -843,24 +912,24 @@ beam and port geometry can still be used for the lost-light estimate.
 
 \subsection{How should the sample be prepared?}
 
-There are a whole host of experimental problems which plague measurements
+There are a whole host of experimental problems that plague measurements
 of reflectance and transmittance.  Inattention to experimental details will yield
 garbage.  Just look at the variation in the optical properties
 gathered together in Cheong \emph{et al.} \cite{cheong90a}.  These can be attributed
 to two sources of error---inattention to the details of the experimental
-measurement and to flaky optical models.  Since presumably, the adding-doubling
+measurement and flaky optical models.  Since, presumably, the adding-doubling
 method is \textit{not} flaky, you are saved from the second source of error.  
-But I can do nothing about saving you from poor experimental technique
+But I can do nothing to save you from poor experimental technique
 except to warn you about various things.  
 
 \subsubsection{Freshness}
-If the sample is not fresh then optical properties will differ from those
+If the sample is not fresh, then optical properties will differ from those
 measured {\it in vivo}.  Obviously, the tissue begins rotting as soon as
-its nutrient supply is removed. If the tissue is not in excellent condition then
+its nutrient supply is removed. If the tissue is not in excellent condition, then
 there will be problems.  By the way, there has been essentially no work
-done on the changes in optical properties which take place when a tissue
+done on the changes in optical properties that take place when a tissue
 is removed.  There has been minor work done on the changes in optical
-properties with heating, but nothing to that definitively says that the
+properties with heating, but nothing that definitively says that the
 optical properties measured \textit{ex vivo} are even close to those 
 \textit{in vitro}.  
 
@@ -868,20 +937,20 @@ optical properties measured \textit{ex vivo} are even close to those
 The need for glass or quartz slides at the boundaries is caused by
 the rough surface of most tissues.  Since the boundaries are characterized
 by Fresnel reflection, it is relatively important for the experiment to
-match the quantities calculated by the code.  Water, saline, or best
-phosphate buffered saline (PBS) or some
+match the quantities calculated by the code.  Water, saline, preferably
+phosphate buffered saline (PBS), or some
 other fluid should be used to ensure good index matching between
 the tissue and the slide.  Care should be taken to ensure that no bubbles 
 are formed between
-the slide and the tissue.   Since the index of refraction
-of glass is 1.5 and that of tissue ranges from 1.33 to say 1.45, the 
+the slide and the tissue.  Since the index of refraction
+of glass is 1.5 and that of tissue ranges from 1.33 to, say, 1.45, the
 boundaries are not perfectly matched.  You just have to live with this
 or experiment with various immersion oils and various glasses and plastics
-achieve perfection.  
+to achieve perfection.
 
 \subsubsection{Hydration} 
 Optical properties of the sample definitely change with the amount of water in the
-tissue.  It is important to store the tissue in air-tight containers
+tissue.  It is important to store the tissue in airtight containers
 sandwiched between moist (with PBS) towels at cool (above
 freezing) temperatures.  If you don't believe me, then leave a piece of
 tissue exposed to air for 48 hours.  It will appear quite different from
@@ -894,41 +963,41 @@ measurements will also differ.
 How big should the sample be?  First, it must be larger than the sample port
 in the integrating sphere.  If not, then make the port smaller.  Second,
 you want the distance from the edge of the irradiating beam on the sample
-to the edge of the port ($h$) to be as large as practicable. If,
+to the edge of the port ($h$) to be as large as practicable. If
 \begin{eqnarray*}
 h \gg {1\over \mu_a+\mu_s'}
 \end{eqnarray*}
 then relatively little light will be lost out the sides of the sample.  
-``Relatively little'' is a complex and depends on other things.  In general,
-it is hard to predict without modelling carefully.  Before the Monte Carlo
-correction was added to this code, all losses would be attributed to absorption.  Consequently, any absorption coefficients generated for this sample will be too large.  The ramifications now are less dire: lost light takes longer to analyze because
+``Relatively little'' is complex and depends on other things.  In general,
+it is hard to predict without modeling carefully.  Before the Monte Carlo
+correction was added to this code, all losses would be attributed to absorption.  Consequently, any absorption coefficients generated for this sample would be too large.  The ramifications now are less dire: lost light takes longer to analyze because
 the amount of lost light must be continually recalculated.  
 
 \subsubsection{Variability}
- From spot to spot on one sample and from sample to sample.  Make enough
+From spot to spot on one sample and from sample to sample, optical properties vary.  Make enough
 measurements that you have some idea of the average value and variance for
 each sample as well as the variability from sample to sample.
 
 \subsubsection{Blood} 
 Should samples be measured with or without blood?
-Clearly neither really is a good example of the in vivo situation.  If
-samples have no blood then the optical properties of the sample itself are
-being measured.  The contribution to blood can be added later.
+Clearly, neither is a good example of the in vivo situation.  If
+samples have no blood, then the optical properties of the sample itself are
+being measured.  The contribution from blood can be added later.
 
 \subsubsection{Freezing}  
 To obtain very thin subsections it is necessary to freeze the sample.  Rumor
 has it that the freezing process changes the optical properties.  The
-evidence for this has been on muscle tissue.  Other tissues like aorta and
-dermis are different and not so susceptible to freezing artifact.
+evidence for this has been from muscle tissue.  Other tissues like aorta and
+dermis are different and are not as susceptible to freezing artifact.
 
 \subsubsection{Interference}  
-Serious pain in the wahzoo.  The interference usually comes from multiple
+Serious pain in the wazoo.  The interference usually comes from multiple
 internal reflections from the glass
-slides which sandwich the tissue sample.  When a laser beam strikes the
+slides that sandwich the tissue sample.  When a laser beam strikes the
 air-glass surface it is reflected.  It is also reflected at the
 glass-tissue surface.  This reflectance can interfere with the first
-reflectance. One would expect this to be a neglible effect, but in practice
-it can nearly 10\%.  It is easily demonstated by placing a microscope
+reflectance.  One would expect this to be a negligible effect, but in practice
+it can be nearly 10\%.  It is easily demonstrated by placing a microscope
 slide in the path of a laser beam and measuring the transmission.  Then
 move the slide slightly and observe the transmission again.  An even more
 dramatic effect is achieved when specular reflectance is measured.
@@ -941,11 +1010,11 @@ optically flat of the whole box.
 Another possibility is to use very thick glass plates.  By slightly
 rotating the plate the reflectance from the second surface will be
 displaced sufficiently that the two beams will no longer be aligned and
-consequenly will not interfere. Thick plates are not ideal because they
-displace the integrating spheres and consequently all some diffuse light to
+consequently will not interfere.  Thick plates are not ideal because they
+displace the integrating spheres and consequently allow some diffuse light to
 be lost before it can enter the integrating sphere.
 
-A final posibility is to use optically flat plates.  Interference will be
+A final possibility is to use optically flat plates.  Interference will be
 constant over the surface and can be measured and accounted for.  This is
 the best option, but also the most expensive.
 
@@ -1673,20 +1742,18 @@ behavior.
                  If you want to constrain the reduced albedo $a'=\mu_s(1-g)/[\mu_a + \mu_s(1-g)]$ then use \texttt{-g }$g$
                  together with $a = a' / (1 - g + a'\cdot g)$.
                  
-    \item[-A \#] Assume this absorption coefficient for all calculations\\[1mm]
+    \item[-A \#] Assume this absorption coefficient for all calculations.\\[1mm]
                  Constrains the inversion process by fixing the absorption coefficient to this value in mm$^{-1}$.  
                  This can be convenient to use with low absorption samples like Intralipid in the visible wavelength
                  range. If two measurements have been made, then \texttt{iad} will find the scattering coefficient and
                  the scattering anisotropy.  If only a single measurement is available, then just the scattering coefficient
-                 will be found assume that $g=0$ (which can be changed using the \texttt{-g} option.
-                 so that a single measurement can be used to determine the absorption coefficient or the scattering
-                 coefficient respectively.
+                 will be found assuming that $g=0$, unless \texttt{-g} is also specified.
                  
-    \item[-b \#] Assume this optical thickness for all calculations\\[1mm]
+    \item[-b \#] Assume this optical thickness for all calculations.\\[1mm]
                  Constrains the inversion process by fixing $b=(\mu_a+\mu_s)d$ for the inversion process. This option
                  is useful when doing forward calculations with the \texttt{-z} option below.
                      
-    \item[-B \#] Assume this beam diameter for all calculations\\[1mm]
+    \item[-B \#] Assume this beam diameter for all calculations.\\[1mm]
                  Constrains the inversion process by fixing the beam diameter to this value in mm.  This parameter
                  can be used to determine the effect of the beam diameter on the inversion process.  The only way
                  that it enters into the inversion calculation is through the internal Monte Carlo lost light
@@ -1712,7 +1779,7 @@ behavior.
                  \textit{The default assumes all unscattered transmitted light is collected, \texttt{-C 1}.}
   
     \item[-d \#] The thickness of the sample in mm.\\[1mm]
-                 This option is most useful when running the program entirely from the command-line.  \texttt{iad -r 0.5 -t -0.1 -d 2}
+                 This option is most useful when running the program entirely from the command-line.  \texttt{iad -r 0.5 -t 0.1 -d 2}
                  will figure out the scattering and absorption for a 2\,mm sample with 50\% reflection and 10\%
                  transmission.\\[1mm]
                  This number enters into the inversion process in two ways.  First, during the Monte Carlo lost light 
@@ -1735,7 +1802,7 @@ behavior.
                  property is being determined, like for \texttt{iad -r 0.5 -g 0}, then this is just the
                  difference between the calculated value for \texttt{MR} and the measured value.  For two
                  parameters it is more complicated.  See \S \ref{error} for details.\\[1mm]
-                 \textit{The default value is 0.0001, \texttt{-D 0}.}
+                 \textit{The default value is 0.0001, \texttt{-e 0.0001}.}
                  
     \item[-E \#] The optical absorption depth for the slides.\\[1mm]
                  In the infrared, especially for lime glass, the absorption of the glass slides can be
@@ -1744,11 +1811,12 @@ behavior.
                  slide $\mu_a^{slides}\cdot d^{slides}$.\\[1mm]
                  \textit{The default value is no slide absorption, \texttt{-E 0}.}
 
-    \item[-f \#] The fraction of incident light that hits the sphere wall first\\[1mm]
+    \item[-f \#] The fraction of incident light that hits the sphere wall first.\\[1mm]
                  The fraction ranges from 0 to 1.  This only applies to reflection measurements.  Ideally all the incident
                  light on the sample during the reflection experiment hits the sample first.  However,
                  it is possible that due to a small sample size or a large beam or poor collimation,
                  some of the light misses the sample and hits the sphere wall instead. \\[1mm]
+                 This option cannot be combined with the dual-beam \texttt{-X} configuration.\\[1mm]
                  \textit{The default value is that no light hits the wall first, \texttt{-f 0}.}
     
     \item[-F \#] Constrain the scattering coefficient as a constant or as a power-law.\\[1mm]
@@ -1763,11 +1831,12 @@ behavior.
                  are mandatory.  Furthermore, the wavelength, must of course,
                  be specified in the input file with the same units as $\lambda_0$
 
-    \item[-g \#] Assume this value for the scattering anisotropy for all calculations\\[1mm]
+    \item[-g \#] Assume this value for the scattering anisotropy for all calculations.\\[1mm]
                  Constrains the inversion process by fixing the scattering anisotropy to this value.  
                  The program assumes a Henyey-Greenstein scattering phase function and that $g$ is the cosine of the average
                  value of the scattering function over all angles.  The value ranges from $-1$ (completely backwards scattering), to
-                 $0$ (isotropic), to $+1$ (completely forward scattering).\\[1mm]
+                 $0$ (isotropic), to $+1$ (completely forward scattering).  Values exactly equal to $-1$ or $+1$ are
+                 accepted on the command line, but are moved slightly inward internally to avoid singular calculations.\\[1mm]
                  This option is useful when the scattering coefficient is roughly known and only two 
                  measurements have been made. For example, using \texttt{-g 0.9} for tissue samples
                  is common.\\[1mm]
@@ -1817,23 +1886,43 @@ behavior.
                  command line rather than from a file.  The value is recorded as
                  the wavelength for the calculation and is also used by wavelength-
                  dependent constraints such as the power-law version of \texttt{-F}.
-    \item[-M \#] maximum number of Monte Carlo lost-light iterations
-    \item[-n \#] specify index of refraction of slab
-    \item[-N \#] specify index of refraction of slides
-    \item[-o filename] explicitly specify filename for output
-    \item[-p \#] number of Monte Carlo photons or max MC time in milliseconds
-    \item[-q \#] number of quadrature points (default=8)
-    \item[-r \#] total reflection measurement
-    \item[-R \#] actual reflectance for 100\% measurement
+    \item[-M \#] Set the maximum number of Monte Carlo lost-light iterations.\\[1mm]
+                 Legal values are integers from \texttt{0} to \texttt{50}.  The default is \texttt{19}.
+                 Use \texttt{-M 0} to skip the lost-light Monte Carlo update entirely.
+    \item[-n \#] Specify the index of refraction of the slab.\\[1mm]
+                 The value must be between \texttt{0.1} and \texttt{10}.  The default is \texttt{1.0}.
+    \item[-N \#] Specify the index of refraction of the slides.\\[1mm]
+                 The value must be between \texttt{0.1} and \texttt{10}.  The same value is applied to
+                 both slides unless the slide configuration removes one of them.
+    \item[-o filename] Explicitly specify the output filename.\\[1mm]
+                 This may be used for a single input file or a command-line calculation, but it cannot
+                 be used when one command processes multiple \texttt{.rxt} files.
+    \item[-p \#] Set the Monte Carlo photon count or time limit.\\[1mm]
+                 A positive value is the number of photons.  A negative value is interpreted as the
+                 maximum time, in milliseconds, for one Monte Carlo lost-light calculation.
+    \item[-q \#] Set the number of quadrature points.\\[1mm]
+                 The value must be a multiple of \texttt{4}.  If \texttt{-i} is used for oblique
+                 incidence, it must be a multiple of \texttt{12}.  The default is \texttt{8}.
+    \item[-r \#] Total reflection measurement, $M_R$.\\[1mm]
+                 This enables command-line inversion and must be between \texttt{0} and \texttt{1}.
+    \item[-R \#] Actual reflectance for the 100\% reflection standard.\\[1mm]
+                 The value must be between \texttt{0} and \texttt{1}.  If only \texttt{-R} is supplied,
+                 the same value is also used as the transmission standard unless \texttt{-T} overrides it.
     \item[-s \#] Override the automatic inverse-search choice.\\[1mm]
                  Normally the program determines the appropriate one- or two-
                  parameter search from the available measurements and constraints.
                  The \texttt{-s} option is an expert override for that choice and
                  is mainly useful for debugging or reproducing earlier runs.
-    \item[-S \#] number of spheres used (\texttt{0}, \texttt{1}, or \texttt{2})
-    \item[-t \#] total transmission measurement
-    \item[-T \#] actual transmission for 100\% measurement
-    \item[-u \#] unscattered transmission measurement
+    \item[-S \#] Number of integrating spheres used.\\[1mm]
+                 Legal values are \texttt{0}, \texttt{1}, and \texttt{2}.  With \texttt{-S 0},
+                 no sphere correction or lost-light Monte Carlo correction is applied.
+    \item[-t \#] Total transmission measurement, $M_T$.\\[1mm]
+                 This enables command-line inversion and must be between \texttt{0} and \texttt{1}.
+    \item[-T \#] Actual transmittance for the 100\% transmission standard.\\[1mm]
+                 The value must be between \texttt{0} and \texttt{1}.  If \texttt{-R} is not supplied,
+                 this value is also used for the reflection standard.
+    \item[-u \#] Unscattered transmission measurement, $M_U$.\\[1mm]
+                 This enables command-line inversion and must be between \texttt{0} and \texttt{1}.
     \item[-v] version information
     \item[-V 0 | 1 | 2] verbosity level.\\[1mm]
                  Use \texttt{-V 0} for quiet output, \texttt{-V 1} for progress
@@ -1853,8 +1942,12 @@ behavior.
                  This is a developer-facing option that enables different classes
                  of intermediate output such as grid selection, Monte Carlo
                  iterations, sphere gains, or the full search trace.
-    \item[-X] dual beam configuration for \texttt{0} or \texttt{1} sphere only
-    \item[-z] do forward calculation
+    \item[-X] Use the dual-beam comparison configuration.\\[1mm]
+                 This is allowed only with zero or one sphere and cannot be combined with a nonzero
+                 \texttt{-f} wall-first fraction.
+    \item[-z] Do a forward calculation.\\[1mm]
+                 In this mode \texttt{iad} reports the reflection and transmission predicted by the
+                 specified optical properties instead of inverting measurements.
 \end{description}
 
 \subsection{Basic Program Information}
@@ -1863,12 +1956,26 @@ behavior.
 \begin{tabular}{lp{7cm}}
 \texttt{ -h                  }& display help              \\
 \texttt{ -v                  }& version information                        \\
+\texttt{ -z                  }& do a forward calculation                   \\
 \end{tabular}
 \end{center}
 
 These commands are pretty self-explanatory.  The \texttt{-h} switch lists all the
 command line options.  The \texttt{-v} switch just prints the version information
 of the program.
+
+The \texttt{-z} switch changes \iadprog{} from an inverse program into a
+forward calculator.  Instead of finding optical properties from measured
+values, the program uses the optical properties and experimental geometry
+specified on the command line and prints the predicted reflection,
+transmission, and, when spheres are active, the predicted measured sphere
+signals.  For example,
+\begin{verbatim}
+                prompt> iad -z -a 0.9 -b 1 -g 0.8
+\end{verbatim}
+uses albedo $a=0.9$, optical thickness $b=1$, and anisotropy $g=0.8$.
+Forward mode is often the easiest way to check the meaning of a geometry or
+constraint option before using it in an inversion.
 
 \subsection{Controlling the Analysis}
 
@@ -1878,6 +1985,8 @@ of the program.
 \texttt{ -q \#               }& number of quadrature points (default=8)    \\
 \texttt{ -M \#               }& maximum number of Monte Carlo lost-light iterations \\
 \texttt{ -s \#               }& expert override for the inverse search type \\
+\texttt{ -J                  }& write a grid after the inverse calculation \\
+\texttt{ -l '\# \#'          }& restrict input-file processing to a wavelength range \\
 \texttt{ -p \#               }& \# of Monte Carlo photons (default 100000),
                               (negative number is max time in milliseconds)\\[3mm]
 \end{tabular}
@@ -1939,14 +2048,15 @@ Instead, the \texttt{-M \#} option controls the maximum number of times that the
 lost light calculation is done.  If you specify \texttt{-e}, then the same
 numeric tolerance is used for these successive-coefficient checks.  When
 \texttt{-S 0} is used, the lost-light model is not active and \texttt{-M}
-has no practical effect.
+has no practical effect.  The command-line parser accepts values from
+\texttt{0} through \texttt{50}.
 
 This option is your friend.\footnote{\texttt{-M 0} is your bonus for reading this far and
 this deeply in the manual.} You'll almost always want to turn off the Monte Carlo
 lost light iterations because the program will run \textit{much, much} faster.  
-Use\footnote{\texttt{double.rxt} is found in the test directory that shipped with \iadprog{}.} 
+Use\footnote{\texttt{double.rxt} is found in \texttt{tests/rxt/2\_sphere/}.}
 \begin{verbatim}
-                prompt> iad -M 0 double
+                prompt> iad -M 0 tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 until your data file converts and you are reasonably certain that the data is 
 worth spending more time on.  
@@ -1954,13 +2064,13 @@ worth spending more time on.
 For example
 if the two sphere data is used \texttt{double.rxt} then
 \begin{verbatim}
-                prompt> iad double
+                prompt> iad tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 takes 41.9 seconds on my computer.  This calculation does at least two Monte
 Carlo iterations for each of the 21 data points.  Now if the Monte Carlo is
 completely omitted (0 iterations) then
 \begin{verbatim}
-                prompt> iad -M 0 double
+                prompt> iad -M 0 tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 then the calculation only takes 0.3 seconds.  Using the option \texttt{-M 0} is also
 handy because it allows you to quickly test the formatting of data files or
@@ -1976,13 +2086,13 @@ very low absorption and a single photon takes a long time to propagate.  In
 this case the number of photons can be reduced explicitly.  For example, 
 the command
 \begin{verbatim}
-                prompt> iad -p 10000 double
+                prompt> iad -p 10000 tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 will take only 4.9 seconds.  Alternatively,
 you might find it convenient to limit the calculation time to 100 milliseconds
 for each Monte Carlo simulation,
 \begin{verbatim}
-                prompt> iad -p -100 double
+                prompt> iad -p -100 tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 In the canonical \texttt{iad} command-line interface, a negative value is
 interpreted as a time limit in milliseconds for a single Monte Carlo iteration,
@@ -2001,15 +2111,35 @@ multiple of 4.  Four quadrature points is more-or-less equivalent to the
 $\delta-P_3$ approximation.  The default value of 8 is accurate for highly
 anisotropic phase functions and runs quickly.
 \begin{verbatim}
-                prompt> iad -q 4 double
+                prompt> iad -q 4 tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 takes only 0.1 seconds.  While
 \begin{verbatim}
-                prompt> iad -q 16 double
+                prompt> iad -q 16 tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 takes 1.3 seconds.
 When the incidence angle is oblique, as specified with \texttt{-i}, the
 quadrature order should be a multiple of 12.
+
+\subsubsection{Restricting the Wavelength Range}
+
+The \texttt{-l '\# \#'} option restricts an input-file calculation to a
+wavelength interval.  The argument contains the lower and upper wavelength
+limits, separated by whitespace and therefore normally quoted.  For example,
+\begin{verbatim}
+                prompt> iad -l '500 600' sample.rxt
+\end{verbatim}
+processes only rows whose wavelength is between 500 and 600 in the units used
+by the file.  This option is ignored for a single command-line calculation
+that does not read wavelength rows from an \texttt{.rxt} file.
+
+\subsubsection{Writing a Grid}
+
+The \texttt{-J} option asks \iadprog{} to write a small grid of calculated
+$M_R$ and $M_T$ values after the inverse calculation.  The grid is written next
+to the normal output file with a \texttt{.grid} suffix.  This is mainly a
+developer and plotting aid for inspecting the search surface; it does not
+change the fitted optical properties.
 
 \subsubsection{Overriding the Search Type}
 
@@ -2047,7 +2177,9 @@ process.
 \subsubsection{Constraining the Scattering Anisotropy}
 
 The \texttt{-g \#} option allows you to control the value of $g$ that is used in the inverse
-calculation.  The default value is 0.  This option is particularly useful when you have only made two measurements,
+calculation.  The default value is 0.  The parser accepts values from $-1$ to
+$+1$; exact endpoint values are moved slightly inward internally to keep the
+Henyey-Greenstein phase function finite.  This option is particularly useful when you have only made two measurements,
 but know approximately what the value of the average cosine of the phase function 
 should be.  For example,
 \begin{verbatim}
@@ -2075,7 +2207,7 @@ absorption changes nearly 40\%!
 The \texttt{-j \#} option fixes the reduced scattering coefficient
 $\mu_s'=\mu_s(1-g)$.  This is mainly useful when you know $\mu_s'$ more
 reliably than $\mu_s$, or when you want to force a one-parameter search while
-holding the reduced scattering fixed.  If you also specify \texttt{-g}, then
+holding the reduced scattering fixed.  The value must be non-negative.  If you also specify \texttt{-g}, then
 the program converts the constraint to $\mu_s=\mu_s'/(1-g)$ internally.
 
 \subsubsection{Constraining the Albedo}
@@ -2089,6 +2221,7 @@ or totally scattering.  In this case, one can just type something like
                 prompt> iad -a 1 -g 0.9 -t 0.3
                 prompt> iad -a 0 -t 0.3
 \end{verbatim}
+The albedo must be between 0 and 1.
 
 \subsubsection{Constraining the Optical Thickness}
 
@@ -2102,7 +2235,8 @@ or totally scattering.  In this case, one can just type something like
 Constraining the optical thickness ($b=(\mu_a+\mu_s)d$ where $d$ is the 
 thickness of your sample) is essentially the same as specifying
 the unscattered transmission through the sample, except that you need not
-worry about specular reflection at boundaries.
+worry about specular reflection at boundaries.  The value must be
+non-negative.
 
 \subsubsection{Constraining the Absorption Coefficient}
 
@@ -2117,7 +2251,8 @@ worry about specular reflection at boundaries.
  \end{verbatim}
 
 Sometimes you know what the absorption coefficient is and it is
-handy to specify it directly.  Oddly the constraint that I use most
+handy to specify it directly.  The value is in mm$^{-1}$ and must be
+non-negative.  Oddly the constraint that I use most
 is the no absorption condition:
 \begin{verbatim}
                 prompt> iad -A 0 -r 0.3
@@ -2137,7 +2272,10 @@ and teflon and titanium dioxide samples.
                 prompt> iad -F 1 -g 0.9 -t 0.3
 \end{verbatim}
 This is probably the least useful of all the constraints, but every once
-in a while it comes in handy.  
+in a while it comes in handy.  The value is in mm$^{-1}$ and must be
+non-negative.  The power-law form
+\texttt{-F 'P lambda0 mus0 gamma'} is also accepted and sets
+$\mu_s(\lambda)=\mu_s(\lambda_0)(\lambda/\lambda_0)^\gamma$.
 
 
 \subsection{Basic Experimental Description}
@@ -2147,6 +2285,11 @@ in a while it comes in handy.
 \texttt{ -r \#               }& total reflection measurement               \\
 \texttt{ -t \#               }& total transmission measurement             \\
 \texttt{ -u \#               }& unscattered transmission measurement       \\[3mm]
+\texttt{ -R \#               }& actual reflectance for 100\% measurement   \\
+\texttt{ -T \#               }& actual transmittance for 100\% measurement \\
+\texttt{ -c \#               }& fraction of unscattered reflection in $M_R$\\
+\texttt{ -C \#               }& fraction of unscattered transmission in $M_T$\\
+\texttt{ -f \#               }& fraction of incident light that hits wall first\\[3mm]
 \texttt{ -i \#               }& specify incidence angle                    \\
 \texttt{ -L \#               }& specify wavelength                         \\
 \texttt{ -n \#               }& specify index of refraction of sample      \\
@@ -2155,6 +2298,7 @@ in a while it comes in handy.
 \texttt{ -d \#               }& physical thickness of the sample           \\
 \texttt{ -D \#               }& physical thickness of the slides           \\
 \texttt{ -S \#               }& number of spheres used                     \\
+\texttt{ -X                  }& dual-beam comparison configuration         \\
 \texttt{ -H \#               }& specify baffle configuration               \\
 \texttt{ -w \#               }& reflection sphere wall reflectivity        \\
 \texttt{ -W \#               }& transmission sphere wall reflectivity      \\
@@ -2177,6 +2321,32 @@ used in the calculation.  This number must be between 0 and 1.
 The \texttt{-u \#} option allows you to specify a unscattered transmittance to be
 used in the calculation.  This number must be between 0 and 1.
 
+\subsubsection{Calibration Standards}
+The \texttt{-R \#} and \texttt{-T \#} options specify the actual reflectance
+and transmittance of the standards that define the 100\% measurement for the
+reflection and transmission channels.  Both values must be between 0 and 1.
+If \texttt{-R} is supplied and \texttt{-T} is omitted, then the reflection
+standard value is also used for the transmission standard.  If \texttt{-T} is
+supplied and \texttt{-R} is omitted, then the transmission standard value is
+also used for the reflection standard.
+
+\subsubsection{Unscattered Collection Fractions}
+The \texttt{-c \#} and \texttt{-C \#} options specify how much of the
+unscattered reflected and transmitted light is included in the measured
+$M_R$ and $M_T$ values.  Both values must be between 0 and 1.  Use
+\texttt{-c 0} when specular reflection leaves through the entrance port and is
+not measured; use \texttt{-c 1} when the experimental geometry collects it.
+Likewise, \texttt{-C 0} describes an open transmission third port that does not
+return the unscattered beam to the sphere, while \texttt{-C 1} describes full
+collection.
+
+\subsubsection{Wall-First Reflection}
+The \texttt{-f \#} option specifies the fraction of incident light that hits
+the reflection-sphere wall before reaching the sample.  The value must be
+between 0 and 1.  This can model an overfilled sample port or a beam that is
+larger than the sample.  It is not supported with the dual-beam comparison
+configuration selected by \texttt{-X}.
+
 \subsubsection{The Incidence Angle}
 The \texttt{-i \#} option allows you to specify the angle of incidence in
 degrees.  This is most often used when all of the unscattered reflected light
@@ -2191,11 +2361,13 @@ form of \texttt{-F}, are being used.
 
 \subsubsection{The Index of Refraction of the Slab}
 The \texttt{-n \#} option allows you to specify the index of refraction of
-the sample.  This number must be between 0.5 and 2.0.  The default is 1.0.
+the sample.  This number must be between 0.1 and 10.  The default is 1.0.
 
 \subsubsection{The Index of Refraction of the Glass Slides}
 The \texttt{-N \#} option allows you to specify the index of refraction of
-the glass slides.  This number must be between 0.5 and 2.0.  The default is 1.0.
+the glass slides.  This number must be between 0.1 and 10.  The default is 1.0.
+The same value is applied to both slides; the slide configuration selected by
+\texttt{-G} can then remove the top or bottom slide as needed.
 
 \subsubsection{The Slide or Boundary Configuration}
 The \texttt{-G \#} option specifies how many slides are present and where a
@@ -2209,11 +2381,11 @@ index, thickness, and absorption.
 
 \subsubsection{The Physical Thickness of the Sample}
 The \texttt{-d \#} option allows you to specify the physical thickness of
-the sample.  This number must be positive and in millimeters.  The default is 1.0\,mm.
+the sample.  This number must be non-negative and in millimeters.  The default is 1.0\,mm.
 
 \subsubsection{The Physical Thickness of the Glass Slides}
 The \texttt{-D \#} option allows you to specify the thickness of
-the glass slides.  This number should be positive.  The default is 0.0\,mm
+the glass slides.  This number must be non-negative.  The default is 0.0\,mm
 which means that there are no glass slides.  This thickness is used
 only in the Monte Carlo simulations to figure out how much light is lost
 out the edges of the integrating sphere measurements.  The units should be
@@ -2226,6 +2398,13 @@ the program applies no sphere correction and no lost-light model.  With
 \texttt{-S 1}, the program uses the single-sphere model and may be combined
 with \texttt{-X} for comparison-mode normalization.  With \texttt{-S 2}, the
 program uses the double-sphere substitution model; \texttt{-X} is not allowed.
+
+\subsubsection{The Dual-Beam Configuration}
+The \texttt{-X} option selects the comparison, or dual-beam, configuration.
+It can be used only with zero or one integrating sphere.  If one sphere is used,
+the sphere port sizes must be known because the lost-light calculation still
+needs the sample-port and beam geometry.  The option cannot be used with
+\texttt{-S 2}, and it cannot be combined with a nonzero \texttt{-f} value.
 
 \subsubsection{The Baffle Configuration}
 The \texttt{-H \#} option chooses which integrating spheres include an internal
@@ -2240,7 +2419,9 @@ The \texttt{-w \#} and \texttt{-W \#} options set the wall reflectivity of the
 reflection and transmission spheres respectively.  These are convenient shorthands
 when you do not want to specify the full \texttt{-1} or \texttt{-2} sphere tuples.
 If the full sphere definitions are already being supplied, then these options are
-redundant and should be omitted.
+redundant and should be omitted.  The command-line program treats \texttt{-w}
+as an error when \texttt{-1} is also supplied, and treats \texttt{-W} as an
+error when explicit sphere geometry is supplied.
 
 \subsubsection{The Reflection Sphere Properties}
 The \texttt{-1 '\# \# \# \# \#'} option allows you to specify the properties
@@ -2248,7 +2429,8 @@ of the reflection sphere. The five numbers (four diameters and the wall reflecta
 must be surrounded by quotes.  The 
 five numbers must appear in this order (sphere diameter, sample port diameter,
 entrance port diameter, detector port diameter, and sphere wall reflectance).
-The units should be millimeters.
+The units should be millimeters.  \texttt{-1} also initializes the transmission-sphere geometry to the same
+values.  Use \texttt{-2} when the transmission sphere is different.
 
 \subsubsection{The Transmission Sphere Properties}
 The \texttt{-2 '\# \# \# \# \#'} option allows you to specify the properties
@@ -2276,9 +2458,11 @@ The units should be millimeters.
 The \texttt{-o filename} option allows you to specify the name of the output
 file.  The default operation is to take the name of the input file and append
 \texttt{.txt} to the name (or if the file ends with \texttt{.rxt} then
-the \texttt{.rxt} is replaced by \texttt{.txt}).  For example,
+the \texttt{.rxt} is replaced by \texttt{.txt}).  The \texttt{-o} option may
+appear after a single input filename, but it cannot be used when one command
+processes multiple \texttt{.rxt} files.  For example,
 \begin{verbatim}
-                prompt> iad -o foobar double.rxt
+                prompt> iad -o foobar tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 will put the optical properties for the data in \texttt{double.rxt}
  into the file \texttt{foobar}.
@@ -2288,14 +2472,14 @@ will put the optical properties for the data in \texttt{double.rxt}
 The canonical \texttt{iad} command-line interface uses \texttt{-V 0},
 \texttt{-V 1}, and \texttt{-V 2} to control verbosity.  The Python CLI is
 being aligned to use the same convention.  The \texttt{-V 0} option allows you
-to eliminate all the extra output from the \iadprog{} program.  This is not
+to eliminate the extra terminal output from the \iadprog{} program.  This is not
 used by default. For example,
 \begin{verbatim}
                 prompt> iad -r 0.3 -t 0.1
 \end{verbatim}
 produces 45 lines of output.  The abbreviated output from
 \begin{verbatim}
-                prompt> iad -V0 -r 0.3 -t 0.1
+                prompt> iad -V 0 -r 0.3 -t 0.1
 \end{verbatim}
 has just one:
 \begin{verbatim}
@@ -2305,10 +2489,10 @@ has just one:
 The \texttt{-V 1} option is not so useful when a single line
 is being processed, but allows one to monitor the process of converting
 an \texttt{.rxt} file into optical properties.  These result in the same
-output\footnote{\texttt{vio1.rxt} is located in the test directory.}
+output\footnote{\texttt{vio\_A.rxt} is located in \texttt{tests/rxt/1\_sphere/}.}
 \begin{verbatim}
-                prompt> iad vio1
-                prompt> iad -V1 vio1
+                prompt> iad tests/rxt/1_sphere/vio_A.rxt
+                prompt> iad -V 1 tests/rxt/1_sphere/vio_A.rxt
 \end{verbatim}
 will produce the following on the screen
 
@@ -2331,11 +2515,11 @@ Carlo simulation is done and then the asterisk means that the inversion
 converged.) The primary reason for doing this is to keep the user informed that processing
 is taking place.  When 
 \begin{verbatim}
-                prompt> iad -V0 vio1
+                prompt> iad -V 0 tests/rxt/1_sphere/vio_A.rxt
 \end{verbatim}
 is used, then nothing is displayed on the screen until the program finishes.
 
-Use \texttt{-V 2} is the default.  It is just like \texttt{-V 1} except it 
+\texttt{-V 2} is the default.  It is just like \texttt{-V 1} except it
 prints a message after processing the file.
 
 \subsubsection{Showing Intermediate Calculations}
@@ -2369,7 +2553,7 @@ It takes a little more than twice as long to analyze the data.
 
 For example the default output for
 \begin{verbatim}
-                prompt> iad test/double
+                prompt> iad tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 reports results like
 \begin{verbatim}
@@ -2383,7 +2567,7 @@ reports results like
 \end{verbatim}
 To show the effects of light loss, one uses the command
 \begin{verbatim}
-                prompt> iad -x 1 test/double
+                prompt> iad -x 1 tests/rxt/2_sphere/double.rxt
 \end{verbatim}
 reports results with the first eight columns as
 \begin{verbatim}
