@@ -25,6 +25,9 @@
 \rfoot{}
 \cfoot{\thepage}
 
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.8\baselineskip}
+
 \usepackage[colorlinks=true,
             linkcolor=blue,
             urlcolor=blue,
@@ -35,15 +38,9 @@
 \title{Everything I think you should know about \\
 Inverse Adding-Doubling}
 \author{
-Scott Prahl\thanks{Oregon Tech,
-                   EERE,
-                   27500 SW Parkway Ave.,
-                   Wilsonville, OR 97225,
-                   (503) 821-1344 (office),
-                   email: scott.prahl@oit.edu
-                   https://omlc.org}
+Scott Prahl\thanks{Oregon Tech, scott.prahl@oit.edu}
 }
-\date{April 2024}	
+\date{May 2026}	
 
 \maketitle
 
@@ -55,8 +52,8 @@ These observations are then fed into
 a program (the inverse adding-doubling \iadprog{} program) to extract the intrinsic
 optical parameters for the sample.   The program does this by repeatedly guessing
 the optical properties and comparing the expected observables with those that you
-have made.  Upon matching, voil\`a, those optical properties used to generate the
-expected observables are the ones that characterize your sample.
+have made.  Upon matching, those optical properties should characterize 
+your sample.
 
 If only it were that simple.  I have written a couple of papers on the details of
 the program \cite{jacques87a,prahl93a,moffitt06a}, on optical properties in general
@@ -72,8 +69,9 @@ journal article~\cite{moffitt07a}.
 
 Every once in a while, users of \iadprog{} let me know about some odd behavior in 
 the program.  Sometimes it is a bug in the program and sometimes it is their data.
-For the first few months of 2024, I have been reviewing the entire program and
+For the first few months of 2024, I reviewed the entire program and
 making multiple improvements that improve the robustness and utility of \iadprog{}.
+
 
 The last time I looked closely at the program was in 2011 when Ville
 Ker{\"a}nen somehow managed to break the damn program essentially every week for a
