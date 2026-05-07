@@ -1,5 +1,4 @@
 @** IAD Find.
-March 1995.  Incorporated the |quick_guess| algorithm for low albedos.
 @(iad_find.c@>=
 #include <math.h>
 #include <stdio.h>

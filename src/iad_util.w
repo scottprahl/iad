@@ -1,8 +1,6 @@
 @** IAD Utilities.
 \def\sgn{\mathop{\rm sgn}\nolimits}
 
-March 1995.  Reincluded |quick_guess| code.
-
 @(iad_util.c@>=
 #include <math.h>
 #include <float.h>
@@ -26,11 +24,6 @@ unsigned long g_util_debugging = 0;
     @<Definition for |gcalc2g|@>@;
     @<Definition for |b2bcalc|@>@;
     @<Definition for |bcalc2b|@>@;
-    @<Definition for |twoprime|@>@;
-    @<Definition for |twounprime|@>@;
-    @<Definition for |abgg2ab|@>@;
-    @<Definition for |abgb2ag|@>@;
-    @<Definition for |quick_guess|@>@;
     @<Definition for |Set_Debugging|@>@;
     @<Definition for |Debug|@>@;
     @<Definition for |sqr|@>@;
@@ -48,11 +41,6 @@ unsigned long g_util_debugging = 0;
     @<Prototype for |gcalc2g|@>;
     @<Prototype for |b2bcalc|@>;
     @<Prototype for |bcalc2b|@>;
-    @<Prototype for |twoprime|@>;
-    @<Prototype for |twounprime|@>;
-    @<Prototype for |abgg2ab|@>;
-    @<Prototype for |abgb2ag|@>;
-    @<Prototype for |quick_guess|@>;
     @<Prototype for |Set_Debugging|@>;
     @<Prototype for |Calculate_Mua_Musp|@>;
     @<Prototype for |Debug|@>;
@@ -422,238 +410,6 @@ double bcalc2b(double bcalc)
     if (bcalc > 2.3 *  DBL_MAX_10_EXP) return HUGE_VAL;
     return (exp(bcalc));
 }
-
-@ |twoprime| converts the true albedo |a|, optical depth |b| to
-the reduced albedo |ap| and reduced optical depth |bp| that
-correspond to $g=0$.
-
-@<Prototype for |twoprime|@>=
-void twoprime(double a, double b, double g, double *ap, double *bp)
-
-@ @<Definition for |twoprime|@>=
-@<Prototype for |twoprime|@>
-{
-    if (a == 1 && g == 1)
-        *ap = 0.0;
-    else
-        *ap = (1 - g) * a / (1 - a * g);
-
-    if (b == HUGE_VAL)
-        *bp = HUGE_VAL;
-    else
-        *bp = (1 - a * g) * b;
-}
-
-@ |twounprime| converts the reduced albedo |ap| and reduced optical depth |bp|
-(for $g=0$) to the true albedo |a| and optical depth |b| for an anisotropy |g|.
-
-@<Prototype for |twounprime|@>=
-void twounprime(double ap, double bp, double g, double *a, double *b)
-
-@ @<Definition for |twounprime|@>=
-@<Prototype for |twounprime|@>
-{
-    *a = ap / (1 - g + ap * g);
-    if (bp == HUGE_VAL)
-        *b = HUGE_VAL;
-    else
-        *b = (1 + ap * g / (1 - g)) * bp;
-}
-
-@ |abgg2ab| assume |a|, |b|, |g|, and |g1| are given
-this does the similarity translation that you
-would expect it should by converting it to the
-reduced optical properties and then transforming back using
-the new value of |g|
-
-@<Prototype for |abgg2ab|@>=
-void abgg2ab(double a1, double b1, double g1, double g2, double *a2, double *b2)
-
-@ @<Definition for |abgg2ab|@>=
-@<Prototype for |abgg2ab|@>
-{
-    double a, b;
-
-    twoprime(a1, b1, g1, &a, &b);
-    twounprime(a, b, g2, a2, b2);
-}
-
-@ |abgb2ag| translates reduced optical properties to unreduced
-values assuming that the new optical thickness is given
-i.e., |a1| and |b1| are $a'$ and $b'$ for $g=0$.  This routine
-then finds the appropriate anisotropy and albedo which
-correspond to an optical thickness |b2|.
-
-If both |b1| and |b2| are zero then just assume $g=0$ for the unreduced
-values.
-
-@<Prototype for |abgb2ag|@>=
-void abgb2ag(double a1, double b1, double b2, double *a2, double *g2)
-
-@ @<Definition for |abgb2ag|@>=
-@<Prototype for |abgb2ag|@>
-{
-    if (b1 == 0 || b2 == 0) {
-       *a2 = a1;
-       *g2 = 0;
-    }
-
-    if (b2 < b1)
-        b2 = b1;
-
-    if (a1 == 0)
-        *a2 = 0.0;
-    else if (a1 == 1)
-        *a2 = 1.0;
-    else if (b1 == 0 || b2 == HUGE_VAL)
-        *a2 = a1;
-    else
-        *a2 = 1 + b1 / b2 * (a1 - 1);
-
-    if (*a2 == 0 || b2 == 0 || b2 == HUGE_VAL)
-        *g2 = 0.5;
-    else
-        *g2 = (1 - b1 / b2) / (*a2);
-}
-
-@*1 Guessing an inverse.
-
-@ @<Prototype for |quick_guess|@>=
-void quick_guess(struct measure_type m, struct invert_type r, double *a, double *b, double *g)
-
-@ @<Definition for |quick_guess|@>=
-@<Prototype for |quick_guess|@>
-{
-  double UR1, UT1, rd, td, tc, rc, bprime, aprime, alpha, beta, logr;
-
-    Estimate_RT(m, r, &UR1, &UT1, &rd, &rc, &td, &tc);
-    @<Estimate |aprime|@>@;
-
-    switch (m.num_measures) {
-        case 1:
-            @<Guess when only reflection is known@>@;
-            break;
-        case 2:
-            @<Guess when reflection and transmission are known@>@;
-            break;
-        case 3:
-            @<Guess when all three measurements are known@>@;
-            break;
-    }
-
-    @<Clean up guesses@>@;
-}
-
-@ @<Estimate |aprime|@>=
-    if (UT1 == 1)
-        aprime = 1.0;
-    else if (rd / (1 - UT1) >= 0.1)
-    {
-        double tmp = (1 - rd - UT1) / (1 - UT1);
-        aprime = 1 - 4.0 / 9.0 * tmp * tmp;
-    }
-    else if (rd < 0.05 && UT1 < 0.4)
-        aprime = 1 - (1-10*rd)*(1-10*rd);
-    else if (rd < 0.1 && UT1 < 0.4)
-        aprime = 0.5 + (rd - 0.05) * 4;
-    else
-    {
-        double tmp = (1 - 4*rd - UT1) / (1 - UT1);
-        aprime = 1 - tmp * tmp;
-    }
-
-@ @<Estimate |bprime|@>=
-    if (rd < 0.01) {
-        bprime = What_Is_B(r.slab, UT1);
-        fprintf(stderr,"low rd<0.01! ut1=%f aprime=%f bprime=%f\n",UT1,aprime,bprime);
-    } else if (UT1 <= 0)
-        bprime = HUGE_VAL;
-    else if (UT1 > 0.1)
-        bprime = 2 * exp(5 * (rd - UT1) * log(2.0));
-    else {
-        alpha = 1 / log(0.05 / 1.0);
-        beta = log(1.0) / log(0.05 / 1.0);
-        logr = log(UR1);
-        bprime = log(UT1) - beta * log(0.05) + beta * logr;
-        bprime /= alpha * log(0.05) - alpha * logr - 1;
-    }
-
-@  @<Guess when only reflection is known@>=
-    *g = r.default_g;
-    *a = aprime / (1 - *g + aprime * (*g));
-    *b = HUGE_VAL;
-
-@ @<Guess when reflection and transmission are known@>=
-    @<Estimate |bprime|@>@;
-
-    *g = r.default_g;
-    *a = aprime / (1 - *g + aprime * *g);
-    *b = bprime / (1 - *a * *g);
-
-@ @<Guess when all three measurements are known@>=
-
-    switch (r.search) {
-    case FIND_A:
-        @<Guess when finding albedo@>@;
-        break;
-    case FIND_B:
-        @<Guess when finding optical depth@>@;
-        break;
-    case FIND_AB:
-        @<Guess when finding the albedo and optical depth@>@;
-        break;
-    case FIND_AG:
-        @<Guess when finding anisotropy and albedo@>@;
-        break;
-    }
-
-@   @<Guess when finding albedo@>=
-
-    *g = r.default_g;
-    *a = aprime / (1 - *g + aprime * *g);
-    *b = What_Is_B(r.slab, m.m_u);
-
-@   @<Guess when finding optical depth@>=
-
-    *g = r.default_g;
-    *a = 0.0;
-    *b = What_Is_B(r.slab, m.m_u);
-
-@   @<Guess when finding the albedo and optical depth@>=
-
-    *g = r.default_g;
-    if (*g == 1)
-        *a = 0.0;
-    else
-        *a = aprime / (1 - *g + aprime * *g);
-
-  @<Estimate |bprime|@>@;
-    if (bprime == HUGE_VAL || *a * *g == 1)
-        *b = HUGE_VAL;
-    else
-        *b = bprime / (1 - *a * *g);
-
-@   @<Guess when finding anisotropy and albedo@>=
-    *b = What_Is_B(r.slab, m.m_u);
-    if (*b == HUGE_VAL || *b == 0) {
-        *a = aprime;
-        *g = r.default_g;
-    } else {
-    @<Estimate |bprime|@>@;
-    *a = 1 + bprime * (aprime - 1) / (*b);
-    if (*a < 0.1)
-        *g = 0.0;
-    else
-        *g = (1 - bprime / (*b)) / (*a);
-    }
-
-@   @<Clean up guesses@>=
-    if (*a < 0)
-        *a = 0.0;
-    if (*g < 0)
-        *g = 0.0;
-    else if (*g >= 1)
-        *g = 0.5;
 
 @*1 Some debugging stuff.
 

@@ -33,8 +33,9 @@ PLAN.md
 tests/rxt/1_sphere/thinh*
 
 # ignore generated docs
-docs/iad_src.pdf
 docs/ad_src.pdf
+docs/iad_src.pdf
+docs/manual.pdf
 docs/jupyter
 
 # ignore archives

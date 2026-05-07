@@ -56,7 +56,7 @@ TEST =  test/Makefile       test/basic_A.rxt    test/basic_B.rxt      test/basic
 
 export WSRC =  src/ad.w     src/ad_frsnl.w       src/ad_prime.w        src/iad_io.w          \
         src/ad_globl.w      src/ad_radau.w       src/iad_main.w                              \
-        src/ad_bound.w      src/ad_layers.w      src/ad_start.w        src/iad_main_mus.w    \
+        src/ad_bound.w      src/ad_layers.w      src/ad_start.w                              \
         src/ad_chapter.w    src/ad_layers_test.w src/iad.w             src/iad_pub.w         \
         src/ad_cone.w       src/ad_main.w        src/iad_calc.w        src/iad_type.w        \
         src/ad_cone_test.w  src/ad_matrx.w       src/iad_util.w        src/ad_oblique_test.w \
