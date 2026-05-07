@@ -1,10 +1,10 @@
 \def\title{iad}
 \def\iadversion{3-16-3}
-\def\iadyear{1993--2024}
+\def\iadyear{1993--2026}
 
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
-% Copyright 1993-2024 Scott Prahl
+% Copyright 1993-2026 Scott Prahl
 
 % Permission is granted to make and distribute verbatim copies of this
 % document provided that the copyright notice and this permission notice
@@ -45,9 +45,11 @@ under the terms of a permission notice identical to this one.
 @i "iad_type.w"
 @i "iad_pub.w"
 @i "iad_io.w"
+@i "iad_agrid.w"
 @i "iad_calc.w"
 @i "iad_find.w"
 @i "iad_util.w"
+@i "mc_lost.w"
 
 @**Index.
 Here is a cross-reference table for the inverse adding-doubling program.
