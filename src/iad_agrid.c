@@ -42,6 +42,8 @@ static double AGrid_m_u = 0;
 static double AGrid_fixed_g = 0;
 static double AGrid_fixed_b = 0;
 static double AGrid_fixed_a = 0;
+static double AGrid_fixed_ba = 0;
+static double AGrid_fixed_bs = 0;
 
 static double agrid_nonlinear_a(double u)
 {
@@ -56,6 +58,8 @@ static double agrid_nonlinear_g(double v)
 
 static void agrid_make_abg(double u, double v, int search, double *a, double *b, double *g)
 {
+    double ba, bs;
+
     switch (search) {
     case FIND_AB:
         *a = agrid_nonlinear_a(u);
@@ -72,6 +76,20 @@ static void agrid_make_abg(double u, double v, int search, double *a, double *b,
         *b = exp(u);
         *g = agrid_nonlinear_g(v);
         break;
+    case FIND_BaG:
+        ba = exp(u);
+        bs = AGrid_fixed_bs;
+        *b = ba + bs;
+        *a = (*b > 0.0) ? bs / *b : 0.0;
+        *g = agrid_nonlinear_g(v);
+        break;
+    case FIND_BsG:
+        bs = exp(u);
+        ba = AGrid_fixed_ba;
+        *b = ba + bs;
+        *a = (*b > 0.0) ? 1.0 - ba / *b : 0.0;
+        *g = agrid_nonlinear_g(v);
+        break;
     default:
         *a = 0.5;
         *b = 1.0;
@@ -79,6 +97,10 @@ static void agrid_make_abg(double u, double v, int search, double *a, double *b,
         break;
     }
 
+    if (*a < 0.0)
+        *a = 0.0;
+    if (*a > 1.0)
+        *a = 1.0;
     if (*b < 1e-8)
         *b = 1e-8;
     if (*g < -MAX_ABS_G)
@@ -198,6 +220,8 @@ static void agrid_save_context(struct measure_type m, struct invert_type r)
     AGrid_fixed_g = r.slab.g;
     AGrid_fixed_b = r.slab.b;
     AGrid_fixed_a = (r.default_a == UNINITIALIZED) ? 0.0 : r.default_a;
+    AGrid_fixed_ba = (r.default_ba == UNINITIALIZED) ? 0.0 : r.default_ba;
+    AGrid_fixed_bs = (r.default_bs == UNINITIALIZED) ? 0.0 : r.default_bs;
 
     AGrid_Search = r.search;
     AGrid_Initialized = 1;
@@ -239,6 +263,16 @@ int AGrid_Valid(struct measure_type m, struct invert_type r)
         if (fa != AGrid_fixed_a)
             return 0;
     }
+    if (r.search == FIND_BaG) {
+        double fbs = (r.default_bs == UNINITIALIZED) ? 0.0 : r.default_bs;
+        if (fbs != AGrid_fixed_bs)
+            return 0;
+    }
+    if (r.search == FIND_BsG) {
+        double fba = (r.default_ba == UNINITIALIZED) ? 0.0 : r.default_ba;
+        if (fba != AGrid_fixed_ba)
+            return 0;
+    }
 
     return 1;
 }
@@ -256,6 +290,10 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
         AGrid_fixed_b = r.slab.b;
     if (search == FIND_BG)
         AGrid_fixed_a = (r.default_a == UNINITIALIZED) ? 0.0 : r.default_a;
+    if (search == FIND_BaG)
+        AGrid_fixed_bs = (r.default_bs == UNINITIALIZED) ? 0.0 : r.default_bs;
+    if (search == FIND_BsG)
+        AGrid_fixed_ba = (r.default_ba == UNINITIALIZED) ? 0.0 : r.default_ba;
 
     Set_Calc_State(m, r);
 
@@ -269,6 +307,12 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
             break;
         case FIND_BG:
             fprintf(stderr, "AGRID: Filling BG grid (a=%.5f)\n", AGrid_fixed_a);
+            break;
+        case FIND_BaG:
+            fprintf(stderr, "AGRID: Filling BaG grid (bs=%.5f)\n", AGrid_fixed_bs);
+            break;
+        case FIND_BsG:
+            fprintf(stderr, "AGRID: Filling BsG grid (ba=%.5f)\n", AGrid_fixed_ba);
             break;
         default:
             fprintf(stderr, "AGRID: Filling grid for search=%d\n", search);
@@ -290,6 +334,13 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
         v1 = 1.0;
         break;
     case FIND_BG:
+        u0 = AGRID_MIN_LOG_B;
+        u1 = AGRID_MAX_LOG_B_BG;
+        v0 = 0.0;
+        v1 = 1.0;
+        break;
+    case FIND_BaG:
+    case FIND_BsG:
         u0 = AGRID_MIN_LOG_B;
         u1 = AGRID_MAX_LOG_B_BG;
         v0 = 0.0;
@@ -364,7 +415,7 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
         int k, l, found;
         int use_geo0, use_geo1;
 
-        use_geo0 = (AGrid_Search == FIND_BG);
+        use_geo0 = (AGrid_Search == FIND_BG || AGrid_Search == FIND_BaG || AGrid_Search == FIND_BsG);
         use_geo1 = (AGrid_Search == FIND_AB);
 
         while (n0 < AGRID_CLOSURE_N) {
@@ -381,6 +432,16 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
                     break;
                 case FIND_BG:
                     vc = AGrid_Cache[i].b;
+                    break;
+                case FIND_BaG:
+                    vc = AGrid_Cache[i].b - AGrid_fixed_bs;
+                    if (vc < 1e-8)
+                        vc = 1e-8;
+                    break;
+                case FIND_BsG:
+                    vc = AGrid_Cache[i].b - AGrid_fixed_ba;
+                    if (vc < 1e-8)
+                        vc = 1e-8;
                     break;
                 default:
                     vc = AGrid_Cache[i].a;
@@ -409,6 +470,18 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
             case FIND_BG:
                 axis0[n0++] = AGrid_Cache[best_i].b;
                 break;
+            case FIND_BaG:
+                axis0[n0] = AGrid_Cache[best_i].b - AGrid_fixed_bs;
+                if (axis0[n0] < 1e-8)
+                    axis0[n0] = 1e-8;
+                n0++;
+                break;
+            case FIND_BsG:
+                axis0[n0] = AGrid_Cache[best_i].b - AGrid_fixed_ba;
+                if (axis0[n0] < 1e-8)
+                    axis0[n0] = 1e-8;
+                n0++;
+                break;
             default:
                 axis0[n0++] = AGrid_Cache[best_i].a;
                 break;
@@ -428,6 +501,12 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
                     vc = AGrid_Cache[i].g;
                     break;
                 case FIND_BG:
+                    vc = AGrid_Cache[i].g;
+                    break;
+                case FIND_BaG:
+                    vc = AGrid_Cache[i].g;
+                    break;
+                case FIND_BsG:
                     vc = AGrid_Cache[i].g;
                     break;
                 default:
@@ -455,6 +534,12 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
                 axis1[n1++] = AGrid_Cache[best_i].g;
                 break;
             case FIND_BG:
+                axis1[n1++] = AGrid_Cache[best_i].g;
+                break;
+            case FIND_BaG:
+                axis1[n1++] = AGrid_Cache[best_i].g;
+                break;
+            case FIND_BsG:
                 axis1[n1++] = AGrid_Cache[best_i].g;
                 break;
             default:
@@ -522,6 +607,7 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
         for (k = 0; k < n0; k++) {
             for (l = 0; l < n1; l++) {
                 double a, b, g;
+                double ba, bs;
                 double d;
                 int idx;
 
@@ -541,6 +627,20 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
                     b = axis0[k];
                     g = axis1[l];
                     break;
+                case FIND_BaG:
+                    ba = axis0[k];
+                    bs = AGrid_fixed_bs;
+                    b = ba + bs;
+                    a = (b > 0.0) ? bs / b : 0.0;
+                    g = axis1[l];
+                    break;
+                case FIND_BsG:
+                    bs = axis0[k];
+                    ba = AGrid_fixed_ba;
+                    b = ba + bs;
+                    a = (b > 0.0) ? 1.0 - ba / b : 0.0;
+                    g = axis1[l];
+                    break;
                 default:
                     a = axis0[k];
                     b = axis1[l];
@@ -548,6 +648,10 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
                     break;
                 }
 
+                if (a < 0.0)
+                    a = 0.0;
+                if (a > 1.0)
+                    a = 1.0;
                 if (b < 1e-8)
                     b = 1e-8;
                 if (g < -MAX_ABS_G)

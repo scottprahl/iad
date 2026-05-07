@@ -119,50 +119,6 @@ This is the most common case.
     y=dvector(1,3);
     p=dmatrix(1,3,1,2);
 
-@ Just get the optimal optical properties to start the
-search process.
-
-I had to add the line that tests to make sure the albedo is greater
-than 0.2 because the grid just does not work so well in this case.
-The problem is that for low albedos there is really very little
-information about the anisotropy available.  This change was also
-made in the analagous code for |a| and |b|.
-
-@<Get the initial |a|, |b|, and |g|@>=
-{
-    int i_best, j_best;
-    size_t  count = NUMBER_OF_GUESSES;
-    abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
-
-    if (!Valid_Grid(m, *r)) Fill_Grid(m,*r,1);
-
-    Near_Grid_Points(m.m_r,m.m_t,r->search, &i_best, &j_best);
-    Grid_ABG(i_best  ,j_best  ,&(guess[1]));
-    Grid_ABG(i_best+1,j_best  ,&(guess[2]));
-    Grid_ABG(i_best-1,j_best  ,&(guess[3]));
-    Grid_ABG(i_best  ,j_best+1,&(guess[4]));
-    Grid_ABG(i_best  ,j_best-1,&(guess[5]));
-    Grid_ABG(i_best+1,j_best+1,&(guess[6]));
-    Grid_ABG(i_best-1,j_best-1,&(guess[7]));
-    Grid_ABG(i_best+1,j_best-1,&(guess[8]));
-    Grid_ABG(i_best-1,j_best+1,&(guess[9]));
-
-    qsort((void *) guess, count, sizeof(guess_type), compare_guesses);
-
-    if (Debug(DEBUG_BEST_GUESS)) {
-        int k;
-        fprintf(stderr, "BEST: GRID GUESSES\n");
-        fprintf(stderr, "BEST:  k      albedo          b          g   distance\n");
-        for (k=0; k<=6; k++) {
-            fprintf(stderr, "BEST:%3d  ", k);
-            fprintf(stderr, "%10.5f ", guess[k].a);
-            fprintf(stderr, "%10.5f ", guess[k].b);
-            fprintf(stderr, "%10.5f ", guess[k].g);
-            fprintf(stderr, "%10.5f\n", guess[k].distance);
-        }
-    }
-}
-
 @ @<Initialize the nodes of the |a| and |b| simplex@>=
     {
     int k,kk;
@@ -755,7 +711,7 @@ $b$.
 {
     @<Allocate local simplex variables@>@;
     Set_Calc_State(m, *r);
-    @<Get the initial |a|, |b|, and |g|@>@;
+    @<Get the AGrid initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |ba| and |g| simplex@>@;
     @<Evaluate the \\{BaG} simplex at the nodes@>@;
     amoeba(p, y, 2, r->tolerance, Find_BaG_fn, &r->AD_iterations, NULL, NULL);
@@ -831,7 +787,7 @@ $b$.
     }
 
     Set_Calc_State(m, *r);
-    @<Get the initial |a|, |b|, and |g|@>@;
+    @<Get the AGrid initial |a|, |b|, and |g|@>@;
     @<Initialize the nodes of the |bs| and |g| simplex@>@;
     @<Evaluate the \\{BsG} simplex at the nodes@>@;
     amoeba(p, y, 2, r->tolerance, Find_BsG_fn, &r->AD_iterations, NULL, NULL);
@@ -843,13 +799,18 @@ $b$.
 
 @ @<Initialize the nodes of the |bs| and |g| simplex@>=
 
-    p[1][1] = b2bcalc(guess[0].b - r->default_ba);
+    if (guess[0].b > r->default_ba) {
+        p[1][1] = b2bcalc(guess[0].b - r->default_ba);
+        p[2][1] = b2bcalc(2 * (guess[0].b - r->default_ba));
+        p[3][1] = p[1][1];
+    } else {
+        p[1][1] = b2bcalc(0.0001);
+        p[2][1] = b2bcalc(0.001);
+        p[3][1] = p[1][1];
+    }
+
     p[1][2] = g2gcalc(guess[0].g);
-
-    p[2][1] = b2bcalc(2 * guess[0].b - 2 * r->default_ba);
     p[2][2] = p[1][2];
-
-    p[3][1] = p[1][1];
     p[3][2] = g2gcalc(0.9*guess[0].g+0.05);
 
 
@@ -874,8 +835,8 @@ $b$.
 
 @*1 AGrid initial guess.
 
-Replace the dense $101\times101$ grid warm-start with the adaptive
-quadtree grid for |FIND_AB|, |FIND_AG|, and |FIND_BG|.
+Use the adaptive quadtree grid warm-start for |FIND_AB|, |FIND_AG|,
+|FIND_BG|, |FIND_BaG|, and |FIND_BsG|.
 The previous result |guess[0]| is always kept as a candidate; the AGrid
 contributes up to |NUMBER_OF_GUESSES-1| additional sorted entries.
 

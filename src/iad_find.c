@@ -686,31 +686,30 @@ void U_Find_BaG(struct measure_type m, struct invert_type *r)
     Set_Calc_State(m, *r);
 
     {
-        int i_best, j_best;
-        size_t count = NUMBER_OF_GUESSES;
+        int n_agrid;
+        int k;
+        size_t count;
+
         abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 
-        if (!Valid_Grid(m, *r))
-            Fill_Grid(m, *r, 1);
+        if (r->MC_iterations > 0) {
+            for (k = 1; k < NUMBER_OF_GUESSES; k++)
+                guess[k] = guess[0];
+            count = 1;
+        }
+        else {
+            if (!AGrid_Valid(m, *r))
+                AGrid_Build(m, *r);
 
-        Near_Grid_Points(m.m_r, m.m_t, r->search, &i_best, &j_best);
-        Grid_ABG(i_best, j_best, &(guess[1]));
-        Grid_ABG(i_best + 1, j_best, &(guess[2]));
-        Grid_ABG(i_best - 1, j_best, &(guess[3]));
-        Grid_ABG(i_best, j_best + 1, &(guess[4]));
-        Grid_ABG(i_best, j_best - 1, &(guess[5]));
-        Grid_ABG(i_best + 1, j_best + 1, &(guess[6]));
-        Grid_ABG(i_best - 1, j_best - 1, &(guess[7]));
-        Grid_ABG(i_best + 1, j_best - 1, &(guess[8]));
-        Grid_ABG(i_best - 1, j_best + 1, &(guess[9]));
-
-        qsort((void *) guess, count, sizeof(guess_type), compare_guesses);
+            n_agrid = AGrid_Fill_Guesses(m.m_r, m.m_t, guess + 1, NUMBER_OF_GUESSES - 1);
+            count = (size_t) (1 + n_agrid);
+            qsort((void *) guess, count, sizeof(guess_type), compare_guesses);
+        }
 
         if (Debug(DEBUG_BEST_GUESS)) {
-            int k;
-            fprintf(stderr, "BEST: GRID GUESSES\n");
+            fprintf(stderr, "BEST: AGRID + PREV GUESSES\n");
             fprintf(stderr, "BEST:  k      albedo          b          g   distance\n");
-            for (k = 0; k <= 6; k++) {
+            for (k = 0; k < (int) count && k < 7; k++) {
                 fprintf(stderr, "BEST:%3d  ", k);
                 fprintf(stderr, "%10.5f ", guess[k].a);
                 fprintf(stderr, "%10.5f ", guess[k].b);
@@ -786,31 +785,30 @@ void U_Find_BsG(struct measure_type m, struct invert_type *r)
     Set_Calc_State(m, *r);
 
     {
-        int i_best, j_best;
-        size_t count = NUMBER_OF_GUESSES;
+        int n_agrid;
+        int k;
+        size_t count;
+
         abg_distance(r->slab.a, r->slab.b, r->slab.g, &(guess[0]));
 
-        if (!Valid_Grid(m, *r))
-            Fill_Grid(m, *r, 1);
+        if (r->MC_iterations > 0) {
+            for (k = 1; k < NUMBER_OF_GUESSES; k++)
+                guess[k] = guess[0];
+            count = 1;
+        }
+        else {
+            if (!AGrid_Valid(m, *r))
+                AGrid_Build(m, *r);
 
-        Near_Grid_Points(m.m_r, m.m_t, r->search, &i_best, &j_best);
-        Grid_ABG(i_best, j_best, &(guess[1]));
-        Grid_ABG(i_best + 1, j_best, &(guess[2]));
-        Grid_ABG(i_best - 1, j_best, &(guess[3]));
-        Grid_ABG(i_best, j_best + 1, &(guess[4]));
-        Grid_ABG(i_best, j_best - 1, &(guess[5]));
-        Grid_ABG(i_best + 1, j_best + 1, &(guess[6]));
-        Grid_ABG(i_best - 1, j_best - 1, &(guess[7]));
-        Grid_ABG(i_best + 1, j_best - 1, &(guess[8]));
-        Grid_ABG(i_best - 1, j_best + 1, &(guess[9]));
-
-        qsort((void *) guess, count, sizeof(guess_type), compare_guesses);
+            n_agrid = AGrid_Fill_Guesses(m.m_r, m.m_t, guess + 1, NUMBER_OF_GUESSES - 1);
+            count = (size_t) (1 + n_agrid);
+            qsort((void *) guess, count, sizeof(guess_type), compare_guesses);
+        }
 
         if (Debug(DEBUG_BEST_GUESS)) {
-            int k;
-            fprintf(stderr, "BEST: GRID GUESSES\n");
+            fprintf(stderr, "BEST: AGRID + PREV GUESSES\n");
             fprintf(stderr, "BEST:  k      albedo          b          g   distance\n");
-            for (k = 0; k <= 6; k++) {
+            for (k = 0; k < (int) count && k < 7; k++) {
                 fprintf(stderr, "BEST:%3d  ", k);
                 fprintf(stderr, "%10.5f ", guess[k].a);
                 fprintf(stderr, "%10.5f ", guess[k].b);
@@ -820,13 +818,19 @@ void U_Find_BsG(struct measure_type m, struct invert_type *r)
         }
     }
 
-    p[1][1] = b2bcalc(guess[0].b - r->default_ba);
+    if (guess[0].b > r->default_ba) {
+        p[1][1] = b2bcalc(guess[0].b - r->default_ba);
+        p[2][1] = b2bcalc(2 * (guess[0].b - r->default_ba));
+        p[3][1] = p[1][1];
+    }
+    else {
+        p[1][1] = b2bcalc(0.0001);
+        p[2][1] = b2bcalc(0.001);
+        p[3][1] = p[1][1];
+    }
+
     p[1][2] = g2gcalc(guess[0].g);
-
-    p[2][1] = b2bcalc(2 * guess[0].b - 2 * r->default_ba);
     p[2][2] = p[1][2];
-
-    p[3][1] = p[1][1];
     p[3][2] = g2gcalc(0.9 * guess[0].g + 0.05);
 
     for (i = 1; i <= 3; i++) {

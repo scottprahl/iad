@@ -24,6 +24,14 @@ run_iad_numeric options_wall_defaults -V 0 -r 0.2 -t 0.01 -M 0 -S 1 -w 0.95 -W 0
 run_iad_numeric options_search_debug -V 0 -r 0.2 -t 0.01 -M 0 -S 1 -s 2 -H 3 -x 0 \
     -1 "100 15 13 2 0.95" -2 "100 15 13 2 0.95"
 
+agrid_bag="$TEST_TMP/agrid_bag.out"
+"$IAD_EXECUTABLE" -V 0 -x 2 -r 0.4 -t 0.1 -F 30 > "$agrid_bag" 2>&1
+assert_contains "$agrid_bag" "AGRID: Filling BaG grid"
+
+agrid_bsg="$TEST_TMP/agrid_bsg.out"
+"$IAD_EXECUTABLE" -V 0 -x 2 -r 0.3 -t 0.1 -A 0.6 > "$agrid_bsg" 2>&1
+assert_contains "$agrid_bsg" "AGRID: Filling BsG grid"
+
 cp "$ROOT_DIR/tests/rxt/1_sphere/vio_A.rxt" "$TEST_TMP/vio_A.rxt"
 (
     cd "$TEST_TMP"

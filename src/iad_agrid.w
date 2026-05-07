@@ -1,7 +1,8 @@
 @** IAD Adaptive Grid.
 
 This module implements an adaptive quadtree grid for the two-parameter
-inverse searches |FIND_AB|, |FIND_AG|, and |FIND_BG|.  It replaces the
+inverse searches |FIND_AB|, |FIND_AG|, |FIND_BG|, |FIND_BaG|, and
+|FIND_BsG|.  It replaces the
 dense $101\times101$ grid with a smaller, targeted sample that still
 seeds the Nelder-Mead simplex with a good warm start.
 
@@ -14,7 +15,8 @@ tolerance |AGRID_TOL|.  Subdivision is always performed to at least
 The coordinate transforms match those used by the dense grid:
 $$a(u) = 1-(1-u)^2(1+2u), \qquad u\in[0,1]$$
 $$g(v) = \bigl(1-2(1-v)^2(1+2v)\bigr)\cdot G_{\max}, \qquad v\in[0,1]$$
-$$b = e^\ell, \qquad \ell\in[-8,\,\pm10]$$
+$$b = e^\ell,\quad b_a=e^\ell,\quad b_s=e^\ell,
+  \qquad \ell\in[-8,\,\pm10]$$
 
 Two helper functions, |abg_eval| and |abg_stored_distance|, live in
 \.{iad\_calc.c} (where the global |MM|/|RR| state is accessible) and
@@ -65,7 +67,8 @@ are declared in \.{iad\_calc.h}.  Everything else is local to this file.
 is subdivided past |AGRID_MAX_DEPTH|.  The cache starts with
 |AGRID_INIT_CAP| slots, and |AGRID_CLOSURE_N| controls how many promising
 entries seed the local closure search.  The |FIND_AB| and |FIND_AG| grids
-share one upper |b| range; |FIND_BG| gets a wider |b| range.
+share one upper |b| range; searches with a logarithmic optical-depth axis
+and |g| get a wider range.
 
 @<AGrid constants@>=
 #define AGRID_TOL           0.05
@@ -101,8 +104,8 @@ static int AGrid_Search = -1;
 
 @*1 Stale-context.
 
-We store the key fields that determine whether a rebuild is needed.
-These mirror the checks in |Valid_Grid| (|iad_calc.c|) plus the
+We store the key fields that determine whether a rebuild is needed:
+boundary conditions, sphere configuration, unscattered measurement, and the
 search-specific fixed-axis value.
 Lost-light terms are not part of this context because the adaptive grid
 stores raw adding-doubling results; query-time distance calculations apply
@@ -123,6 +126,8 @@ static double AGrid_m_u            = 0;
 static double AGrid_fixed_g        = 0;
 static double AGrid_fixed_b        = 0;
 static double AGrid_fixed_a        = 0;
+static double AGrid_fixed_ba       = 0;
+static double AGrid_fixed_bs       = 0;
 
 @*1 Coordinate transforms.
 
@@ -150,13 +155,16 @@ The mapping depends on which axis is held fixed (i.e.\ which search is
 active).
 For |FIND_AB|, |u| is albedo and |v| is logarithmic |b|.  For |FIND_AG|,
 |u| is albedo and |v| is anisotropy.  For |FIND_BG|, |u| is logarithmic
-|b| and |v| is anisotropy.  The final values are clamped to the physical
-range.
+|b| and |v| is anisotropy.  For |FIND_BaG| and |FIND_BsG|, |u| is the
+logarithm of the varying absorption or scattering optical depth and |v| is
+anisotropy.  The final values are clamped to the physical range.
 
 @<Definition for |agrid_make_abg|@>=
 static void agrid_make_abg(double u, double v, int search,
                            double *a, double *b, double *g)
 {
+    double ba, bs;
+
     switch (search) {
     case FIND_AB:
         *a = agrid_nonlinear_a(u);
@@ -173,11 +181,27 @@ static void agrid_make_abg(double u, double v, int search,
         *b = exp(u);
         *g = agrid_nonlinear_g(v);
         break;
+    case FIND_BaG:
+        ba = exp(u);
+        bs = AGrid_fixed_bs;
+        *b = ba + bs;
+        *a = (*b > 0.0) ? bs / *b : 0.0;
+        *g = agrid_nonlinear_g(v);
+        break;
+    case FIND_BsG:
+        bs = exp(u);
+        ba = AGrid_fixed_ba;
+        *b = ba + bs;
+        *a = (*b > 0.0) ? 1.0 - ba / *b : 0.0;
+        *g = agrid_nonlinear_g(v);
+        break;
     default:
         *a = 0.5; *b = 1.0; *g = 0.0;
         break;
     }
 
+    if (*a < 0.0)       *a = 0.0;
+    if (*a > 1.0)       *a = 1.0;
     if (*b < 1e-8)       *b = 1e-8;
     if (*g < -MAX_ABS_G) *g = -MAX_ABS_G;
     if (*g >  MAX_ABS_G) *g =  MAX_ABS_G;
@@ -348,6 +372,8 @@ static void agrid_save_context(struct measure_type m, struct invert_type r)
     AGrid_fixed_g = r.slab.g;
     AGrid_fixed_b = r.slab.b;
     AGrid_fixed_a = (r.default_a == UNINITIALIZED) ? 0.0 : r.default_a;
+    AGrid_fixed_ba = (r.default_ba == UNINITIALIZED) ? 0.0 : r.default_ba;
+    AGrid_fixed_bs = (r.default_bs == UNINITIALIZED) ? 0.0 : r.default_bs;
 
     AGrid_Search      = r.search;
     AGrid_Initialized = 1;
@@ -356,8 +382,7 @@ static void agrid_save_context(struct measure_type m, struct invert_type r)
 @*1 Public interface.
 
 |AGrid_Valid| returns non-zero if the current cache was built for the
-same physical state as $(m, r)$.  The check mirrors |Valid_Grid| in
-\.{iad\_calc.c} but is independent of the dense-grid allocation.
+same physical state as $(m, r)$.
 The fixed-axis value must still match the current search, but lost-light
 changes alone do not invalidate the cache because distances are recomputed
 when candidates are requested.
@@ -388,6 +413,14 @@ int AGrid_Valid(struct measure_type m, struct invert_type r)
         double fa = (r.default_a == UNINITIALIZED) ? 0.0 : r.default_a;
         if (fa != AGrid_fixed_a) return 0;
     }
+    if (r.search == FIND_BaG) {
+        double fbs = (r.default_bs == UNINITIALIZED) ? 0.0 : r.default_bs;
+        if (fbs != AGrid_fixed_bs) return 0;
+    }
+    if (r.search == FIND_BsG) {
+        double fba = (r.default_ba == UNINITIALIZED) ? 0.0 : r.default_ba;
+        if (fba != AGrid_fixed_ba) return 0;
+    }
 
     return 1;
 }
@@ -413,6 +446,10 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
     if (search == FIND_AG) AGrid_fixed_b = r.slab.b;
     if (search == FIND_BG)
         AGrid_fixed_a = (r.default_a == UNINITIALIZED) ? 0.0 : r.default_a;
+    if (search == FIND_BaG)
+        AGrid_fixed_bs = (r.default_bs == UNINITIALIZED) ? 0.0 : r.default_bs;
+    if (search == FIND_BsG)
+        AGrid_fixed_ba = (r.default_ba == UNINITIALIZED) ? 0.0 : r.default_ba;
 
     Set_Calc_State(m, r);
 
@@ -426,6 +463,12 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
             break;
         case FIND_BG:
             fprintf(stderr, "AGRID: Filling BG grid (a=%.5f)\n", AGrid_fixed_a);
+            break;
+        case FIND_BaG:
+            fprintf(stderr, "AGRID: Filling BaG grid (bs=%.5f)\n", AGrid_fixed_bs);
+            break;
+        case FIND_BsG:
+            fprintf(stderr, "AGRID: Filling BsG grid (ba=%.5f)\n", AGrid_fixed_ba);
             break;
         default:
             fprintf(stderr, "AGRID: Filling grid for search=%d\n", search);
@@ -443,6 +486,11 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
         v0 = 0.0; v1 = 1.0;
         break;
     case FIND_BG:
+        u0 = AGRID_MIN_LOG_B; u1 = AGRID_MAX_LOG_B_BG;
+        v0 = 0.0; v1 = 1.0;
+        break;
+    case FIND_BaG:
+    case FIND_BsG:
         u0 = AGRID_MIN_LOG_B; u1 = AGRID_MAX_LOG_B_BG;
         v0 = 0.0; v1 = 1.0;
         break;
@@ -533,7 +581,9 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
         int k, l, found;
         int use_geo0, use_geo1;
 
-        use_geo0 = (AGrid_Search == FIND_BG);
+        use_geo0 = (AGrid_Search == FIND_BG ||
+                    AGrid_Search == FIND_BaG ||
+                    AGrid_Search == FIND_BsG);
         use_geo1 = (AGrid_Search == FIND_AB);
 
         while (n0 < AGRID_CLOSURE_N) {
@@ -545,6 +595,14 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
                 case FIND_AB: vc = AGrid_Cache[i].a; break;
                 case FIND_AG: vc = AGrid_Cache[i].a; break;
                 case FIND_BG: vc = AGrid_Cache[i].b; break;
+                case FIND_BaG:
+                    vc = AGrid_Cache[i].b - AGrid_fixed_bs;
+                    if (vc < 1e-8) vc = 1e-8;
+                    break;
+                case FIND_BsG:
+                    vc = AGrid_Cache[i].b - AGrid_fixed_ba;
+                    if (vc < 1e-8) vc = 1e-8;
+                    break;
                 default:      vc = AGrid_Cache[i].a; break;
                 }
                 found = 0;
@@ -559,6 +617,16 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
             case FIND_AB: axis0[n0++] = AGrid_Cache[best_i].a; break;
             case FIND_AG: axis0[n0++] = AGrid_Cache[best_i].a; break;
             case FIND_BG: axis0[n0++] = AGrid_Cache[best_i].b; break;
+            case FIND_BaG:
+                axis0[n0] = AGrid_Cache[best_i].b - AGrid_fixed_bs;
+                if (axis0[n0] < 1e-8) axis0[n0] = 1e-8;
+                n0++;
+                break;
+            case FIND_BsG:
+                axis0[n0] = AGrid_Cache[best_i].b - AGrid_fixed_ba;
+                if (axis0[n0] < 1e-8) axis0[n0] = 1e-8;
+                n0++;
+                break;
             default:      axis0[n0++] = AGrid_Cache[best_i].a; break;
             }
         }
@@ -572,6 +640,8 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
                 case FIND_AB: vc = AGrid_Cache[i].b; break;
                 case FIND_AG: vc = AGrid_Cache[i].g; break;
                 case FIND_BG: vc = AGrid_Cache[i].g; break;
+                case FIND_BaG: vc = AGrid_Cache[i].g; break;
+                case FIND_BsG: vc = AGrid_Cache[i].g; break;
                 default:      vc = AGrid_Cache[i].b; break;
                 }
                 found = 0;
@@ -586,6 +656,8 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
             case FIND_AB: axis1[n1++] = AGrid_Cache[best_i].b; break;
             case FIND_AG: axis1[n1++] = AGrid_Cache[best_i].g; break;
             case FIND_BG: axis1[n1++] = AGrid_Cache[best_i].g; break;
+            case FIND_BaG: axis1[n1++] = AGrid_Cache[best_i].g; break;
+            case FIND_BsG: axis1[n1++] = AGrid_Cache[best_i].g; break;
             default:      axis1[n1++] = AGrid_Cache[best_i].b; break;
             }
         }
@@ -631,6 +703,7 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
         for (k = 0; k < n0; k++) {
             for (l = 0; l < n1; l++) {
                 double a, b, g;
+                double ba, bs;
                 double d;
                 int idx;
 
@@ -638,9 +711,25 @@ int AGrid_Fill_Guesses(double m_r, double m_t,
                 case FIND_AB: a = axis0[k]; b = axis1[l]; g = AGrid_fixed_g; break;
                 case FIND_AG: a = axis0[k]; b = AGrid_fixed_b; g = axis1[l]; break;
                 case FIND_BG: a = AGrid_fixed_a; b = axis0[k]; g = axis1[l]; break;
+                case FIND_BaG:
+                    ba = axis0[k];
+                    bs = AGrid_fixed_bs;
+                    b = ba + bs;
+                    a = (b > 0.0) ? bs / b : 0.0;
+                    g = axis1[l];
+                    break;
+                case FIND_BsG:
+                    bs = axis0[k];
+                    ba = AGrid_fixed_ba;
+                    b = ba + bs;
+                    a = (b > 0.0) ? 1.0 - ba / b : 0.0;
+                    g = axis1[l];
+                    break;
                 default:      a = axis0[k]; b = axis1[l]; g = AGrid_fixed_g; break;
                 }
 
+                if (a < 0.0) a = 0.0;
+                if (a > 1.0) a = 1.0;
                 if (b < 1e-8) b = 1e-8;
                 if (g < -MAX_ABS_G) g = -MAX_ABS_G;
                 if (g >  MAX_ABS_G) g =  MAX_ABS_G;

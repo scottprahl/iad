@@ -348,7 +348,6 @@ when two spheres are used.
              &mr_limit, &mt_limit, &distance);
     Set_Calc_State(old_mm, old_rr);
 
-    fprintf(stderr,"\n mt=%8.4f mlimit=%8.4f\n", m.m_t, mt_limit);
     if (m.m_t > mt_limit)
         return IAD_MT_TOO_BIG;
 

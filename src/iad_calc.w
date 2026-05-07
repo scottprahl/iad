@@ -20,7 +20,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include "nr_util.h"
 #include "nr_zbrent.h"
 #include "ad_globl.h"
 #include "ad_frsnl.h"
@@ -28,20 +27,8 @@
 #include "iad_type.h"
 #include "iad_util.h"
 #include "iad_calc.h"
-#include "mc_lost.h"
 
 #define ABIT 1e-6
-#define A_COLUMN 1
-#define B_COLUMN 2
-#define G_COLUMN 3
-#define URU_COLUMN 4
-#define UTU_COLUMN 5
-#define UR1_COLUMN 6
-#define UT1_COLUMN 7
-#define URU_LOST_COLUMN 8
-#define UTU_LOST_COLUMN 9
-#define UR1_LOST_COLUMN 10
-#define UT1_LOST_COLUMN 11
 
 #define REFLECTION_SPHERE 1
 #define TRANSMISSION_SPHERE 0
@@ -53,16 +40,6 @@ static int CALCULATING_GRID = 0;
 static int SKIP_DISTANCE_CLAMP = 0;
 static struct measure_type MM;
 static struct invert_type RR;
-static struct measure_type MGRID;
-static struct invert_type RGRID;
-static double ** The_Grid=NULL;
-static double GG_a;
-static double GG_b;
-static double GG_g;
-static double GG_bs;
-static double GG_ba;
-static boolean_type The_Grid_Initialized = FALSE;
-static boolean_type The_Grid_Search = -1;
 
 static double scaled_l2_component(double calculated, double measured)
 {
@@ -74,23 +51,8 @@ static double scaled_l2_component(double calculated, double measured)
 
     @<Definition for |Set_Calc_State|@>@;
     @<Definition for |Get_Calc_State|@>@;
-    @<Definition for |Same_Calc_State|@>@;
-
-    @<Prototype for |Fill_AB_Grid|@>;
-    @<Prototype for |Fill_AG_Grid|@>;
 
     @<Definition for |RT_Flip|@>@;
-    @<Definition for |Allocate_Grid|@>@;
-    @<Definition for |Valid_Grid|@>@;
-    @<Definition for |fill_grid_entry|@>@;
-    @<Definition for |Fill_Grid|@>@;
-    @<Definition for |Near_Grid_Points|@>@;
-    @<Definition for |Fill_AB_Grid|@>@;
-    @<Definition for |Fill_AG_Grid|@>@;
-    @<Definition for |Fill_BG_Grid|@>@;
-    @<Definition for |Fill_BaG_Grid|@>@;
-    @<Definition for |Fill_BsG_Grid|@>@;
-    @<Definition for |Grid_ABG|@>@;
     @<Definition for |Gain|@>@;
     @<Definition for |Gain_11|@>@;
     @<Definition for |Gain_22|@>@;
@@ -98,7 +60,6 @@ static double scaled_l2_component(double calculated, double measured)
     @<Definition for |Two_Sphere_T|@>@;
 
     @<Definition for |Calculate_Distance_With_Corrections|@>@;
-    @<Definition for |Calculate_Grid_Distance|@>@;
     @<Definition for |Calculate_Distance|@>@;
     @<Definition for |abg_distance|@>@;
     @<Definition for |abg_eval|@>@;
@@ -128,12 +89,6 @@ static double scaled_l2_component(double calculated, double measured)
     @<Prototype for |Two_Sphere_T|@>;
     @<Prototype for |Set_Calc_State|@>;
     @<Prototype for |Get_Calc_State|@>;
-    @<Prototype for |Same_Calc_State|@>;
-    @<Prototype for |Valid_Grid|@>;
-    @<Prototype for |Allocate_Grid|@>;
-    @<Prototype for |Fill_Grid|@>;
-    @<Prototype for |Near_Grid_Points|@>;
-    @<Prototype for |Grid_ABG|@>;
     @<Prototype for |Find_AG_fn|@>;
     @<Prototype for |Find_AB_fn|@>;
     @<Prototype for |Find_Ba_fn|@>;
@@ -144,12 +99,8 @@ static double scaled_l2_component(double calculated, double measured)
     @<Prototype for |Find_BG_fn|@>;
     @<Prototype for |Find_BsG_fn|@>;
     @<Prototype for |Find_BaG_fn|@>;
-    @<Prototype for |Fill_BG_Grid|@>;
-    @<Prototype for |Fill_BsG_Grid|@>;
-    @<Prototype for |Fill_BaG_Grid|@>;
     @<Prototype for |Calculate_Distance_With_Corrections|@>;
     @<Prototype for |Calculate_Distance|@>;
-    @<Prototype for |Calculate_Grid_Distance|@>;
     @<Prototype for |abg_distance|@>;
     @<Prototype for |abg_eval|@>;
     @<Prototype for |abg_stored_distance|@>;
@@ -405,182 +356,6 @@ void Get_Calc_State(struct measure_type *m, struct invert_type *r)
     memcpy(r, &RR, sizeof(struct invert_type));
 }
 
-@ The inverse of the previous routine.  Note that you must have space for
-the parameters |m| and |r| already allocated.
-
-@<Prototype for |Same_Calc_State|@>=
-boolean_type Same_Calc_State(struct measure_type m, struct invert_type r)
-
-@ @<Definition for |Same_Calc_State|@>=
-    @<Prototype for |Same_Calc_State|@>
-{
-    if (The_Grid==NULL)        return FALSE;
-    if (!The_Grid_Initialized) return FALSE ;
-
-    if (r.search              != RR.search)              return FALSE;
-    if (r.method.quad_pts     != RR.method.quad_pts)     return FALSE;
-    if (r.slab.a              != RR.slab.a)              return FALSE;
-    if (r.slab.b              != RR.slab.b)              return FALSE;
-    if (r.slab.g              != RR.slab.g)              return FALSE;
-    if (r.slab.phase_function != RR.slab.phase_function) return FALSE;
-    if (r.slab.n_slab         != RR.slab.n_slab)         return FALSE;
-    if (r.slab.n_top_slide    != RR.slab.n_top_slide)    return FALSE;
-    if (r.slab.n_bottom_slide != RR.slab.n_bottom_slide) return FALSE;
-    if (r.slab.b_top_slide    != RR.slab.b_top_slide)    return FALSE;
-    if (r.slab.b_bottom_slide != RR.slab.b_bottom_slide) return FALSE;
-    if (r.slab.cos_angle      != RR.slab.cos_angle)      return FALSE;
-    if ((m.num_measures==3) && (m.m_u!=MGRID.m_u)) return (FALSE);
-    return TRUE;
-}
-
-@ @<Prototype for |Allocate_Grid|@>=
-void Allocate_Grid(search_type s)
-
-@ @<Definition for |Allocate_Grid|@>=
-    @<Prototype for |Allocate_Grid|@>
-{
-    (void) s;
-    The_Grid = dmatrix(0,GRID_SIZE*GRID_SIZE,1,11);
-    if (The_Grid==NULL) AD_error("unable to allocate the grid matrix");
-    The_Grid_Initialized = FALSE;
-}
-
-@ This routine will return the |a|, |b|, and |g| values for a particular
-row in the grid.
-
-@<Prototype for |Grid_ABG|@>=
-void Grid_ABG(int i, int j, guess_type *guess)
-
-@ @<Definition for |Grid_ABG|@>=
-    @<Prototype for |Grid_ABG|@>
-{
-    if (0<=i && i<GRID_SIZE && 0<=j && j<GRID_SIZE) {
-        guess->a = The_Grid[GRID_SIZE*i+j][A_COLUMN];
-        guess->b = The_Grid[GRID_SIZE*i+j][B_COLUMN];
-        guess->g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
-        guess->ur1_lost = The_Grid[GRID_SIZE*i+j][UR1_LOST_COLUMN];
-        guess->ut1_lost = The_Grid[GRID_SIZE*i+j][UT1_LOST_COLUMN];
-        guess->uru_lost = The_Grid[GRID_SIZE*i+j][URU_LOST_COLUMN];
-        guess->utu_lost = The_Grid[GRID_SIZE*i+j][UTU_LOST_COLUMN];
-        guess->distance = Calculate_Grid_Distance(i,j);
-    } else {
-        guess->a = 0.5;
-        guess->b = 0.5;
-        guess->g = 0.5;
-        guess->ur1_lost = 0;
-        guess->ut1_lost = 0;
-        guess->uru_lost = 0;
-        guess->utu_lost = 0;
-        guess->distance = 999;
-    }
-}
-
-@ This routine is used to figure out if the current grid is valid.
-This can fail for several reasons.  First the grid may not have
-been allocated.  Or it may not have been initialized.
-The boundary conditions may have changed.
-The number or values of the sphere parameters may have changed.
-It is tedious, but straightforward to check these cases out.
-
-If this routine returns true, then it is a pretty good bet that the values
-in the current grid can be used to guess the next starting set of values.
-
-@<Prototype for |Valid_Grid|@>=
-boolean_type Valid_Grid(struct measure_type m, struct invert_type r)
-
-@ @<Definition for |Valid_Grid|@>=
-    @<Prototype for |Valid_Grid|@>
-{
-    int s = r.search;
-    @<Tests for invalid grid@>@;
-
-    return(TRUE);
-}
-
-@ First check are to test if the grid has ever been filled
-
-@<Tests for invalid grid@>=
-    if (The_Grid==NULL) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because NULL\n");
-        return(FALSE);
-    }
-    if (!The_Grid_Initialized) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because not initialized\n");
-        return(FALSE);
-    }
-
-@ If the type of search has changed then report the grid as invalid
-
-@<Tests for invalid grid@>=
-    if (The_Grid_Search != s) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because search type changed\n");
-        return(FALSE);
-    }
-
-@ Compare the |m.m_u| value only if there are three measurements
-
-@<Tests for invalid grid@>=
-
-    if ((m.num_measures==3) && (m.m_u!=MGRID.m_u)) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because unscattered light changed\n");
-        return (FALSE);
-    }
-
-@ Make sure that the boundary conditions have not changed.
-
-@<Tests for invalid grid@>=
-    if (m.slab_index              != MGRID.slab_index) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because slab refractive index changed\n");
-        return(FALSE);
-    }
-    if (m.slab_cos_angle          != MGRID.slab_cos_angle) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because light angle changed\n");
-        return(FALSE);
-    }
-
-    if (m.slab_top_slide_index    != MGRID.slab_top_slide_index) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because top slide index changed\n");
-        return(FALSE);
-    }
-
-    if (m.slab_bottom_slide_index != MGRID.slab_bottom_slide_index) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because bottom slide index changed\n");
-        return(FALSE);
-    }
-
-    if (s == FIND_AB && r.slab.g != RGRID.slab.g) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because anisotropy changed\n");
-        return(FALSE);
-    }
-
-    if (s == FIND_AG && r.slab.b != RGRID.slab.b) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because optical depth changed\n");
-        return(FALSE);
-    }
-
-    if (s == FIND_BsG && r.default_ba != RGRID.default_ba) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because mu_a changed\n");
-        return(FALSE);
-    }
-
-    if (s == FIND_BaG && r.default_bs != RGRID.default_bs) {
-        if (Debug(DEBUG_GRID))
-            fprintf(stderr,"GRID: Fill because mu_s changed\n");
-        return(FALSE);
-    }
-
-
 @ Routine to just figure out the distance to a particular a, b, g point
 
 @<Prototype for |abg_distance|@>=
@@ -738,52 +513,6 @@ void abg_sphere_mr_mt(double a, double b, double g,
     Set_Calc_State(old_mm, old_rr);
 }
 
-@ This just searches through the grid to find the minimum entry and returns the
-optical properties of that entry.  The
-smallest, the next smallest, and the third smallest values are returned.
-
-This has been rewritten to use |Calculate_Distance_With_Corrections| so that changes in
-sphere parameters won't necessitate recalculating the grid.
-
-@<Prototype for |Near_Grid_Points|@>=
-void Near_Grid_Points(double r, double t, search_type s, int *i_min, int *j_min)
-
-@ @<Definition for |Near_Grid_Points|@>=
-    @<Prototype for |Near_Grid_Points|@>
-{
-    int i,j;
-    double  fval;
-    double smallest=10.0;
-    struct measure_type old_mm;
-    struct invert_type old_rr;
-    (void) r;
-    (void) t;
-    (void) s;
-
-    if (Debug(DEBUG_GRID))
-        fprintf(stderr,"GRID: Finding best grid points\n");
-    Get_Calc_State(&old_mm, &old_rr);
-
-    *i_min = 0;
-    *j_min = 0;
-    for(i=0; i<GRID_SIZE; i++){
-        for(j=0; j<GRID_SIZE; j++){
-
-            CALCULATING_GRID = 1;
-            fval = Calculate_Grid_Distance(i,j);
-            CALCULATING_GRID = 0;
-
-            if (fval<smallest){
-                *i_min = i;
-                *j_min = j;
-                smallest=fval;
-            }
-        }
-    }
-
-    Set_Calc_State(old_mm, old_rr);
-}
-
 @ Routine to incorporate flipping of sample if needed.  This is pretty
 simple.  The assumption is that flipping is handled relative to the
 reflection side of the sphere.  Thus even when flipping is needed,
@@ -814,419 +543,6 @@ void RT_Flip(int flip, int n, struct AD_slab_type * slab, double *UR1, double *U
         *UR1 = correct_UR1;
         *URU = correct_URU;
     }
-}
-
-@ Simple routine to put values into the grid
-
-Presumes that |RR.slab| is properly set up.
-
-@<Definition for |fill_grid_entry|@>=
-static void fill_grid_entry(int i, int j)
-{
-    double ur1,ut1,uru,utu;
-    double ur1_lost,ut1_lost,uru_lost,utu_lost;
-
-    if (RR.slab.b <= 1e-6 ) RR.slab.b = 1e-6;
-
-    if (Debug(DEBUG_GRID_CALC) && i==0 && j==0) {
-        fprintf(stderr, "+   i   j ");
-        fprintf(stderr, "      a         b          g     |");
-        fprintf(stderr, "     M_R        grid  |");
-        fprintf(stderr, "     M_T        grid\n");
-    }
-
-    if (Debug(DEBUG_EVERY_CALC) ) {
-        if (!CALCULATING_GRID)
-            fprintf(stderr, "a=%8.5f b=%10.5f g=%8.5f ", RR.slab.a, RR.slab.b, RR.slab.g);
-        else {
-            if (j==0) fprintf(stderr, ".");
-            if (i+1 == GRID_SIZE && j==0) fprintf(stderr, "\n");
-        }
-    }
-
-    RT_Flip(MM.flip_sample, RR.method.quad_pts, &RR.slab, &ur1, &ut1, &uru, &utu);
-
-    if (Debug(DEBUG_EVERY_CALC) && !CALCULATING_GRID)
-        fprintf(stderr, "ur1=%8.5f ut1=%8.5f\n", ur1, ut1);
-
-    The_Grid[GRID_SIZE*i+j][A_COLUMN]=RR.slab.a;
-    The_Grid[GRID_SIZE*i+j][B_COLUMN]=RR.slab.b;
-    The_Grid[GRID_SIZE*i+j][G_COLUMN]=RR.slab.g;
-    The_Grid[GRID_SIZE*i+j][UR1_COLUMN]=ur1;
-    The_Grid[GRID_SIZE*i+j][UT1_COLUMN]=ut1;
-    The_Grid[GRID_SIZE*i+j][URU_COLUMN]=uru;
-    The_Grid[GRID_SIZE*i+j][UTU_COLUMN]=utu;
-
-    if (Debug(DEBUG_MC)) {
-        if (i==0 && j==0)
-            fprintf(stderr, "Filling Grid\n%2d ", 0);
-    
-        if (0) {
-            fprintf(stderr, "%10.5f %10.5f %10.5f \n", RR.slab.a, RR.slab.b, RR.slab.g);
-            fprintf(stderr, "       ");
-            fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** AD\n", ur1,ut1,uru,utu);
-        }
-        RR.a = RR.slab.a;
-        RR.b = RR.slab.b;
-        RR.g = RR.slab.g;
-        MC_Lost(MM, RR, 100000, &ur1, &ut1, &uru, &utu, &ur1_lost, &ut1_lost, &uru_lost, &utu_lost);
-    
-        The_Grid[GRID_SIZE*i+j][UR1_LOST_COLUMN]=ur1_lost;
-        The_Grid[GRID_SIZE*i+j][UT1_LOST_COLUMN]=ut1_lost;
-        The_Grid[GRID_SIZE*i+j][URU_LOST_COLUMN]=uru_lost;
-        The_Grid[GRID_SIZE*i+j][UTU_LOST_COLUMN]=utu_lost;
-        if (0) {
-            fprintf(stderr, "       ");
-            fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC\n", ur1,ut1,uru,utu);
-            fprintf(stderr, "       ");
-            fprintf(stderr, "%10.5f %10.5f | %10.5f %10.5f ** MC Lost\n", ur1_lost,ut1_lost,uru_lost,utu_lost);
-        }
-            
-        fprintf(stderr, ".");
-        if (j==GRID_SIZE-1) {
-            if (i!=GRID_SIZE-1)
-                fprintf(stderr, "\n%2d ",i+1);
-            else
-                fprintf(stderr, "\n");
-        }
-    
-        if (Debug(DEBUG_GRID_CALC)) {
-            fprintf(stderr, "+ %3d %3d ",i,j);
-            fprintf(stderr, "%10.5f %10.5f %10.5f |", RR.slab.a, RR.slab.b, RR.slab.g);
-            fprintf(stderr, "%10.5f %10.5f |", MM.m_r, uru);
-            fprintf(stderr, "%10.5f %10.5f \n", MM.m_t, utu);
-        }
-    }
-}
-
-@ This routine fills the grid with a proper set of values.  With a little work, this
-routine could be made much faster by (1) only generating the phase function
-matrix once, (2) Making only one pass through the array for each albedo value,
-i.e., using the matrix left over from $b=1$ to generate the solution for $b=2$.
-Unfortunately this would require a complete revision of the |Calculate_Distance|
-routine.  Fortunately, this routine should only need to be calculated once at the
-beginning of each run.
-
-@<Prototype for |Fill_AB_Grid|@>=
-void Fill_AB_Grid(struct measure_type m, struct invert_type r)
-
-@ @<Definition for |Fill_AB_Grid|@>=
-    @<Prototype for |Fill_AB_Grid|@>
-{
-    int i,j;
-    double min_log_b = -8;
-    double max_log_b = +8;
-
-    if (Debug(DEBUG_GRID))
-        fprintf(stderr, "GRID: Filling AB grid (g=%.5f)\n", RR.slab.g);
-
-    if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero \\{GG}@>@;
-
-    Set_Calc_State(m,r);
-
-    GG_g = RR.slab.g;
-    for(i=0; i<GRID_SIZE; i++){
-        double x = (double) i/(GRID_SIZE-1.0);
-        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
-        for(j=0; j<GRID_SIZE; j++){
-            @<Generate next albedo using j@>@;
-            fill_grid_entry(i,j);
-        }
-    }
-
-The_Grid_Initialized=TRUE;
-The_Grid_Search = FIND_AB;
-}
-
-@ Now it seems that we must be a bit more subtle in choosing the values
-of albedos to use in the grid.  Spacing the points sometimes gives too
-coarse of spacing as $a\rightarrow0$ or $a\rightarrow1$.  A function that
-seems to work is
-$$
-a = 1 - (1-x)^2\cdot (1+2x)\qquad{\rm where}\qquad x={j-1\over n-1}
-$$
-where $j = 0,1,\ldots,n$.  Thus instead of getting
-$$
-0.0, 0.1,0.2,\ldots,0.9,1.0
-$$
-we get
-$$
-0.000, 0.028, 0.104, 0.216, 0.352, 0.500, 0.648, 0.784, 0.896, 0.972, 1.000
-$$
-which is has symmetric spacing at both ends of the range of $a$.
-
-@ Here is heuristic that seems to work well
-
-@<Generate next albedo using j@>=
-    {
-    double x = (double) j/(GRID_SIZE-1.0);
-    RR.slab.a = 1.0 - (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
-    }
-
-@ Let's do the same thing for $g$ grid points with the exception that points
-are contrained between |-MAX_ABS_G| and |+MAX_ABS_G|
-
-@<Generate next anisotropy using i@>=
-    {
-    double x = (double) i/(GRID_SIZE-1.0);
-    double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
-    RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
-    }
-
-@ @<Generate next anisotropy using j@>=
-    {
-    double x = (double) j/(GRID_SIZE-1.0);
-    double xx = (1.0 - x) * (1.0 - x) * (1.0 + 2.0 * x);
-    RR.slab.g = (1.0 - 2.0 * xx) * MAX_ABS_G;
-    }
-
-@ This is quite similar to |Fill_AB_Grid|, with the exception of the
-little shuffle I do at the beginning to figure out the optical thickness to
-use.  The problem is that the optical thickness may not be known.  If it is
-known then the only way that we could have gotten here is if the user
-dictated |FIND_AG| and specified |b| and only provided two measurements.
-Otherwise, the user must have made three measurements and the optical
-depth can be figured out from |m.m_u|.
-
-This routine could also be improved by not recalculating the anisotropy
-matrix for every point.  But this would only end up being a minor performance
-enhancement if it were fixed.
-
-@<Prototype for |Fill_AG_Grid|@>=
-void Fill_AG_Grid(struct measure_type m, struct invert_type r)
-
-@ @<Definition for |Fill_AG_Grid|@>=
-    @<Prototype for |Fill_AG_Grid|@>
-{
-    int i,j;
-    double max_a = -10;
-    double min_a = 10;
-
-    if (Debug(DEBUG_GRID))
-        fprintf(stderr, "GRID: Filling AG grid\n");
-
-    if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero \\{GG}@>@;
-
-    Set_Calc_State(m,r);
-    GG_b=r.slab.b;
-    for(i=0; i<GRID_SIZE; i++){
-        @<Generate next anisotropy using i@>@;
-        for(j=0; j<GRID_SIZE; j++){
-            @<Generate next albedo using j@>@;
-            fill_grid_entry(i,j);
-            if (RR.slab.a < min_a) min_a = RR.slab.a;
-            if (RR.slab.a > max_a) max_a = RR.slab.a;
-        }
-    }
-
-    if (Debug(DEBUG_GRID)) {
-        fprintf(stderr, "GRID: a        = %9.7f to %9.7f \n", min_a, max_a);
-        fprintf(stderr, "GRID: b        = %9.5f \n", r.slab.b);
-        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
-    }
-
-    The_Grid_Initialized=TRUE;
-    The_Grid_Search = FIND_AG;
-}
-
-@   @<Zero \\{GG}@>=
-GG_a = 0.0;
-GG_b = 0.0;
-GG_g = 0.0;
-GG_bs = 0.0;
-GG_ba = 0.0;
-
-
-@ This is quite similar to |Fill_AB_Grid|, with the exception of the
-that the albedo is held fixed while $b$ and $g$ are varied.
-
-This routine could also be improved by not recalculating the anisotropy
-matrix for every point.  But this would only end up being a minor performance
-enhancement if it were fixed.
-
-@<Prototype for |Fill_BG_Grid|@>=
-void Fill_BG_Grid(struct measure_type m, struct invert_type r)
-
-@ @<Definition for |Fill_BG_Grid|@>=
-    @<Prototype for |Fill_BG_Grid|@>
-{
-    int i,j;
-    double min_log_b = -8;
-    double max_log_b = +10;
-
-    if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero \\{GG}@>@;
-
-    if (Debug(DEBUG_GRID))
-        fprintf(stderr, "GRID: Filling BG grid\n");
-
-    Set_Calc_State(m,r);
-    RR.slab.a = RR.default_a;
-    GG_a = RR.slab.a;
-
-    for(i=0; i<GRID_SIZE; i++){
-        double x = (double) i/(GRID_SIZE-1.0);
-        RR.slab.b = exp(min_log_b + (max_log_b-min_log_b) *x);
-        for(j=0; j<GRID_SIZE; j++){
-            @<Generate next anisotropy using j@>@;
-            fill_grid_entry(i,j);
-        }
-    }
-
-    if (Debug(DEBUG_GRID)) {
-        fprintf(stderr, "GRID: a        = %9.7f \n", RR.default_a);
-        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_b), exp(max_log_b));
-        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
-    }
-
-    The_Grid_Initialized=TRUE;
-    The_Grid_Search = FIND_BG;
-}
-
-@ This is quite similar to |Fill_BG_Grid|, with the exception of the
-that the $b_s=\mu_s d$ is held fixed.  Here $b$ and $g$ are varied
-on the usual grid, but the albedo is forced to take whatever value
-is needed to ensure that the scattering remains fixed.
-
-@<Prototype for |Fill_BaG_Grid|@>=
-void Fill_BaG_Grid(struct measure_type m, struct invert_type r)
-
-@ @<Definition for |Fill_BaG_Grid|@>=
-    @<Prototype for |Fill_BaG_Grid|@>
-{
-    int i,j;
-    double max_a = -10;
-    double min_a = 10;
-    double bs = r.default_bs;
-    double min_log_ba = -8;
-    double max_log_ba = +10;
-
-    if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero \\{GG}@>@;
-
-    if (Debug(DEBUG_GRID)) {
-        fprintf(stderr, "GRID: Filling BaG grid\n");
-        fprintf(stderr, "GRID:       bs = %9.5f\n", bs);
-        fprintf(stderr, "GRID: ba range = %9.6f to %9.3f \n", exp(min_log_ba), exp(max_log_ba));
-    }
-
-    Set_Calc_State(m,r);
-    GG_bs = bs;
-    for(i=0; i<GRID_SIZE; i++){
-        double x = (double) i/(GRID_SIZE-1.0);
-        double ba = exp(min_log_ba + (max_log_ba-min_log_ba) *x);
-        RR.slab.b = ba + bs;
-        if (RR.slab.b > 0)
-            RR.slab.a = bs / RR.slab.b;
-        else
-            RR.slab.a = 0;
-        if (RR.slab.a < 0) RR.slab.a = 0;
-        if (RR.slab.a < min_a) min_a = RR.slab.a;
-        if (RR.slab.a > max_a) max_a = RR.slab.a;
-
-        for(j=0; j<GRID_SIZE; j++){
-            @<Generate next anisotropy using j@>@;
-            fill_grid_entry(i,j);
-        }
-    }
-
-    if (Debug(DEBUG_GRID)) {
-        fprintf(stderr, "GRID: a        = %9.7f to %9.7f \n", min_a, max_a);
-        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_ba)+bs, exp(max_log_ba)+bs);
-        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
-    }
-
-    The_Grid_Initialized=TRUE;
-    The_Grid_Search = FIND_BaG;
-}
-
-@ Very similiar to the above routine, but holding $b_a=\mu_a d$ fixed.
-Here $b$ and $g$ are varied on the usual grid, but the albedo is forced
-to take whatever value is needed to ensure that the absorption remains fixed.
-
-@<Prototype for |Fill_BsG_Grid|@>=
-void Fill_BsG_Grid(struct measure_type m, struct invert_type r)
-
-@ @<Definition for |Fill_BsG_Grid|@>=
-    @<Prototype for |Fill_BsG_Grid|@>
-{
-    int i,j;
-    double max_a = -10;
-    double min_a = 10;
-    double ba = r.default_ba;
-    double min_log_bs = -8;
-    double max_log_bs = +10;
-
-    if (The_Grid==NULL) Allocate_Grid(r.search);
-    @<Zero \\{GG}@>@;
-
-    if (Debug(DEBUG_GRID)) {
-        fprintf(stderr, "GRID: Filling BsG grid\n");
-        fprintf(stderr, "GRID:       ba = %9.5f\n", ba);
-        fprintf(stderr, "GRID: bs range = %9.6f to %9.3f \n", exp(min_log_bs), exp(max_log_bs));
-    }
-
-    Set_Calc_State(m,r);
-    GG_ba = RR.default_ba;
-    for(i=0; i<GRID_SIZE; i++){
-        double x = (double) i/(GRID_SIZE-1.0);
-        double bs = exp(min_log_bs + (max_log_bs-min_log_bs) *x);
-        RR.slab.b = ba + bs;
-        if (RR.slab.b > 0)
-            RR.slab.a = 1-RR.default_ba/RR.slab.b;
-        else
-            RR.slab.a = 0;
-        if (RR.slab.a < 0) RR.slab.a = 0;
-        if (RR.slab.a < min_a) min_a = RR.slab.a;
-        if (RR.slab.a > max_a) max_a = RR.slab.a;
-
-        for(j=0; j<GRID_SIZE; j++){
-            @<Generate next anisotropy using j@>@;
-            fill_grid_entry(i,j);
-        }
-    }
-
-    if (Debug(DEBUG_GRID)) {
-        fprintf(stderr, "GRID: a  range = %9.7f to %9.7f \n", min_a, max_a);
-        fprintf(stderr, "GRID: b  range = %9.5f to %9.3f \n", exp(min_log_bs)+ba, exp(max_log_bs)+ba);
-        fprintf(stderr, "GRID: g  range = %9.6f to %9.6f \n", -MAX_ABS_G, MAX_ABS_G);
-    }
-
-The_Grid_Initialized=TRUE;
-The_Grid_Search = FIND_BsG;
-}
-
-@ @<Prototype for |Fill_Grid|@>=
-void Fill_Grid(struct measure_type m, struct invert_type r, int force_new)
-
-@ @<Definition for |Fill_Grid|@>=
-    @<Prototype for |Fill_Grid|@>
-{
-    if (force_new || !Same_Calc_State(m,r)) {
-        switch (r.search) {
-            case FIND_AB:
-                Fill_AB_Grid(m,r);
-                break;
-            case FIND_AG:
-                Fill_AG_Grid(m,r);
-                break;
-            case FIND_BG:
-                Fill_BG_Grid(m,r);
-                break;
-            case FIND_BaG:
-                Fill_BaG_Grid(m,r);
-                break;
-            case FIND_BsG:
-                Fill_BsG_Grid(m,r);
-                break;
-            default:
-                AD_error("Attempt to fill grid for unknown search case.");
-        }
-    }
-
-    Get_Calc_State(&MGRID, &RGRID);
 }
 
 @*1 Calculating R and T.
@@ -1263,55 +579,9 @@ void Calculate_Distance(double *M_R, double *M_T, double *deviation)
     Calculate_Distance_With_Corrections(ur1,ut1,Ru,Tu,uru,utu,M_R,M_T,deviation);
 }
 
-@ @<Prototype for |Calculate_Grid_Distance|@>=
-double Calculate_Grid_Distance(int i, int j)
-
-@ @<Definition for |Calculate_Grid_Distance|@>=
-    @<Prototype for |Calculate_Grid_Distance|@>
-{
-    double ur1,ut1,uru,utu,Ru,Tu,b,dev,LR,LT;
-
-    if (Debug(DEBUG_GRID_CALC) && i==0 && j==0) {
-        fprintf(stderr, "+   i   j ");
-        fprintf(stderr, "      a         b          g     |");
-        fprintf(stderr, "     M_R        grid   |");
-        fprintf(stderr, "     M_T        grid   |  distance\n");
-    }
-
-    if (Debug(DEBUG_GRID_CALC))
-        fprintf(stderr, "g %3d %3d ",i,j);
-
-    b   = The_Grid[GRID_SIZE*i+j][B_COLUMN];
-    ur1 = The_Grid[GRID_SIZE*i+j][UR1_COLUMN];
-    ut1 = The_Grid[GRID_SIZE*i+j][UT1_COLUMN];
-    uru = The_Grid[GRID_SIZE*i+j][URU_COLUMN];
-    utu = The_Grid[GRID_SIZE*i+j][UTU_COLUMN];
-    RR.slab.a = The_Grid[GRID_SIZE*i+j][A_COLUMN];
-    RR.slab.b = The_Grid[GRID_SIZE*i+j][B_COLUMN];
-    RR.slab.g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
-    RR.slab.g = The_Grid[GRID_SIZE*i+j][G_COLUMN];
-
-    if (Debug(DEBUG_MC)) {
-        MM.ur1_lost = The_Grid[GRID_SIZE*i+j][UR1_LOST_COLUMN];
-        MM.ut1_lost = The_Grid[GRID_SIZE*i+j][UT1_LOST_COLUMN];
-        MM.uru_lost = The_Grid[GRID_SIZE*i+j][URU_LOST_COLUMN];
-        MM.utu_lost = The_Grid[GRID_SIZE*i+j][UTU_LOST_COLUMN];
-    }
-
-    Sp_mu_RT_Flip(MM.flip_sample,
-             RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
-             RR.slab.b_top_slide, b,      RR.slab.b_bottom_slide,
-             RR.slab.cos_angle, &Ru, &Tu);
-
-    CALCULATING_GRID = 1;
-    Calculate_Distance_With_Corrections(ur1,ut1,Ru,Tu,uru,utu,&LR,&LT,&dev);
-    CALCULATING_GRID = 0;
-
-    return dev;
-}
-
 @ This is the routine that actually finds the distance.  I have factored
-this part out so that it can be used in the |Near_Grid_Points| routine.
+this part out so that it can be used by both the simplex objective functions
+and the adaptive-grid ranking helpers.
 
 |Ru| and |Tu| refer to the unscattered (collimated) reflection and transmission.
 
