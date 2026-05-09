@@ -1,4 +1,27 @@
 #!/usr/bin/env python3
+"""Summarize a directory of ``iadplus`` reports.
+
+``iadsum`` searches a directory tree for reports created by ``iadplus``, finds
+the matching ``.txt`` output files, and builds a summary report with overlaid
+plots for measured reflection/transmission and derived optical properties. It is
+useful after running ``iadplus`` on a group of related experiments, because the
+generated summary shows how absorption, scattering, anisotropy, albedo, and
+optical thickness compare across files.
+
+The script expects each discovered ``.ipynb``, ``.html``, or ``.pdf`` report to
+have a sibling ``.txt`` file with the standard ``iad`` tabular output. The
+summary is written to a ``summary`` subdirectory inside the requested directory.
+By default, the summary format matches the generated report type that was found.
+
+Examples:
+    Summarize all ``iadplus`` reports below a test directory::
+
+        ./iadsum tests/rxt/1_sphere
+
+    Summarize reports produced in the current directory tree::
+
+        ./iadsum .
+"""
 
 # pylint: disable=invalid-name
 # pylint: disable=too-many-locals
@@ -10,6 +33,8 @@ import os
 import re
 import tempfile
 import urllib.parse
+import html
+import warnings
 from enum import Enum
 import numpy as np
 
@@ -20,14 +45,28 @@ import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 import nbformat
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
+
+warnings.filterwarnings(
+    "ignore",
+    message="Input line .* contained no data and will not be counted",
+)
 
 skyblue = '#00bfff'
 ocean= '#009dc4'
 azure = '#1520a6'
 
 class Column(Enum):
+    """Columns parsed from an ``iad`` output table.
+
+    Each enum member stores the zero-based column position in the parsed result
+    array and the figure suffix used when plotting that quantity.
+
+    Attributes:
+        position: Zero-based column index in the in-memory result list.
+    """
     LAM = (0,"")
     MR = (1,"-mr.svg")
     CR = (2,"-cr.svg")
@@ -42,18 +81,47 @@ class Column(Enum):
     SUCCESS = (11,"")
 
     def __new__(cls, position, value):
+        """Create an enum member with an attached result-column position.
+
+        Args:
+            position: Zero-based column index in the parsed result list.
+            value: Figure suffix associated with the plotted column.
+
+        Returns:
+            A ``Column`` enum member.
+        """
         obj = object.__new__(cls)
         obj._value_ = value
         obj.position = position
         return obj
 
+REPORT_EXTENSIONS = {'.ipynb': 'notebook', '.html': 'html', '.pdf': 'pdf'}
+PLOT_SUFFIXES = (
+    '-RTU', '-R', '-T', '-mua', '-musp', '-mus', '-g', '-a', '-b', '-grid',
+    '-mr', '-cr', '-mt', '-ct',
+)
+
 def add_x_label(lambda0):
+    """Label the current plot's x axis from the first coordinate value.
+
+    Args:
+        lambda0: Array-like wavelength or measurement-number coordinates. Values
+            above 300 are treated as wavelengths in nanometers.
+    """
     if lambda0[0] > 300:
         plt.xlabel('Wavelength (nm)')
     else:
         plt.xlabel('Measurement Number')
 
 def plot_good(x, y, success, big_points=False):
+    """Plot successful fit points on the current axes.
+
+    Args:
+        x: Array-like x coordinates.
+        y: Array-like y coordinates.
+        success: Boolean mask selecting successful rows.
+        big_points: When true, draw larger hollow markers for overlays.
+    """
     if big_points:
         size = 7
         fc = 'none'
@@ -67,6 +135,14 @@ def plot_good(x, y, success, big_points=False):
     plt.grid(True)
 
 def plot_good_and_bad(x, y, success, big_points=False):
+    """Plot successful and failed fit points on the current axes.
+
+    Args:
+        x: Array-like x coordinates.
+        y: Array-like y coordinates.
+        success: Boolean mask selecting successful rows.
+        big_points: When true, draw larger hollow markers for successful rows.
+    """
     if big_points:
         size = 7
         fc = 'none'
@@ -84,11 +160,24 @@ def plot_good_and_bad(x, y, success, big_points=False):
     plt.grid(True)
 
 
-def plot_results(results, item, bp, ylabel):
-    """lam,mr,cr,mt,ct,mua,musp,g,mus,b,a,success = r."""
+def plot_results(results, item, bp, ylabel, figure_ext='.svg'):
+    """Plot one result column for all summarized ``iadplus`` outputs.
+
+    Args:
+        results: Mapping from display label to parsed result arrays. Each value
+            is ordered as ``lam, mr, cr, mt, ct, mua, musp, g, mus, b, a,
+            success``.
+        item: ``Column`` member selecting the result column and output suffix.
+        bp: Output filename base path for the summary artifact.
+        ylabel: Y-axis label for the plot.
+        figure_ext: Figure extension for the saved plot.
+
+    Returns:
+        Basename of the saved figure.
+    """
     plt.figure(figsize=(8, 4.5))
     the_column = item.position
-    out_filename = bp + item.value
+    out_filename = bp + item.value.replace('.svg', figure_ext)
 
     for key in sorted(results.keys()):
         r = results[key]
@@ -108,6 +197,13 @@ def plot_results(results, item, bp, ylabel):
     return os.path.basename(out_filename)
 
 def append_graph_cell(nb, header, graph):
+    """Append a Markdown image cell to a summary notebook.
+
+    Args:
+        nb: Notebook object to mutate.
+        header: Markdown header text to prepend.
+        graph: Figure filename relative to the notebook.
+    """
     cell_text = header + "\n"
     url_encoded_filename = urllib.parse.quote(graph)
     cell_text += "<center>\n"
@@ -117,6 +213,13 @@ def append_graph_cell(nb, header, graph):
 
 
 def append_file_cell(nb, header, file):
+    """Append a code cell that prints a sibling text file.
+
+    Args:
+        nb: Notebook object to mutate.
+        header: Markdown-style comment header for the code cell.
+        file: Path to the file whose basename should be opened by the notebook.
+    """
     base = os.path.basename(file)
     cell_text = header + '\n'
     cell_text += 'with open("' + base + '", "r", encoding="utf-8") as file:\n'
@@ -126,8 +229,105 @@ def append_file_cell(nb, header, file):
     nb.cells.append(new_code_cell(cell_text))
 
 
+def html_escape(text):
+    """Escape text for HTML content.
+
+    Args:
+        text: Text to escape.
+
+    Returns:
+        HTML-escaped text.
+    """
+    return html.escape(str(text), quote=True)
+
+
+def append_html_graph(file, header, graph):
+    """Write one graph section to an HTML summary.
+
+    Args:
+        file: Open writable HTML file.
+        header: Section heading.
+        graph: Figure filename relative to the HTML file.
+    """
+    file.write('<h2>%s</h2>\n' % html_escape(header))
+    file.write('<img src="%s" alt="%s">\n' %
+               (urllib.parse.quote(graph), html_escape(header)))
+
+
+def write_html_summary(html_path, commands, links, graph_items):
+    """Write a direct HTML summary report.
+
+    Args:
+        html_path: Destination path for the generated HTML file.
+        commands: Command lines read from summarized ``iad`` outputs.
+        links: Relative paths to summarized reports.
+        graph_items: Iterable of ``(header, graph_filename)`` pairs.
+    """
+    with open(html_path, 'w', encoding='utf-8') as file:
+        file.write('<!doctype html>\n<html lang="en">\n<head>\n')
+        file.write('<meta charset="utf-8">\n')
+        file.write('<title>Summary of Inverse Adding-Doubling Analysis</title>\n')
+        file.write('<style>\n')
+        file.write('body{font-family:Arial,sans-serif;line-height:1.5;margin:2rem auto;max-width:980px;color:#222;}\n')
+        file.write('h1,h2{line-height:1.2;} img{max-width:100%;height:auto;display:block;margin:1rem auto;}\n')
+        file.write('pre{background:#f6f6f6;border:1px solid #ddd;padding:1rem;overflow:auto;}\n')
+        file.write('</style>\n</head>\n<body>\n')
+        file.write('<h1>Summary of Inverse Adding-Doubling Analysis</h1>\n')
+        file.write('<h2>Commands</h2>\n<pre>%s</pre>\n' %
+                   html_escape(''.join(commands)))
+        if links:
+            file.write('<h2>Summarized reports</h2>\n<ul>\n')
+            for link in links:
+                quoted = urllib.parse.quote(link)
+                file.write('<li><a href="%s">%s</a></li>\n' %
+                           (quoted, html_escape(link)))
+            file.write('</ul>\n')
+        for header, graph in graph_items:
+            append_html_graph(file, header, graph)
+        file.write('</body>\n</html>\n')
+
+
+def write_pdf_summary(pdf_path, commands, links, graph_paths):
+    """Write a multi-page PDF summary report.
+
+    Args:
+        pdf_path: Destination path for the generated PDF file.
+        commands: Command lines read from summarized ``iad`` outputs.
+        links: Relative paths to summarized reports.
+        graph_paths: Figure paths to place in the PDF.
+    """
+    with PdfPages(pdf_path) as pdf:
+        fig = plt.figure(figsize=(8.5, 11))
+        fig.text(0.08, 0.94, 'Summary of Inverse Adding-Doubling Analysis',
+                 fontsize=16, weight='bold')
+        fig.text(0.08, 0.89, 'Command lines used for summarized files:', fontsize=11)
+        command_text = ''.join(commands) if commands else 'No commands found.'
+        fig.text(0.08, 0.86, command_text, family='monospace', fontsize=8, va='top')
+        if links:
+            fig.text(0.08, 0.20, 'Summarized reports:', fontsize=11)
+            fig.text(0.08, 0.17, '\n'.join(links), fontsize=8, va='top')
+        pdf.savefig(fig)
+        plt.close(fig)
+
+        for graph_path in graph_paths:
+            image = plt.imread(graph_path)
+            fig, ax = plt.subplots(figsize=(8.5, 5.5))
+            ax.imshow(image)
+            ax.axis('off')
+            pdf.savefig(fig, bbox_inches='tight')
+            plt.close(fig)
+
+
 def _numbers_in_row(line):
-    """Return numeric values before any inline comment."""
+    """Return numeric values before any inline comment.
+
+    Args:
+        line: Input line from an ``.rxt`` file.
+
+    Returns:
+        List of floating-point values, or an empty list when a token is not
+        numeric.
+    """
     line = line.split('#', 1)[0]
     values = []
     for token in line.split():
@@ -139,7 +339,18 @@ def _numbers_in_row(line):
 
 
 def _read_rxt_column(input_filename, label):
-    """Read a labeled numeric column from an IAD .rxt file."""
+    """Read a labeled numeric column from an ``iad`` ``.rxt`` file.
+
+    Args:
+        input_filename: Path to the ``.rxt`` file.
+        label: Lowercase column label to find.
+
+    Returns:
+        NumPy array containing the column values.
+
+    Raises:
+        ValueError: If the label or any values cannot be found.
+    """
     label_index = None
     values = []
 
@@ -167,7 +378,20 @@ def _read_rxt_column(input_filename, label):
 
 
 def get_thickness(output_filename, input_filename=None):
-    """Return the sample thickness from the output header or input rows."""
+    """Return sample thickness from an output header or input rows.
+
+    Args:
+        output_filename: Path to the generated ``.txt`` output file.
+        input_filename: Optional path to the source ``.rxt`` file. Used when the
+            output header says thickness varies by input row.
+
+    Returns:
+        Scalar thickness value, or an array of row-specific values when the
+        source file contains a thickness column.
+
+    Raises:
+        ValueError: If thickness cannot be determined.
+    """
     pattern = r'Sample thickness\s*=\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)'
     with open(output_filename, 'r', encoding='utf-8') as file:
         for line in file:
@@ -182,12 +406,26 @@ def get_thickness(output_filename, input_filename=None):
     raise ValueError('Could not determine sample thickness from %s' % output_filename)
 
 
-def append_header(nb, txts, rel_txts):
+def summary_metadata(txts, rel_reports):
+    """Collect command provenance and report links for a summary.
+
+    Args:
+        txts: Absolute paths to the ``iad`` output files being summarized.
+        rel_reports: Paths to summarized reports relative to the summary
+            notebook or HTML file.
+
+    Returns:
+        A ``(commands, links, version, build)`` tuple.
+
+    Raises:
+        ValueError: If an output file does not contain the expected version
+            header.
+    """
     # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
     # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic_B.txt test/basic_B.rxt
 
     commands = []
-    links = []
+    first_line = ''
     for txt in txts:
         with open(txt, 'r', encoding='utf-8') as file:
             first_line = file.readline()
@@ -195,17 +433,25 @@ def append_header(nb, txts, rel_txts):
             cmd = re.sub(r'^# ', '', second_line)
             commands.append('    ' + cmd + '\n')
 
-    for txt in rel_txts:
-        url_ipynb = txt.replace(".txt", ".ipynb")
-        ipynb = urllib.parse.quote(url_ipynb)
-        links.append('[%s](%s)' % (url_ipynb, ipynb))
-
     pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
     match = re.search(pattern, first_line)
     if not match:
-        raise ValueError('File %s contains bad contents' % output_filename)
+        raise ValueError('File %s contains bad contents' % txts[0])
     version = match.group(1)
     build = match.group(2)
+    return commands, rel_reports, version, build
+
+
+def append_header(nb, txts, rel_reports):
+    """Append a summary header cell with command provenance.
+
+    Args:
+        nb: Notebook object to mutate.
+        txts: Absolute paths to the ``iad`` output files being summarized.
+        rel_reports: Paths to summarized reports relative to the summary
+            notebook.
+    """
+    commands, links, version, build = summary_metadata(txts, rel_reports)
 
     today = datetime.today()
     formatted_date = today.strftime('%d %b %Y')
@@ -218,14 +464,22 @@ def append_header(nb, txts, rel_txts):
     for c in commands:
         cell_text += c
     
-    cell_text += "Links to summarized notebooks:\n"
+    cell_text += "Links to summarized reports:\n"
     for link in links:
-        cell_text += "\n* " + link + "\n"
+        quoted = urllib.parse.quote(link)
+        cell_text += "\n* [%s](%s)\n" % (link, quoted)
     
     nb.cells.append(new_markdown_cell(cell_text))
 
 def create_summary_directory(directory):
-    """Create a notebook directory."""
+    """Create the summary notebook directory.
+
+    Args:
+        directory: Root directory being summarized.
+
+    Returns:
+        Base path for summary artifacts, without extension.
+    """
     base='summary'
     notebook_dir = os.path.join(directory, base)
 
@@ -235,19 +489,79 @@ def create_summary_directory(directory):
     return os.path.join(notebook_dir, base)
 
 
-def find_notebooks_in_dir(directory):
-    notebook_paths = []
+def find_reports_in_dir(directory):
+    """Find ``iadplus`` reports below a directory.
+
+    Args:
+        directory: Directory tree to search.
+
+    Returns:
+        List of report paths, excluding checkpoint and summary directories.
+    """
+    report_paths = []
     for root, dirs, files in os.walk(directory):
         if '.ipynb_checkpoints' in dirs:
             dirs.remove('.ipynb_checkpoints')  # Skip .ipynb_checkpoints directory
         if 'summary' in dirs:
             dirs.remove('summary')  # Skip summary directory
         for file in files:
-            if file.endswith('.ipynb'):
-                notebook_paths.append(os.path.join(root, file))
-    return notebook_paths
+            ext = os.path.splitext(file)[1].lower()
+            stem = os.path.splitext(file)[0]
+            if ext in REPORT_EXTENSIONS and not stem.endswith(PLOT_SUFFIXES):
+                report_paths.append(os.path.join(root, file))
+    return report_paths
+
+
+def report_output_mode(report_paths):
+    """Infer the summary output mode from discovered report extensions.
+
+    Args:
+        report_paths: Paths to discovered ``iadplus`` reports.
+
+    Returns:
+        One of ``'notebook'``, ``'html'``, or ``'pdf'``.
+    """
+    counts = {'notebook': 0, 'html': 0, 'pdf': 0}
+    for path in report_paths:
+        ext = os.path.splitext(path)[1].lower()
+        counts[REPORT_EXTENSIONS[ext]] += 1
+
+    # Tie-break in favor of richer editable formats.
+    return max(['notebook', 'html', 'pdf'], key=lambda mode: (counts[mode], -['notebook', 'html', 'pdf'].index(mode)))
+
+
+def txt_for_report(report_path):
+    """Return the sibling ``.txt`` output path for an ``iadplus`` report.
+
+    Args:
+        report_path: Path to a discovered ``.ipynb``, ``.html``, or ``.pdf``
+            report.
+
+    Returns:
+        Matching ``.txt`` path, or an empty string when no unambiguous sibling
+        exists.
+    """
+    stem_txt = os.path.splitext(report_path)[0] + '.txt'
+    if os.path.exists(stem_txt):
+        return stem_txt
+
+    directory = os.path.dirname(report_path)
+    txts = [os.path.join(directory, item) for item in os.listdir(directory)
+            if item.endswith('.txt')]
+    if len(txts) == 1:
+        return txts[0]
+    return ''
 
 def read_txt(txt_path):
+    """Read an ``iad`` output file and derive additional optical properties.
+
+    Args:
+        txt_path: Path to an ``iad`` ``.txt`` output file.
+
+    Returns:
+        List ordered as ``lam, mr, cr, mt, ct, mua, musp, g, mus, b, a,
+        success``. ``success`` is a boolean mask derived from the status column.
+    """
     result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
     lam, mr, cr, mt, ct, mua, musp, g = result.T
     lam = np.atleast_1d(lam)
@@ -275,6 +589,14 @@ def read_txt(txt_path):
     return [lam, mr,cr,mt,ct,mua,musp,g,mus,b,a,success]
 
 def get_directory_list(path):
+    """Split a path into all directory components.
+
+    Args:
+        path: Path to split.
+
+    Returns:
+        List of path components from root to leaf.
+    """
     directories = []
     while True:
         path, directory = os.path.split(path)
@@ -287,71 +609,109 @@ def get_directory_list(path):
     return list(reversed(directories))
 
 def main():
-    desc =  'A wrapper for the iad program that creates a Jupyter notebook with plots '
-    desc += 'of the input, the fitted results, and the derived optical properties.'
-    parser = argparse.ArgumentParser(description='Your script description here')
+    """Run the ``iadsum`` command-line interface.
+
+    Searches for ``iadplus`` reports, reads their sibling ``.txt`` files,
+    generates overlaid comparison plots, and writes a summary report matching
+    the discovered report type unless explicitly overridden.
+    """
+    desc =  'Create a summary report from iadplus reports and their iad '
+    desc += 'output files. The output format defaults to the report type found.'
+    parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('directory', metavar='DIRECTORY',
                         help='single directory path')
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument('--pdf', dest='output_mode', action='store_const', const='pdf',
+                              help='create a PDF summary')
+    output_group.add_argument('--notebook', dest='output_mode', action='store_const',
+                              const='notebook',
+                              help='create a Jupyter notebook summary')
+    output_group.add_argument('--html', dest='output_mode', action='store_const', const='html',
+                              help='create an HTML summary')
+    parser.set_defaults(output_mode=None)
     args = parser.parse_args()
 
     abs_dir = os.path.abspath(args.directory)
-    abs_notebooks = find_notebooks_in_dir(abs_dir)
-    rel_notebooks = find_notebooks_in_dir(args.directory)
-    print('looking in "%s" for notebooks' % args.directory)
+    abs_reports = find_reports_in_dir(abs_dir)
+    if not abs_reports:
+        print('no iadplus reports found in "%s"' % args.directory)
+        return
 
-    abs_txts = [s.replace(".ipynb", ".txt") for s in abs_notebooks]
-    rel_txts = [s.replace(".ipynb", ".txt") for s in rel_notebooks]
-    txts_relative_to_summary_nb = [s.replace(args.directory, "..") for s in rel_txts]
+    output_mode = args.output_mode or report_output_mode(abs_reports)
+    print('looking in "%s" for iadplus reports' % args.directory)
+    print('creating %s summary' % output_mode)
 
+    report_txt_pairs = []
+    seen_txts = set()
+    for report_path in abs_reports:
+        txt_path = txt_for_report(report_path)
+        if txt_path and os.path.exists(txt_path) and os.path.getsize(txt_path) > 0:
+            if txt_path not in seen_txts:
+                report_txt_pairs.append((report_path, txt_path))
+                seen_txts.add(txt_path)
+        else:
+            print('skipping %s: no matching .txt output' % report_path)
+
+    if not report_txt_pairs:
+        print('no readable iad .txt outputs found in "%s"' % args.directory)
+        return
+
+    abs_txts = [txt for _, txt in report_txt_pairs]
     bp = create_summary_directory(args.directory)
+    summary_dir = os.path.dirname(bp)
+    rel_reports = [os.path.relpath(report, summary_dir) for report, _ in report_txt_pairs]
 
     results={}
-    for txt_path, rel_path in zip(abs_txts, rel_txts):
+    for _, txt_path in report_txt_pairs:
+        print('reading ', os.path.relpath(txt_path, os.getcwd()))
+        key = get_directory_list(txt_path)[-2]
+        results[key] = read_txt(txt_path)
 
-        if os.path.exists(txt_path) and os.path.getsize(txt_path) > 0:
-            print('reading ', rel_path)
-            key = get_directory_list(txt_path)[-2]
-#            print(key)
-            results[key] = read_txt(txt_path)
+    figure_ext = '.png' if output_mode == 'pdf' else '.svg'
+    graph_items = [
+        ('Reflection', plot_results(results, Column.MR, bp, 'M_R', figure_ext)),
+        ('Transmission', plot_results(results, Column.MT, bp, 'M_T', figure_ext)),
+        ('Absorption Coefficient',
+         plot_results(results, Column.MUA, bp, 'Absorption Coefficient (mm⁻¹)', figure_ext)),
+        ('Reduced Scattering Coefficient',
+         plot_results(results, Column.MUSP, bp, 'Reduced Scattering Coefficient (mm⁻¹)', figure_ext)),
+        ('Single Scattering Albedo',
+         plot_results(results, Column.A, bp, r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$',
+                      figure_ext)),
+        ('Optical Thickness',
+         plot_results(results, Column.B, bp, r'Optical Thickness $(\mu_a+\mu_s)d$', figure_ext)),
+        ('Scattering Anisotropy',
+         plot_results(results, Column.G, bp, 'Scattering Anisotropy', figure_ext)),
+        ('Scattering Coefficient',
+         plot_results(results, Column.MUS, bp, 'Scattering Coefficient (mm⁻¹)', figure_ext)),
+    ]
 
+    commands, links, _, _ = summary_metadata(abs_txts, rel_reports)
 
-    r_graph = plot_results(results, Column.MR, bp, 'M_R')
-    t_graph = plot_results(results, Column.MT, bp, 'M_T')
-    mua_graph = plot_results(results, Column.MUA, bp, 'Absorption Coefficient (mm⁻¹)')
-    musp_graph = plot_results(results, Column.MUSP, bp, 'Reduced Scattering Coefficient (mm⁻¹)')
-    g_graph = plot_results(results, Column.G, bp, 'Scattering Anisotropy')
-    mus_graph = plot_results(results, Column.MUS, bp, 'Scattering Coefficient (mm⁻¹)')
-    a_graph = plot_results(results, Column.A, bp, r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$')
-    b_graph = plot_results(results, Column.B, bp, r'Optical Thickness $(\mu_a+\mu_s)d$')
+    if output_mode == 'notebook':
+        nb = new_notebook()
+        nb.metadata['kernelspec'] = {
+            'display_name': 'Python 3',
+            'language': 'python',
+            'name': 'python3'
+        }
 
+        append_header(nb, abs_txts, rel_reports)
+        for header, graph in graph_items:
+            append_graph_cell(nb, '## ' + header, graph)
 
-    nb = new_notebook()
-    nb.metadata['kernelspec'] = {
-        'display_name': 'Python 3',
-        'language': 'python',
-        'name': 'python3'
-    }
+        output_path = bp + '.ipynb'
+        with open(output_path, "w", encoding="utf-8") as f:
+            nbformat.write(nb, f)
+    elif output_mode == 'html':
+        output_path = bp + '.html'
+        write_html_summary(output_path, commands, links, graph_items)
+    else:
+        output_path = bp + '.pdf'
+        graph_paths = [os.path.join(summary_dir, graph) for _, graph in graph_items]
+        write_pdf_summary(output_path, commands, links, graph_paths)
 
-    append_header(nb, abs_txts, txts_relative_to_summary_nb)
-    append_graph_cell(nb, '## Reflection', r_graph)
-    append_graph_cell(nb, '## Transmission', t_graph)
-    append_graph_cell(nb, '## Absorption Coefficient', mua_graph)
-    append_graph_cell(nb, '## Reduced Scattering Coefficient', musp_graph)
-    append_graph_cell(nb, '## Single Scattering Albedo', a_graph)
-    append_graph_cell(nb, '## Optical Thickness', b_graph)
-    append_graph_cell(nb, '## Scattering Anisotropy', g_graph)
-    append_graph_cell(nb, '## Scattering Coefficient', mus_graph)
-
-#     nb.cells.append(new_markdown_cell("## Input files\n"))
-#     append_file_cell(nb, '# input file', base + '.rxt')
-#
-#     nb.cells.append(new_markdown_cell("## Output file\n"))
-#     append_file_cell(nb, '# output file', base + '.txt')
-
-    # Save the notebook
-    ipynb_path = bp + '.ipynb'
-    with open(ipynb_path, "w", encoding="utf-8") as f:
-        nbformat.write(nb, f)
+    print('created: ' + os.path.abspath(output_path))
 
 if __name__ == "__main__":
     main()

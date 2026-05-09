@@ -1,4 +1,35 @@
 #!/usr/bin/env python3
+"""Create reports for inverse adding-doubling analyses.
+
+``iadplus`` is a convenience wrapper around the ``iad`` executable. It accepts
+one or more ``.rxt`` experiment files, runs ``iad`` when needed, parses the
+generated ``.txt`` output, and creates a self-contained report containing the
+input, output, reflection/transmission fits, derived optical properties, and a
+grid plot. By default the report is a PDF; ``--notebook`` creates a Jupyter
+notebook and ``--html`` writes a simple HTML report directly.
+
+Examples:
+    Generate the default PDF report for one experiment file::
+
+        ./iadplus tests/rxt/0_sphere/basic_B.rxt
+
+    Generate a Jupyter notebook instead::
+
+        ./iadplus --notebook tests/rxt/0_sphere/basic_B.rxt
+
+    Generate an HTML report::
+
+        ./iadplus --html tests/rxt/0_sphere/basic_B.rxt
+
+    Pass options through to ``iad`` and force the analysis to rerun::
+
+        ./iadplus --force -M 0 -q 8 tests/rxt/0_sphere/basic_B.rxt
+
+    Fit scattering to a power law in the default PDF report::
+
+        ./iadplus --fit -c 0 tests/rxt/1_sphere/ville1.rxt
+
+"""
 
 # pylint: disable=invalid-name
 # pylint: disable=too-many-locals
@@ -14,6 +45,7 @@ import shlex
 import shutil
 import tempfile
 import urllib.parse
+import html
 import numpy as np
 
 if not os.access(os.environ.get('MPLCONFIGDIR', ''), os.W_OK):
@@ -59,27 +91,37 @@ GRID_EXPLANATION = (
     "lost light effects are included. "
 )
 
-def scattered_light(g=0, n=1, quad_pts=4):
-    """Max scattered light for all optical thicknesses.""" 
-    b = np.logspace(-5,5,200)
-    r_white, t_white, _, _ = iad.Sample(a=1, b=b, g=g, n=n, quad_pts=quad_pts).rt()
-    r_black, t_black, _, _ = iad.Sample(a=0, b=b, g=g, n=n, quad_pts=quad_pts).rt()
-
-    xy = np.array([r_white-r_black, t_white-t_black]).T
-    return xy
-
 def active_polygon():
-    """Unscattered light for all optical thicknesses.""" 
+    """Create the active measurement-region polygon.
+
+    Returns:
+        A Matplotlib ``Polygon`` representing the triangular
+        reflection/transmission measurement domain.
+    """
     xy = np.array([[1,0], [0,1], [0,0]])
     return plt.Polygon(xy, closed=True, facecolor='b', alpha=0.2)
 
 def add_x_label(lambda0):
+    """Label the current plot's x axis from the first coordinate value.
+
+    Args:
+        lambda0: Array-like wavelength or measurement-number coordinates. Values
+            above 300 are treated as wavelengths in nanometers.
+    """
     if lambda0[0] > 300:
         plt.xlabel('Wavelength (nm)', fontsize=axis_label_size)
     else:
         plt.xlabel('Measurement Number', fontsize=axis_label_size)
 
 def plot_good(x, y, success, big_points=False):
+    """Plot successful fit points on the current axes.
+
+    Args:
+        x: Array-like x coordinates.
+        y: Array-like y coordinates.
+        success: Boolean mask selecting successful rows.
+        big_points: When true, draw larger hollow markers for overlays.
+    """
     if big_points:
         size = 7
         fc = 'none'
@@ -93,6 +135,14 @@ def plot_good(x, y, success, big_points=False):
     plt.grid(True)
 
 def plot_good_and_bad(x, y, success, big_points=False):
+    """Plot successful and failed fit points on the current axes.
+
+    Args:
+        x: Array-like x coordinates.
+        y: Array-like y coordinates.
+        success: Boolean mask selecting successful rows.
+        big_points: When true, draw larger hollow markers for successful rows.
+    """
     if big_points:
         size = 7
         fc = 'none'
@@ -110,6 +160,12 @@ def plot_good_and_bad(x, y, success, big_points=False):
     plt.grid(True)
 
 def plot_gridlines(filename_base):
+    """Draw grid contours from an ``iad`` ``.grid`` file.
+
+    Args:
+        filename_base: Output filename without extension. The function reads
+            ``filename_base + '.grid'`` when it exists.
+    """
     gridname = filename_base + '.grid'
 
     if not os.path.exists(gridname) or os.path.getsize(gridname) == 0:
@@ -161,6 +217,20 @@ def plot_gridlines(filename_base):
     plt.grid(False)
 
 def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
+    """Create the reflection/transmission grid plot.
+
+    Args:
+        mr: Measured reflectance values.
+        cr: Calculated reflectance fit values.
+        mt: Measured transmittance values.
+        ct: Calculated transmittance fit values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-grid' + figure_ext
     plt.figure(figsize=(8,8))
     plt.gca().set_aspect(1)
@@ -183,7 +253,18 @@ def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 def plot_rt(lam, mr, mt, filename_base, figure_ext):
-    """Plot measured r, t, and u."""
+    """Plot measured reflection, transmission, and their sum.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        mr: Measured reflectance values.
+        mt: Measured transmittance values.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-RTU' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plt.plot(lam, mr, 'ob', markersize=2, label='$M_R$')
@@ -198,7 +279,19 @@ def plot_rt(lam, mr, mt, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 def plot_r(lam, mr, cr, success, filename_base, figure_ext):
-    """Plot measured reflection and fitted reflection."""
+    """Plot measured and fitted reflectance.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        mr: Measured reflectance values.
+        cr: Calculated reflectance fit values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-R' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, cr, success, True)
@@ -212,7 +305,19 @@ def plot_r(lam, mr, cr, success, filename_base, figure_ext):
 
 
 def plot_t(lam, mt, ct, success, filename_base, figure_ext):
-    """Plot measured reflection and fitted transmission."""
+    """Plot measured and fitted transmittance.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        mt: Measured transmittance values.
+        ct: Calculated transmittance fit values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-T' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, ct, success, True)
@@ -226,7 +331,18 @@ def plot_t(lam, mt, ct, success, filename_base, figure_ext):
 
 
 def plot_mua(lam, mua, success, filename_base, figure_ext):
-    """Plot calculated absorption coefficient."""
+    """Plot estimated absorption coefficient.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        mua: Absorption coefficient values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-mua' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mua, success)
@@ -238,20 +354,60 @@ def plot_mua(lam, mua, success, filename_base, figure_ext):
 
 # Define the function you want to fit
 def scattering_model(x, a, b):
+    """Evaluate the scattering power-law model.
+
+    Args:
+        x: Wavelength values in nanometers.
+        a: Power-law amplitude.
+        b: Power-law exponent.
+
+    Returns:
+        Modeled scattering values ``a * (x / 1000) ** (-b)``.
+    """
     return a * (x / 1000) ** (-b)
 
+def add_scattering_fit(lam, values, success, label):
+    """Add a power-law scattering fit to the current plot when possible.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        values: Scattering values to fit.
+        success: Boolean mask selecting successful rows.
+        label: Name to use in the plotted fit label.
+
+    Returns:
+        True when a fit was added, otherwise false.
+    """
+    if lam[0] <= 300 or np.count_nonzero(success) < 2:
+        return False
+
+    popt, _ = curve_fit(scattering_model, lam[success], values[success])
+    a_opt, b_opt = popt
+    lamb = np.linspace(min(lam), max(lam))
+    fn_str = "%s=%g * (lambda_nm/1000)**(-%g)" % (label, a_opt, b_opt)
+    plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
+    plt.legend()
+    return True
+
 def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
-    """Plot calculated reduced scattering coefficient."""
+    """Plot estimated reduced scattering coefficient.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        musp: Reduced scattering coefficient values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+        fit: When true, fit successful wavelength rows to a power law.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-musp' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, musp, success)
-    if fit and lam[0]>300:
-        popt, pcov = curve_fit(scattering_model, lam[success], musp[success])
-        a_opt, b_opt = popt
-        lamb = np.linspace(min(lam), max(lam))
-        fn_str = "musp=%g * (lamba_nm/1000)**(-%g)" % (a_opt, b_opt)
-        plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
-        plt.legend()
+    if fit:
+        add_scattering_fit(lam, musp, success, 'musp')
 
     plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)', fontsize=axis_label_size)
     add_x_label(lam)
@@ -261,17 +417,24 @@ def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
 
 
 def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
-    """Plot calculated scattering coefficient."""
+    """Plot estimated scattering coefficient.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        mus: Scattering coefficient values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+        fit: When true, fit successful wavelength rows to a power law.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-mus' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mus, success)
-    if fit and lam[0]>300:
-        popt, pcov = curve_fit(scattering_model, lam[success], mus[success])
-        a_opt, b_opt = popt
-        lamb = np.linspace(min(lam), max(lam))
-        fn_str = "mus=%g * (lamba_nm/1000)**(-%g)" % (a_opt, b_opt)
-        plt.plot(lamb, scattering_model(lamb, a_opt, b_opt), label=fn_str)
-        plt.legend()
+    if fit:
+        add_scattering_fit(lam, mus, success, 'mus')
     plt.ylabel('Scattering Coefficient (mm⁻¹)', fontsize=axis_label_size)
     add_x_label(lam)
     plt.savefig(out_filename, dpi=300)
@@ -280,7 +443,18 @@ def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
 
 
 def plot_g(lam, g, success, filename_base, figure_ext):
-    """Plot calculated scattering coefficient."""
+    """Plot estimated scattering anisotropy.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        g: Scattering anisotropy values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-g' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, g, success)
@@ -291,7 +465,18 @@ def plot_g(lam, g, success, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 def plot_a(lam, a, success, filename_base, figure_ext):
-    """Plot calculated albedo."""
+    """Plot estimated single-scattering albedo.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        a: Single-scattering albedo values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-a' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, a, success)
@@ -303,7 +488,18 @@ def plot_a(lam, a, success, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 def plot_b(lam, b, success, filename_base, figure_ext):
-    """Plot calculated scattering coefficient."""
+    """Plot estimated optical thickness.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        b: Optical thickness values.
+        success: Boolean mask selecting successful rows.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
     out_filename = filename_base + '-b' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, b, success)
@@ -314,6 +510,14 @@ def plot_b(lam, b, success, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 def append_graph_cell(nb, header, graph):
+    """Append a Markdown image cell to a notebook.
+
+    Args:
+        nb: Notebook object to mutate.
+        header: Markdown header text to prepend. The grid graph header also
+            inserts the grid explanation.
+        graph: Figure filename relative to the notebook.
+    """
     cell_text = ''
     if header and header.strip('# '):
         cell_text = header + "\n"
@@ -327,17 +531,70 @@ def append_graph_cell(nb, header, graph):
 
 
 def append_file_cell(nb, header, file):
+    """Append a code cell that prints a sibling text file.
+
+    Args:
+        nb: Notebook object to mutate.
+        header: Markdown-style comment header for the code cell.
+        file: Path to the file whose basename should be opened by the notebook.
+    """
     base = os.path.basename(file)
     cell_text = header + '\n'
-    cell_text += 'with open("' + base + '", "r", encoding="utf-8") as file:\n'
+    cell_text += 'with open(%r, "r", encoding="utf-8") as file:\n' % base
     cell_text += '    file_contents = file.read()\n'
     cell_text += '\n'
     cell_text += 'print(file_contents)\n'
     nb.cells.append(new_code_cell(cell_text))
 
 
+def create_report_notebook(input_filename, output_filename, graph_groups, iadplus_command,
+                           iad_command):
+    """Create the notebook report object for one ``iad`` analysis.
+
+    Args:
+        input_filename: Path to the copied ``.rxt`` input file.
+        output_filename: Path to the generated ``.txt`` output file.
+        graph_groups: Ordered graph groups used to lay out the report.
+        iadplus_command: Shell command used to invoke this wrapper.
+        iad_command: Shell command used to invoke ``iad``.
+
+    Returns:
+        A populated notebook object.
+    """
+    nb = new_notebook()
+    nb.metadata['kernelspec'] = {
+        'display_name': 'Python 3',
+        'language': 'python',
+        'name': 'python3'
+    }
+
+    append_header(nb, input_filename, output_filename, iadplus_command, iad_command)
+    for header, graph in graph_groups[0]:
+        append_graph_cell(nb, '## ' + header, graph)
+
+    nb.cells.append(new_markdown_cell(markdown_header_table(output_filename)))
+
+    for graph_group in graph_groups[1:]:
+        for header, graph in graph_group:
+            append_graph_cell(nb, '## ' + header, graph)
+
+    nb.cells.append(new_markdown_cell("## Input file\n"))
+    append_file_cell(nb, '# input file', os.path.basename(input_filename))
+
+    nb.cells.append(new_markdown_cell("## Output file\n"))
+    append_file_cell(nb, '# output file', os.path.basename(output_filename))
+    return nb
+
+
 def normalize_output_header_value(value):
-    """Normalize values from the generated .txt header."""
+    """Normalize values from a generated ``.txt`` header field.
+
+    Args:
+        value: Raw value text read after ``=`` in an ``iad`` output header.
+
+    Returns:
+        Normalized value text suitable for table display.
+    """
     value = value.strip()
     value = value.replace('(varies with input row)', 'varies')
     value = value.replace('varies with input row', 'varies')
@@ -345,7 +602,14 @@ def normalize_output_header_value(value):
 
 
 def split_output_header_value(value):
-    """Return the table value and any units or notes from a header value."""
+    """Split a header value into displayed value and units text.
+
+    Args:
+        value: Raw or normalized header value.
+
+    Returns:
+        A ``(number, units)`` tuple. Either element may be an empty string.
+    """
     value = normalize_output_header_value(value)
     if not value:
         return '', ''
@@ -360,7 +624,15 @@ def split_output_header_value(value):
 
 
 def format_output_header_description(description, units):
-    """Append units from the value field to the output header description."""
+    """Append units from a value field to a table description.
+
+    Args:
+        description: Header description text.
+        units: Units or notes parsed from the value field.
+
+    Returns:
+        Description text with units in square brackets when units are present.
+    """
     if not units:
         return description
 
@@ -374,7 +646,14 @@ def format_output_header_description(description, units):
 
 
 def parse_output_header(output_filename):
-    """Parse the generated .txt header through the photons-used line."""
+    """Parse an ``iad`` output header through the photons-used line.
+
+    Args:
+        output_filename: Path to the generated ``.txt`` output file.
+
+    Returns:
+        List of ``(value, description)`` rows for report tables.
+    """
     table_rows = []
 
     with open(output_filename, 'r', encoding='utf-8') as file:
@@ -402,12 +681,26 @@ def parse_output_header(output_filename):
 
 
 def markdown_escape(text):
-    """Escape text for a Markdown table cell."""
+    """Escape text for a Markdown table cell.
+
+    Args:
+        text: Cell text to escape.
+
+    Returns:
+        Text with Markdown table metacharacters escaped.
+    """
     return text.replace('\\', '\\\\').replace('|', '\\|')
 
 
 def markdown_header_table(output_filename):
-    """Return Markdown for the generated output header summary."""
+    """Build a Markdown table for an ``iad`` output header.
+
+    Args:
+        output_filename: Path to the generated ``.txt`` output file.
+
+    Returns:
+        Markdown table text, or an empty string when no rows are found.
+    """
     table_rows = parse_output_header(output_filename)
     lines = []
 
@@ -422,8 +715,88 @@ def markdown_header_table(output_filename):
     return '\n'.join(lines)
 
 
+def html_escape(text):
+    """Escape text for HTML content.
+
+    Args:
+        text: Text to escape.
+
+    Returns:
+        HTML-escaped text.
+    """
+    return html.escape(str(text), quote=True)
+
+
+def html_citations():
+    """Return the citation section as HTML.
+
+    Returns:
+        HTML ordered list of citations with linked URLs.
+    """
+    lines = ['<h2>Cite as</h2>', '<ol>']
+    for citation in CITATIONS:
+        parts = re.split(r'(https?://\S+)', citation)
+        item = ''
+        for part in parts:
+            if part.startswith('http://') or part.startswith('https://'):
+                url = html_escape(part)
+                item += '<a href="%s">%s</a>' % (url, url)
+            else:
+                item += html_escape(part)
+        lines.append('<li>%s</li>' % item)
+    lines.append('</ol>')
+    return '\n'.join(lines)
+
+
+def html_header_table(output_filename):
+    """Build an HTML table for an ``iad`` output header.
+
+    Args:
+        output_filename: Path to the generated ``.txt`` output file.
+
+    Returns:
+        HTML table markup, or an empty string when no rows are found.
+    """
+    table_rows = parse_output_header(output_filename)
+    if not table_rows:
+        return ''
+
+    lines = ['<table>', '<thead><tr><th>Number</th><th>Description</th></tr></thead>', '<tbody>']
+    for value, description in table_rows:
+        if value:
+            lines.append('<tr><td>%s</td><td>%s</td></tr>' %
+                         (html_escape(value), html_escape(description)))
+        else:
+            lines.append('<tr><td colspan="2"><em>%s</em></td></tr>' %
+                         html_escape(description))
+    lines.extend(['</tbody>', '</table>'])
+    return '\n'.join(lines)
+
+
+def html_file_section(header, filename):
+    """Return an HTML section containing verbatim file contents.
+
+    Args:
+        header: Section heading.
+        filename: Path to the file to include.
+
+    Returns:
+        HTML section with escaped file contents.
+    """
+    with open(filename, 'r', encoding='utf-8') as file:
+        contents = file.read()
+    return '<h2>%s</h2>\n<pre>%s</pre>' % (html_escape(header), html_escape(contents))
+
+
 def latex_escape(text):
-    """Escape text for normal LaTeX paragraphs."""
+    """Escape text for normal LaTeX paragraphs.
+
+    Args:
+        text: Plain text that may contain LaTeX metacharacters.
+
+    Returns:
+        Text with LaTeX metacharacters escaped.
+    """
     replacements = {
         '\\': r'\textbackslash{}',
         '&': r'\&',
@@ -440,7 +813,11 @@ def latex_escape(text):
 
 
 def latex_grid_explanation():
-    """Return the grid explanation with optical-property symbols in math mode."""
+    """Return the grid explanation with optical-property symbols in math mode.
+
+    Returns:
+        LaTeX-safe prose explaining the grid graph.
+    """
     text = latex_escape(GRID_EXPLANATION)
     text = text.replace("a'", r"$a'$")
     text = text.replace("b'", r"$b'$")
@@ -451,19 +828,38 @@ def latex_grid_explanation():
 
 
 def latex_path(filename):
-    """Return a LaTeX-safe path argument."""
+    """Return a LaTeX-safe path argument.
+
+    Args:
+        filename: Path to include in a LaTeX command.
+
+    Returns:
+        A ``\\detokenize{...}`` wrapper around the path.
+    """
     return r'\detokenize{%s}' % filename
 
 
 def latex_artifact_name(name):
-    """Return a filename stem that pdflatex can safely open."""
+    """Return a filename stem that ``pdflatex`` can safely open.
+
+    Args:
+        name: Desired artifact stem.
+
+    Returns:
+        Sanitized stem containing only simple filename characters.
+    """
     safe = name.replace('%', 'pct')
     safe = re.sub(r'[^A-Za-z0-9_.-]+', '_', safe)
     return safe.strip('._') or 'iadplus_report'
 
 
 def get_github_base_url():
-    """Return the GitHub repository URL for this checkout."""
+    """Return the GitHub repository URL for this checkout.
+
+    Returns:
+        Origin URL normalized to ``https://github.com/...``. Falls back to the
+        public ``scottprahl/iad`` URL when git metadata is unavailable.
+    """
     try:
         result = subprocess.run(['git', 'remote', 'get-url', 'origin'],
                                 check=True, capture_output=True, text=True)
@@ -483,12 +879,26 @@ def get_github_base_url():
 
 
 def version_to_tag(version):
-    """Convert iad's printed version string to the release tag form."""
+    """Convert an ``iad`` version string to a release tag.
+
+    Args:
+        version: Version printed by ``iad``, such as ``'3-16-3'``.
+
+    Returns:
+        Release tag form, such as ``'v3.16.3'``.
+    """
     return 'v' + version.replace('-', '.')
 
 
 def git_tag_exists(tag):
-    """Return True when a release tag exists in the local checkout."""
+    """Return whether a release tag exists in the local checkout.
+
+    Args:
+        tag: Git tag name to look up.
+
+    Returns:
+        True when the tag exists locally, otherwise false.
+    """
     try:
         subprocess.run(['git', 'rev-parse', '--verify', '--quiet', 'refs/tags/' + tag],
                        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -498,7 +908,11 @@ def git_tag_exists(tag):
 
 
 def git_head_commit():
-    """Return the current git commit hash, or an empty string if unavailable."""
+    """Return the current git commit hash.
+
+    Returns:
+        Full ``HEAD`` commit hash, or an empty string when git is unavailable.
+    """
     try:
         result = subprocess.run(['git', 'rev-parse', 'HEAD'],
                                 check=True, capture_output=True, text=True)
@@ -508,7 +922,11 @@ def git_head_commit():
 
 
 def git_head_tag():
-    """Return the tag exactly at HEAD, or an empty string if there is none."""
+    """Return the tag exactly at ``HEAD``.
+
+    Returns:
+        Exact tag name, or an empty string when ``HEAD`` is not tagged.
+    """
     try:
         result = subprocess.run(['git', 'describe', '--tags', '--exact-match', 'HEAD'],
                                 check=True, capture_output=True, text=True)
@@ -518,7 +936,11 @@ def git_head_tag():
 
 
 def git_worktree_is_clean():
-    """Return True when tracked files match HEAD."""
+    """Return whether tracked files match ``HEAD``.
+
+    Returns:
+        True when there are no tracked or staged changes, otherwise false.
+    """
     try:
         subprocess.run(['git', 'diff', '--quiet'], check=True)
         subprocess.run(['git', 'diff', '--cached', '--quiet'], check=True)
@@ -528,7 +950,15 @@ def git_worktree_is_clean():
 
 
 def github_version_links(version):
-    """Return link names and URLs for the iad and iadplus versions used."""
+    """Return provenance links for the ``iad`` and ``iadplus`` versions used.
+
+    Args:
+        version: Version string parsed from the ``iad`` output header.
+
+    Returns:
+        List of ``(name, url)`` tuples. Tagged clean releases link to the release
+        page; other checkouts link to the current commit when available.
+    """
     base_url = get_github_base_url()
     tag = version_to_tag(version)
 
@@ -546,12 +976,24 @@ def github_version_links(version):
 
 
 def iadplus_command_line():
-    """Return the current iadplus invocation in a reproducible form."""
+    """Return the current ``iadplus`` invocation in reproducible shell form.
+
+    Returns:
+        Shell-quoted command line beginning with ``iadplus``.
+    """
     return ' '.join(shlex.quote(arg) for arg in ['iadplus'] + sys.argv[1:])
 
 
 def display_input_path(input_name):
-    """Return the user-facing input path without an unnecessary absolute prefix."""
+    """Return a user-facing input path.
+
+    Args:
+        input_name: Input filename as supplied or resolved by the caller.
+
+    Returns:
+        Relative path when the absolute path is under the current directory,
+        otherwise the original path.
+    """
     if os.path.isabs(input_name):
         try:
             return os.path.relpath(input_name, os.getcwd())
@@ -561,7 +1003,15 @@ def display_input_path(input_name):
 
 
 def iad_command_line(input_name, iad_args):
-    """Return the user-facing iad command used for this input."""
+    """Return the user-facing ``iad`` command used for an input file.
+
+    Args:
+        input_name: Input ``.rxt`` filename, with or without the extension.
+        iad_args: Arguments that will be passed through to ``iad``.
+
+    Returns:
+        Shell-quoted command string suitable for report provenance.
+    """
     display_name = input_name
     if not os.path.exists(display_name) and not display_name.endswith('.rxt'):
         display_name += '.rxt'
@@ -570,6 +1020,19 @@ def iad_command_line(input_name, iad_args):
     command.extend(iad_args)
     command.extend(['-J', display_input_path(display_name)])
     return ' '.join(shlex.quote(arg) for arg in command)
+
+
+def iad_executable():
+    """Return the ``iad`` executable to use for subprocess execution.
+
+    Returns:
+        ``./iad`` when the local checkout binary exists and is executable,
+        otherwise ``iad`` so installations on ``PATH`` continue to work.
+    """
+    local_iad = './iad'
+    if os.path.isfile(local_iad) and os.access(local_iad, os.X_OK):
+        return local_iad
+    return 'iad'
 
 
 CITATIONS = [
@@ -589,7 +1052,11 @@ CITATIONS = [
 
 
 def markdown_citations():
-    """Return the citation section for the notebook."""
+    """Return the citation section for a notebook.
+
+    Returns:
+        Markdown citation text with URLs linked inline.
+    """
     lines = ['Cite as:', '']
     for index, citation in enumerate(CITATIONS, start=1):
         citation = re.sub(r'(https?://\S+)', r'[\1](\1)', citation)
@@ -599,13 +1066,24 @@ def markdown_citations():
 
 
 def latex_url(url):
-    """Return a blue underlined clickable URL."""
+    """Return a blue underlined clickable URL for LaTeX.
+
+    Args:
+        url: URL to render.
+
+    Returns:
+        LaTeX ``\\href`` markup for the URL.
+    """
     escaped_url = latex_escape(url)
     return r'\href{%s}{\textcolor{blue}{\uline{%s}}}' % (escaped_url, escaped_url)
 
 
 def latex_citations():
-    """Return the citation section for the PDF."""
+    """Return the citation section for the PDF report.
+
+    Returns:
+        LaTeX text containing an enumerated citation list.
+    """
     lines = ['Cite as:', '', r'\begin{enumerate}']
     for citation in CITATIONS:
         parts = re.split(r'(https?://\S+)', citation)
@@ -622,12 +1100,24 @@ def latex_citations():
 
 
 def latex_straight_quotes(text):
-    """Preserve straight quote characters in LaTeX typewriter text."""
+    """Preserve straight quote characters in LaTeX typewriter text.
+
+    Args:
+        text: LaTeX-escaped text that may contain double quote characters.
+
+    Returns:
+        Text with quotes replaced by ``\\textquotedbl`` markup.
+    """
     return text.replace('"', r'{\textquotedbl}')
 
 
 def write_latex_header_table(file, output_filename):
-    """Write the generated output header summary as LaTeX."""
+    """Write an ``iad`` output header summary as a LaTeX table.
+
+    Args:
+        file: Open writable text file for the generated ``.tex`` report.
+        output_filename: Path to the generated ``.txt`` output file.
+    """
     table_rows = parse_output_header(output_filename)
 
     if table_rows:
@@ -646,7 +1136,15 @@ def write_latex_header_table(file, output_filename):
 
 
 def _numbers_in_row(line):
-    """Return numeric values before any inline comment."""
+    """Return numeric values before any inline comment.
+
+    Args:
+        line: Input line from an ``.rxt`` file.
+
+    Returns:
+        List of floating-point values, or an empty list when a token is not
+        numeric.
+    """
     line = line.split('#', 1)[0]
     values = []
     for token in line.split():
@@ -658,7 +1156,18 @@ def _numbers_in_row(line):
 
 
 def _read_rxt_column(input_filename, label):
-    """Read a labeled numeric column from an IAD .rxt file."""
+    """Read a labeled numeric column from an ``iad`` ``.rxt`` file.
+
+    Args:
+        input_filename: Path to the ``.rxt`` file.
+        label: Lowercase column label to find.
+
+    Returns:
+        NumPy array containing the column values.
+
+    Raises:
+        ValueError: If the label or any values cannot be found.
+    """
     label_index = None
     values = []
 
@@ -686,7 +1195,20 @@ def _read_rxt_column(input_filename, label):
 
 
 def get_thickness(output_filename, input_filename=None):
-    """Return the sample thickness from the output header or input rows."""
+    """Return sample thickness from an output header or input rows.
+
+    Args:
+        output_filename: Path to the generated ``.txt`` output file.
+        input_filename: Optional path to the source ``.rxt`` file. Used when the
+            output header says thickness varies by input row.
+
+    Returns:
+        Scalar thickness value, or an array of row-specific values when the
+        source file contains a thickness column.
+
+    Raises:
+        ValueError: If thickness cannot be determined.
+    """
     pattern = r'Sample thickness\s*=\s*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)'
     with open(output_filename, 'r', encoding='utf-8') as file:
         for line in file:
@@ -702,6 +1224,19 @@ def get_thickness(output_filename, input_filename=None):
 
 
 def append_header(nb, input_filename, output_filename, iadplus_command, iad_command):
+    """Append the provenance and citation header to a notebook.
+
+    Args:
+        nb: Notebook object to mutate.
+        input_filename: Path to the copied ``.rxt`` input file.
+        output_filename: Path to the generated ``.txt`` output file.
+        iadplus_command: Shell command used to invoke this wrapper.
+        iad_command: Shell command used to invoke ``iad``.
+
+    Raises:
+        ValueError: If the output file does not contain the expected version
+            header.
+    """
     # Inverse Adding-Doubling 3-15-2 (8 Mar 2024)
     # iad -M 0 -o /Users/prahl/Documents/Code/git/iad/test/basic_B.txt test/basic_B.rxt
     with open(output_filename, 'r', encoding='utf-8') as file:
@@ -730,7 +1265,13 @@ def append_header(nb, input_filename, output_filename, iadplus_command, iad_comm
     nb.cells.append(new_markdown_cell(cell_text))
 
 def write_verbatim_file(file, filename, replace_tabs=False):
-    """Embed a text file in a LaTeX Verbatim environment."""
+    """Embed a text file in a LaTeX ``Verbatim`` environment.
+
+    Args:
+        file: Open writable text file for the generated ``.tex`` report.
+        filename: Path to the text file to embed.
+        replace_tabs: When true, replace tab characters with spaces.
+    """
     file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
     with open(filename, 'r', encoding='utf-8') as input_file:
         for line in input_file:
@@ -741,7 +1282,12 @@ def write_verbatim_file(file, filename, replace_tabs=False):
 
 
 def write_latex_graph_group(file, graph_group):
-    """Write a group of one or more graph sections to LaTeX."""
+    """Write one graph group to a LaTeX report.
+
+    Args:
+        file: Open writable text file for the generated ``.tex`` report.
+        graph_group: Iterable of ``(header, graph_filename)`` pairs.
+    """
     max_height = r'0.78\textheight' if len(graph_group) == 1 else r'0.42\textheight'
     for header, graph in graph_group:
         if header:
@@ -757,7 +1303,20 @@ def write_latex_graph_group(file, graph_group):
 
 def write_latex_report(tex_path, input_filename, output_filename, graph_groups, iadplus_command,
                        iad_command):
-    """Write LaTeX source using the same sections as the notebook."""
+    """Write LaTeX source using the same sections as the notebook report.
+
+    Args:
+        tex_path: Destination path for the generated ``.tex`` file.
+        input_filename: Path to the copied ``.rxt`` input file.
+        output_filename: Path to the generated ``.txt`` output file.
+        graph_groups: Ordered graph groups used to lay out the report.
+        iadplus_command: Shell command used to invoke this wrapper.
+        iad_command: Shell command used to invoke ``iad``.
+
+    Raises:
+        ValueError: If the output file does not contain the expected version
+            header.
+    """
     with open(output_filename, 'r', encoding='utf-8') as file:
         first_line = file.readline()
         file.readline()
@@ -821,8 +1380,93 @@ def write_latex_report(tex_path, input_filename, output_filename, graph_groups, 
         file.write(r'\end{document}' + '\n')
 
 
+def write_html_report(html_path, input_filename, output_filename, graph_groups, iadplus_command,
+                      iad_command):
+    """Write a standalone HTML report using the same sections as the notebook.
+
+    Args:
+        html_path: Destination path for the generated ``.html`` file.
+        input_filename: Path to the copied ``.rxt`` input file.
+        output_filename: Path to the generated ``.txt`` output file.
+        graph_groups: Ordered graph groups used to lay out the report.
+        iadplus_command: Shell command used to invoke this wrapper.
+        iad_command: Shell command used to invoke ``iad``.
+
+    Raises:
+        ValueError: If the output file does not contain the expected version
+            header.
+    """
+    with open(output_filename, 'r', encoding='utf-8') as file:
+        first_line = file.readline()
+        file.readline()
+
+    pattern = r'(\d+-\d+-\d+) \((\d+ \w+ \d+)\)'
+    match = re.search(pattern, first_line)
+    if not match:
+        raise ValueError('File %s contains bad contents' % output_filename)
+    version = match.group(1)
+
+    today = datetime.today()
+    formatted_date = '%d %s' % (today.day, today.strftime('%b %Y'))
+    rxt_name = os.path.basename(input_filename)
+
+    with open(html_path, 'w', encoding='utf-8') as file:
+        file.write('<!doctype html>\n')
+        file.write('<html lang="en">\n<head>\n')
+        file.write('<meta charset="utf-8">\n')
+        file.write('<title>Inverse Adding-Doubling Analysis of %s</title>\n' %
+                   html_escape(rxt_name))
+        file.write('<style>\n')
+        file.write('body{font-family:Arial,sans-serif;line-height:1.5;margin:2rem auto;max-width:980px;color:#222;}\n')
+        file.write('h1,h2{line-height:1.2;} img{max-width:100%;height:auto;display:block;margin:1rem auto;}\n')
+        file.write('table{border-collapse:collapse;width:100%;margin:1rem 0;} th,td{border:1px solid #bbb;padding:0.35rem 0.5rem;vertical-align:top;}\n')
+        file.write('pre{background:#f6f6f6;border:1px solid #ddd;padding:1rem;overflow:auto;} code{background:#f6f6f6;padding:0.1rem 0.25rem;}\n')
+        file.write('</style>\n</head>\n<body>\n')
+        file.write('<h1>Inverse Adding-Doubling Analysis of %s</h1>\n' %
+                   html_escape(rxt_name))
+        file.write('<p>Created on %s</p>\n' % html_escape(formatted_date))
+        file.write('<h2>Commands</h2>\n')
+        file.write('<p><code>%s</code></p>\n' % html_escape(iadplus_command))
+        file.write('<p><code>%s</code></p>\n' % html_escape(iad_command))
+        file.write('<h2>Software version used</h2>\n<ul>\n')
+        for name, url in github_version_links(version):
+            file.write('<li>%s: <a href="%s">%s</a></li>\n' %
+                       (html_escape(name), html_escape(url), html_escape(url)))
+        file.write('</ul>\n')
+        file.write(html_citations() + '\n')
+
+        for graph_group in graph_groups:
+            for header, graph in graph_group:
+                if header:
+                    file.write('<h2>%s</h2>\n' % html_escape(header))
+                    if header == 'Grid Graph':
+                        file.write('<p>%s</p>\n' %
+                                   html_escape(GRID_EXPLANATION).replace('\n\n', '</p>\n<p>'))
+                quoted_graph = urllib.parse.quote(graph)
+                file.write('<img src="%s" alt="%s">\n' %
+                           (quoted_graph, html_escape(header or 'Reflection and transmission')))
+
+        file.write('<h2>Output Header</h2>\n')
+        file.write(html_header_table(output_filename) + '\n')
+        file.write(html_file_section('Input file', input_filename) + '\n')
+        file.write(html_file_section('Output file', output_filename) + '\n')
+        file.write('</body>\n</html>\n')
+
+
 def run_pdflatex(tex_path):
-    """Compile a generated LaTeX report and return the PDF path."""
+    """Compile a generated LaTeX report.
+
+    Args:
+        tex_path: Path to the generated ``.tex`` file.
+
+    Returns:
+        Path to the expected PDF file.
+
+    Raises:
+        subprocess.CalledProcessError: If ``pdflatex`` returns a non-zero exit
+            status.
+        FileNotFoundError: If ``pdflatex`` is not available.
+    """
     tex_dir = os.path.dirname(tex_path)
     tex_file = os.path.basename(tex_path)
     pdf_path = os.path.splitext(tex_path)[0] + '.pdf'
@@ -833,7 +1477,19 @@ def run_pdflatex(tex_path):
 
 
 def create_output_directory(input_name, directory, subdirectory, suffix):
-    """Create an output directory and copy the .rxt file into it."""
+    """Create an output directory and copy input artifacts into it.
+
+    Args:
+        input_name: Input ``.rxt`` filename, with or without the extension.
+        directory: Optional explicit output directory name.
+        subdirectory: Optional parent directory for per-input output folders.
+        suffix: Suffix for the default output directory, such as ``'_notebook'``
+            or ``'_pdf'``.
+
+    Returns:
+        A ``(base, base_path)`` tuple. Both values are empty strings when the
+        input file cannot be used.
+    """
     
     # ensure that file.rxt exists and support omitting .rxt
     if os.path.exists(input_name):
@@ -891,7 +1547,15 @@ def create_output_directory(input_name, directory, subdirectory, suffix):
     return base, base_path
 
 def txt_matches_iad_command(txt_path, command_str):
-    """Return True when an existing output file was made by command_str."""
+    """Return whether an existing output file was made by a command.
+
+    Args:
+        txt_path: Path to an existing ``iad`` output file.
+        command_str: Shell-quoted command string expected in the file header.
+
+    Returns:
+        True when the header contains ``command_str``.
+    """
     if not os.path.exists(txt_path) or os.path.getsize(txt_path) == 0:
         return False
 
@@ -906,11 +1570,25 @@ def txt_matches_iad_command(txt_path, command_str):
     return False
 
 def split_iadplus_arguments(argv, parser):
-    """Split iadplus arguments from short options that should pass to iad."""
+    """Split wrapper arguments from short options that should pass to ``iad``.
+
+    Args:
+        argv: Raw command-line arguments, excluding the program name.
+        parser: ``argparse`` parser used for user-facing errors.
+
+    Returns:
+        A tuple ``(iadplus_argv, iad_args, input_files)`` where ``iadplus_argv``
+        contains options for this wrapper, ``iad_args`` contains arguments to
+        pass to ``iad``, and ``input_files`` contains positional inputs.
+
+    Raises:
+        SystemExit: Via ``parser.error`` for unknown options, missing option
+            values, or unsupported ``-z`` forwarding.
+    """
     iadplus_argv = []
     iad_args = []
     input_files = []
-    iadplus_options_with_values = {'--options', '--dir', '--sdir'}
+    iadplus_options_with_values = {'--dir', '--sdir'}
     index = 0
 
     while index < len(argv):
@@ -931,10 +1609,7 @@ def split_iadplus_arguments(argv, parser):
                 index += 1
                 if index >= len(argv):
                     parser.error('%s requires an argument' % arg)
-                if option_name == '--options':
-                    iadplus_argv.append(arg + '=' + argv[index])
-                else:
-                    iadplus_argv.extend([arg, argv[index]])
+                iadplus_argv.extend([arg, argv[index]])
             else:
                 iadplus_argv.append(arg)
             index += 1
@@ -973,32 +1648,58 @@ def split_iadplus_arguments(argv, parser):
     return iadplus_argv, iad_args, input_files
 
 def main():
-    desc =  'A wrapper for the iad program that creates a Jupyter notebook with plots '
-    desc += 'of the input, the fitted results, and the derived optical properties.'
-    parser = argparse.ArgumentParser(description=desc)
-    parser.add_argument('--options', metavar='OPTIONS', type=str, default='',
-                        help='legacy way to pass options to iad, e.g., "-c 0"')
+    """Run the ``iadplus`` command-line interface.
+
+    Parses wrapper and forwarded ``iad`` options, creates output directories,
+    runs ``iad`` when needed, generates plots, and writes PDF, notebook, or HTML
+    reports for all requested input files.
+    """
+    desc = """Create a plotted report for one or more iad .rxt input files.
+
+iadplus runs iad when needed, parses the generated .txt output, and writes a
+PDF report by default.  Use --notebook or --html for those report formats.
+
+Most valid short iad options may be passed directly to iadplus and are forwarded
+to iad.  For example, "-M 0 -q 4" is forwarded to the iad command used for each
+input file.
+
+Output directories:
+  By default, each input is written next to the .rxt file in a directory named
+  INPUT_pdf, INPUT_notebook, or INPUT_html.
+  --dir DIRECTORY writes a single input's report into that named directory.
+  --sdir SUBDIRECTORY writes each input to SUBDIRECTORY/INPUT, which is useful
+  for batch runs such as "iadplus --sdir reports *.rxt".
+
+Examples:
+  iadplus sample_A.rxt
+  iadplus --html -M 0 -q 4 sample_A.rxt
+  iadplus --notebook --force -i 8 -X docs/phantom_with_no_slides.rxt
+  iadplus --fit -c 0 tests/rxt/1_sphere/ville1.rxt
+"""
+    parser = argparse.ArgumentParser(
+        description=desc,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--dir',  metavar='DIRECTORY', default=None,
-                        help='explicit name of directory to store notebook and files')
+                        help='write output for one input into DIRECTORY')
     parser.add_argument('--sdir',  metavar='SUBDIRECTORY', default=None,
-                        help='use dir/file/ to store store notebook and files')
+                        help='write each input to SUBDIRECTORY/INPUT; useful with *.rxt')
     parser.add_argument('--force', action='store_true',
                         help='Force reanalysis of files')
     parser.add_argument('--fit', action='store_true',
                         help='Fit scattering data to a*(λ/1000nm)**(-b)')
-    parser.add_argument('--pdf', action='store_true',
-                        help='Create LaTeX source and PDF-ready figures instead of a notebook')
+    output_group = parser.add_mutually_exclusive_group()
+    output_group.add_argument('--pdf', dest='output_mode', action='store_const', const='pdf',
+                              help='create a PDF report (default)')
+    output_group.add_argument('--notebook', dest='output_mode', action='store_const',
+                              const='notebook',
+                              help='create a Jupyter notebook report')
+    output_group.add_argument('--html', dest='output_mode', action='store_const', const='html',
+                              help='create an HTML report')
+    parser.set_defaults(output_mode='pdf')
     iadplus_argv, direct_iad_args, input_files = split_iadplus_arguments(sys.argv[1:], parser)
     args = parser.parse_args(iadplus_argv)
     args.input_files = input_files
-    args.iad_args = []
-    if args.options:
-        _, legacy_iad_args, legacy_input_files = split_iadplus_arguments(
-            shlex.split(args.options), parser)
-        if legacy_input_files:
-            parser.error('--options should only contain iad options')
-        args.iad_args.extend(legacy_iad_args)
-    args.iad_args.extend(direct_iad_args)
+    args.iad_args = direct_iad_args
     if not args.input_files:
         parser.error('at least one input file is required')
     iadplus_command = iadplus_command_line()
@@ -1007,8 +1708,8 @@ def main():
     outputs = []
     for file_name in args.input_files:
 
-        suffix = '_pdf' if args.pdf else '_notebook'
-        figure_ext = '.pdf' if args.pdf else '.svg'
+        suffix = '_' + args.output_mode
+        figure_ext = '.pdf' if args.output_mode == 'pdf' else '.svg'
 
         base, base_path = create_output_directory(file_name, args.dir, args.sdir, suffix)
         if base_path == '':
@@ -1016,13 +1717,13 @@ def main():
         iad_command = iad_command_line(file_name, args.iad_args)
 
         artifact_base_path = base_path
-        if args.pdf:
+        if args.output_mode == 'pdf':
             artifact_base = latex_artifact_name(base)
             artifact_base_path = os.path.join(os.path.dirname(base_path), artifact_base)
 
         # doing the iad analysis can be slow, avoid if possible
         txt_path = base_path + '.txt'
-        command = ['iad']
+        command = [iad_executable()]
         command.extend(args.iad_args)
         command.append('-J')
         command.append(base_path + '.rxt')
@@ -1034,7 +1735,7 @@ def main():
             try:
                 subprocess.run(command, shell=False, check=True)
                 ran_iad = True
-            except subprocess.CalledProcessError:
+            except (FileNotFoundError, subprocess.CalledProcessError):
                 print("Sorry, iad failed.  check header maybe?")
                 continue
         else:
@@ -1048,7 +1749,7 @@ def main():
             print('Existing output could not be parsed, rerunning...')
             try:
                 subprocess.run(command, shell=False, check=True)
-            except subprocess.CalledProcessError:
+            except (FileNotFoundError, subprocess.CalledProcessError):
                 print("Sorry, iad failed.  check header maybe?")
                 continue
             result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')
@@ -1075,7 +1776,8 @@ def main():
         safe_denominator = np.where(denominator == 0, np.inf, denominator)
         a = mus / safe_denominator
 
-        if args.pdf and artifact_base_path != base_path and os.path.exists(base_path + '.grid'):
+        if (args.output_mode == 'pdf' and artifact_base_path != base_path
+                and os.path.exists(base_path + '.grid')):
             shutil.copy(base_path + '.grid', artifact_base_path + '.grid')
 
         rt_graph = plot_rt(lam, mr, mt, artifact_base_path, figure_ext)
@@ -1100,7 +1802,7 @@ def main():
             [('Grid Graph', grid_graph)],
         ]
 
-        if args.pdf:
+        if args.output_mode == 'pdf':
             tex_path = artifact_base_path + '.tex'
             write_latex_report(tex_path, base_path + '.rxt', txt_path, graph_groups,
                                iadplus_command, iad_command)
@@ -1109,36 +1811,19 @@ def main():
             except (FileNotFoundError, subprocess.CalledProcessError):
                 print("Sorry, pdflatex failed for %s" % tex_path)
                 continue
-        else:
-            nb = new_notebook()
-            nb.metadata['kernelspec'] = {
-                'display_name': 'Python 3',
-                'language': 'python',
-                'name': 'python3'
-            }
-
-            append_header(nb, base_path + '.rxt', txt_path, iadplus_command, iad_command)
-            for header, graph in graph_groups[0]:
-                append_graph_cell(nb, '## ' + header, graph)
-
-            nb.cells.append(new_markdown_cell(markdown_header_table(txt_path)))
-
-            for graph_group in graph_groups[1:]:
-                for header, graph in graph_group:
-                    append_graph_cell(nb, '## ' + header, graph)
-
-            nb.cells.append(new_markdown_cell("## Input file\n"))
-            append_file_cell(nb, '# input file', base + '.rxt')
-
-            nb.cells.append(new_markdown_cell("## Output file\n"))
-            append_file_cell(nb, '# output file', base + '.txt')
-
-            # Save the notebook
+        elif args.output_mode == 'notebook':
+            nb = create_report_notebook(base_path + '.rxt', txt_path, graph_groups,
+                                        iadplus_command, iad_command)
             ipynb_path = base_path + '.ipynb'
             with open(ipynb_path, "w", encoding="utf-8") as f:
                 nbformat.write(nb, f)
 
             outputs.append(ipynb_path)
+        else:
+            html_path = base_path + '.html'
+            write_html_report(html_path, base_path + '.rxt', txt_path, graph_groups,
+                              iadplus_command, iad_command)
+            outputs.append(html_path)
 
     for output in outputs:
         print('created: ' + os.path.abspath(output))
