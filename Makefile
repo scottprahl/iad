@@ -32,7 +32,7 @@ export AD_OBJ  = src/nr_zbrak.o  src/ad_bound.o src/ad_doubl.o src/ad_frsnl.o sr
 export NR_OBJ  = src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnbrk.o \
                 src/nr_rtsaf.o  src/nr_util.o  src/nr_hj.o
 
-MAIN = Makefile INSTALL.md README.md License
+MAIN = Makefile INSTALL.md README.rst License
 
 DOCS =  CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
         docs/ad_src.pdf       docs/iad_src.pdf           docs/manual.pdf      \
