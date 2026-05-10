@@ -231,7 +231,7 @@ def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-grid' + figure_ext
+    out_filename = filename_base + '_grid' + figure_ext
     plt.figure(figsize=(8,8))
     plt.gca().set_aspect(1)
     plt.xlim(-0.05,1.05)
@@ -265,7 +265,7 @@ def plot_rt(lam, mr, mt, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-RTU' + figure_ext
+    out_filename = filename_base + '_RTU' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plt.plot(lam, mr, 'ob', markersize=2, label='$M_R$')
     plt.plot(lam, mt, 'or', markersize=2, label='$M_T$')
@@ -292,7 +292,7 @@ def plot_r(lam, mr, cr, success, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-R' + figure_ext
+    out_filename = filename_base + '_R' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, cr, success, True)
     plt.plot(lam, mr, 'ok', markersize=2, label='measured')
@@ -318,7 +318,7 @@ def plot_t(lam, mt, ct, success, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-T' + figure_ext
+    out_filename = filename_base + '_T' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, ct, success, True)
     plt.plot(lam, mt, 'ok', markersize=2, label='measured')
@@ -343,7 +343,7 @@ def plot_mua(lam, mua, success, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-mua' + figure_ext
+    out_filename = filename_base + '_mua' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mua, success)
     add_x_label(lam)
@@ -403,7 +403,7 @@ def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-musp' + figure_ext
+    out_filename = filename_base + '_musp' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, musp, success)
     if fit:
@@ -430,7 +430,7 @@ def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-mus' + figure_ext
+    out_filename = filename_base + '_mus' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, mus, success)
     if fit:
@@ -455,7 +455,7 @@ def plot_g(lam, g, success, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-g' + figure_ext
+    out_filename = filename_base + '_g' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, g, success)
     add_x_label(lam)
@@ -477,7 +477,7 @@ def plot_a(lam, a, success, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-a' + figure_ext
+    out_filename = filename_base + '_a' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, a, success)
     add_x_label(lam)
@@ -500,7 +500,7 @@ def plot_b(lam, b, success, filename_base, figure_ext):
     Returns:
         Basename of the saved figure.
     """
-    out_filename = filename_base + '-b' + figure_ext
+    out_filename = filename_base + '_b' + figure_ext
     plt.figure(figsize=(8, 4.5))
     plot_good_and_bad(lam, b, success)
     add_x_label(lam)
@@ -1092,11 +1092,31 @@ def latex_citations():
             if part.startswith('http://') or part.startswith('https://'):
                 latex_parts.append(latex_url(part))
             else:
-                latex_parts.append(latex_escape(part))
+                latex_parts.append(latex_title_quotes(latex_escape(part)))
         lines.append(r'\item ' + ''.join(latex_parts))
     lines.append(r'\end{enumerate}')
     lines.append('')
     return '\n'.join(lines)
+
+
+def latex_title_quotes(text):
+    """Convert straight citation title quotes to TeX opening and closing quotes.
+
+    Args:
+        text: LaTeX-escaped citation text that may contain paired double quotes.
+
+    Returns:
+        Text with alternating double quote characters replaced by ```` and ``''``.
+    """
+    pieces = []
+    opening = True
+    for char in text:
+        if char == '"':
+            pieces.append('``' if opening else "''")
+            opening = not opening
+        else:
+            pieces.append(char)
+    return ''.join(pieces)
 
 
 def latex_straight_quotes(text):
@@ -1281,6 +1301,147 @@ def write_verbatim_file(file, filename, replace_tabs=False):
     file.write(r'\end{Verbatim}' + '\n\n')
 
 
+def output_table_header_cells(line):
+    """Return LaTeX table header cells for an ``iad`` output header line.
+
+    Args:
+        line: Header line from the final ``iad`` ``.txt`` table.
+
+    Returns:
+        List of cells with leading comment markers removed.
+    """
+    cells = line.rstrip('\n').split('\t')
+    if cells:
+        cells[0] = re.sub(r'^#+\s*', '', cells[0])
+    return [cell.strip() for cell in cells]
+
+
+def output_table_row_cells(line):
+    """Return LaTeX table cells for one final ``iad`` output row.
+
+    Args:
+        line: Data line from the final ``iad`` ``.txt`` table.
+
+    Returns:
+        List of stripped tab-separated cells.
+    """
+    return [cell.strip() for cell in line.rstrip('\n').split('\t')]
+
+
+def write_latex_table_row(file, cells, columns=9):
+    """Write one escaped row to a LaTeX table.
+
+    Args:
+        file: Open writable text file for the generated ``.tex`` report.
+        cells: Row cells to write.
+        columns: Number of columns expected by the table.
+    """
+    padded = list(cells[:columns])
+    padded.extend([''] * (columns - len(padded)))
+    file.write(' & '.join(r'\mbox{%s}' % latex_escape(cell) for cell in padded) +
+               r'\\' + '\n')
+
+
+def latex_output_header_label(cell):
+    """Return the LaTeX label for one final output table header cell.
+
+    Args:
+        cell: Plain header cell from the ``iad`` output.
+
+    Returns:
+        LaTeX cell contents with optical-property symbols in math mode.
+    """
+    labels = {
+        'wave': r'$\lambda$',
+        'M_R': r'$M_R$',
+        'M_T': r'$M_T$',
+        'mu_a': r'$\mu_a$',
+        "mu_s'": r"$\mu_s'$",
+        'g': r'$g$',
+    }
+    return labels.get(cell, latex_escape(cell))
+
+
+def write_latex_table_header_row(file, cells, columns=9):
+    """Write one centered header row to the final output longtable.
+
+    Args:
+        file: Open writable text file for the generated ``.tex`` report.
+        cells: Header cells to write.
+        columns: Number of columns expected by the table.
+    """
+    padded = list(cells[:columns])
+    padded.extend([''] * (columns - len(padded)))
+    file.write(' & '.join(r'\multicolumn{1}{c}{%s}' %
+                          latex_output_header_label(cell) for cell in padded) +
+               r'\\' + '\n')
+
+
+def write_latex_output_table_header(file, header_rows):
+    """Write repeating ``longtable`` header rows for final ``iad`` output.
+
+    Args:
+        file: Open writable text file for the generated ``.tex`` report.
+        header_rows: Three parsed table header rows.
+    """
+    for row in header_rows:
+        write_latex_table_header_row(file, row)
+    file.write(r'\hline' + '\n')
+
+
+def write_latex_output_file(file, filename):
+    """Write the final ``iad`` output file with a repeating table header.
+
+    The metadata preamble remains verbatim. When the standard three-line final
+    table header is found, the tabular data are written as a ``longtable`` so
+    the header repeats automatically on each page.
+
+    Args:
+        file: Open writable text file for the generated ``.tex`` report.
+        filename: Path to the final ``iad`` ``.txt`` output file.
+    """
+    with open(filename, 'r', encoding='utf-8') as input_file:
+        lines = input_file.readlines()
+
+    header_index = None
+    for index in range(len(lines) - 2):
+        if (lines[index].startswith('#') and
+                lines[index + 1].startswith('##wave') and
+                lines[index + 2].startswith('# [nm]')):
+            header_index = index
+            break
+
+    if header_index is None:
+        write_verbatim_file(file, filename, replace_tabs=True)
+        return
+
+    file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
+    for line in lines[:header_index]:
+        file.write(line.replace('\t', ' '))
+    file.write(r'\end{Verbatim}' + '\n\n')
+
+    header_rows = [
+        output_table_header_cells(lines[header_index]),
+        output_table_header_cells(lines[header_index + 1]),
+        output_table_header_cells(lines[header_index + 2]),
+    ]
+
+    file.write(r'{\scriptsize' + '\n')
+    file.write(r'\setlength{\tabcolsep}{3pt}' + '\n')
+    file.write(r'\begin{longtable}{rrrrrrrrc}' + '\n')
+    write_latex_output_table_header(file, header_rows)
+    file.write(r'\endfirsthead' + '\n')
+    write_latex_output_table_header(file, header_rows)
+    file.write(r'\endhead' + '\n')
+
+    for line in lines[header_index + 3:]:
+        if line.strip():
+            write_latex_table_row(file, output_table_row_cells(line))
+
+    file.write(r'\end{longtable}' + '\n')
+    file.write(r'}' + '\n\n')
+
+
 def write_latex_graph_group(file, graph_group):
     """Write one graph group to a LaTeX report.
 
@@ -1375,7 +1536,10 @@ def write_latex_report(tex_path, input_filename, output_filename, graph_groups, 
             file.write(r'\clearpage' + '\n')
             file.write(r'\section*{%s}' % latex_escape(header) + '\n')
             filename = input_filename if suffix == '.rxt' else output_filename
-            write_verbatim_file(file, filename, replace_tabs=True)
+            if suffix == '.txt':
+                write_latex_output_file(file, filename)
+            else:
+                write_verbatim_file(file, filename, replace_tabs=True)
 
         file.write(r'\end{document}' + '\n')
 
@@ -1470,9 +1634,17 @@ def run_pdflatex(tex_path):
     tex_dir = os.path.dirname(tex_path)
     tex_file = os.path.basename(tex_path)
     pdf_path = os.path.splitext(tex_path)[0] + '.pdf'
-    command = ['pdflatex', '-interaction=nonstopmode', tex_file]
-    print('running:', ' '.join(command), flush=True)
-    subprocess.run(command, cwd=tex_dir, check=True)
+    command = ['pdflatex', '-interaction=batchmode', tex_file]
+    for _ in range(2):
+        print('running:', ' '.join(command), flush=True)
+        try:
+            subprocess.run(command, cwd=tex_dir, check=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                           text=True)
+        except subprocess.CalledProcessError as error:
+            if error.stdout:
+                print(error.stdout)
+            raise
     return pdf_path
 
 

@@ -29,8 +29,11 @@ Examples:
 
 from datetime import datetime
 import argparse
+import shlex
 import os
 import re
+import subprocess
+import sys
 import tempfile
 import urllib.parse
 import html
@@ -45,7 +48,6 @@ import matplotlib
 
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
 import nbformat
 from nbformat.v4 import new_notebook, new_code_cell, new_markdown_cell
 
@@ -68,16 +70,16 @@ class Column(Enum):
         position: Zero-based column index in the in-memory result list.
     """
     LAM = (0,"")
-    MR = (1,"-mr.svg")
-    CR = (2,"-cr.svg")
-    MT = (3,"-mt.svg")
-    CT = (4,"-ct.svg")
-    MUA = (5,"-mua.svg")
-    MUSP = (6,"-musp.svg")
-    G = (7,"-g.svg")
-    MUS = (8,"-mus.svg")
-    B = (9,"-b.svg")
-    A = (10,"-a.svg")
+    MR = (1,"_mr.svg")
+    CR = (2,"_cr.svg")
+    MT = (3,"_mt.svg")
+    CT = (4,"_ct.svg")
+    MUA = (5,"_mua.svg")
+    MUSP = (6,"_musp.svg")
+    G = (7,"_g.svg")
+    MUS = (8,"_mus.svg")
+    B = (9,"_b.svg")
+    A = (10,"_a.svg")
     SUCCESS = (11,"")
 
     def __new__(cls, position, value):
@@ -99,6 +101,8 @@ REPORT_EXTENSIONS = {'.ipynb': 'notebook', '.html': 'html', '.pdf': 'pdf'}
 PLOT_SUFFIXES = (
     '-RTU', '-R', '-T', '-mua', '-musp', '-mus', '-g', '-a', '-b', '-grid',
     '-mr', '-cr', '-mt', '-ct',
+    '_RTU', '_R', '_T', '_mua', '_musp', '_mus', '_g', '_a', '_b', '_grid',
+    '_mr', '_cr', '_mt', '_ct',
 )
 
 def add_x_label(lambda0):
@@ -241,6 +245,147 @@ def html_escape(text):
     return html.escape(str(text), quote=True)
 
 
+def get_github_base_url():
+    """Return the GitHub repository URL for this checkout.
+
+    Returns:
+        Origin URL normalized to ``https://github.com/...``. Falls back to the
+        public ``scottprahl/iad`` URL when git metadata is unavailable.
+    """
+    try:
+        result = subprocess.run(['git', 'remote', 'get-url', 'origin'],
+                                check=True, capture_output=True, text=True)
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return 'https://github.com/scottprahl/iad'
+
+    url = result.stdout.strip()
+    match = re.match(r'git@github\.com:(.+?)(?:\.git)?$', url)
+    if match:
+        return 'https://github.com/' + match.group(1)
+
+    match = re.match(r'https://github\.com/(.+?)(?:\.git)?$', url)
+    if match:
+        return 'https://github.com/' + match.group(1)
+
+    return 'https://github.com/scottprahl/iad'
+
+
+def version_to_tag(version):
+    """Convert an ``iad`` version string to a release tag.
+
+    Args:
+        version: Version printed by ``iad``, such as ``'3-16-3'``.
+
+    Returns:
+        Release tag form, such as ``'v3.16.3'``.
+    """
+    return 'v' + version.replace('-', '.')
+
+
+def git_tag_exists(tag):
+    """Return whether a release tag exists in the local checkout.
+
+    Args:
+        tag: Git tag name to look up.
+
+    Returns:
+        True when the tag exists locally, otherwise false.
+    """
+    try:
+        subprocess.run(['git', 'rev-parse', '--verify', '--quiet', 'refs/tags/' + tag],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+
+def git_head_commit():
+    """Return the current git commit hash.
+
+    Returns:
+        Full ``HEAD`` commit hash, or an empty string when git is unavailable.
+    """
+    try:
+        result = subprocess.run(['git', 'rev-parse', 'HEAD'],
+                                check=True, capture_output=True, text=True)
+        return result.stdout.strip()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ''
+
+
+def git_head_tag():
+    """Return the tag exactly at ``HEAD``.
+
+    Returns:
+        Exact tag name, or an empty string when ``HEAD`` is not tagged.
+    """
+    try:
+        result = subprocess.run(['git', 'describe', '--tags', '--exact-match', 'HEAD'],
+                                check=True, capture_output=True, text=True)
+        return result.stdout.strip()
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return ''
+
+
+def git_worktree_is_clean():
+    """Return whether tracked files match ``HEAD``.
+
+    Returns:
+        True when there are no tracked or staged changes, otherwise false.
+    """
+    try:
+        subprocess.run(['git', 'diff', '--quiet'], check=True)
+        subprocess.run(['git', 'diff', '--cached', '--quiet'], check=True)
+        return True
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return False
+
+
+def github_version_links(version):
+    """Return provenance links for the ``iad`` and ``iadsum`` versions used.
+
+    Args:
+        version: Version string parsed from the ``iad`` output header.
+
+    Returns:
+        List of ``(name, url)`` tuples. Tagged clean releases link to the release
+        page; other checkouts link to the current commit when available.
+    """
+    base_url = get_github_base_url()
+    tag = version_to_tag(version)
+
+    if git_tag_exists(tag) and git_head_tag() == tag and git_worktree_is_clean():
+        release_url = base_url + '/releases/tag/' + tag
+        return [('iad', release_url), ('iadsum', release_url)]
+
+    commit = git_head_commit()
+    if commit:
+        source_url = base_url + '/tree/' + commit
+    else:
+        source_url = base_url
+
+    return [('iad', source_url), ('iadsum', source_url)]
+
+
+def iadsum_command_line():
+    """Return the current ``iadsum`` invocation in reproducible shell form.
+
+    Returns:
+        Shell-quoted command line beginning with ``iadsum``.
+    """
+    return ' '.join(shlex.quote(arg) for arg in ['iadsum'] + sys.argv[1:])
+
+
+def formatted_today():
+    """Return today's date in the report provenance format.
+
+    Returns:
+        Date string such as ``'10 May 2026'``.
+    """
+    today = datetime.today()
+    return '%d %s' % (today.day, today.strftime('%b %Y'))
+
+
 def append_html_graph(file, header, graph):
     """Write one graph section to an HTML summary.
 
@@ -254,13 +399,16 @@ def append_html_graph(file, header, graph):
                (urllib.parse.quote(graph), html_escape(header)))
 
 
-def write_html_summary(html_path, commands, links, graph_items):
+def write_html_summary(html_path, summary_command, version_links,
+                       commands, links, graph_items):
     """Write a direct HTML summary report.
 
     Args:
         html_path: Destination path for the generated HTML file.
+        summary_command: Command used to create this summary document.
+        version_links: Iterable of ``(name, url)`` provenance links.
         commands: Command lines read from summarized ``iad`` outputs.
-        links: Relative paths to summarized reports.
+        links: Iterable of ``(display_path, href_path)`` report links.
         graph_items: Iterable of ``(header, graph_filename)`` pairs.
     """
     with open(html_path, 'w', encoding='utf-8') as file:
@@ -273,49 +421,151 @@ def write_html_summary(html_path, commands, links, graph_items):
         file.write('pre{background:#f6f6f6;border:1px solid #ddd;padding:1rem;overflow:auto;}\n')
         file.write('</style>\n</head>\n<body>\n')
         file.write('<h1>Summary of Inverse Adding-Doubling Analysis</h1>\n')
-        file.write('<h2>Commands</h2>\n<pre>%s</pre>\n' %
+        file.write('<p>Created on %s</p>\n' % html_escape(formatted_today()))
+        file.write('<p>The commands used to create this document were</p>\n')
+        file.write('<pre>%s</pre>\n' % html_escape(summary_command))
+        file.write('<h2>Software version used</h2>\n<ul>\n')
+        for name, url in version_links:
+            file.write('<li>%s: <a href="%s">%s</a></li>\n' %
+                       (html_escape(name), html_escape(url), html_escape(url)))
+        file.write('</ul>\n')
+        file.write('<h2>Commands used for summarized files</h2>\n<pre>%s</pre>\n' %
                    html_escape(''.join(commands)))
         if links:
             file.write('<h2>Summarized reports</h2>\n<ul>\n')
-            for link in links:
-                quoted = urllib.parse.quote(link)
+            for display_path, href_path in links:
+                quoted = urllib.parse.quote(href_path)
                 file.write('<li><a href="%s">%s</a></li>\n' %
-                           (quoted, html_escape(link)))
+                           (quoted, html_escape(display_path)))
             file.write('</ul>\n')
         for header, graph in graph_items:
             append_html_graph(file, header, graph)
         file.write('</body>\n</html>\n')
 
 
-def write_pdf_summary(pdf_path, commands, links, graph_paths):
-    """Write a multi-page PDF summary report.
+def latex_escape(text):
+    """Escape text for normal LaTeX paragraphs.
+
+    Args:
+        text: Plain text that may contain LaTeX metacharacters.
+
+    Returns:
+        Text with LaTeX metacharacters escaped.
+    """
+    replacements = {
+        '\\': r'\textbackslash{}',
+        '&': r'\&',
+        '%': r'\%',
+        '$': r'\$',
+        '#': r'\#',
+        '_': r'\_',
+        '{': r'\{',
+        '}': r'\}',
+        '~': r'\textasciitilde{}',
+        '^': r'\textasciicircum{}',
+    }
+    return ''.join(replacements.get(char, char) for char in str(text))
+
+
+def latex_path(filename):
+    """Return a LaTeX-safe path argument.
+
+    Args:
+        filename: Path to include in a LaTeX command.
+
+    Returns:
+        A ``\\detokenize{...}`` wrapper around the path.
+    """
+    return r'\detokenize{%s}' % filename
+
+
+def latex_url(url):
+    """Return a clickable LaTeX URL.
+
+    Args:
+        url: URL to include in a PDF report.
+
+    Returns:
+        A ``\\url{...}`` command using ``\\detokenize`` for robust URL text.
+    """
+    return r'\url{%s}' % latex_path(url)
+
+
+def write_pdf_summary(pdf_path, summary_command, version_links,
+                      commands, links, graph_groups, summary_dir):
+    """Write a PDF summary that includes Matplotlib-generated PDF plots.
 
     Args:
         pdf_path: Destination path for the generated PDF file.
+        summary_command: Command used to create this summary document.
+        version_links: Iterable of ``(name, url)`` provenance links.
         commands: Command lines read from summarized ``iad`` outputs.
-        links: Relative paths to summarized reports.
-        graph_paths: Figure paths to place in the PDF.
+        links: Iterable of ``(display_path, href_path)`` report links.
+        graph_groups: Ordered graph groups. Each group contains one or two
+            ``(header, graph_filename)`` pairs.
+        summary_dir: Directory containing the generated graph PDFs.
     """
-    with PdfPages(pdf_path) as pdf:
-        fig = plt.figure(figsize=(8.5, 11))
-        fig.text(0.08, 0.94, 'Summary of Inverse Adding-Doubling Analysis',
-                 fontsize=16, weight='bold')
-        fig.text(0.08, 0.89, 'Command lines used for summarized files:', fontsize=11)
-        command_text = ''.join(commands) if commands else 'No commands found.'
-        fig.text(0.08, 0.86, command_text, family='monospace', fontsize=8, va='top')
+    tex_path = os.path.splitext(pdf_path)[0] + '.tex'
+    with open(tex_path, 'w', encoding='utf-8') as file:
+        file.write(r'\documentclass[11pt]{article}' + '\n')
+        file.write(r'\usepackage[margin=1in]{geometry}' + '\n')
+        file.write(r'\usepackage{graphicx}' + '\n')
+        file.write(r'\usepackage{float}' + '\n')
+        file.write(r'\usepackage{fancyvrb}' + '\n')
+        file.write(r'\usepackage{titlesec}' + '\n')
+        file.write(r'\usepackage[colorlinks=true,urlcolor=blue]{hyperref}' + '\n')
+        file.write(r'\setlength{\parindent}{0pt}' + '\n')
+        file.write(r'\setlength{\parskip}{0.8em}' + '\n')
+        file.write(r'\titlespacing*{\section}{0pt}{0.6em}{0.2em}' + '\n')
+        file.write(r'\begin{document}' + '\n')
+        file.write(r'\section*{Summary of Inverse Adding-Doubling Analysis}' + '\n')
+        file.write('Created on %s\n\n' % latex_escape(formatted_today()))
+        file.write('The commands used to create this document were\n\n')
+        file.write(r'\texttt{%s}' % latex_escape(summary_command) + '\n\n')
+        file.write('Software version used:\n\n')
+        for name, url in version_links:
+            file.write('%s: %s' % (latex_escape(name), latex_url(url)) + r'\\' + '\n')
+        file.write('\nCommand lines used for summarized files:\n\n')
+        file.write(r'\begin{Verbatim}[fontsize=\small]' + '\n')
+        file.write(''.join(commands) if commands else 'No commands found.\n')
+        file.write(r'\end{Verbatim}' + '\n')
         if links:
-            fig.text(0.08, 0.20, 'Summarized reports:', fontsize=11)
-            fig.text(0.08, 0.17, '\n'.join(links), fontsize=8, va='top')
-        pdf.savefig(fig)
-        plt.close(fig)
+            file.write('Summarized reports:\n\n')
+            file.write(r'\begin{itemize}' + '\n')
+            for display_path, _ in links:
+                file.write(r'\item %s' % latex_escape(display_path) + '\n')
+            file.write(r'\end{itemize}' + '\n')
+        file.write(r'\clearpage' + '\n\n')
 
-        for graph_path in graph_paths:
-            image = plt.imread(graph_path)
-            fig, ax = plt.subplots(figsize=(8.5, 5.5))
-            ax.imshow(image)
-            ax.axis('off')
-            pdf.savefig(fig, bbox_inches='tight')
-            plt.close(fig)
+        for index, graph_group in enumerate(graph_groups):
+            max_height = r'0.78\textheight' if len(graph_group) == 1 else r'0.42\textheight'
+            for header, graph in graph_group:
+                file.write(r'\section*{%s}' % latex_escape(header) + '\n')
+                file.write(r'\begin{figure}[H]' + '\n')
+                file.write(r'\centering' + '\n')
+                file.write(r'\includegraphics[width=\linewidth,height=%s,keepaspectratio]{%s}' %
+                           (max_height, latex_path(graph)) + '\n')
+                file.write(r'\end{figure}' + '\n\n')
+            if index < len(graph_groups) - 1:
+                file.write(r'\clearpage' + '\n\n')
+
+        file.write(r'\end{document}' + '\n')
+
+    command = ['pdflatex', '-interaction=batchmode', os.path.basename(tex_path)]
+    print('running:', ' '.join(command), flush=True)
+    try:
+        subprocess.run(command, cwd=summary_dir, check=True,
+                       stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                       text=True)
+    except subprocess.CalledProcessError as error:
+        log_path = os.path.splitext(tex_path)[0] + '.log'
+        if os.path.exists(log_path):
+            with open(log_path, 'r', encoding='utf-8', errors='replace') as log_file:
+                lines = log_file.readlines()
+            print(''.join(lines[-80:]))
+        elif error.stdout:
+            print(error.stdout)
+        raise
 
 
 def _numbers_in_row(line):
@@ -406,16 +656,15 @@ def get_thickness(output_filename, input_filename=None):
     raise ValueError('Could not determine sample thickness from %s' % output_filename)
 
 
-def summary_metadata(txts, rel_reports):
+def summary_metadata(txts, report_links):
     """Collect command provenance and report links for a summary.
 
     Args:
         txts: Absolute paths to the ``iad`` output files being summarized.
-        rel_reports: Paths to summarized reports relative to the summary
-            notebook or HTML file.
+        report_links: Iterable of ``(display_path, href_path)`` report links.
 
     Returns:
-        A ``(commands, links, version, build)`` tuple.
+        A ``(commands, report_links, version, build)`` tuple.
 
     Raises:
         ValueError: If an output file does not contain the expected version
@@ -439,36 +688,36 @@ def summary_metadata(txts, rel_reports):
         raise ValueError('File %s contains bad contents' % txts[0])
     version = match.group(1)
     build = match.group(2)
-    return commands, rel_reports, version, build
+    return commands, report_links, version, build
 
 
-def append_header(nb, txts, rel_reports):
+def append_header(nb, commands, links, summary_command, version_links):
     """Append a summary header cell with command provenance.
 
     Args:
         nb: Notebook object to mutate.
-        txts: Absolute paths to the ``iad`` output files being summarized.
-        rel_reports: Paths to summarized reports relative to the summary
-            notebook.
+        commands: Command lines read from summarized ``iad`` outputs.
+        links: Iterable of ``(display_path, href_path)`` report links.
+        summary_command: Command used to create this summary document.
+        version_links: Iterable of ``(name, url)`` provenance links.
     """
-    commands, links, version, build = summary_metadata(txts, rel_reports)
-
-    today = datetime.today()
-    formatted_date = today.strftime('%d %b %Y')
-
     cell_text = "# Summary of Inverse Adding-Doubling Analysis\n\n"
-    cell_text += "The iad version used was %s built on %s. and " % (version,build)
-    cell_text += "this summary was created on %s\n\n" % formatted_date
+    cell_text += "Created on %s\n\n" % formatted_today()
+    cell_text += "The commands used to create this document were\n\n"
+    cell_text += "`%s`\n\n" % summary_command
+    cell_text += "Software version used:\n\n"
+    for name, url in version_links:
+        cell_text += "- %s: [%s](%s)\n\n" % (name, url, url)
 
-    cell_text += "The command line used for each file:\n"
+    cell_text += "The command line used for each summarized file:\n"
     for c in commands:
         cell_text += c
-    
+
     cell_text += "Links to summarized reports:\n"
-    for link in links:
-        quoted = urllib.parse.quote(link)
-        cell_text += "\n* [%s](%s)\n" % (link, quoted)
-    
+    for display_path, href_path in links:
+        quoted = urllib.parse.quote(href_path)
+        cell_text += "\n* [%s](%s)\n" % (display_path, quoted)
+
     nb.cells.append(new_markdown_cell(cell_text))
 
 def create_summary_directory(directory):
@@ -659,7 +908,10 @@ def main():
     abs_txts = [txt for _, txt in report_txt_pairs]
     bp = create_summary_directory(args.directory)
     summary_dir = os.path.dirname(bp)
-    rel_reports = [os.path.relpath(report, summary_dir) for report, _ in report_txt_pairs]
+    report_links = [
+        (os.path.relpath(report, os.getcwd()), os.path.relpath(report, summary_dir))
+        for report, _ in report_txt_pairs
+    ]
 
     results={}
     for _, txt_path in report_txt_pairs:
@@ -667,26 +919,35 @@ def main():
         key = get_directory_list(txt_path)[-2]
         results[key] = read_txt(txt_path)
 
-    figure_ext = '.png' if output_mode == 'pdf' else '.svg'
-    graph_items = [
-        ('Reflection', plot_results(results, Column.MR, bp, 'M_R', figure_ext)),
-        ('Transmission', plot_results(results, Column.MT, bp, 'M_T', figure_ext)),
-        ('Absorption Coefficient',
-         plot_results(results, Column.MUA, bp, 'Absorption Coefficient (mm⁻¹)', figure_ext)),
-        ('Reduced Scattering Coefficient',
-         plot_results(results, Column.MUSP, bp, 'Reduced Scattering Coefficient (mm⁻¹)', figure_ext)),
-        ('Single Scattering Albedo',
-         plot_results(results, Column.A, bp, r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$',
-                      figure_ext)),
-        ('Optical Thickness',
-         plot_results(results, Column.B, bp, r'Optical Thickness $(\mu_a+\mu_s)d$', figure_ext)),
-        ('Scattering Anisotropy',
-         plot_results(results, Column.G, bp, 'Scattering Anisotropy', figure_ext)),
-        ('Scattering Coefficient',
-         plot_results(results, Column.MUS, bp, 'Scattering Coefficient (mm⁻¹)', figure_ext)),
-    ]
+    figure_ext = '.pdf' if output_mode == 'pdf' else '.svg'
+    r_graph = plot_results(results, Column.MR, bp, 'M_R', figure_ext)
+    t_graph = plot_results(results, Column.MT, bp, 'M_T', figure_ext)
+    mus_graph = plot_results(results, Column.MUS, bp, 'Scattering Coefficient (mm⁻¹)',
+                             figure_ext)
+    musp_graph = plot_results(results, Column.MUSP, bp,
+                              'Reduced Scattering Coefficient (mm⁻¹)', figure_ext)
+    mua_graph = plot_results(results, Column.MUA, bp, 'Absorption Coefficient (mm⁻¹)',
+                             figure_ext)
+    g_graph = plot_results(results, Column.G, bp, 'Scattering Anisotropy', figure_ext)
+    a_graph = plot_results(results, Column.A, bp,
+                           r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$',
+                           figure_ext)
+    b_graph = plot_results(results, Column.B, bp, r'Optical Thickness $(\mu_a+\mu_s)d$',
+                           figure_ext)
 
-    commands, links, _, _ = summary_metadata(abs_txts, rel_reports)
+    graph_groups = [
+        [('Reflection', r_graph), ('Transmission', t_graph)],
+        [('Scattering Coefficient', mus_graph),
+         ('Reduced Scattering Coefficient', musp_graph)],
+        [('Absorption Coefficient', mua_graph),
+         ('Scattering Anisotropy', g_graph)],
+        [('Single Scattering Albedo', a_graph), ('Optical Thickness', b_graph)],
+    ]
+    graph_items = [item for group in graph_groups for item in group]
+
+    commands, links, version, _ = summary_metadata(abs_txts, report_links)
+    summary_command = iadsum_command_line()
+    version_links = github_version_links(version)
 
     if output_mode == 'notebook':
         nb = new_notebook()
@@ -696,7 +957,7 @@ def main():
             'name': 'python3'
         }
 
-        append_header(nb, abs_txts, rel_reports)
+        append_header(nb, commands, links, summary_command, version_links)
         for header, graph in graph_items:
             append_graph_cell(nb, '## ' + header, graph)
 
@@ -705,11 +966,12 @@ def main():
             nbformat.write(nb, f)
     elif output_mode == 'html':
         output_path = bp + '.html'
-        write_html_summary(output_path, commands, links, graph_items)
+        write_html_summary(output_path, summary_command, version_links,
+                           commands, links, graph_items)
     else:
         output_path = bp + '.pdf'
-        graph_paths = [os.path.join(summary_dir, graph) for _, graph in graph_items]
-        write_pdf_summary(output_path, commands, links, graph_paths)
+        write_pdf_summary(output_path, summary_command, version_links,
+                          commands, links, graph_groups, summary_dir)
 
     print('created: ' + os.path.abspath(output_path))
 
