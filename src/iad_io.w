@@ -204,6 +204,7 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
 {
     int count=0;
     double x;
+    int W_unread=1;
     while (count<params) {
         if (read_number(fp,&x)) return 1;
         char c = COLUMN_LABELS[count];
@@ -298,9 +299,12 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
                 break;
             case 'w':
                 m->rw_r = x;
+                if (W_unread)
+                    m->rw_t = x;
                 break;
             case 'W':
                 m->rw_t = x;
+                W_unread=0;
                 break;
             default:
                 fprintf(stderr, "legend variable '%c' unimplemented", c);
