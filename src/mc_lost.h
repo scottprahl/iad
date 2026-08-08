@@ -15,10 +15,3 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     double dr_port, double dt_port, double d_beam, double *r_total, double *t_total, double *r_lost, double *t_lost);
 
 void MC_Print_RT_Arrays(int status);
-
-void MC_Lost_With_Stderr(struct measure_type m, struct invert_type r,
-    long n_photons, int n_repeats,
-    double *ur1, double *ut1, double *uru, double *utu,
-    double *mean_ur1_lost, double *mean_ut1_lost,
-    double *mean_uru_lost, double *mean_utu_lost,
-    double *se_ur1_lost, double *se_ut1_lost, double *se_uru_lost, double *se_utu_lost);

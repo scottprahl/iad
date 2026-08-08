@@ -52,6 +52,14 @@ Fixes
     search that gives up without matching the measurements is now ``x`` (no
     solution found) and a failed lost-light correction is ``m``; ``+`` is
     reserved for actually hitting the iteration limit
+*   compare lost-light changes by magnitude in the Monte Carlo loop; a drop of
+    any size used to look like convergence, mis-sizing the photon budget and
+    skipping a needed iteration
+*   reuse the same photon histories across Monte Carlo calls, so the change
+    between iterations reflects the optical properties rather than the full
+    Monte Carlo standard error
+*   clear the radial arrays at the start of each Monte Carlo simulation
+*   remove the unused ``MC_Lost_With_Stderr``
 *   show ``AD`` rather than ``IAD`` above the iterations for ``-x 8``
 *   reallocate redistribution-function cache when quadrature-point count changes
 *   fix ``mc_lost`` build

@@ -1671,7 +1671,7 @@ int main(int argc, char **argv)
                         }
 
                         int has_prev_diff_ur1_lost = 0;
-                        double prev_diff_ur1_lost = 0.0;
+                        double prev_abs_diff_ur1_lost = 0.0;
 
                         while (r.MC_iterations < MAX_MC_iterations) {
                             long n_photons_this;
@@ -1692,9 +1692,9 @@ int main(int argc, char **argv)
                             }
                             if (n_photons < 0)
                                 n_photons_this = n_photons;
-                            else if (!has_prev_diff_ur1_lost || prev_diff_ur1_lost > 0.01)
+                            else if (!has_prev_diff_ur1_lost || prev_abs_diff_ur1_lost > 0.01)
                                 n_photons_this = (n_photons / 10 > 10000) ? n_photons / 10 : 10000;
-                            else if (prev_diff_ur1_lost > 0.001)
+                            else if (prev_abs_diff_ur1_lost > 0.001)
                                 n_photons_this = n_photons;
                             else
                                 n_photons_this = (n_photons * 5 < 10000000) ? n_photons * 5 : 10000000;
@@ -1705,10 +1705,10 @@ int main(int argc, char **argv)
                             diff_uru_lost = current_uru_lost - m.uru_lost;
                             diff_ut1_lost = current_ut1_lost - m.ut1_lost;
                             diff_utu_lost = current_utu_lost - m.utu_lost;
-                            prev_diff_ur1_lost = diff_ur1_lost;
+                            prev_abs_diff_ur1_lost = fabs(diff_ur1_lost);
                             has_prev_diff_ur1_lost = 1;
 
-                            if (diff_ur1_lost > 0.001 || diff_ut1_lost > 0.001)
+                            if (fabs(diff_ur1_lost) > 0.001 || fabs(diff_ut1_lost) > 0.001)
                                 too_much_lost = 1;
                             else
                                 too_much_lost = 0;
@@ -2358,7 +2358,7 @@ int main(int argc, char **argv)
                         }
 
                         int has_prev_diff_ur1_lost = 0;
-                        double prev_diff_ur1_lost = 0.0;
+                        double prev_abs_diff_ur1_lost = 0.0;
 
                         while (r.MC_iterations < MAX_MC_iterations) {
                             long n_photons_this;
@@ -2379,9 +2379,9 @@ int main(int argc, char **argv)
                             }
                             if (n_photons < 0)
                                 n_photons_this = n_photons;
-                            else if (!has_prev_diff_ur1_lost || prev_diff_ur1_lost > 0.01)
+                            else if (!has_prev_diff_ur1_lost || prev_abs_diff_ur1_lost > 0.01)
                                 n_photons_this = (n_photons / 10 > 10000) ? n_photons / 10 : 10000;
-                            else if (prev_diff_ur1_lost > 0.001)
+                            else if (prev_abs_diff_ur1_lost > 0.001)
                                 n_photons_this = n_photons;
                             else
                                 n_photons_this = (n_photons * 5 < 10000000) ? n_photons * 5 : 10000000;
@@ -2392,10 +2392,10 @@ int main(int argc, char **argv)
                             diff_uru_lost = current_uru_lost - m.uru_lost;
                             diff_ut1_lost = current_ut1_lost - m.ut1_lost;
                             diff_utu_lost = current_utu_lost - m.utu_lost;
-                            prev_diff_ur1_lost = diff_ur1_lost;
+                            prev_abs_diff_ur1_lost = fabs(diff_ur1_lost);
                             has_prev_diff_ur1_lost = 1;
 
-                            if (diff_ur1_lost > 0.001 || diff_ut1_lost > 0.001)
+                            if (fabs(diff_ur1_lost) > 0.001 || fabs(diff_ut1_lost) > 0.001)
                                 too_much_lost = 1;
                             else
                                 too_much_lost = 0;

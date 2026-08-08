@@ -1182,8 +1182,15 @@ adapt those steps from the last physical change, clamped between a small
 floor and the same fixed defaults.
 
 If a Monte Carlo re-inversion fails, preserve its specific error code when
-one exists.  Fall back to |IAD_TOO_MANY_ITERATIONS| only when the inverse
+one exists.  Fall back to |IAD_MC_DID_NOT_CONVERGE| only when the inverse
 routine did not leave a more informative reason.
+
+The lost-light estimate approaches its fixed point from both sides, so how
+much it moved between iterations is a magnitude, never a signed quantity.
+Testing the signed difference made a drop of any size look like convergence:
+the photon budget jumped to its finest setting exactly when the estimate was
+still swinging, and |too_much_lost| stayed clear so no further iteration was
+forced.  Both tests use |fabs|.
 
 @<Improve result using Monte Carlo@>=
 
@@ -1208,7 +1215,7 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
     }
 
     int has_prev_diff_ur1_lost = 0;
-    double prev_diff_ur1_lost = 0.0;
+    double prev_abs_diff_ur1_lost = 0.0;
 
     while (r.MC_iterations < MAX_MC_iterations) {
         long n_photons_this;
@@ -1228,9 +1235,9 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
         }
         if (n_photons < 0)
             n_photons_this = n_photons;
-        else if (!has_prev_diff_ur1_lost || prev_diff_ur1_lost > 0.01)
+        else if (!has_prev_diff_ur1_lost || prev_abs_diff_ur1_lost > 0.01)
             n_photons_this = (n_photons / 10 > 10000) ? n_photons / 10 : 10000;
-        else if (prev_diff_ur1_lost > 0.001)
+        else if (prev_abs_diff_ur1_lost > 0.001)
             n_photons_this = n_photons;
         else
             n_photons_this = (n_photons * 5 < 10000000) ? n_photons * 5 : 10000000;
@@ -1241,10 +1248,10 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
         diff_uru_lost= current_uru_lost - m.uru_lost;
         diff_ut1_lost= current_ut1_lost - m.ut1_lost;
         diff_utu_lost= current_utu_lost - m.utu_lost;
-        prev_diff_ur1_lost = diff_ur1_lost;
+        prev_abs_diff_ur1_lost = fabs(diff_ur1_lost);
         has_prev_diff_ur1_lost = 1;
 
-        if (diff_ur1_lost > 0.001 || diff_ut1_lost > 0.001)
+        if (fabs(diff_ur1_lost) > 0.001 || fabs(diff_ut1_lost) > 0.001)
             too_much_lost = 1;
         else
             too_much_lost = 0;

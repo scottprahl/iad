@@ -50,7 +50,6 @@ the reflection or transmission port.
 @<Definition for |MC_Lost|@>@;
 @<Definition for |MC_RT|@>@;
 @<Definition for |MC_Print_RT_Arrays|@>@;
-@<Definition for |MC_Lost_With_Stderr|@>@;
 
 @ The header exposes the Monte Carlo services used by |iad| and by the
 standalone |mc_lost| diagnostic program.
@@ -61,19 +60,23 @@ standalone |mc_lost| diagnostic program.
 @<Prototype for |MC_RT|@>;
 @<Prototype for |MC_Radial|@>;
 @<Prototype for |MC_Print_RT_Arrays|@>;
-@<Prototype for |MC_Lost_With_Stderr|@>;
 
 @*1 Constants and state.
 
 Photons with very small weight are handled by Russian roulette rather than
 being followed forever.  The radial arrays are intentionally global so the
-standalone executable can request a radial dump after a simulation.
+standalone executable can request a radial dump after a simulation.  They
+describe one simulation, so |MC_Radial| clears them before it launches any
+photons; without that they would accumulate every simulation made during the
+run, and a dump taken after the second of two calls would report the sum of
+both.
 
 @ @<Monte Carlo constants@>=
 #define MIN_WEIGHT 0.0001
 #define N_RADIAL_BINS  1001
 #define RADIAL_BIN_SIZE 0.02
 #define CLOSE(x, y) (fabs((x) - (y)) < 1e-8)
+#define DIFFUSE_SEED_OFFSET 0x9e3779b9UL
 
 @ The KISS generator state is process-global.  |photon_seed| is advanced once
 per photon so repeated simulations can compare nearby optical properties with
@@ -81,6 +84,7 @@ the same sequence of photon histories.
 
 @ @<Monte Carlo global state@>=
 unsigned long photon_seed = 12345678;
+unsigned long lost_base_seed = 12345678;
 
 int print_radial_arrays = FALSE;
 double R_radial[N_RADIAL_BINS] = { 0 };
@@ -133,6 +137,7 @@ static inline void set_photon_seed(unsigned long new_seed)
 
 @ A public seed value of zero requests a non-repeatable seed based on the
 current clock time.  Any other seed makes the Monte Carlo sequence repeatable.
+|lost_base_seed| remembers the choice so |MC_Lost| can return to it.
 
 @ @<Prototype for |MC_Set_Seed|@>=
 void MC_Set_Seed(unsigned long seed)
@@ -141,9 +146,11 @@ void MC_Set_Seed(unsigned long seed)
 @<Prototype for |MC_Set_Seed|@>
 {
     if (seed == 0)
-        set_photon_seed((unsigned long) time(NULL));
+        lost_base_seed = (unsigned long) time(NULL);
     else
-        set_photon_seed(seed);
+        lost_base_seed = seed;
+
+    set_photon_seed(lost_base_seed);
 }
 
 @ Each photon restarts the KISS sequence from the next photon seed.  This
@@ -537,6 +544,11 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     *t_total = 0;
     total_weight = 0.0;
 
+    for (i = 0; i < N_RADIAL_BINS; i++) {
+        R_radial[i] = 0;
+        T_radial[i] = 0;
+    }
+
     if (b < 1e-5)
         b = 1e-5;
     if (b > 1000)
@@ -672,6 +684,17 @@ total = total_weight - residual_weight;
 the geometry needed by |MC_Radial|.  It assumes the reflection and
 transmission sample ports use the top-slide parameters.
 
+Each call restarts from |lost_base_seed| so that photon $i$ follows the same
+random history every time.  This is the whole reason |next_photon_seed|
+reseeds once per photon.  The inverse routine calls |MC_Lost| repeatedly with
+optical properties that barely change, and it converges by watching how much
+the lost-light estimate moved.  Drawing a fresh slice of the random stream
+each call would put the full Monte Carlo standard error into that difference
+and hide the real change; sharing the histories cancels most of it.  The two
+simulations need independent streams, so the diffuse run is offset from the
+collimated one.  Photon counts may differ between calls --- the shorter run
+is then a prefix of the longer one, which keeps the estimates correlated.
+
 @ @<Prototype for |MC_Lost|@>=
 void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     double *ur1, double *ut1, double *uru, double *utu,
@@ -696,15 +719,18 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     if (n_slide == 1.0)
         t_slide = 0.0;
 
+    set_photon_seed(lost_base_seed);
     MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
         COLLIMATED, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
 
     *uru_lost = 0;
     *utu_lost = 0;
 
-    if (m.method == SUBSTITUTION)
+    if (m.method == SUBSTITUTION) {
+        set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
         MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
             DIFFUSE, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
+    }
 
     if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
         exit(EXIT_FAILURE);
@@ -743,67 +769,4 @@ void MC_Print_RT_Arrays(int status)
 @<Prototype for |MC_Print_RT_Arrays|@>
 {
     print_radial_arrays = status;
-}
-
-@ Repeating the lost-light calculation provides a simple standard error for
-diagnostic and uncertainty-estimation workflows.
-
-@ @<Prototype for |MC_Lost_With_Stderr|@>=
-void MC_Lost_With_Stderr(struct measure_type m, struct invert_type r,
-    long n_photons, int n_repeats,
-    double *ur1, double *ut1, double *uru, double *utu,
-    double *mean_ur1_lost, double *mean_ut1_lost,
-    double *mean_uru_lost, double *mean_utu_lost,
-    double *se_ur1_lost, double *se_ut1_lost, double *se_uru_lost, double *se_utu_lost)
-
-@ @<Definition for |MC_Lost_With_Stderr|@>=
-@<Prototype for |MC_Lost_With_Stderr|@>
-{
-    int i;
-    long n_per_run;
-    double sum_ur1 = 0, sum_ut1 = 0, sum_uru = 0, sum_utu = 0;
-    double sum2_ur1 = 0, sum2_ut1 = 0, sum2_uru = 0, sum2_utu = 0;
-    double v_ur1, v_ut1, v_uru, v_utu;
-    double cur_ur1_lost, cur_ut1_lost, cur_uru_lost, cur_utu_lost;
-    double n = (double) n_repeats;
-
-    if (n_repeats < 1)
-        n_repeats = 1;
-    n_per_run = n_photons / n_repeats;
-    if (n_per_run < 1)
-        n_per_run = 1;
-
-    for (i = 0; i < n_repeats; i++) {
-        MC_Lost(m, r, n_per_run, ur1, ut1, uru, utu, &cur_ur1_lost, &cur_ut1_lost, &cur_uru_lost, &cur_utu_lost);
-        sum_ur1 += cur_ur1_lost;
-        sum_ut1 += cur_ut1_lost;
-        sum_uru += cur_uru_lost;
-        sum_utu += cur_utu_lost;
-        sum2_ur1 += cur_ur1_lost * cur_ur1_lost;
-        sum2_ut1 += cur_ut1_lost * cur_ut1_lost;
-        sum2_uru += cur_uru_lost * cur_uru_lost;
-        sum2_utu += cur_utu_lost * cur_utu_lost;
-    }
-
-    *mean_ur1_lost = sum_ur1 / n;
-    *mean_ut1_lost = sum_ut1 / n;
-    *mean_uru_lost = sum_uru / n;
-    *mean_utu_lost = sum_utu / n;
-
-    if (n_repeats > 1) {
-        v_ur1 = (sum2_ur1 - n * (*mean_ur1_lost) * (*mean_ur1_lost)) / (n - 1.0);
-        v_ut1 = (sum2_ut1 - n * (*mean_ut1_lost) * (*mean_ut1_lost)) / (n - 1.0);
-        v_uru = (sum2_uru - n * (*mean_uru_lost) * (*mean_uru_lost)) / (n - 1.0);
-        v_utu = (sum2_utu - n * (*mean_utu_lost) * (*mean_utu_lost)) / (n - 1.0);
-        *se_ur1_lost = sqrt(fmax(0.0, v_ur1) / n);
-        *se_ut1_lost = sqrt(fmax(0.0, v_ut1) / n);
-        *se_uru_lost = sqrt(fmax(0.0, v_uru) / n);
-        *se_utu_lost = sqrt(fmax(0.0, v_utu) / n);
-    }
-    else {
-        *se_ur1_lost = 0.0;
-        *se_ut1_lost = 0.0;
-        *se_uru_lost = 0.0;
-        *se_utu_lost = 0.0;
-    }
 }

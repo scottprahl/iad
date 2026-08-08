@@ -16,8 +16,10 @@
 #define N_RADIAL_BINS  1001
 #define RADIAL_BIN_SIZE 0.02
 #define CLOSE(x, y) (fabs((x) - (y)) < 1e-8)
+#define DIFFUSE_SEED_OFFSET 0x9e3779b9UL
 
 unsigned long photon_seed = 12345678;
+unsigned long lost_base_seed = 12345678;
 
 int print_radial_arrays = FALSE;
 double R_radial[N_RADIAL_BINS] = { 0 };
@@ -60,9 +62,11 @@ static inline void set_photon_seed(unsigned long new_seed)
 void MC_Set_Seed(unsigned long seed)
 {
     if (seed == 0)
-        set_photon_seed((unsigned long) time(NULL));
+        lost_base_seed = (unsigned long) time(NULL);
     else
-        set_photon_seed(seed);
+        lost_base_seed = seed;
+
+    set_photon_seed(lost_base_seed);
 }
 
 static inline void next_photon_seed(void)
@@ -392,6 +396,11 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     *t_total = 0;
     total_weight = 0.0;
 
+    for (i = 0; i < N_RADIAL_BINS; i++) {
+        R_radial[i] = 0;
+        T_radial[i] = 0;
+    }
+
     if (b < 1e-5)
         b = 1e-5;
     if (b > 1000)
@@ -537,15 +546,18 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     if (n_slide == 1.0)
         t_slide = 0.0;
 
+    set_photon_seed(lost_base_seed);
     MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
         COLLIMATED, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
 
     *uru_lost = 0;
     *utu_lost = 0;
 
-    if (m.method == SUBSTITUTION)
+    if (m.method == SUBSTITUTION) {
+        set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
         MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
             DIFFUSE, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
+    }
 
     if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
         exit(EXIT_FAILURE);
@@ -573,60 +585,4 @@ void MC_RT(struct AD_slab_type s, long n_photons, double t_sample,
 void MC_Print_RT_Arrays(int status)
 {
     print_radial_arrays = status;
-}
-
-void MC_Lost_With_Stderr(struct measure_type m, struct invert_type r,
-    long n_photons, int n_repeats,
-    double *ur1, double *ut1, double *uru, double *utu,
-    double *mean_ur1_lost, double *mean_ut1_lost,
-    double *mean_uru_lost, double *mean_utu_lost,
-    double *se_ur1_lost, double *se_ut1_lost, double *se_uru_lost, double *se_utu_lost)
-{
-    int i;
-    long n_per_run;
-    double sum_ur1 = 0, sum_ut1 = 0, sum_uru = 0, sum_utu = 0;
-    double sum2_ur1 = 0, sum2_ut1 = 0, sum2_uru = 0, sum2_utu = 0;
-    double v_ur1, v_ut1, v_uru, v_utu;
-    double cur_ur1_lost, cur_ut1_lost, cur_uru_lost, cur_utu_lost;
-    double n = (double) n_repeats;
-
-    if (n_repeats < 1)
-        n_repeats = 1;
-    n_per_run = n_photons / n_repeats;
-    if (n_per_run < 1)
-        n_per_run = 1;
-
-    for (i = 0; i < n_repeats; i++) {
-        MC_Lost(m, r, n_per_run, ur1, ut1, uru, utu, &cur_ur1_lost, &cur_ut1_lost, &cur_uru_lost, &cur_utu_lost);
-        sum_ur1 += cur_ur1_lost;
-        sum_ut1 += cur_ut1_lost;
-        sum_uru += cur_uru_lost;
-        sum_utu += cur_utu_lost;
-        sum2_ur1 += cur_ur1_lost * cur_ur1_lost;
-        sum2_ut1 += cur_ut1_lost * cur_ut1_lost;
-        sum2_uru += cur_uru_lost * cur_uru_lost;
-        sum2_utu += cur_utu_lost * cur_utu_lost;
-    }
-
-    *mean_ur1_lost = sum_ur1 / n;
-    *mean_ut1_lost = sum_ut1 / n;
-    *mean_uru_lost = sum_uru / n;
-    *mean_utu_lost = sum_utu / n;
-
-    if (n_repeats > 1) {
-        v_ur1 = (sum2_ur1 - n * (*mean_ur1_lost) * (*mean_ur1_lost)) / (n - 1.0);
-        v_ut1 = (sum2_ut1 - n * (*mean_ut1_lost) * (*mean_ut1_lost)) / (n - 1.0);
-        v_uru = (sum2_uru - n * (*mean_uru_lost) * (*mean_uru_lost)) / (n - 1.0);
-        v_utu = (sum2_utu - n * (*mean_utu_lost) * (*mean_utu_lost)) / (n - 1.0);
-        *se_ur1_lost = sqrt(fmax(0.0, v_ur1) / n);
-        *se_ut1_lost = sqrt(fmax(0.0, v_ut1) / n);
-        *se_uru_lost = sqrt(fmax(0.0, v_uru) / n);
-        *se_utu_lost = sqrt(fmax(0.0, v_utu) / n);
-    }
-    else {
-        *se_ur1_lost = 0.0;
-        *se_ut1_lost = 0.0;
-        *se_uru_lost = 0.0;
-        *se_utu_lost = 0.0;
-    }
 }
