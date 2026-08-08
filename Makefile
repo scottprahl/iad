@@ -2,7 +2,8 @@
 #  Makefile by Scott Prahl, Mar 2024
 #
 
-export VERSION = 3-16-3
+export VERSION = 4-0-0
+export VERSION_DATE = 29 Jul 2026
 
 #Base directory for installation
 DESTDIR=/usr/local
@@ -32,7 +33,7 @@ export AD_OBJ  = src/nr_zbrak.o  src/ad_bound.o src/ad_doubl.o src/ad_frsnl.o sr
 export NR_OBJ  = src/nr_amoeb.o  src/nr_amotr.o src/nr_brent.o src/nr_gaulg.o src/nr_mnbrk.o \
                 src/nr_rtsaf.o  src/nr_util.o  src/nr_hj.o
 
-MAIN = Makefile INSTALL.md README.rst License
+MAIN = Makefile INSTALL.md README.rst License CITATION.cff iadplus iadsum
 
 DOCS =  CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
         docs/ad_src.pdf       docs/iad_src.pdf           docs/manual.pdf      \
@@ -42,17 +43,54 @@ DOCS =  CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
         docs/cmdexe.png       docs/valid.png             docs/dual8.png       \
         docs/dual90.png       docs/iad.bib
 
-TEST =  test/Makefile       test/basic_A.rxt    test/basic_B.rxt      test/basic_C.rxt    test/basic_D.rxt    \
-        test/double.rxt     test/example2.rxt   test/il_A.rxt         test/il_B.rxt       test/il_C.rxt       \
-        test/ink_A.rxt      test/ink_B.rxt      test/ink_C.rxt        test/kenlee_A.rxt   test/kenlee_B.rxt   \
-        test/kenlee_C.rxt   test/newton.rxt     test/royston2.rxt     test/royston3_A.rxt test/royston3_B.rxt \
-        test/royston3_C.rxt test/royston3_D.rxt test/royston3_E.rxt   test/royston9_A.rxt test/royston9_B.rxt \
-        test/royston9_C.rxt test/royston9_D.rxt test/royston1.rxt     test/sample_A.rxt   test/sample_B.rxt   \
-        test/sample_C.rxt   test/sample_D.rxt   test/sample_E.rxt     test/sample_F.rxt   test/sample_G.rxt   \
-        test/sevick_A.rxt   test/sevick_B.rxt   test/terse_A.rxt      test/terse_B.rxt    test/tio2_vis.rxt   \
-        test/uterus.rxt     test/valid.bat      test/vio_A.rxt        test/vio_B.rxt      test/x_bad_data.rxt \
-        test/ville1.rxt     test/fairway_A.rxt  test/fairway_B.rxt    test/fairway_C.rxt  test/fairway_D.rxt  \
-        test/fairway_E.rxt  test/basic_E.rxt    test/combo_0.rxt
+TEST =  tests/Makefile      tests/valid.bat
+
+TESTCLI = tests/cli/compare_numeric.py       tests/cli/lib.sh                        \
+        tests/cli/run_cli_tests.sh           tests/cli/test_ad_basic.sh              \
+        tests/cli/test_iad_basic.sh          tests/cli/test_iad_files.sh             \
+        tests/cli/test_iad_forward.sh        tests/cli/test_iad_no_sphere.sh         \
+        tests/cli/test_iad_one_sphere.sh     tests/cli/test_iad_one_sphere_no_mc.sh  \
+        tests/cli/test_iad_options.sh        tests/cli/test_iad_two_sphere.sh        \
+        tests/cli/test_iad_two_sphere_no_mc.sh
+
+TESTEXP = tests/cli/expected/ad_basic.txt              tests/cli/expected/iad_basic.txt \
+        tests/cli/expected/iad_basic_veryshort.txt     tests/cli/expected/iad_one_sphere_no_mc.txt \
+        tests/cli/expected/iad_two_sphere_no_mc.txt
+
+RXT0 =  tests/rxt/0_sphere/basic_A.rxt   tests/rxt/0_sphere/basic_B.rxt   \
+        tests/rxt/0_sphere/basic_C.rxt   tests/rxt/0_sphere/basic_D.rxt   \
+        tests/rxt/0_sphere/basic_E.rxt   tests/rxt/0_sphere/fairway_A.rxt \
+        tests/rxt/0_sphere/kenlee_A.rxt  tests/rxt/0_sphere/kenlee_B.rxt  \
+        tests/rxt/0_sphere/kenlee_C.rxt  tests/rxt/0_sphere/mayna.rxt     \
+        tests/rxt/0_sphere/newton.rxt    tests/rxt/0_sphere/sample_A.rxt  \
+        tests/rxt/0_sphere/sample_B.rxt  tests/rxt/0_sphere/sevick_A.rxt  \
+        tests/rxt/0_sphere/sevick_B.rxt  tests/rxt/0_sphere/uterus.rxt
+
+RXT1 =  tests/rxt/1_sphere/510nm_phantom.rxt   tests/rxt/1_sphere/AMC.rxt            \
+        tests/rxt/1_sphere/basic_F.rxt         tests/rxt/1_sphere/biopix_851nm_B.rxt \
+        tests/rxt/1_sphere/combo_0.rxt         tests/rxt/1_sphere/combo_1.rxt        \
+        tests/rxt/1_sphere/combo_2.rxt         tests/rxt/1_sphere/fairway_B.rxt      \
+        tests/rxt/1_sphere/fairway_C.rxt       tests/rxt/1_sphere/fairway_D.rxt      \
+        tests/rxt/1_sphere/fairway_E.rxt       tests/rxt/1_sphere/homa.rxt           \
+        tests/rxt/1_sphere/homa2.rxt           tests/rxt/1_sphere/honoh.rxt          \
+        tests/rxt/1_sphere/il_A.rxt            tests/rxt/1_sphere/il_B.rxt           \
+        tests/rxt/1_sphere/il_C.rxt            tests/rxt/1_sphere/ink_A.rxt          \
+        tests/rxt/1_sphere/ink_B.rxt           tests/rxt/1_sphere/ink_C.rxt          \
+        tests/rxt/1_sphere/mutest.rxt          tests/rxt/1_sphere/royston1.rxt       \
+        tests/rxt/1_sphere/royston2.rxt        tests/rxt/1_sphere/royston3_A.rxt     \
+        tests/rxt/1_sphere/royston3_B.rxt      tests/rxt/1_sphere/royston3_C.rxt     \
+        tests/rxt/1_sphere/royston3_D.rxt      tests/rxt/1_sphere/royston3_E.rxt     \
+        tests/rxt/1_sphere/royston9_A.rxt      tests/rxt/1_sphere/royston9_B.rxt     \
+        tests/rxt/1_sphere/royston9_C.rxt      tests/rxt/1_sphere/royston9_D.rxt     \
+        tests/rxt/1_sphere/sample_C.rxt        tests/rxt/1_sphere/sample_D.rxt       \
+        tests/rxt/1_sphere/sample_F.rxt        tests/rxt/1_sphere/sample_G.rxt       \
+        tests/rxt/1_sphere/terse_A.rxt         tests/rxt/1_sphere/terse_B.rxt        \
+        tests/rxt/1_sphere/tio2_vis.rxt        tests/rxt/1_sphere/ville1.rxt         \
+        tests/rxt/1_sphere/vio_A.rxt           tests/rxt/1_sphere/vio_B.rxt          \
+        tests/rxt/1_sphere/x_bad_data.rxt
+
+RXT2 =  tests/rxt/2_sphere/double.rxt    tests/rxt/2_sphere/example2.rxt \
+        tests/rxt/2_sphere/sample_E.rxt
 
 export WSRC =  src/ad.w     src/ad_frsnl.w       src/ad_prime.w        src/iad_io.w          \
         src/ad_globl.w      src/ad_radau.w       src/iad_main.w                              \
@@ -73,7 +111,7 @@ export NRSRC = src/nr_amoeb.c src/nr_amotr.h     src/nr_gaulg.c        src/nr_mn
 export CSRC  = src/ad_frsnl.c      src/ad_globl.c       src/ad_matrx.c        src/ad_start.c        \
         src/iad_main.c      src/ad_doubl.c       src/iad_util.c        src/ad_radau.c        \
         src/ad_prime.c      src/iad_find.c       src/ad_phase.c        src/ad_bound.c        \
-        src/ad_layers.c     src/version.c        src/iad_io.c          src/ad_chapter.c      \
+        src/ad_layers.c                          src/iad_io.c          src/ad_chapter.c      \
         src/iad_calc.c      src/iad_pub.c        src/ad_cone.c         src/ad_oblique_test.c \
         src/ad_cone_test.c  src/ad_layers_test.c src/iad_agrid.c       src/mc_lost.c
 
@@ -83,7 +121,7 @@ export HSRC  = src/ad_bound.h      src/ad_globl.h       src/ad_phase.h        sr
         src/ad_cone_ez.h    src/ad_layers.h      src/ad_cone.h         src/iad_type.h   src/iad_agrid.h \
         src/mc_lost.h
 
-OSRC  = src/system.bux src/ad.bux src/iad.bux src/cobweb.pl src/version.pl src/Makefile src/toDOS.pl
+OSRC  = src/system.bux src/ad.bux src/iad.bux src/cobweb.pl src/Makefile src/toDOS.pl
 
 all :  ad iad
 
@@ -109,19 +147,25 @@ install-lib: lib libiad$(LIB_EXT) libiad.h
 dists: dist windist
 
 dist:
-	touch src/version.h
-	cd src && ./version.pl
 	make docs
 	make clean
 	make
 	make tidy
 	mkdir -p    iad-$(VERSION)
 	mkdir -p    iad-$(VERSION)/docs
-	mkdir -p    iad-$(VERSION)/test
+	mkdir -p    iad-$(VERSION)/tests/cli/expected
+	mkdir -p    iad-$(VERSION)/tests/rxt/0_sphere
+	mkdir -p    iad-$(VERSION)/tests/rxt/1_sphere
+	mkdir -p    iad-$(VERSION)/tests/rxt/2_sphere
 	mkdir -p    iad-$(VERSION)/src
 	ln $(MAIN)  iad-$(VERSION)
 	ln $(DOCS)  iad-$(VERSION)/docs
-	ln $(TEST)  iad-$(VERSION)/test
+	ln $(TEST)    iad-$(VERSION)/tests
+	ln $(TESTCLI) iad-$(VERSION)/tests/cli
+	ln $(TESTEXP) iad-$(VERSION)/tests/cli/expected
+	ln $(RXT0)    iad-$(VERSION)/tests/rxt/0_sphere
+	ln $(RXT1)    iad-$(VERSION)/tests/rxt/1_sphere
+	ln $(RXT2)    iad-$(VERSION)/tests/rxt/2_sphere
 	ln $(WSRC)  iad-$(VERSION)/src
 	ln $(HSRC)  iad-$(VERSION)/src
 	ln $(CSRC)  iad-$(VERSION)/src
@@ -136,14 +180,22 @@ windist: ad.exe iad.exe libiad.dll
 	make tidy
 	mkdir -p      iad-win-$(VERSION)
 	mkdir -p      iad-win-$(VERSION)/docs
-	mkdir -p      iad-win-$(VERSION)/test
+	mkdir -p      iad-win-$(VERSION)/tests/cli/expected
+	mkdir -p      iad-win-$(VERSION)/tests/rxt/0_sphere
+	mkdir -p      iad-win-$(VERSION)/tests/rxt/1_sphere
+	mkdir -p      iad-win-$(VERSION)/tests/rxt/2_sphere
 	mkdir -p      iad-win-$(VERSION)/src
 	ln ad.exe     iad-win-$(VERSION)
 	ln iad.exe    iad-win-$(VERSION)
 	ln libiad.dll iad-win-$(VERSION)
 	ln $(MAIN)    iad-win-$(VERSION)
 	ln $(DOCS)    iad-win-$(VERSION)/docs
-	ln $(TEST)    iad-win-$(VERSION)/test
+	ln $(TEST)    iad-win-$(VERSION)/tests
+	ln $(TESTCLI) iad-win-$(VERSION)/tests/cli
+	ln $(TESTEXP) iad-win-$(VERSION)/tests/cli/expected
+	ln $(RXT0)    iad-win-$(VERSION)/tests/rxt/0_sphere
+	ln $(RXT1)    iad-win-$(VERSION)/tests/rxt/1_sphere
+	ln $(RXT2)    iad-win-$(VERSION)/tests/rxt/2_sphere
 	ln $(WSRC)    iad-win-$(VERSION)/src
 	ln $(HSRC)    iad-win-$(VERSION)/src
 	ln $(CSRC)    iad-win-$(VERSION)/src
@@ -151,19 +203,20 @@ windist: ad.exe iad.exe libiad.dll
 	ln $(OSRC)    iad-win-$(VERSION)/src
 	src/toDOS.pl  iad-win-$(VERSION)/src/*.c
 	src/toDOS.pl  iad-win-$(VERSION)/src/*.h
-	src/toDOS.pl  iad-win-$(VERSION)/test/*.rxt
-	src/toDOS.pl  iad-win-$(VERSION)/test/valid.bat
+	src/toDOS.pl  iad-win-$(VERSION)/tests/rxt/*/*.rxt
+	src/toDOS.pl  iad-win-$(VERSION)/tests/valid.bat
 	rm iad-win-$(VERSION)/src/*.bak
-	rm iad-win-$(VERSION)/test/*.bak
+	rm iad-win-$(VERSION)/tests/*.bak
+	rm iad-win-$(VERSION)/tests/rxt/*/*.bak
 	zip -r archives/iad-win-$(VERSION) iad-win-$(VERSION)
 	rm -rf iad-win-$(VERSION)
 	cp archives/iad-win-$(VERSION).zip archives/iad-win-latest.zip
 
-ad: $(WSRC) $(NRSRC)
+ad: $(WSRC) $(NRSRC) Makefile
 	cd src ; make ad
 	cp src/ad ad
 
-iad: $(WSRC) $(NRSRC)
+iad: $(WSRC) $(NRSRC) Makefile
 	cd src ; make iad
 	cp src/iad iad
 
@@ -203,6 +256,7 @@ clean:
 	rm -f libiad.dll src/libiad.dll
 	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost
 	rm -rf tests/.jupyter tests/.ipynb_checkpoints .jupyter .ipynb_checkpoints
+	rm -rf .pytest_cache .DS_Store __pycache__
 
 clean-generated-dry-run:
 	tools/clean_generated.py

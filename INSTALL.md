@@ -10,7 +10,7 @@ On Linux and macOS, you should be able to just type
 
     make
 
-to create excutable versions of the `ad` and `iad` programs.  
+to create executable versions of the `ad` and `iad` programs.  
 
 > Despite being written in standard C, cross-platform compiling can be a nuisance because I wrote the program using the literate [cweb](http://literateprogramming.com/cweb_download.html) techniques of Knuth.  This means the original source files `*.w` need to be converted to to `*.c` files using a program called `ctangle`. Since I don't want everyone else to be forced to wear the `cweb` hairshirt, I have included the `.c` and `.h` files, but sometimes I screw up.
 
@@ -18,19 +18,26 @@ To verify that the program is working properly, try
 
     make test
 
-to initiate a series of command-line tests.  All the tests should pass (there'll
-be a '*' at the end of each line).  Alternatively, you can try these from the
-command-line
+to initiate a series of command-line tests.  Each group of tests prints a `==`
+line as it runs, and the whole run exits without an error message when they all
+pass.  Use `make longtest` to run `iad` against every `.rxt` file in
+`tests/rxt`; there you should see a '*' at the end of each line.
+
+Alternatively, you can try these from the command-line
 
     ./ad -a 0.8 -b 1.0 -g 0.5
 
     ./iad -r 0.09636 -t 0.67004 -d 0.5
 
-    ./iad -M 0 -q 4 test/vio_A
+    ./iad -M 0 -q 4 tests/rxt/1_sphere/vio_A
 
-The last of these processes the file `test/vio_A.rxt` to create `test/vio_A.txt`.  To install the program
+The last of these processes the file `tests/rxt/1_sphere/vio_A.rxt` to create
+`tests/rxt/1_sphere/vio_A.txt`.  To install the program
 
     sudo make install
 
 and the binary executable files (`iad` and `ad`) will be created and placed in 
 `$(DESTDIR)/bin`.
+
+The Python helper scripts `iadplus` and `iadsum` are installed by copying them
+somewhere on your `PATH`; they need `python3` with `numpy` and `matplotlib`.

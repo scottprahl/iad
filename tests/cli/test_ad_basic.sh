@@ -21,7 +21,7 @@ assert_contains "$help" "-m"
 
 version="$TEST_TMP/ad_version.out"
 "$AD_EXECUTABLE" -v > "$version" 2>&1
-assert_contains "$version" "ad 3"
+assert_matches "$version" "^ad [0-9]+-[0-9]+-[0-9]+ "
 
 work="$TEST_TMP/ad_file"
 cat > "$work.in" <<EOF

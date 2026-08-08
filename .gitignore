@@ -52,9 +52,29 @@ tests/*.txt
 tests/*.svg
 tests/*.ipynb
 tests/*.grid
+tests/*.abg
+
+# iadplus and iadsum report directories (<stem>_pdf, <stem>_notebook, <stem>_html)
+tests/**/*_pdf/
+tests/**/*_notebook/
+tests/**/*_html/
+
+# iad output written next to the committed .rxt fixtures.  Restricted to the
+# sphere directories on purpose: other directories under tests/rxt hold raw
+# spectrometer data in .txt files that must stay under version control.
+tests/rxt/[012]_sphere/*.txt
+tests/rxt/[012]_sphere/*.svg
+tests/rxt/[012]_sphere/*.ipynb
+tests/rxt/[012]_sphere/*.grid
+tests/rxt/[012]_sphere/*.html
+
+# python cruft
+__pycache__/
+.pytest_cache/
 
 # Ignore generated .o and .c and .h and .tex and .log and ... files
 src/iad_type.c
+src/version.c
 src/*.o
 src/ad.*
 src/iad.*

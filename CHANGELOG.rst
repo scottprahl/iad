@@ -1,35 +1,79 @@
 Changelog
 =========
 
-v4.0.0 (unreleased)
+v4.0.0 (29 Jul 2026)
 ---------------------
-*   improved single sphere MT calc when unscattered T exits
+
+Backwards-incompatible changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*   remove the faulty power-law forms of ``-F`` (``-F 'P 500 1.0 -1.3'`` and
+    ``-F 'R 500 1.0 -1.3'``); the other uses of ``-F`` are unchanged
+*   test fixtures moved from ``test/`` to ``tests/rxt/{0,1,2}_sphere``
+
+Inversion
+~~~~~~~~~
+*   replace the precomputed grid with an adaptive grid (``iad_agrid``) for initial guesses
+*   support ``FIND_BaG`` and ``FIND_BsG`` searches with the adaptive grid
+*   add new L2_SCALED deviation metric and make it the default
 *   add bounded Nelder-Mead amoeba with explicit lower/upper bounds
 *   initialize the simplex in physical space using scipy-style 5% steps
-*   add new L2_SCALED deviation metric and make it the default
-*   replace grid with adaptive grid (``iad_agrid``) for initial guesses
 *   add Monte Carlo simplex hot-start so re-inversions reuse previous solution
 *   reduce MC update factor from 0.8 to 0.3
+*   no longer try to rescue a failed convergence with Monte Carlo
 *   accept a valid boundary-clamped solution even after the simplex hits its iteration cap
+*   improved single sphere MT calc when unscattered T exits
+*   reset defaults for each data point
+*   use a non-deterministic Monte Carlo seed each run
+
+Command line and output
+~~~~~~~~~~~~~~~~~~~~~~~
+*   ``iad *`` processes every ``.rxt`` file matched by the glob and ignores the rest
+*   accept several input files in one invocation and print each filename as it is processed
 *   ``iad -z`` now prints intrinsic, derived, sphere, and calculated R/T quantities
+*   allow incidence angle to appear in a column of ``.rxt`` files
+*   when ``-w`` is given, use it for ``-W`` as well
+*   tag output header with ``iad`` so the writing program is identifiable
+*   clearer messages when an inversion fails
+*   catch low M_R measurements early
+*   suppress spurious "max R" error with double spheres
+
+Fixes
+~~~~~
 *   fix ``-o outfile`` placed after the input filename (POSIX getopt on macOS/BSD)
 *   fix missing break in ``-x`` option parsing
-*   tag output header with ``iad`` so the writing program is identifiable
+*   show ``AD`` rather than ``IAD`` above the iterations for ``-x 8``
 *   reallocate redistribution-function cache when quadrature-point count changes
-*   allow incidence angle to appear in a column of ``.rxt`` files
-*   add ``cache.c``/``cache.h`` infrastructure
-*   remove faulty reduced-scattering power-law support
-*   improve lost-light and sphere debug output
-*   use a non-deterministic Monte Carlo seed each run
-*   catch low M_R measurements early
-*   reset defaults for each data point
-*   suppress spurious "max R" error with double spheres
+*   fix ``mc_lost`` build
 *   single-sphere command-line fixes
 *   improve M_T calculation
-*   fix ``mc_lost`` build
-*   improve ``iadplus`` and ``iadsum``
+*   improve lost-light and sphere debug output
+
+Documentation
+~~~~~~~~~~~~~
+*   rewrite the README and convert it from Markdown to ``README.rst``
+*   document every command-line option in the manual
+*   describe the current inversion algorithm in the manual
+*   ``cweave`` now produces warning-free docs; fix ``iad_src.pdf`` generation
+
+Build, source, and tests
+~~~~~~~~~~~~~~~~~~~~~~~~
+*   fix all compiler warnings
+*   convert ``mc_lost.c`` to a CWEB ``mc_lost.w`` source
+*   rewrite C-style comments in the ``.w`` files in CWEB style
+*   rename source files so that no filename contains a hyphen
+*   move command-line tests out of the Makefile into shell scripts under ``tests/cli``
+*   generate ``src/version.c`` with make and retire ``version.pl``
+*   ``make dist`` and ``make windist`` follow the new test layout and ship
+    ``iadplus``, ``iadsum``, and ``CITATION.cff``
+*   remove dead code
 *   tabs-to-spaces and formatting passes across CWEB sources
-*   manual revisions and rebuild of ``manual.pdf``
+
+Python helpers
+~~~~~~~~~~~~~~
+*   add ``--html`` output option and docstrings to ``iadplus``
+*   improve the notebooks and plots that ``iadplus`` creates
+*   report a clear error when the ``iad`` executable cannot be found
+*   improve ``iadsum``
 
 v3.16.3 (15 May 2024)
 ---------------------
@@ -59,7 +103,7 @@ v3.16.2 (23 Apr 2024)
 *   better support for m.u measurements
 
 v3.16.1 (25 Mar 2024)
---------------------
+---------------------
 *   clarify and revise single sphere effects
 *   avoid MC for failed 1 parameter searches
 *   change 'empty' -> 'entrance' or 'empty' -> 'third' as appropriate
@@ -71,7 +115,7 @@ v3.16.1 (25 Mar 2024)
 *   improvements to iadplus
 
 v3.16.0 (16 Mar 2024)
---------------------
+---------------------
 *   flexible columns input files!
 *   add -w and -W command line options
 *   include MC lost light in -z calculations
@@ -119,31 +163,31 @@ v3.14.4 (1 Feb 2024)
 *   fix oblique test code
 
 v3.14.3 (31 Jan 2024)
---------------------
+---------------------
 *   produce 64-bit windows executable since
 *   32-bit triggered false positive virus detection
 
 v3.14.1 (30 Jan 2024)
---------------------
+---------------------
 *   no longer toss correct solution in some cases
 *   only calculate redistribution matrix when needed
 *   improve debug comments
 *   start stripping tabs from cweb files
 
 v3.14.0 (25 Jan 2024)
---------------------
+---------------------
 *   fix handling of slides (@anishabahl)
 *   fix github build
 *   improve Makefile
 *   warn on bad sphere wall reflectivity
 
 v3.13.2 (24 Jan 2024)
---------------------
+---------------------
 *   fix port size normalization (@jgroehl)
 *   update copyright year
 
 v3.13.1 (24 Jan 2024)
---------------------
+---------------------
 *   left debugging statements in
 
 v3.13.0 (24 Jan 2024)

@@ -1035,6 +1035,16 @@ def iad_executable():
     return 'iad'
 
 
+def print_iad_not_found_error(executable):
+    """Print a clear error when the ``iad`` executable cannot be found.
+
+    Args:
+        executable: Command name or path that failed to execute.
+    """
+    print("Sorry, executable '%s' was not found." % executable)
+    print("Build it with 'make iad' or install iad so it is on PATH.")
+
+
 CITATIONS = [
     ('Prahl, S. iad: C code for Forward and Inverse Radiative Transport '
      'using the Adding-Doubling method [Computer software]. '
@@ -1907,7 +1917,10 @@ Examples:
             try:
                 subprocess.run(command, shell=False, check=True)
                 ran_iad = True
-            except (FileNotFoundError, subprocess.CalledProcessError):
+            except FileNotFoundError:
+                print_iad_not_found_error(command[0])
+                continue
+            except subprocess.CalledProcessError:
                 print("Sorry, iad failed.  check header maybe?")
                 continue
         else:
@@ -1921,7 +1934,10 @@ Examples:
             print('Existing output could not be parsed, rerunning...')
             try:
                 subprocess.run(command, shell=False, check=True)
-            except (FileNotFoundError, subprocess.CalledProcessError):
+            except FileNotFoundError:
+                print_iad_not_found_error(command[0])
+                continue
+            except subprocess.CalledProcessError:
                 print("Sorry, iad failed.  check header maybe?")
                 continue
             result = np.loadtxt(txt_path, skiprows=44, usecols=range(8), delimiter='\t')

@@ -243,7 +243,7 @@ of the bottom slide.  The slides are assumed to have no absorption.
 static void print_version(void)
 {
     fprintf(stdout, "ad %s\n",Version);
-    fprintf(stdout, "Copyright 1993-2025 Scott Prahl, scott.prahl@@oit.edu\n");
+    fprintf(stdout, "Copyright 1993-2026 Scott Prahl, scott.prahl@@oit.edu\n");
     fprintf(stdout, "          (see Applied Optics, 32:559-568, 1993)\n\n");
     fprintf(stdout, "This is free software; see the source for copying conditions.\n");
     fprintf(stdout, "There is no warranty; not even for MERCHANTABILITY or FITNESS.\n");

@@ -14,7 +14,7 @@ assert_contains "$help" "-z"
 
 version="$TEST_TMP/iad_version.out"
 "$IAD_EXECUTABLE" -v > "$version" 2>&1
-assert_contains "$version" "iad 3"
+assert_matches "$version" "^iad [0-9]+-[0-9]+-[0-9]+ "
 
 run_iad_numeric options_refs -V 0 -r 0.2 -t 0.01 -M 0 -S 1 \
     -1 "100 15 13 2 0.95" -2 "100 15 13 2 0.95" -T 0.5 -R 0.5

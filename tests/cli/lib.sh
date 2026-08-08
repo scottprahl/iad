@@ -81,6 +81,17 @@ assert_contains() {
     fi
 }
 
+assert_matches() {
+    file=$1
+    pattern=$2
+    if ! grep -E -- "$pattern" "$file" >/dev/null 2>&1; then
+        echo "Expected to match: $pattern" >&2
+        echo "In file: $file" >&2
+        sed -n '1,120p' "$file" >&2
+        exit 1
+    fi
+}
+
 assert_not_exists() {
     path=$1
     [ ! -e "$path" ] || fail "unexpected path exists: $path"

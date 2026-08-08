@@ -1,10 +1,10 @@
 \def\title{ad}
-\def\adversion{3-16-3}
-\def\adyear{1993--2024}
+\def\adversion{4-0-0}
+\def\adyear{1993--2026}
 % This program by Scott Prahl
 % It is distributed WITHOUT ANY WARRANTY, express or implied.
 
-% Copyright 1993-2024 Scott Prahl
+% Copyright 1993-2026 Scott Prahl
 
 % Permission is granted to make and distribute verbatim copies of this
 % document provided that the copyright notice and this permission notice

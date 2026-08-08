@@ -1,10 +1,58 @@
 cff-version: 1.2.0
 title: 'iad: C code for Forward and Inverse Radiative Transport using the Adding-Doubling method'
-message: 'Code is citable as below.  Article is  Prahl et al., Applied Optics, 32, 559-568, 1993.'
+message: 'If you use this software, please cite both the software and the article below.'
+type: software
 
 authors:
   - given-names: Scott
     family-names: Prahl
     orcid: 'https://orcid.org/0000-0003-1468-6851'
+
+version: 4.0.0
+date-released: '2026-07-29'
+license: MIT
+repository-code: 'https://github.com/scottprahl/iad'
+url: 'https://omlc.org/software/iad/'
+
+abstract: >-
+  iad determines the intrinsic optical properties of flat, layered, scattering
+  and absorbing samples from measurements of total reflection and transmission.
+  It inverts the adding-doubling solution of the radiative transport equation,
+  accounting for Fresnel boundaries, integrating-sphere effects, and light lost
+  out the sides of the sample.  The companion program ad performs the forward
+  adding-doubling calculation.
+
+keywords:
+  - radiative transport
+  - adding-doubling
+  - inverse adding-doubling
+  - integrating sphere
+  - optical properties
+  - tissue optics
+
+# NOTE: verify this DOI against the Zenodo record before tagging a release.
+# 102147394 is the GitHub repository id used by the Zenodo badge, which is not
+# necessarily the Zenodo record id that forms the DOI suffix.
 doi: 10.5281/zenodo.102147394
-url: 'https://doi.org/10.5281/zenodo.102147394'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.102147394
+    description: Concept DOI for all versions of iad
+
+preferred-citation:
+  type: article
+  title: 'Determining the optical properties of turbid media by using the adding-doubling method'
+  authors:
+    - given-names: Scott A.
+      family-names: Prahl
+    - given-names: Martin J. C.
+      family-names: van Gemert
+    - given-names: Ashley J.
+      family-names: Welch
+  journal: 'Applied Optics'
+  volume: 32
+  issue: 4
+  start: 559
+  end: 568
+  year: 1993
+  doi: 10.1364/AO.32.000559
