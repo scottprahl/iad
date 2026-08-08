@@ -1108,6 +1108,17 @@ int main(int argc, char **argv)
     else
         m.flip_sample = 0;
 
+    if (cl_slides == NO_SLIDES) {
+        m.slab_top_slide_b = 0.0;
+        m.slab_bottom_slide_b = 0.0;
+    }
+
+    if (cl_slides == ONE_SLIDE_ON_TOP || cl_slides == ONE_SLIDE_NEAR_SPHERE)
+        m.slab_bottom_slide_b = 0.0;
+
+    if (cl_slides == ONE_SLIDE_ON_BOTTOM || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+        m.slab_top_slide_b = 0.0;
+
     if (cl_method != UNINITIALIZED)
         m.method = (int) cl_method;
 
@@ -1343,8 +1354,10 @@ int main(int argc, char **argv)
             Calculate_Mua_Musp(m, r, &mu_s, &mu_sp, &mu_a);
 
             RT(r.method.quad_pts, &r.slab, &ur1, &ut1, &uru, &utu);
-            ez_RT_unscattered(r.method.quad_pts, r.slab.n_slab,
-                r.slab.n_top_slide, r.slab.n_bottom_slide, 0.0, r.slab.b, r.slab.g, &ru, &tu, &uru, &utu);
+
+            Sp_mu_RT_Flip(m.flip_sample,
+                r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide,
+                r.slab.b_top_slide, r.slab.b, r.slab.b_bottom_slide, r.slab.cos_angle, &ru, &tu);
 
             thickness = (m.slab_thickness > 0) ? m.slab_thickness : 1.0;
             cos_critical = Cos_Critical_Angle(r.slab.n_slab, 1.0);
@@ -1368,12 +1381,12 @@ int main(int argc, char **argv)
                 printf("\n");
                 printf("Derived quantities\n");
                 denom = (r.slab.b == HUGE_VAL) ? 1.0 : thickness;
-                printf("   mu_a                = %.3f 1/mm\n",
+                printf("   mu_a                = %.4f 1/mm\n",
                     (r.slab.b == HUGE_VAL) ? ((r.slab.a > 0) ? (1.0 - r.slab.a) / r.slab.a : 1.0)
                     : (1.0 - r.slab.a) * r.slab.b / denom);
-                printf("   mu_s                = %.3f 1/mm\n",
+                printf("   mu_s                = %.4f 1/mm\n",
                     (r.slab.b == HUGE_VAL) ? 1.0 : r.slab.a * r.slab.b / denom);
-                printf("   mu_s*(1-g)          = %.3f 1/mm\n", (r.slab.b == HUGE_VAL) ? (1.0 - r.slab.g)
+                printf("   mu_s*(1-g)          = %.4f 1/mm\n", (r.slab.b == HUGE_VAL) ? (1.0 - r.slab.g)
                     : (1.0 - r.slab.g) * r.slab.a * r.slab.b / denom);
                 printf("       theta incident  = %.1f\xc2\xb0\n", theta_inc);
                 printf("   cos(theta critical) = %.4f\n", cos_critical);
@@ -1416,15 +1429,15 @@ int main(int argc, char **argv)
                 }
 
                 printf("Calculated quantities\n");
-                printf("   R total         = %.3f\n", ur1);
-                printf("   R scattered     = %.3f\n", ur1 - ru);
-                printf("   R unscattered   = %.3f\n", ru);
-                printf("   T total         = %.3f\n", ut1);
-                printf("   T scattered     = %.3f\n", ut1 - tu);
-                printf("   T unscattered   = %.3f\n", tu);
+                printf("   R total         = %.4f\n", ur1);
+                printf("   R scattered     = %.4f\n", ur1 - ru);
+                printf("   R unscattered   = %.4f\n", ru);
+                printf("   T total         = %.4f\n", ut1);
+                printf("   T scattered     = %.4f\n", ut1 - tu);
+                printf("   T unscattered   = %.4f\n", tu);
                 if (m.num_spheres > 0) {
-                    printf("   M_R (sphere)    = %.3f\n", m_r);
-                    printf("   M_T (sphere)    = %.3f\n", m_t);
+                    printf("   M_R (sphere)    = %.4f\n", m_r);
+                    printf("   M_T (sphere)    = %.4f\n", m_t);
                 }
             }
             (void) mu_s;
@@ -1911,6 +1924,17 @@ int main(int argc, char **argv)
     else
         m.flip_sample = 0;
 
+    if (cl_slides == NO_SLIDES) {
+        m.slab_top_slide_b = 0.0;
+        m.slab_bottom_slide_b = 0.0;
+    }
+
+    if (cl_slides == ONE_SLIDE_ON_TOP || cl_slides == ONE_SLIDE_NEAR_SPHERE)
+        m.slab_bottom_slide_b = 0.0;
+
+    if (cl_slides == ONE_SLIDE_ON_BOTTOM || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+        m.slab_top_slide_b = 0.0;
+
     if (cl_method != UNINITIALIZED)
         m.method = (int) cl_method;
 
@@ -2086,6 +2110,17 @@ int main(int argc, char **argv)
             m.flip_sample = 1;
         else
             m.flip_sample = 0;
+
+        if (cl_slides == NO_SLIDES) {
+            m.slab_top_slide_b = 0.0;
+            m.slab_bottom_slide_b = 0.0;
+        }
+
+        if (cl_slides == ONE_SLIDE_ON_TOP || cl_slides == ONE_SLIDE_NEAR_SPHERE)
+            m.slab_bottom_slide_b = 0.0;
+
+        if (cl_slides == ONE_SLIDE_ON_BOTTOM || cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+            m.slab_top_slide_b = 0.0;
 
         if (cl_method != UNINITIALIZED)
             m.method = (int) cl_method;

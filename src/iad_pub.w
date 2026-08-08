@@ -362,8 +362,8 @@ it, so |m_r+m_t| can never exceed one.  A sum larger than one means the
 measurements are inconsistent, and no combination of |a|, |b|, and |g| can
 reproduce them.  Without this test the search happily returns whatever
 best fit it can manage --- for example \.{iad -r 0.4 -t 0.7} used to report
-|mu_s'| for a fit of 0.375 and 0.625 --- which looks like a successful
-inversion but is not.
+a reduced scattering coefficient for a fit of 0.375 and 0.625 --- which looks
+like a successful inversion but is not.
 
 The bound does not hold once a sphere is involved.  With one sphere the
 measurements are readings relative to a calibration standard, and multiple

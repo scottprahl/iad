@@ -102,6 +102,9 @@ static int AGrid_N = 0;
 static int AGrid_Cap = 0;
 static int AGrid_Search = -1;
 
+static double AGrid_target_mr = 0.0;
+static double AGrid_target_mt = 0.0;
+
 @*1 Stale-context.
 
 We store the key fields that determine whether a rebuild is needed:
@@ -275,11 +278,25 @@ grid points where they are needed.
 The corrected sphere distance to the actual measurements is used when ranking
 candidates at query time (see |AGrid_Fill_Guesses|).
 
+Smoothness alone is the wrong thing to refine on.  It spends points wherever
+the model bends, which need not be anywhere near the measurements, and it
+leaves a smooth cell coarse even when the answer is inside it.  A sample with
+a bare surface above an absorbing slide showed exactly that: fifty-six grid
+points, the nearest to the true albedo of 0.8 sitting at 0.68, and a simplex
+that started far enough away to run the anisotropy to one and stop.
+
+So the cell also reports whether the measured |M_R| and |M_T| fall inside the
+range its five points span.  Such a cell may contain the solution and is
+worth refining however smooth it looks.  The five pairs are already computed
+here, so this costs nothing.
+
 @<Definition for |agrid_raw_interp_error|@>=
-static double agrid_raw_interp_error(int c00, int c10, int c01, int c11, int cc)
+static double agrid_raw_interp_error(int c00, int c10, int c01, int c11, int cc,
+                                     int *brackets)
 {
     double mr00, mt00, mr10, mt10, mr01, mt01, mr11, mt11, mrcc, mtcc;
     double interp_mr, interp_mt;
+    double mr_lo, mr_hi, mt_lo, mt_hi;
     agrid_entry_t *e;
 
     e = &AGrid_Cache[c00];
@@ -292,6 +309,21 @@ static double agrid_raw_interp_error(int c00, int c10, int c01, int c11, int cc)
     abg_sphere_mr_mt(e->a, e->b, e->g, e->ur1, e->ut1, e->uru, e->utu, &mr11, &mt11);
     e = &AGrid_Cache[cc];
     abg_sphere_mr_mt(e->a, e->b, e->g, e->ur1, e->ut1, e->uru, e->utu, &mrcc, &mtcc);
+
+    mr_lo = mr_hi = mr00;
+    if (mr10 < mr_lo) mr_lo = mr10;  if (mr10 > mr_hi) mr_hi = mr10;
+    if (mr01 < mr_lo) mr_lo = mr01;  if (mr01 > mr_hi) mr_hi = mr01;
+    if (mr11 < mr_lo) mr_lo = mr11;  if (mr11 > mr_hi) mr_hi = mr11;
+    if (mrcc < mr_lo) mr_lo = mrcc;  if (mrcc > mr_hi) mr_hi = mrcc;
+
+    mt_lo = mt_hi = mt00;
+    if (mt10 < mt_lo) mt_lo = mt10;  if (mt10 > mt_hi) mt_hi = mt10;
+    if (mt01 < mt_lo) mt_lo = mt01;  if (mt01 > mt_hi) mt_hi = mt01;
+    if (mt11 < mt_lo) mt_lo = mt11;  if (mt11 > mt_hi) mt_hi = mt11;
+    if (mtcc < mt_lo) mt_lo = mtcc;  if (mtcc > mt_hi) mt_hi = mtcc;
+
+    *brackets = (AGrid_target_mr >= mr_lo && AGrid_target_mr <= mr_hi &&
+                 AGrid_target_mt >= mt_lo && AGrid_target_mt <= mt_hi);
 
     interp_mr = 0.25 * (mr00 + mr10 + mr01 + mr11);
     interp_mt = 0.25 * (mt00 + mt10 + mt01 + mt11);
@@ -314,6 +346,7 @@ static void agrid_subdivide(double u0, double u1, double v0, double v1,
     int c00, c10, c01, c11, cc;
     double err;
     int need_split;
+    int brackets;
 
     @<Evaluate AGrid cell corners and center@>@;
     @<Split AGrid cell if interpolation error is too large@>@;
@@ -335,13 +368,15 @@ points are folded together by |agrid_add_or_get|.
     c11 = agrid_add_or_get(a11, b11, g11);
     cc  = agrid_add_or_get(amm, bmm, gmm);
 
-@ The raw interpolation error controls further subdivision.  The minimum
-depth is always honored, and the maximum depth is a hard stop.
+@ The minimum depth is always honored and the maximum depth is a hard stop.
+Between them a cell is refined if the model is bending across it, or if the
+measurements fall within the range it spans and it may therefore hold the
+answer.
 
 @<Split AGrid cell if interpolation error is too large@>=
-    err = agrid_raw_interp_error(c00, c10, c01, c11, cc);
+    err = agrid_raw_interp_error(c00, c10, c01, c11, cc, &brackets);
     need_split = (depth < AGRID_MIN_DEPTH) ||
-                 (err > AGRID_TOL && depth < AGRID_MAX_DEPTH);
+                 (depth < AGRID_MAX_DEPTH && (err > AGRID_TOL || brackets));
 
     if (need_split) {
         agrid_subdivide(u0, um, v0, vm, depth + 1, search);
@@ -441,6 +476,8 @@ void AGrid_Build(struct measure_type m, struct invert_type r)
     int search = r.search;
 
     AGrid_N = 0;
+    AGrid_target_mr = m.m_r;
+    AGrid_target_mt = m.m_t;
 
     if (search == FIND_AB) AGrid_fixed_g = r.slab.g;
     if (search == FIND_AG) AGrid_fixed_b = r.slab.b;

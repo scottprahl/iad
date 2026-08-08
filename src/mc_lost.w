@@ -493,10 +493,17 @@ double add_to_transmittance_array(double x, double y, double z, double w, double
 fractions and the portions of those totals outside the reflection and
 transmission port radii.
 
-@ @<Prototype for |MC_Radial|@>=
+@ The two slides are described separately.  The top slide is the one the
+light reaches first; the bottom slide is the one on the far side of the
+sample.  A slide is absent when its index is one, and then its thickness must
+be zero so that the geometry below collapses to a bare surface.
+
+@<Prototype for |MC_Radial|@>=
 void MC_Radial(long photons, double a, double b, double g, double n_sample,
-    double n_slide, double cos_cone_angle, double cos_incidence,
-    double t_sample, double t_slide, double b_slide,
+    double n_top_slide, double n_bottom_slide,
+    double cos_cone_angle, double cos_incidence,
+    double t_sample, double t_top_slide, double t_bottom_slide,
+    double b_top_slide, double b_bottom_slide,
     double dr_port, double dt_port, double d_beam, double *r_total, double *t_total, double *r_lost, double *t_lost)
 
 @ @<Definition for |MC_Radial|@>=
@@ -519,9 +526,11 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     fprintf(stderr, "cos_critical = %10.5f\n", cos_critical);
     fprintf(stderr, "d_beam   = %10.5f\n", d_beam);
     fprintf(stderr, "t_sample = %10.5f\n", t_sample);
-    fprintf(stderr, "t_slide  = %10.5f\n", t_slide);
+    fprintf(stderr, "t_top    = %10.5f\n", t_top_slide);
+    fprintf(stderr, "t_bottom = %10.5f\n", t_bottom_slide);
     fprintf(stderr, "n_sample = %10.5f\n", n_sample);
-    fprintf(stderr, "n_slide  = %10.5f\n", n_slide);
+    fprintf(stderr, "n_top    = %10.5f\n", n_top_slide);
+    fprintf(stderr, "n_bottom = %10.5f\n", n_bottom_slide);
 #endif
 
     start_time = clock();
@@ -557,14 +566,15 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
     for (i = 1; i <= total_photons; i++) {
         next_photon_seed();
-        launch_point(&x, &y, &z, r_beam, t_slide);
+        launch_point(&x, &y, &z, r_beam, t_top_slide);
         launch_direction(&u, &v, &w, cos_cone_angle, cos_incidence);
-        assert(w > 0 && z == -t_slide);
+        assert(w > 0 && z == -t_top_slide);
 
         weight = 1;
         total_weight += weight;
 
-        move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_slide, b_slide, 1.0, n_slide, n_sample);
+        move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_top_slide,
+            b_top_slide, 1.0, n_top_slide, n_sample);
 
         if (w < 0) {
             r = add_to_reflectance_array(x, y, z, w, weight);
@@ -598,11 +608,13 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
                 assert(CLOSE(z, 0) || CLOSE(z, t_sample));
 
                 if (w > 0)
-                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_slide, b_slide, n_sample, n_slide, 1.0);
+                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_bottom_slide,
+                        b_bottom_slide, n_sample, n_bottom_slide, 1.0);
                 else
-                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z - t_slide, b_slide, n_sample, n_slide, 1.0);
+                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z - t_top_slide,
+                        b_top_slide, n_sample, n_top_slide, 1.0);
 
-                if (CLOSE(z, -t_slide) && w < 0) {
+                if (CLOSE(z, -t_top_slide) && w < 0) {
                     r = add_to_reflectance_array(x, y, z, w, weight);
                     *r_total += weight;
                     if (r > r_port_radius)
@@ -611,7 +623,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
                     break;
                 }
 
-                if (CLOSE(z, t_sample + t_slide) && w > 0) {
+                if (CLOSE(z, t_sample + t_bottom_slide) && w > 0) {
                     r = add_to_transmittance_array(x, y, z, w, weight);
                     *t_total += weight;
                     if (r > t_port_radius)
@@ -704,45 +716,116 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
 @<Prototype for |MC_Lost|@>
 {
     double n_sample = m.slab_index;
-    double n_slide = m.slab_top_slide_index;
     double t_sample = m.slab_thickness;
-    double t_slide = m.slab_top_slide_thickness;
-    double b_slide = m.slab_top_slide_b;
+
+    double n_top = m.slab_top_slide_index;
+    double t_top = m.slab_top_slide_thickness;
+    double b_top = m.slab_top_slide_b;
+
+    double n_bottom = m.slab_bottom_slide_index;
+    double t_bottom = m.slab_bottom_slide_thickness;
+    double b_bottom = m.slab_bottom_slide_b;
 
     double dr_port = sqrt(m.as_r) * 2 * m.d_sphere_r;
     double dt_port = sqrt(m.as_t) * 2 * m.d_sphere_t;
     double d_beam = m.d_beam;
     double mu = m.slab_cos_angle;
 
-    if (t_slide == 0.0)
-        n_slide = 1.0;
-    if (n_slide == 1.0)
-        t_slide = 0.0;
+    int slides_differ;
+
+    @<Reconcile each slide index with its thickness@>@;
+
+    slides_differ = (n_top != n_bottom) || (t_top != t_bottom) || (b_top != b_bottom);
 
     set_photon_seed(lost_base_seed);
-    MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
-        COLLIMATED, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
+    MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
+        COLLIMATED, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
+        dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
 
     *uru_lost = 0;
     *utu_lost = 0;
 
     if (m.method == SUBSTITUTION) {
         set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
-        MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
-            DIFFUSE, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
+        MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
+            DIFFUSE, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
+            dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
     }
+
+    if (m.flip_sample && slides_differ)
+        @<Take the transmission losses from the flipped sample@>@;
 
     if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
         exit(EXIT_FAILURE);
     }
 }
 
+@ The geometry needs index and thickness to agree about whether a slide is
+there at all.  A slide of zero thickness cannot refract, and a slide of index
+one is not a slide, so each face is reconciled on its own.  Doing this per
+face is the whole point: reconciling only the top and then reusing it for
+both is what made \.{-G t} model slides on both faces and \.{-G b} model none.
+
+@<Reconcile each slide index with its thickness@>=
+
+    if (t_top == 0.0)
+        n_top = 1.0;
+    if (n_top == 1.0)
+        t_top = 0.0;
+
+    if (t_bottom == 0.0)
+        n_bottom = 1.0;
+    if (n_bottom == 1.0)
+        t_bottom = 0.0;
+
+@ \.{-G n} and \.{-G f} describe a sample that is physically turned over
+between the two measurements, so the slide stays either against the sphere or
+away from it in both.  The sample is stored as the reflection measurement
+sees it, which is why the reflectances above need no attention.  The
+transmission measurement sees the other face first.
+
+Adding-doubling can ignore this because total transmittance is reciprocal ---
+|RT_Flip| swaps the slides, recomputes, and gets the same number back.  Lost
+light is not so obliging.  The total that gets through is reciprocal but its
+radial spread is not, since it matters a great deal which face carries the
+glass the light has to cross.  Measured over two million photons, |ut1_lost|
+is 0.0317 with the slide on top and 0.0324 with it on the bottom, while
+|ur1_lost| moves from 0.0336 to 0.0307.  Only |utu_lost| comes out the same
+either way, diffuse light being symmetric in both directions.
+
+So the transmission losses, and only those, are taken from a second pair of
+simulations with the slides exchanged.  This mirrors |RT_Flip| exactly.  The
+extra work is skipped unless the slides really do differ, so the ordinary
+cases --- no slides, matching slides, every \.{.rxt} file --- cost nothing.
+
+@<Take the transmission losses from the flipped sample@>=
+{
+    double flipped_ur1, flipped_uru, flipped_ur1_lost, flipped_uru_lost;
+
+    set_photon_seed(lost_base_seed);
+    MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
+        COLLIMATED, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
+        dr_port, dt_port, d_beam, &flipped_ur1, ut1, &flipped_ur1_lost, ut1_lost);
+
+    if (m.method == SUBSTITUTION) {
+        set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
+        MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
+            DIFFUSE, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
+            dr_port, dt_port, d_beam, &flipped_uru, utu, &flipped_uru_lost, utu_lost);
+    }
+}
+
 @ |MC_RT| is a broad-port Monte Carlo check of the adding-doubling
 reflection and transmission values.
 
+The slab already carries both slide indices and both slide absorptions; only
+the thicknesses have to be supplied, since |AD_slab_type| has no room for
+them.
+
 @ @<Prototype for |MC_RT|@>=
 void MC_RT(struct AD_slab_type s, long n_photons, double t_sample,
-    double t_slide, double *UR1, double *UT1, double *URU, double *UTU)
+    double t_top_slide, double t_bottom_slide,
+    double *UR1, double *UT1, double *URU, double *UTU)
 
 @ @<Definition for |MC_RT|@>=
 @<Prototype for |MC_RT|@>
@@ -755,11 +838,13 @@ void MC_RT(struct AD_slab_type s, long n_photons, double t_sample,
 
     set_photon_seed(12345);
 
-    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide,
-        COLLIMATED, mu, t_sample, t_slide, s.b_top_slide, dr_port, dt_port, d_beam, UR1, UT1, &ur1_lost, &ut1_lost);
+    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, s.n_bottom_slide,
+        COLLIMATED, mu, t_sample, t_top_slide, t_bottom_slide,
+        s.b_top_slide, s.b_bottom_slide, dr_port, dt_port, d_beam, UR1, UT1, &ur1_lost, &ut1_lost);
 
-    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide,
-        DIFFUSE, mu, t_sample, t_slide, s.b_top_slide, dr_port, dt_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
+    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, s.n_bottom_slide,
+        DIFFUSE, mu, t_sample, t_top_slide, t_bottom_slide,
+        s.b_top_slide, s.b_bottom_slide, dr_port, dt_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
 }
 
 @ @<Prototype for |MC_Print_RT_Arrays|@>=

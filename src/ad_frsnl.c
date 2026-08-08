@@ -184,7 +184,7 @@ void Sp_mu_RT_Flip(int flip, double n_top, double n_slab, double n_bottom,
     double tau_top, double tau_slab, double tau_bottom, double mu, double *r, double *t)
 {
     Sp_mu_RT(n_top, n_slab, n_bottom, tau_top, tau_slab, tau_bottom, mu, r, t);
-    if (flip && n_top != n_bottom && tau_top != tau_bottom) {
+    if (flip && (n_top != n_bottom || tau_top != tau_bottom)) {
         double correct_r = *r;
         Sp_mu_RT(n_bottom, n_slab, n_top, tau_bottom, tau_slab, tau_top, mu, r, t);
         *r = correct_r;

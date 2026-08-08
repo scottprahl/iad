@@ -65,6 +65,29 @@ mc_stalled="$TEST_TMP/iad_mc_stalled.out"
 assert_matches "$mc_stalled" "0\.7000.*0\.2800.*m"
 assert_contains "$mc_stalled" "lost-light correction did not settle"
 
+# A slide removed by -G must not keep the absorption set by -E.  These are
+# relationships between runs rather than frozen numbers, so they stay valid
+# if the underlying values ever shift.
+slab_opts="-a 0.9 -b 1 -g 0 -n 1.4 -N 1.5 -d 1 -D 1 -q 32"
+t_total() {
+    "$IAD_EXECUTABLE" $slab_opts "$@" -z 2>/dev/null | grep 'T total' | awk '{print $NF}'
+}
+
+no_slide_e0=$(t_total -G 0 -E 0)
+no_slide_e5=$(t_total -G 0 -E 0.5)
+[ "$no_slide_e0" = "$no_slide_e5" ] || \
+    fail "-G 0 says no slides, but -E 0.5 still absorbed: $no_slide_e0 vs $no_slide_e5"
+
+one_slide_e5=$(t_total -G t -E 0.5)
+two_slide_e5=$(t_total -G 2 -E 0.5)
+[ "$one_slide_e5" != "$two_slide_e5" ] || \
+    fail "-G t -E 0.5 matches -G 2 -E 0.5; absorption applied to an absent slide"
+
+# ...but an index-matched absorbing slide is legitimate and must survive
+matched=$(t_total -E 0.5)
+[ "$matched" = "$two_slide_e5" ] || \
+    fail "default two-slide absorption changed: $matched vs $two_slide_e5"
+
 assert_fails "$IAD_EXECUTABLE" -a 2 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -q 5 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -S 3 -r 0.2

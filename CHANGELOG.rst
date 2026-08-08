@@ -13,6 +13,12 @@ Backwards-incompatible changes
 Inversion
 ~~~~~~~~~
 *   replace the precomputed grid with an adaptive grid (``iad_agrid``) for initial guesses
+*   refine adaptive-grid cells that bracket the measurements, not just cells
+    where the model bends.  A smooth cell containing the answer used to stay
+    coarse, leaving the search to start too far away to converge
+*   fix ``iad -z`` reporting unscattered reflection and transmission that
+    ignored absorbing slides, so forward output could not be fed back through
+    the inverse
 *   support ``FIND_BaG`` and ``FIND_BsG`` searches with the adaptive grid
 *   add new L2_SCALED deviation metric and make it the default
 *   add bounded Nelder-Mead amoeba with explicit lower/upper bounds
@@ -30,6 +36,8 @@ Command line and output
 *   ``iad *`` processes every ``.rxt`` file matched by the glob and ignores the rest
 *   accept several input files in one invocation and print each filename as it is processed
 *   ``iad -z`` now prints intrinsic, derived, sphere, and calculated R/T quantities
+*   ``iad -z`` prints the derived and calculated quantities to four decimals
+    instead of three
 *   allow incidence angle to appear in a column of ``.rxt`` files
 *   when ``-w`` is given, use it for ``-W`` as well
 *   tag output header with ``iad`` so the writing program is identifiable
@@ -59,6 +67,16 @@ Fixes
     between iterations reflects the optical properties rather than the full
     Monte Carlo standard error
 *   clear the radial arrays at the start of each Monte Carlo simulation
+*   give the Monte Carlo the top and bottom slides separately.  It read only
+    the top slide and applied it to both faces, so ``-G t`` modelled slides on
+    both faces and ``-G b`` modelled none at all
+*   stop applying ``-E`` slide absorption to a slide that ``-G`` removed;
+    ``iad -G 0 -E 0.5`` asked for no slides and lost most of its light to them
+*   fix the test in ``Sp_mu_RT_Flip`` that required the slide indices *and*
+    the slide absorptions to differ, which no command line can produce
+*   take the transmission lost-light estimate from the flipped sample for
+    ``-G n`` and ``-G f``.  Adding-doubling can ignore the flip because total
+    transmittance is reciprocal, but lost light is not
 *   remove the unused ``MC_Lost_With_Stderr``
 *   show ``AD`` rather than ``IAD`` above the iterations for ``-x 8``
 *   reallocate redistribution-function cache when quadrature-point count changes

@@ -350,8 +350,10 @@ double add_to_transmittance_array(double x, double y, double z, double w, double
 }
 
 void MC_Radial(long photons, double a, double b, double g, double n_sample,
-    double n_slide, double cos_cone_angle, double cos_incidence,
-    double t_sample, double t_slide, double b_slide,
+    double n_top_slide, double n_bottom_slide,
+    double cos_cone_angle, double cos_incidence,
+    double t_sample, double t_top_slide, double t_bottom_slide,
+    double b_top_slide, double b_bottom_slide,
     double dr_port, double dt_port, double d_beam, double *r_total, double *t_total, double *r_lost, double *t_lost)
 {
     double x, y, z, u, v, w, weight;
@@ -371,9 +373,11 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     fprintf(stderr, "cos_critical = %10.5f\n", cos_critical);
     fprintf(stderr, "d_beam   = %10.5f\n", d_beam);
     fprintf(stderr, "t_sample = %10.5f\n", t_sample);
-    fprintf(stderr, "t_slide  = %10.5f\n", t_slide);
+    fprintf(stderr, "t_top    = %10.5f\n", t_top_slide);
+    fprintf(stderr, "t_bottom = %10.5f\n", t_bottom_slide);
     fprintf(stderr, "n_sample = %10.5f\n", n_sample);
-    fprintf(stderr, "n_slide  = %10.5f\n", n_slide);
+    fprintf(stderr, "n_top    = %10.5f\n", n_top_slide);
+    fprintf(stderr, "n_bottom = %10.5f\n", n_bottom_slide);
 #endif
 
     start_time = clock();
@@ -409,14 +413,14 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
     for (i = 1; i <= total_photons; i++) {
         next_photon_seed();
-        launch_point(&x, &y, &z, r_beam, t_slide);
+        launch_point(&x, &y, &z, r_beam, t_top_slide);
         launch_direction(&u, &v, &w, cos_cone_angle, cos_incidence);
-        assert(w > 0 && z == -t_slide);
+        assert(w > 0 && z == -t_top_slide);
 
         weight = 1;
         total_weight += weight;
 
-        move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_slide, b_slide, 1.0, n_slide, n_sample);
+        move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_top_slide, b_top_slide, 1.0, n_top_slide, n_sample);
 
         if (w < 0) {
             r = add_to_reflectance_array(x, y, z, w, weight);
@@ -450,11 +454,13 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
                 assert(CLOSE(z, 0) || CLOSE(z, t_sample));
 
                 if (w > 0)
-                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_slide, b_slide, n_sample, n_slide, 1.0);
+                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z + t_bottom_slide,
+                        b_bottom_slide, n_sample, n_bottom_slide, 1.0);
                 else
-                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z - t_slide, b_slide, n_sample, n_slide, 1.0);
+                    move_in_slide(&x, &y, &z, &u, &v, &w, &weight, z, z - t_top_slide,
+                        b_top_slide, n_sample, n_top_slide, 1.0);
 
-                if (CLOSE(z, -t_slide) && w < 0) {
+                if (CLOSE(z, -t_top_slide) && w < 0) {
                     r = add_to_reflectance_array(x, y, z, w, weight);
                     *r_total += weight;
                     if (r > r_port_radius)
@@ -463,7 +469,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
                     break;
                 }
 
-                if (CLOSE(z, t_sample + t_slide) && w > 0) {
+                if (CLOSE(z, t_sample + t_bottom_slide) && w > 0) {
                     r = add_to_transmittance_array(x, y, z, w, weight);
                     *t_total += weight;
                     if (r > t_port_radius)
@@ -531,32 +537,64 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     double *ur1_lost, double *ut1_lost, double *uru_lost, double *utu_lost)
 {
     double n_sample = m.slab_index;
-    double n_slide = m.slab_top_slide_index;
     double t_sample = m.slab_thickness;
-    double t_slide = m.slab_top_slide_thickness;
-    double b_slide = m.slab_top_slide_b;
+
+    double n_top = m.slab_top_slide_index;
+    double t_top = m.slab_top_slide_thickness;
+    double b_top = m.slab_top_slide_b;
+
+    double n_bottom = m.slab_bottom_slide_index;
+    double t_bottom = m.slab_bottom_slide_thickness;
+    double b_bottom = m.slab_bottom_slide_b;
 
     double dr_port = sqrt(m.as_r) * 2 * m.d_sphere_r;
     double dt_port = sqrt(m.as_t) * 2 * m.d_sphere_t;
     double d_beam = m.d_beam;
     double mu = m.slab_cos_angle;
 
-    if (t_slide == 0.0)
-        n_slide = 1.0;
-    if (n_slide == 1.0)
-        t_slide = 0.0;
+    int slides_differ;
+
+    if (t_top == 0.0)
+        n_top = 1.0;
+    if (n_top == 1.0)
+        t_top = 0.0;
+
+    if (t_bottom == 0.0)
+        n_bottom = 1.0;
+    if (n_bottom == 1.0)
+        t_bottom = 0.0;
+
+    slides_differ = (n_top != n_bottom) || (t_top != t_bottom) || (b_top != b_bottom);
 
     set_photon_seed(lost_base_seed);
-    MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
-        COLLIMATED, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
+    MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
+        COLLIMATED, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
+        dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
 
     *uru_lost = 0;
     *utu_lost = 0;
 
     if (m.method == SUBSTITUTION) {
         set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
-        MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_slide,
-            DIFFUSE, mu, t_sample, t_slide, b_slide, dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
+        MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
+            DIFFUSE, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
+            dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
+    }
+
+    if (m.flip_sample && slides_differ) {
+        double flipped_ur1, flipped_uru, flipped_ur1_lost, flipped_uru_lost;
+
+        set_photon_seed(lost_base_seed);
+        MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
+            COLLIMATED, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
+            dr_port, dt_port, d_beam, &flipped_ur1, ut1, &flipped_ur1_lost, ut1_lost);
+
+        if (m.method == SUBSTITUTION) {
+            set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
+            MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
+                DIFFUSE, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
+                dr_port, dt_port, d_beam, &flipped_uru, utu, &flipped_uru_lost, utu_lost);
+        }
     }
 
     if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
@@ -565,7 +603,7 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
 }
 
 void MC_RT(struct AD_slab_type s, long n_photons, double t_sample,
-    double t_slide, double *UR1, double *UT1, double *URU, double *UTU)
+    double t_top_slide, double t_bottom_slide, double *UR1, double *UT1, double *URU, double *UTU)
 {
     double ur1_lost, ut1_lost, uru_lost, utu_lost;
     double dr_port = 1000;
@@ -575,11 +613,13 @@ void MC_RT(struct AD_slab_type s, long n_photons, double t_sample,
 
     set_photon_seed(12345);
 
-    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide,
-        COLLIMATED, mu, t_sample, t_slide, s.b_top_slide, dr_port, dt_port, d_beam, UR1, UT1, &ur1_lost, &ut1_lost);
+    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, s.n_bottom_slide,
+        COLLIMATED, mu, t_sample, t_top_slide, t_bottom_slide,
+        s.b_top_slide, s.b_bottom_slide, dr_port, dt_port, d_beam, UR1, UT1, &ur1_lost, &ut1_lost);
 
-    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide,
-        DIFFUSE, mu, t_sample, t_slide, s.b_top_slide, dr_port, dt_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
+    MC_Radial(n_photons / 2, s.a, s.b, s.g, s.n_slab, s.n_top_slide, s.n_bottom_slide,
+        DIFFUSE, mu, t_sample, t_top_slide, t_bottom_slide,
+        s.b_top_slide, s.b_bottom_slide, dr_port, dt_port, d_beam, URU, UTU, &uru_lost, &utu_lost);
 }
 
 void MC_Print_RT_Arrays(int status)

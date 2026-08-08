@@ -347,6 +347,21 @@ I also check to make sure that the exponent is not too small.
 @ |Sp_mu_RT_Flip| finds the reflectance to incorporate flipping of the sample.  This
 is needed when the sample is flipped between measurements.
 
+The sample is asymmetric when the slides differ in index {\it or\/} in
+absorption.  The test used to require both at once, which no command line can
+produce --- \.{-E} sets the optical depth of both slides together --- so the
+flipped branch was unreachable.
+
+Reaching it changes nothing numerically, and that is worth stating plainly
+rather than rediscovering.  The branch keeps the reflectance from the
+unflipped stack and takes only the transmittance from the swapped one, and
+unscattered transmittance through a stratified stack is reciprocal: it does
+not matter which face the light enters.  The same is true of |RT_Flip|.
+Reflectance is not reciprocal, which is exactly why both routines keep it
+from the unflipped call.  The branch is therefore correct, and correctly a
+no-op, for every quantity |iad| computes today.  It is left in place so that
+the modelling assumption stays visible.
+
 @<Prototype for |Sp_mu_RT_Flip|@>=
 void Sp_mu_RT_Flip(int flip, double n_top, double n_slab, double n_bottom,
                         double tau_top, double tau_slab, double tau_bottom, double mu,
@@ -356,7 +371,7 @@ void Sp_mu_RT_Flip(int flip, double n_top, double n_slab, double n_bottom,
     @<Prototype for |Sp_mu_RT_Flip|@>
 {
     Sp_mu_RT(n_top, n_slab, n_bottom, tau_top, tau_slab, tau_bottom, mu, r, t);
-    if (flip && n_top != n_bottom && tau_top != tau_bottom) {
+    if (flip && (n_top != n_bottom || tau_top != tau_bottom)) {
         double correct_r = *r;
         Sp_mu_RT(n_bottom, n_slab, n_top, tau_bottom, tau_slab, tau_top, mu, r, t);
         *r = correct_r;

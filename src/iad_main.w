@@ -738,9 +738,7 @@ specified, then the thickness is assumed infinite.
         Calculate_Mua_Musp(m, r, &mu_s, &mu_sp, &mu_a);
 
         RT(r.method.quad_pts, &r.slab, &ur1, &ut1, &uru, &utu);
-        ez_RT_unscattered(r.method.quad_pts, r.slab.n_slab,
-                          r.slab.n_top_slide, r.slab.n_bottom_slide,
-                          0.0, r.slab.b, r.slab.g, &ru, &tu, &uru, &utu);
+        @<Find the unscattered reflection and transmission@>@;
 
         thickness = (m.slab_thickness > 0) ? m.slab_thickness : 1.0;
         cos_critical = Cos_Critical_Angle(r.slab.n_slab, 1.0);
@@ -764,12 +762,12 @@ specified, then the thickness is assumed infinite.
             printf("\n");
             printf("Derived quantities\n");
             denom = (r.slab.b == HUGE_VAL) ? 1.0 : thickness;
-            printf("   mu_a                = %.3f 1/mm\n",
+            printf("   mu_a                = %.4f 1/mm\n",
                    (r.slab.b == HUGE_VAL) ? ((r.slab.a > 0) ? (1.0 - r.slab.a)/r.slab.a : 1.0)
                                           : (1.0 - r.slab.a) * r.slab.b / denom);
-            printf("   mu_s                = %.3f 1/mm\n",
+            printf("   mu_s                = %.4f 1/mm\n",
                    (r.slab.b == HUGE_VAL) ? 1.0 : r.slab.a * r.slab.b / denom);
-            printf("   mu_s*(1-g)          = %.3f 1/mm\n",
+            printf("   mu_s*(1-g)          = %.4f 1/mm\n",
                    (r.slab.b == HUGE_VAL) ? (1.0 - r.slab.g)
                                           : (1.0 - r.slab.g) * r.slab.a * r.slab.b / denom);
             printf("       theta incident  = %.1f\xc2\xb0\n", theta_inc);
@@ -787,19 +785,41 @@ specified, then the thickness is assumed infinite.
             }
 
             printf("Calculated quantities\n");
-            printf("   R total         = %.3f\n", ur1);
-            printf("   R scattered     = %.3f\n", ur1 - ru);
-            printf("   R unscattered   = %.3f\n", ru);
-            printf("   T total         = %.3f\n", ut1);
-            printf("   T scattered     = %.3f\n", ut1 - tu);
-            printf("   T unscattered   = %.3f\n", tu);
+            printf("   R total         = %.4f\n", ur1);
+            printf("   R scattered     = %.4f\n", ur1 - ru);
+            printf("   R unscattered   = %.4f\n", ru);
+            printf("   T total         = %.4f\n", ut1);
+            printf("   T scattered     = %.4f\n", ut1 - tu);
+            printf("   T unscattered   = %.4f\n", tu);
             if (m.num_spheres > 0) {
-                printf("   M_R (sphere)    = %.3f\n", m_r);
-                printf("   M_T (sphere)    = %.3f\n", m_t);
+                printf("   M_R (sphere)    = %.4f\n", m_r);
+                printf("   M_T (sphere)    = %.4f\n", m_t);
             }
         }
         (void) mu_s; (void) mu_sp; (void) mu_a;
     }
+
+@ |ez_RT_unscattered| cannot be used here.  It builds its own slab and sets
+both slide optical depths to zero, and its argument list has no room to say
+otherwise, so the unscattered values it returns ignore absorbing slides
+entirely.  The forward calculation then reported the same \.{T unscattered}
+whether the slides absorbed or not, while |R total| and |T total| did account
+for it --- which also made \.{T scattered}, their difference, wrong.
+
+Worse for anyone comparing the two halves of the program, the inverse
+routines have always used |Sp_mu_RT_Flip|, which does take both slide optical
+depths.  Feeding the forward output back through the inverse could not
+recover the original properties once the slides absorbed.  Using the same
+routine here makes the two agree by construction.
+
+The old call also overwrote |uru| and |utu|, which |RT| had just computed.
+
+@<Find the unscattered reflection and transmission@>=
+
+    Sp_mu_RT_Flip(m.flip_sample,
+                  r.slab.n_top_slide, r.slab.n_slab, r.slab.n_bottom_slide,
+                  r.slab.b_top_slide, r.slab.b, r.slab.b_bottom_slide,
+                  r.slab.cos_angle, &ru, &tu);
 
 @ @<Print one forward sphere block (reflection)@>=
 {
@@ -1404,6 +1424,8 @@ properties can be determined.
     else
         m.flip_sample = 0;
 
+    @<Discard the absorption of slides that are not there@>@;
+
     if (cl_method != UNINITIALIZED)
         m.method = (int) cl_method;
 
@@ -1510,6 +1532,32 @@ properties can be determined.
 
     if (cl_lambda != UNINITIALIZED)
         m.lambda = cl_lambda;
+
+@ A slide that \.{-G} has removed cannot absorb.  Removing a slide set its
+index to one and its thickness to zero but left the optical depth from
+\.{-E} behind, and the boundary routines dutifully applied that absorption to
+a slide made of air.  \.{iad -G 0 -E 0.5} asks for no slides whatsoever and
+used to lose more than half its light to them.
+
+Only \.{-G} is allowed to clear the absorption.  An index of one on its own
+must not, because an index-matched absorbing slide is a real thing to want:
+\.{iad -r 0 -t 0.135335 -E 0.5} describes a slab of optical depth one between
+two absorbing films that do not refract, and the regression tests rely on it.
+
+@<Discard the absorption of slides that are not there@>=
+
+    if (cl_slides == NO_SLIDES) {
+        m.slab_top_slide_b    = 0.0;
+        m.slab_bottom_slide_b = 0.0;
+    }
+
+    if (cl_slides == ONE_SLIDE_ON_TOP ||
+        cl_slides == ONE_SLIDE_NEAR_SPHERE)
+        m.slab_bottom_slide_b = 0.0;
+
+    if (cl_slides == ONE_SLIDE_ON_BOTTOM ||
+        cl_slides == ONE_SLIDE_NOT_NEAR_SPHERE)
+        m.slab_top_slide_b = 0.0;
 
 @ @<Warn and quit for bad options@>=
     if (cl_method == COMPARISON && m.d_sphere_r != 0 && m.as_r == 0) {

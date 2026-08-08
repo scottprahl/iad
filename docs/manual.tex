@@ -918,6 +918,26 @@ wall-reflectance shorthands \texttt{-w} and \texttt{-W}, search override
 filtering \texttt{-l}, and expected failures for invalid options or missing
 files.
 
+\item[\texttt{test\_iad\_slides.sh}]
+Checks the forward reflectance and transmittance for every \texttt{-G} slide
+configuration, with and without absorbing slides.  No spheres are used, so no
+Monte Carlo lost-light estimate enters and every value is deterministic.
+Besides the tabulated numbers it asserts the relationships behind them: that
+\texttt{-G 0} is unaffected by \texttt{-E}, that \texttt{-G n} and \texttt{-G f}
+reproduce \texttt{-G t} and \texttt{-G b} exactly, that a slide on the near face
+is not the same experiment as one on the far face, and that one absorbing slide
+passes more light than two and less than none.
+
+\item[\texttt{test\_mc\_slides.sh}]
+Checks that the Monte Carlo lost-light estimate treats the two slides
+separately.  It verifies that a slide on either face changes the answer, that
+the loss is ordered no slides $<$ one slide $<$ two slides, that a top slide
+spreads reflected light more while a bottom slide spreads transmitted light
+more, and that the Monte Carlo totals agree with adding-doubling when the port
+is wide enough that nothing is lost.  It also checks that \texttt{-G n} and
+\texttt{-G f} leave the reflection losses alone while changing the transmission
+losses, since lost light is not reciprocal.
+
 \item[\texttt{test\_ad\_basic.sh}]
 Checks the forward adding-doubling executable \texttt{ad}.  This is not an
 \iadprog{} inversion test, but it validates the forward solver that
@@ -2362,7 +2382,6 @@ behavior.
                  measurements have been made. For example, using \texttt{-g 0.9} for tissue samples
                  is common.\\[1mm]
                  \textit{With 1 or 2 measurements the default is isotropic scattering, \texttt{-g 0}.}
-                 
     \item[-G \#] Specify the slide/boundary configuration.\\[1mm]
                  Legal values are \texttt{0}, \texttt{2}, \texttt{t}, \texttt{b},
                  \texttt{n}, and \texttt{f}.  The value \texttt{0} means no slides,
@@ -2374,6 +2393,21 @@ behavior.
                  This option should be used together with \texttt{-N} to specify the
                  slide index and, when needed, \texttt{-D} and \texttt{-E} to set the
                  slide thickness and absorption.
+
+                 The \texttt{n} and \texttt{f} forms describe a sample that is turned
+                 over between the two measurements, as the figure below shows, so the
+                 slide keeps its position relative to the sphere.  Their reflectances
+                 and transmittances are identical to those of \texttt{t} and
+                 \texttt{b}: turning the sample over cannot change the total
+                 transmittance, which is the same whichever face the light enters, and
+                 the reflectance is calculated for the face the beam actually strikes
+                 in the reflection measurement.  The distinction still matters for the
+                 Monte Carlo estimate of lost light, which is not reciprocal, since it
+                 depends on which face carries the glass that spreads the light
+                 sideways.
+                 \begin{center}
+                 \includegraphics[width=\textwidth]{option-G.jpg}
+                 \end{center}
     \item[-h] display help
     \item[-H \#] Specify the integrating-sphere baffle configuration.\\[1mm]
                  Use \texttt{-H 0} for no baffle in either sphere, \texttt{-H 1}
