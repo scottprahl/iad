@@ -41,7 +41,7 @@ DOCS =  CHANGELOG.rst         docs/ToDo.md               docs/manual.tex      \
         docs/ch3spheresT.pdf  docs/ch3Doublespheres.pdf  docs/colltrans.pdf   \
         docs/lightloss.pdf    docs/niek_graph.pdf        docs/glass_slide.pdf \
         docs/cmdexe.png       docs/valid.png             docs/dual8.png       \
-        docs/dual90.png       docs/iad.bib
+        docs/dual90.png       docs/iad.bib               docs/option-G.jpg
 
 TEST =  tests/Makefile      tests/valid.bat
 
