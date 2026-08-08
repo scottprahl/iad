@@ -224,7 +224,9 @@ static void print_error_legend(void)
     fprintf(stderr, "   U  ==> M_U is too big   ");
     fprintf(stderr, "   u  ==> M_U is too small\n");
     fprintf(stderr, "   !  ==> M_R + M_T > 1    ");
-    fprintf(stderr, "   +  ==> Did not converge\n\n");
+    fprintf(stderr, "   +  ==> Hit iteration limit\n");
+    fprintf(stderr, "   x  ==> No solution found");
+    fprintf(stderr, "   m  ==> Lost-light correction failed\n\n");
 }
 
 static char what_char(int err)
@@ -247,6 +249,10 @@ static char what_char(int err)
         return 'u';
     if (err == IAD_TOO_MUCH_LIGHT)
         return '!';
+    if (err == IAD_SEARCH_STALLED)
+        return 'x';
+    if (err == IAD_MC_DID_NOT_CONVERGE)
+        return 'm';
     return '?';
 }
 
@@ -257,7 +263,17 @@ static void print_long_error(int err)
         fprintf(stderr, "Successful Search\n");
         break;
     case IAD_TOO_MANY_ITERATIONS:
-        fprintf(stderr, "Failed Search, too many iterations\n");
+        fprintf(stderr, "Failed Search, hit the limit of %d iterations\n", IAD_MAX_ITERATIONS);
+        break;
+    case IAD_SEARCH_STALLED:
+        fprintf(stderr, "Failed Search, stopped early without matching the measurements\n");
+        fprintf(stderr, "    no combination of a, b, and g reproduced M_R and M_T;\n");
+        fprintf(stderr, "    compare the measured and fitted values above\n");
+        break;
+    case IAD_MC_DID_NOT_CONVERGE:
+        fprintf(stderr, "Failed Search, lost-light correction did not settle\n");
+        fprintf(stderr, "    the Monte Carlo re-inversion stopped converging;\n");
+        fprintf(stderr, "    try -M 0 to skip the lost-light correction\n");
         break;
     case IAD_MR_TOO_BIG:
         fprintf(stderr, "Failed Search, M_R is too big\n");
@@ -371,7 +387,8 @@ static void calculate_coefficients(struct measure_type m,
     double delta, mus;
     *LR = 0;
     *LT = 0;
-    if (r.error == IAD_NO_ERROR || r.error == IAD_TOO_MANY_ITERATIONS) {
+    if (r.error == IAD_NO_ERROR || r.error == IAD_TOO_MANY_ITERATIONS ||
+        r.error == IAD_SEARCH_STALLED || r.error == IAD_MC_DID_NOT_CONVERGE) {
         Calculate_Distance(LR, LT, &delta);
         Calculate_Mua_Musp(m, r, &mus, musp, mua);
     }
@@ -461,7 +478,7 @@ static void print_results_header(FILE *fp)
 void print_optical_property_result(FILE *fp,
     struct measure_type m, struct invert_type r, double LR, double LT, double mu_a, double mu_sp, int line)
 {
-    int display_error = (!r.found && r.error == IAD_NO_ERROR) ? IAD_TOO_MANY_ITERATIONS : r.error;
+    int display_error = (!r.found && r.error == IAD_NO_ERROR) ? IAD_SEARCH_STALLED : r.error;
 
     if (Debug(DEBUG_LOST_LIGHT)) {
         if (m.lambda != 0)
@@ -1771,13 +1788,13 @@ int main(int argc, char **argv)
                         if (mc_failed) {
                             r.found = 0;
                             if (r.error == IAD_NO_ERROR)
-                                r.error = IAD_TOO_MANY_ITERATIONS;
+                                r.error = IAD_MC_DID_NOT_CONVERGE;
                         }
                     }
                 }
 
                 if (!r.found && r.error == IAD_NO_ERROR)
-                    r.error = IAD_TOO_MANY_ITERATIONS;
+                    r.error = IAD_SEARCH_STALLED;
 
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                 print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);
@@ -2458,13 +2475,13 @@ int main(int argc, char **argv)
                         if (mc_failed) {
                             r.found = 0;
                             if (r.error == IAD_NO_ERROR)
-                                r.error = IAD_TOO_MANY_ITERATIONS;
+                                r.error = IAD_MC_DID_NOT_CONVERGE;
                         }
                     }
                 }
 
                 if (!r.found && r.error == IAD_NO_ERROR)
-                    r.error = IAD_TOO_MANY_ITERATIONS;
+                    r.error = IAD_SEARCH_STALLED;
 
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                 print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);

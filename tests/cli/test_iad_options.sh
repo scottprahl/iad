@@ -53,6 +53,18 @@ lossless="$TEST_TMP/iad_lossless.out"
 "$IAD_EXECUTABLE" -r 0.4 -t 0.6 > "$lossless" 2>&1
 assert_matches "$lossless" "0\.4000.*0\.6000.*\*"
 
+# a search that stops early is 'x', not the old misleading "too many iterations"
+stalled="$TEST_TMP/iad_stalled.out"
+"$IAD_EXECUTABLE" -r 0.9 -t 0.05 -n 1.5 > "$stalled" 2>&1
+assert_matches "$stalled" "0\.9000.*0\.0500.*x"
+assert_contains "$stalled" "stopped early without matching the measurements"
+
+# a failed lost-light correction is 'm' and names the Monte Carlo loop
+mc_stalled="$TEST_TMP/iad_mc_stalled.out"
+"$IAD_EXECUTABLE" -r 0.7 -t 0.28 -n 1.33 -S 1 > "$mc_stalled" 2>&1
+assert_matches "$mc_stalled" "0\.7000.*0\.2800.*m"
+assert_contains "$mc_stalled" "lost-light correction did not settle"
+
 assert_fails "$IAD_EXECUTABLE" -a 2 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -q 5 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -S 3 -r 0.2

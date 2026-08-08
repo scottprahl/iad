@@ -48,6 +48,10 @@ Fixes
     one error, while input files still get the full legend
 *   give every error code its own message instead of silently printing
     nothing for the sphere, phase-function, and file errors
+*   stop reporting "too many iterations" for searches that stopped early.  A
+    search that gives up without matching the measurements is now ``x`` (no
+    solution found) and a failed lost-light correction is ``m``; ``+`` is
+    reserved for actually hitting the iteration limit
 *   show ``AD`` rather than ``IAD`` above the iterations for ``-x 8``
 *   reallocate redistribution-function cache when quadrature-point count changes
 *   fix ``mc_lost`` build

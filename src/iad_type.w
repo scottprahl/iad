@@ -74,6 +74,14 @@ the header file \.{iad\_type.h} and nothing else.
 @d IAD_TOO_MUCH_LIGHT            38
 @d IAD_TSTD_NOT_VALID            39
 
+@ |IAD_TOO_MANY_ITERATIONS| means exactly what it says: the search ran into
+|IAD_MAX_ITERATIONS|.  It used to be the catch-all for every failure, so a
+search that gave up after forty iterations still claimed it had run too
+many.  The two codes below cover the searches that stop early.
+
+@d IAD_SEARCH_STALLED            40
+@d IAD_MC_DID_NOT_CONVERGE       41
+
 @d UNINITIALIZED                -99
 
 @d DEBUG_A_LITTLE                 1

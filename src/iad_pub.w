@@ -104,12 +104,15 @@ that are appropriate for your experiment.
     @<Print basic sphere and MC effects@>@;
 }
 
-@ Always run the strict data-quality check.  When the search ran out of
-iterations, |measure_OK| often pinpoints a real data problem
+@ Always run the strict data-quality check.  When the search failed,
+|measure_OK| often pinpoints a real data problem
 (|M_R|, |M_T|, or |M_U| out of range), which is far more informative than
-the generic ``+'' for did not converge.  Prefer the specific reason when
-found; otherwise leave |r->error| alone: |IAD_NO_ERROR| if the search
-succeeded, |IAD_TOO_MANY_ITERATIONS| if it did not.
+merely reporting that the search did not converge.  Prefer the specific
+reason when found; otherwise leave |r->error| alone: |IAD_NO_ERROR| if the
+search succeeded, |IAD_TOO_MANY_ITERATIONS| if it hit the iteration limit.
+A search that stops early without a match is labelled |IAD_SEARCH_STALLED|
+by the caller, since only the caller knows whether the Monte Carlo
+lost-light loop was involved.
 
 @ There is no sense going to all the trouble to try a multivariable
 minimization if the input data is bogus.  So I wrote a
