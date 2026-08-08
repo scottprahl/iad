@@ -193,6 +193,9 @@ int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
             }
         }
 
+        if (m.num_spheres == 0 && m.m_r + m.m_t > 1)
+            return IAD_TOO_MUCH_LIGHT;
+
     }
     else {
         int error = MinMax_MR_MT(m, r);

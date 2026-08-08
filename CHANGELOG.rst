@@ -41,6 +41,13 @@ Fixes
 ~~~~~
 *   fix ``-o outfile`` placed after the input filename (POSIX getopt on macOS/BSD)
 *   fix missing break in ``-x`` option parsing
+*   flag ``M_R + M_T > 1`` with ``!`` when no spheres are used, instead of
+    silently reporting a bogus fit (e.g. ``iad -r 0.4 -t 0.7``)
+*   explain failures for measurements given on the command line; nothing was
+    printed before.  A single ``-r``/``-t``/``-u`` measurement now names its
+    one error, while input files still get the full legend
+*   give every error code its own message instead of silently printing
+    nothing for the sphere, phase-function, and file errors
 *   show ``AD`` rather than ``IAD`` above the iterations for ``-x 8``
 *   reallocate redistribution-function cache when quadrature-point count changes
 *   fix ``mc_lost`` build

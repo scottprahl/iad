@@ -260,6 +260,7 @@ or transmission alone.
     if (m.num_spheres != 2) {
         @<Check \.{MT} for zero or one spheres@>@;
         @<Check \.{MR} for zero or one spheres@>@;
+        @<Check \.{MR+MT} for no spheres@>@;
     } else {
         int error = MinMax_MR_MT(m,r);
         if (error != IAD_NO_ERROR) return error;
@@ -350,6 +351,29 @@ when two spheres are used.
 
     if (m.m_t > mt_limit)
         return IAD_MT_TOO_BIG;
+
+@ When no spheres are used, \.{M\_R} and \.{M\_T} are the total reflectance
+and total transmittance of the sample.  Energy conservation then puts a hard
+bound on their sum: a passive sample cannot send back more light than fell on
+it, so |m_r+m_t| can never exceed one.  A sum larger than one means the
+measurements are inconsistent, and no combination of |a|, |b|, and |g| can
+reproduce them.  Without this test the search happily returns whatever
+best fit it can manage --- for example \.{iad -r 0.4 -t 0.7} used to report
+|mu_s'| for a fit of 0.375 and 0.625 --- which looks like a successful
+inversion but is not.
+
+The bound does not hold once a sphere is involved.  With one sphere the
+measurements are readings relative to a calibration standard, and multiple
+reflections between the sample and the sphere wall routinely push
+|m_r+m_t| above one; several of the fixtures in \.{tests/rxt/1\_sphere} do
+exactly that.  Those readings only become reflectance and transmittance
+after the sphere corrections are applied, so the test is restricted to the
+no-sphere case.  (The two-sphere case is handled by |MinMax_MR_MT|.)
+
+@<Check \.{MR+MT} for no spheres@>=
+
+    if (m.num_spheres == 0 && m.m_r + m.m_t > 1)
+        return IAD_TOO_MUCH_LIGHT;
 
 @  Only the fraction of unscattered transmission specified by \.{-C} is
 included in the total transmittance measurement.  Therefore the collected

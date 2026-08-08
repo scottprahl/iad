@@ -49,6 +49,7 @@ int main (int argc, char **argv)
     if (process_command_line) {
         @<Count command-line measurements@>@;
         @<Calculate and write optical properties@>@;
+        @<Explain the single command-line error@>@;
         exit(EXIT_SUCCESS);
     }
 
@@ -65,10 +66,31 @@ read_next_file:
 
     @<Generate and write grid@>@;
 
-    if (cl_verbosity>0) fprintf(stderr,"\n\n");
-    if (any_error && cl_verbosity>1) print_error_legend();
+    @<Explain any errors that were flagged@>@;
     exit(EXIT_SUCCESS);
 }
+
+@ A flagged row ends with a single status character, which tells the user
+nothing on its own.  Both ways of running \.{iad} must therefore explain
+themselves.  Measurements given directly on the command line used to exit
+before reaching the legend, so \.{iad -r 0.4 -t 0.7} printed a bare \.{!}
+and left the user to guess what it meant.
+
+An input file produces a whole column of status characters, possibly several
+different ones, so the only sensible thing to print is the full legend.
+
+@<Explain any errors that were flagged@>=
+    if (cl_verbosity>0) fprintf(stderr,"\n\n");
+    if (any_error && cl_verbosity>1) print_error_legend();
+
+@ Measurements supplied with \.{-r}, \.{-t}, and \.{-u} yield exactly one
+row, so exactly one status character can be flagged.  Naming that one
+failure is far more use than a legend of eight codes, seven of which are
+irrelevant.  |last_error| is therefore the only error there was.
+
+@<Explain the single command-line error@>=
+    if (cl_verbosity>0) fprintf(stderr,"\n\n");
+    if (any_error && cl_verbosity>1) print_long_error(last_error);
 
 @ The first two defines are to stop Visual C++ from silly complaints
 @<Include files for |main|@>=
@@ -116,6 +138,7 @@ read_next_file:
     long n_photons = 100000;
     int MAX_MC_iterations = 19;
     int any_error = 0;
+    int last_error = IAD_NO_ERROR;
     int process_command_line = 0;
     int params = 0;
     int rt_total = 0;
@@ -1044,8 +1067,10 @@ measurements.
         calculate_coefficients(m,r,&LR,&LT,&mu_sp,&mu_a);
         print_optical_property_result(stdout,m,r,LR,LT,mu_a,mu_sp,rt_total);
 
-        if (r.error != IAD_NO_ERROR)
+        if (r.error != IAD_NO_ERROR) {
             any_error = 1;
+            last_error = r.error;
+        }
 
         if (Debug(DEBUG_ANY))
             print_long_error(r.error);
@@ -1897,18 +1922,70 @@ static char what_char(int err)
     return '?';
 }
 
-@ @<print long error function@>=
+@ This is the only explanation printed when the measurements come from the
+command line, so every error that |measure_OK| or |Inverse_RT| can hand back
+needs a sentence here.  Anything left over falls through to the |default|
+case, which at least reports the number instead of saying nothing at all.
+
+@<print long error function@>=
 static void print_long_error(int err)
 {
-    if (err == IAD_TOO_MANY_ITERATIONS) fprintf(stderr, "Failed Search, too many iterations\n");
-    if (err == IAD_MR_TOO_BIG)          fprintf(stderr, "Failed Search, M_R is too big\n");
-    if (err == IAD_MR_TOO_SMALL)        fprintf(stderr, "Failed Search, M_R is too small\n");
-    if (err == IAD_MT_TOO_BIG)          fprintf(stderr, "Failed Search, M_T is too big\n");
-    if (err == IAD_MT_TOO_SMALL)        fprintf(stderr, "Failed Search, M_T is too small\n");
-    if (err == IAD_MU_TOO_BIG)          fprintf(stderr, "Failed Search, M_U is too big\n");
-    if (err == IAD_MU_TOO_SMALL)        fprintf(stderr, "Failed Search, M_U is too snall\n");
-    if (err == IAD_TOO_MUCH_LIGHT)      fprintf(stderr, "Failed Search, Total light bigger than 1\n");
-    if (err == IAD_NO_ERROR)            fprintf(stderr, "Successful Search\n");
+    switch (err) {
+    case IAD_NO_ERROR:
+        fprintf(stderr, "Successful Search\n"); break;
+    case IAD_TOO_MANY_ITERATIONS:
+        fprintf(stderr, "Failed Search, too many iterations\n"); break;
+    case IAD_MR_TOO_BIG:
+        fprintf(stderr, "Failed Search, M_R is too big\n"); break;
+    case IAD_MR_TOO_SMALL:
+        fprintf(stderr, "Failed Search, M_R is too small\n"); break;
+    case IAD_MT_TOO_BIG:
+        fprintf(stderr, "Failed Search, M_T is too big\n"); break;
+    case IAD_MT_TOO_SMALL:
+        fprintf(stderr, "Failed Search, M_T is too small\n"); break;
+    case IAD_MU_TOO_BIG:
+        fprintf(stderr, "Failed Search, M_U is too big\n"); break;
+    case IAD_MU_TOO_SMALL:
+        fprintf(stderr, "Failed Search, M_U is too small\n"); break;
+    case IAD_TOO_MUCH_LIGHT:
+        fprintf(stderr, "Failed Search, M_R + M_T exceeds 1\n"); break;
+    case IAD_RT_LT_MINIMUM:
+        fprintf(stderr, "Failed Search, M_R + M_T is below the minimum possible\n"); break;
+    case IAD_EXCESSIVE_LIGHT_LOSS:
+        fprintf(stderr, "Failed Search, too much light lost out the sides\n"); break;
+    case IAD_AS_NOT_VALID:
+        fprintf(stderr, "Failed Search, sample port is too big for the sphere\n"); break;
+    case IAD_AE_NOT_VALID:
+        fprintf(stderr, "Failed Search, entrance port is too big for the sphere\n"); break;
+    case IAD_AD_NOT_VALID:
+        fprintf(stderr, "Failed Search, detector port is too big for the sphere\n"); break;
+    case IAD_RW_NOT_VALID:
+        fprintf(stderr, "Failed Search, sphere wall reflectance is not between 0 and 1\n"); break;
+    case IAD_RD_NOT_VALID:
+        fprintf(stderr, "Failed Search, detector reflectance is not between 0 and 1\n"); break;
+    case IAD_RSTD_NOT_VALID:
+        fprintf(stderr, "Failed Search, reflectance standard is not between 0 and 1\n"); break;
+    case IAD_TSTD_NOT_VALID:
+        fprintf(stderr, "Failed Search, transmittance standard is not between 0 and 1\n"); break;
+    case IAD_QUAD_PTS_NOT_VALID:
+        fprintf(stderr, "Failed Search, number of quadrature points is not valid\n"); break;
+    case IAD_BAD_G_VALUE:
+        fprintf(stderr, "Failed Search, anisotropy is not between -1 and 1\n"); break;
+    case IAD_BAD_PHASE_FUNCTION:
+        fprintf(stderr, "Failed Search, unknown phase function\n"); break;
+    case IAD_GAMMA_NOT_VALID:
+        fprintf(stderr, "Failed Search, gamma is not valid\n"); break;
+    case IAD_F_NOT_VALID:
+        fprintf(stderr, "Failed Search, sphere wall fraction is not valid\n"); break;
+    case IAD_TOO_MANY_LAYERS:
+        fprintf(stderr, "Failed Search, too many layers\n"); break;
+    case IAD_MEMORY_ERROR:
+        fprintf(stderr, "Failed Search, out of memory\n"); break;
+    case IAD_FILE_ERROR:
+        fprintf(stderr, "Failed Search, error reading the input file\n"); break;
+    default:
+        fprintf(stderr, "Failed Search, error %d\n", err); break;
+    }
     fprintf(stderr,"\n");
 }
 

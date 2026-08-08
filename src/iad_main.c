@@ -252,24 +252,89 @@ static char what_char(int err)
 
 static void print_long_error(int err)
 {
-    if (err == IAD_TOO_MANY_ITERATIONS)
-        fprintf(stderr, "Failed Search, too many iterations\n");
-    if (err == IAD_MR_TOO_BIG)
-        fprintf(stderr, "Failed Search, M_R is too big\n");
-    if (err == IAD_MR_TOO_SMALL)
-        fprintf(stderr, "Failed Search, M_R is too small\n");
-    if (err == IAD_MT_TOO_BIG)
-        fprintf(stderr, "Failed Search, M_T is too big\n");
-    if (err == IAD_MT_TOO_SMALL)
-        fprintf(stderr, "Failed Search, M_T is too small\n");
-    if (err == IAD_MU_TOO_BIG)
-        fprintf(stderr, "Failed Search, M_U is too big\n");
-    if (err == IAD_MU_TOO_SMALL)
-        fprintf(stderr, "Failed Search, M_U is too snall\n");
-    if (err == IAD_TOO_MUCH_LIGHT)
-        fprintf(stderr, "Failed Search, Total light bigger than 1\n");
-    if (err == IAD_NO_ERROR)
+    switch (err) {
+    case IAD_NO_ERROR:
         fprintf(stderr, "Successful Search\n");
+        break;
+    case IAD_TOO_MANY_ITERATIONS:
+        fprintf(stderr, "Failed Search, too many iterations\n");
+        break;
+    case IAD_MR_TOO_BIG:
+        fprintf(stderr, "Failed Search, M_R is too big\n");
+        break;
+    case IAD_MR_TOO_SMALL:
+        fprintf(stderr, "Failed Search, M_R is too small\n");
+        break;
+    case IAD_MT_TOO_BIG:
+        fprintf(stderr, "Failed Search, M_T is too big\n");
+        break;
+    case IAD_MT_TOO_SMALL:
+        fprintf(stderr, "Failed Search, M_T is too small\n");
+        break;
+    case IAD_MU_TOO_BIG:
+        fprintf(stderr, "Failed Search, M_U is too big\n");
+        break;
+    case IAD_MU_TOO_SMALL:
+        fprintf(stderr, "Failed Search, M_U is too small\n");
+        break;
+    case IAD_TOO_MUCH_LIGHT:
+        fprintf(stderr, "Failed Search, M_R + M_T exceeds 1\n");
+        break;
+    case IAD_RT_LT_MINIMUM:
+        fprintf(stderr, "Failed Search, M_R + M_T is below the minimum possible\n");
+        break;
+    case IAD_EXCESSIVE_LIGHT_LOSS:
+        fprintf(stderr, "Failed Search, too much light lost out the sides\n");
+        break;
+    case IAD_AS_NOT_VALID:
+        fprintf(stderr, "Failed Search, sample port is too big for the sphere\n");
+        break;
+    case IAD_AE_NOT_VALID:
+        fprintf(stderr, "Failed Search, entrance port is too big for the sphere\n");
+        break;
+    case IAD_AD_NOT_VALID:
+        fprintf(stderr, "Failed Search, detector port is too big for the sphere\n");
+        break;
+    case IAD_RW_NOT_VALID:
+        fprintf(stderr, "Failed Search, sphere wall reflectance is not between 0 and 1\n");
+        break;
+    case IAD_RD_NOT_VALID:
+        fprintf(stderr, "Failed Search, detector reflectance is not between 0 and 1\n");
+        break;
+    case IAD_RSTD_NOT_VALID:
+        fprintf(stderr, "Failed Search, reflectance standard is not between 0 and 1\n");
+        break;
+    case IAD_TSTD_NOT_VALID:
+        fprintf(stderr, "Failed Search, transmittance standard is not between 0 and 1\n");
+        break;
+    case IAD_QUAD_PTS_NOT_VALID:
+        fprintf(stderr, "Failed Search, number of quadrature points is not valid\n");
+        break;
+    case IAD_BAD_G_VALUE:
+        fprintf(stderr, "Failed Search, anisotropy is not between -1 and 1\n");
+        break;
+    case IAD_BAD_PHASE_FUNCTION:
+        fprintf(stderr, "Failed Search, unknown phase function\n");
+        break;
+    case IAD_GAMMA_NOT_VALID:
+        fprintf(stderr, "Failed Search, gamma is not valid\n");
+        break;
+    case IAD_F_NOT_VALID:
+        fprintf(stderr, "Failed Search, sphere wall fraction is not valid\n");
+        break;
+    case IAD_TOO_MANY_LAYERS:
+        fprintf(stderr, "Failed Search, too many layers\n");
+        break;
+    case IAD_MEMORY_ERROR:
+        fprintf(stderr, "Failed Search, out of memory\n");
+        break;
+    case IAD_FILE_ERROR:
+        fprintf(stderr, "Failed Search, error reading the input file\n");
+        break;
+    default:
+        fprintf(stderr, "Failed Search, error %d\n", err);
+        break;
+    }
     fprintf(stderr, "\n");
 }
 
@@ -455,6 +520,7 @@ int main(int argc, char **argv)
     long n_photons = 100000;
     int MAX_MC_iterations = 19;
     int any_error = 0;
+    int last_error = IAD_NO_ERROR;
     int process_command_line = 0;
     int params = 0;
     int rt_total = 0;
@@ -1716,8 +1782,10 @@ int main(int argc, char **argv)
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                 print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);
 
-                if (r.error != IAD_NO_ERROR)
+                if (r.error != IAD_NO_ERROR) {
                     any_error = 1;
+                    last_error = r.error;
+                }
 
                 if (Debug(DEBUG_ANY))
                     print_long_error(r.error);
@@ -1725,6 +1793,11 @@ int main(int argc, char **argv)
                     print_dot(start_time, r.error, mc_total, TRUE, cl_verbosity);
             }
         }
+
+        if (cl_verbosity > 0)
+            fprintf(stderr, "\n\n");
+        if (any_error && cl_verbosity > 1)
+            print_long_error(last_error);
 
         exit(EXIT_SUCCESS);
     }
@@ -2396,8 +2469,10 @@ int main(int argc, char **argv)
                 calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
                 print_optical_property_result(stdout, m, r, LR, LT, mu_a, mu_sp, rt_total);
 
-                if (r.error != IAD_NO_ERROR)
+                if (r.error != IAD_NO_ERROR) {
                     any_error = 1;
+                    last_error = r.error;
+                }
 
                 if (Debug(DEBUG_ANY))
                     print_long_error(r.error);
@@ -2478,5 +2553,6 @@ int main(int argc, char **argv)
         fprintf(stderr, "\n\n");
     if (any_error && cl_verbosity > 1)
         print_error_legend();
+
     exit(EXIT_SUCCESS);
 }

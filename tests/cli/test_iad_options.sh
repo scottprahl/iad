@@ -39,6 +39,20 @@ cp "$ROOT_DIR/tests/rxt/1_sphere/vio_A.rxt" "$TEST_TMP/vio_A.rxt"
 )
 assert_exists "$TEST_TMP/vio_A.txt"
 
+# M_R + M_T > 1 violates energy conservation when no spheres are used, so the
+# row is flagged '!' rather than silently reporting a bogus fit.
+too_much="$TEST_TMP/iad_too_much_light.out"
+"$IAD_EXECUTABLE" -r 0.4 -t 0.7 > "$too_much" 2>&1
+assert_matches "$too_much" "0\.4000.*0\.7000.*!"
+# a single command-line measurement names its one error rather than
+# printing the whole legend
+assert_contains "$too_much" "Failed Search, M_R + M_T exceeds 1"
+
+# a sum of exactly 1 is the lossless limit and must still invert
+lossless="$TEST_TMP/iad_lossless.out"
+"$IAD_EXECUTABLE" -r 0.4 -t 0.6 > "$lossless" 2>&1
+assert_matches "$lossless" "0\.4000.*0\.6000.*\*"
+
 assert_fails "$IAD_EXECUTABLE" -a 2 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -q 5 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -S 3 -r 0.2
