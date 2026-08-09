@@ -213,27 +213,27 @@ windist: ad.exe iad.exe libiad.dll
 	rm -rf iad-win-$(VERSION)
 	cp archives/iad-win-$(VERSION).zip archives/iad-win-latest.zip
 
-ad: $(WSRC) $(NRSRC) $(CSRC) $(HSRC) Makefile
+ad: $(WSRC) $(NRSRC) Makefile
 	cd src ; make ad
 	cp src/ad ad
 
-iad: $(WSRC) $(NRSRC) $(CSRC) $(HSRC) Makefile
+iad: $(WSRC) $(NRSRC) Makefile
 	cd src ; make iad
 	cp src/iad iad
 
-ad.exe: $(WSRC) $(NRSRC) $(CSRC) $(HSRC)
+ad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
 	cd src ; make CC="x86_64-w64-mingw32-gcc" ad
 	mv src/ad.exe ad.exe
 	cd src ; make clean
 
-iad.exe: $(WSRC) $(NRSRC) $(CSRC) $(HSRC)
+iad.exe: $(WSRC) $(NRSRC)
 	cd src ; make clean
 	cd src ; make CC="x86_64-w64-mingw32-gcc" iad
 	mv src/iad.exe iad.exe
 	cd src ; make clean
 
-libiad.dll: $(WSRC) $(NRSRC) $(CSRC) $(HSRC)
+libiad.dll: $(WSRC) $(NRSRC)
 	cd src ; make clean
 	cd src ; make CC="x86_64-w64-mingw32-gcc" libiad.dll
 	mv src/libiad.dll .
@@ -403,6 +403,17 @@ help::
 
 
 .SECONDARY: $(HSRC) $(CSRC)
+
+# The executables are phony so that the sub-make in src always gets a chance
+# to decide.  This Makefile only knows about the .w sources, so a change to a
+# generated .c or .h left the target looking up to date, the recipe was never
+# run, and the object was never recompiled -- make reported success having
+# done nothing.  Listing the generated files as prerequisites would have
+# covered that one case; descending every time covers a deleted object file
+# and anything else the lists might miss.  The sub-make is a no-op when there
+# is nothing to do.
+
+.PHONY: ad iad ad.exe iad.exe libiad.dll
 
 .PHONY: clean realclean clean-generated-dry-run clean-generated \
         clean-generated-all-dry-run clean-generated-all scratch-build \
