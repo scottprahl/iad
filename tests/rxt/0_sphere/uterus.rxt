@@ -3,30 +3,30 @@ IAD1
 # Uterus #1 Sample #1			{Two comment lines are ignored}
 # by Scott Prahl 				{also ignored}
 #
-1.4          # Index of refraction of sample
-1.5          # Index of refraction of top slide
-1.0          # [mm] Thickness of sample
-1.0          # [mm] Thickness of slides
-2.0          # [mm] Diameter of illumination beam
-0.99         # Reflectance of calibration standard
+1.4        # Index of refraction of sample
+1.5        # Index of refraction of top slide
+1.0        # [mm] Thickness of sample
+1.0        # [mm] Thickness of slides
+2.0        # [mm] Diameter of illumination beam
+0.99       # Reflectance of calibration standard
 
-0            # Number of spheres used during each measurement
+0          # Number of spheres used during each measurement
 
-             # Refection sphere properties (unused because n_spheres=0)
-203.2        # [mm] Sphere Diameter
-25.4         # [mm] Sample Port Diameter
-12.7         # [mm] Empty Port Diameter
-12.7         # [mm] Detector Port Diameter
-0.96         # Reflectivity of the sphere wall
+           # Sphere configuration for reflectance measurements (unused)
+203.2      # [mm] Sphere Diameter
+25.4       # [mm] Sample Port Diameter
+12.7       # [mm] Light Entrance Port Diameter
+12.7       # [mm] Detector Port Diameter
+0.96       # Reflectance of the sphere wall
 
-             # Transmission sphere properties (unused because n_spheres=0)
-203.2        # [mm] Sphere Diameter
-25.4         # [mm] Sample Port Diameter
-12.7         # [mm] Empty Port Diameter
-12.7         # [mm] Detector Port Diameter
-0.96         # Reflectivity of the sphere wall
+           # Sphere configuration for transmittance measurements (unused)
+203.2      # [mm] Sphere Diameter
+25.4       # [mm] Sample Port Diameter
+12.7       # [mm] Light Exit Port Diameter
+12.7       # [mm] Detector Port Diameter
+0.96       # Reflectance of the sphere wall
 
-2            # [mm] Number of measurements
+2          # [mm] Number of measurements
 
 #wave	refl	trans	thickness
 550	0.4589844	.017

@@ -4,29 +4,29 @@ IAD1   # Must be first four characters
 # Data collected with a Shimadzu 3600UV with ISR-3100 Integrating Sphere
 # The reference beam travelled through air
 
-1.33   # Index of refraction of the sample
-1.5171 # Index of refraction of the top and bottom slides
-10.3   # [mm] Thickness of sample
-0.85   # [mm] Thickness of slides
-7.4    # [mm] Diameter of illumination beam
-0.98   # Reflectivity of the reflectance calibration standard
-1      # Number of spheres used during each measurement
+1.33       # Index of refraction of the sample
+1.5171     # Index of refraction of the top and bottom slides
+10.3       # [mm] Thickness of sample
+0.85       # [mm] Thickness of slides
+7.4        # [mm] Diameter of illumination beam
+0.98       # Reflectivity of the reflectance calibration standard
+1          # Number of spheres used during each measurement
 
-# Properties of reflectance measurement sphere
-60      # [mm] Sphere Diameter
-17.41   # [mm] Sample Port Diameter
-17.41   # [mm] Empty Port Diameter
-13.12   # [mm] Detector Port Diameter
-0.98    # Reflectivity of the sphere wall
+           # Sphere configuration for reflectance measurements
+60         # [mm] Sphere Diameter
+17.41      # [mm] Sample Port Diameter
+17.41      # [mm] Light Entrance Port Diameter
+13.12      # [mm] Detector Port Diameter
+0.98       # Reflectance of the sphere wall
 
-# Properties of transmittance measurement sphere
-60      # [mm] Sphere Diameter
-17.41   # [mm] Sample Port Diameter
-17.41   # [mm] Empty Port Diameter
-13.12   # [mm] Detector Port Diameter
-0.98    # Reflectivity of the sphere wall
+           # Sphere configuration for transmittance measurements
+60         # [mm] Sphere Diameter
+17.41      # [mm] Sample Port Diameter
+17.41      # [mm] Light Exit Port Diameter
+13.12      # [mm] Detector Port Diameter
+0.98       # Reflectance of the sphere wall
 
-2	    # Two Measurements: M_R M_T
+2          # Two Measurements: M_R M_T
 #lambda M_R   M_T
 350	0.08774	0.25764
 352	0.08751	0.26142

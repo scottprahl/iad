@@ -3,28 +3,28 @@ IAD1   # Must be first four characters
 #   1994 June 6 -- Data from David D. Royston
 #   Originally test/ink3.tst in the old iad distribution
 
-1.33   # Index of refraction of the sample
-1.507  # Index of refraction of the top and bottom slides
-5.0    # [mm] Thickness of sample
-1.0    # [mm] Thickness of slides
-2.0    # [mm] Diameter of illumination beam
-1.00   # Reflectivity of the reflectance calibration standard
+1.33       # Index of refraction of the sample
+1.507      # Index of refraction of the top and bottom slides
+5.0        # [mm] Thickness of sample
+1.0        # [mm] Thickness of slides
+2.0        # [mm] Diameter of illumination beam
+1.00       # Reflectivity of the reflectance calibration standard
 
-1      # Number of spheres used during each measurement
+1          # Number of spheres used during each measurement
 
-       # Properties of sphere used for reflection measurements
-508    # [mm] Sphere Diameter  
-50.8   # [mm] Sample Port Diameter
-12.7   # [mm] Entrance Port Diameter
-3.00   # [mm] Detector Port Diameter
-0.894  # Reflectivity of the sphere wall
+           # Sphere configuration for reflectance measurements
+508        # [mm] Sphere Diameter
+50.8       # [mm] Sample Port Diameter
+12.7       # [mm] Light Entrance Port Diameter
+3.00       # [mm] Detector Port Diameter
+0.894      # Reflectance of the sphere wall
 
-       # Properties of sphere used for transmission measurements
-508    # [mm] Sphere Diameter  
-50.8   # [mm] Sample Port Diameter
-12.7   # [mm] Third Port Diameter
-3.00   # [mm] Detector Port Diameter
-0.894  # Reflectivity of the sphere wall
+           # Sphere configuration for transmittance measurements
+508        # [mm] Sphere Diameter
+50.8       # [mm] Sample Port Diameter
+12.7       # [mm] Light Exit Port Diameter
+3.00       # [mm] Detector Port Diameter
+0.894      # Reflectance of the sphere wall
 
     r       t      u
 0.05198	0.28633	0.27936

@@ -12,19 +12,19 @@ IAD1
 
 1          # [mm] Number of spheres used during each measurement
 
-           # Refection sphere properties
+           # Sphere configuration for reflectance measurements
 203.2      # [mm] Sphere Diameter
 20.3       # [mm] Sample Port Diameter
-47.7       # [mm] Empty Port Diameter
+47.7       # [mm] Light Entrance Port Diameter
 1.0        # [mm] Detector Port Diameter
-0.98       # Reflectivity of the sphere wall
+0.98       # Reflectance of the sphere wall
 
-           # Transmission sphere properties
+           # Sphere configuration for transmittance measurements
 203.2      # [mm] Sphere Diameter
 20.3       # [mm] Sample Port Diameter
-0          # [mm] Empty Port Diameter
+0          # [mm] Light Exit Port Diameter (closed)
 1.0        # [mm] Detector Port Diameter
-0.98       # Reflectivity of the sphere wall
+0.98       # Reflectance of the sphere wall
 
 3          # [mm] Number of measurements
 

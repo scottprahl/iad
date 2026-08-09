@@ -4,30 +4,30 @@ IAD1   # Must be first four characters
 # These are accurate values for total reflectance transmittance
 # for a sample between glass sides for g=0 and various mus and mua
  
-1.40   # Index of refraction of the sample
-1.50   # Index of refraction of the top and bottom slides
-1.0    # [mm] Thickness of sample
-1.0    # [mm] Thickness of slides
-0.1    # [mm] Diameter of illumination beam
-1.00   # Reflectivity of the reflectance calibration standard
+1.40       # Index of refraction of the sample
+1.50       # Index of refraction of the top and bottom slides
+1.0        # [mm] Thickness of sample
+1.0        # [mm] Thickness of slides
+0.1        # [mm] Diameter of illumination beam
+1.00       # Reflectivity of the reflectance calibration standard
 
-0      # Number of spheres used during each measurement
+0          # Number of spheres used during each measurement
 
-       # Properties of sphere (unused)
-203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
-25.4   # [mm] Sample Port Diameter
-12.7   # [mm] Empty Port Diameter
-1.00   # [mm] Detector Port Diameter
-0.96   # Reflectivity of the sphere wall
+           # Sphere configuration for reflectance measurements (unused)
+203.2      # [mm] Sphere Diameter
+25.4       # [mm] Sample Port Diameter
+12.7       # [mm] Light Entrance Port Diameter
+1.00       # [mm] Detector Port Diameter
+0.96       # Reflectance of the sphere wall
 
-       # Properties of sphere (unused)
-203.2  # [mm] Sphere Diameter  (8 in * 25.4 mm/in)
-25.4   # [mm] Sample Port Diameter
-12.7   # [mm] Empty Port Diameter
-1.00   # [mm] Detector Port Diameter
-0.96   # Reflectivity of the sphere wall
+           # Sphere configuration for transmittance measurements (unused)
+203.2      # [mm] Sphere Diameter
+25.4       # [mm] Sample Port Diameter
+12.7       # [mm] Light Exit Port Diameter
+1.00       # [mm] Detector Port Diameter
+0.96       # Reflectance of the sphere wall
 
-2      # Number of measurements, M_R, M_T
+2          # Number of measurements, M_R, M_T
 
 #M_R 	              M_T               #mus mua g
 0.18744404560482633 0.5762005443502255  #  5 0.1 0.9

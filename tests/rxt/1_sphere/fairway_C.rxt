@@ -8,30 +8,30 @@ IAD1   # Must be first four characters
 # This file is sets the slide index to 1.0 to eliminate the slides
 # as a potential problem.
  
-1.6    # Index of refraction of the sample
-1.0    # Index of refraction of the top and bottom slides
-2.7    # [mm] Thickness of sample
-1.2    # [mm] Thickness of slides
-9      # [mm] Diameter of illumination beam
-0.985  # Reflectivity of the reflectance calibration standard
+1.6        # Index of refraction of the sample
+1.0        # Index of refraction of the top and bottom slides
+2.7        # [mm] Thickness of sample
+1.2        # [mm] Thickness of slides
+9          # [mm] Diameter of illumination beam
+0.985      # Reflectivity of the reflectance calibration standard
 
-1      # Number of spheres used during each measurement
+1          # Number of spheres used during each measurement
 
-       # Properties of sphere used for reflectance measurements
-152.4  # [mm] Sphere Diameter  (6 in * 25.4 mm/in)
-15     # [mm] Sample Port Diameter
-15     # [mm] Entrance Port Diameter
-18     # [mm] Detector Port Diameter
-0.98   # Reflectivity of the sphere wall
+           # Sphere configuration for reflectance measurements
+152.4      # [mm] Sphere Diameter
+15         # [mm] Sample Port Diameter
+15         # [mm] Light Entrance Port Diameter
+18         # [mm] Detector Port Diameter
+0.98       # Reflectance of the sphere wall
 
-       # Properties of sphere used in transmittance measurements
-152.4  # [mm] Sphere Diameter  (6 in * 25.4 mm/in)
-15     # [mm] Sample Port Diameter
-0      # [mm] Third Port Diameter
-18     # [mm] Detector Port Diameter
-0.98   # Reflectivity of the sphere wall
+           # Sphere configuration for transmittance measurements
+152.4      # [mm] Sphere Diameter
+15         # [mm] Sample Port Diameter
+0          # [mm] Light Exit Port Diameter (closed)
+18         # [mm] Detector Port Diameter
+0.98       # Reflectance of the sphere wall
 
-2      # Number of measurements, M_R, M_T
+2          # Number of measurements, M_R, M_T
 
 #lambda	M_R     	M_T
 650 	0.163327	0.565022	#Sample "20"
