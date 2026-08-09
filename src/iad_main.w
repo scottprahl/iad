@@ -1841,7 +1841,7 @@ static void print_error_legend(void)
     fprintf(stderr, "   +  ==> Hit iteration limit\n");
     fprintf(stderr, "   x  ==> No solution found");
     fprintf(stderr, "   m  ==> Lost-light correction failed\n");
-    fprintf(stderr, "   P  ==> Beam wider than a port\n\n");
+    fprintf(stderr, "   P  ==> Port geometry is wrong\n\n");
 }
 
 
@@ -1982,6 +1982,7 @@ static char what_char(int err)
     if (err == IAD_MC_DID_NOT_CONVERGE) return 'm';
     if (err == IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT)   return 'P';
     if (err == IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT) return 'P';
+    if (err == IAD_SAMPLE_PORTS_DIFFER)            return 'P';
     return '?';
 }
 
@@ -2011,6 +2012,10 @@ static void print_long_error(int err)
         fprintf(stderr, "Failed Search, beam is wider than the entrance port\n");
         fprintf(stderr, "    the beam was clipped entering the sphere;\n");
         fprintf(stderr, "    check the beam diameter and the entrance port size\n"); break;
+    case IAD_SAMPLE_PORTS_DIFFER:
+        fprintf(stderr, "Failed Search, the two spheres disagree about the sample port\n");
+        fprintf(stderr, "    the sample sits in one hole, so both sphere blocks\n");
+        fprintf(stderr, "    must give it the same diameter\n"); break;
     case IAD_MC_DID_NOT_CONVERGE:
         fprintf(stderr, "Failed Search, lost-light correction did not settle\n");
         fprintf(stderr, "    the Monte Carlo re-inversion stopped converging;\n");

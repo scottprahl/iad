@@ -90,6 +90,12 @@ if the entrance port is, then the beam was clipped on its way into the sphere.
 @d IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT    42
 @d IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT  43
 
+@ With two spheres the sample is sandwiched between them and one hole in the
+holder faces each.  It is a single physical aperture, so the two sample port
+diameters have to agree even though the sphere diameters need not.
+
+@d IAD_SAMPLE_PORTS_DIFFER             44
+
 @d UNINITIALIZED                -99
 
 @d DEBUG_A_LITTLE                 1

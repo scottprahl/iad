@@ -465,6 +465,30 @@ other beam that does not fit.
     if (m.num_spheres == 2 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.as_t))
         return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
 
+    @<Check that both spheres see the same sample port@>@;
+
+@ A sample between two spheres presents one hole to each of them.  The port
+areas are stored as fractions of their own sphere, so the two fractions differ
+whenever the spheres do; it is the diameters that must agree.
+
+Getting this wrong is unlikely but perfectly possible, and nothing downstream
+would notice.  Halving the transmission sphere's sample port in a copy of
+\.{double.rxt} left the inversion reporting success while the transmitted
+lost-light estimate rose elevenfold, from 0.0010 to 0.0115, because the
+Monte Carlo dutifully used a different aperture for each side.  The comparison
+is relative so that it does not depend on the units or the size of the port.
+
+@<Check that both spheres see the same sample port@>=
+
+    if (m.num_spheres == 2) {
+        double d_sample_r = 2 * m.d_sphere_r * sqrt(m.as_r);
+        double d_sample_t = 2 * m.d_sphere_t * sqrt(m.as_t);
+        double widest = (d_sample_r > d_sample_t) ? d_sample_r : d_sample_t;
+
+        if (fabs(d_sample_r - d_sample_t) > 1e-6 * widest)
+            return IAD_SAMPLE_PORTS_DIFFER;
+    }
+
 @*1 Searching Method.
 
 The original idea was that this routine would automatically determine
