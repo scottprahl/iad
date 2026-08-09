@@ -12,6 +12,7 @@ returning within a cone assuming normal illumination.
 #include "ad_bound.h"
 #include "ad_doubl.h"
 #include "ad_start.h"
+#include "ad_frsnl.h"
 
 @<Definition for |RT_Cone|@>@;
 @<Definition for |ez_RT_Cone|@>@;
@@ -64,6 +65,8 @@ void RT_Cone(int n,
 {
     @<|RT_Cone| Declare variables@>@;
     @<|RT_Cone| Check inputs@>@;
+    Choose_Cone_Method(slab, &method);
+    @<|RT_Cone| Handle a slab of zero thickness@>@;
     @<|RT_Cone| Allocate slab memory@>@;
     @<|RT_Cone| Initialize homogeneous layer@>@;
     @<|RT_Cone| Allocate and generate top and bottom boundaries@>@;
@@ -128,21 +131,99 @@ This code is directly lifted from the |RT_Matrices| routine.
 
 @<|RT_Cone| Initialize homogeneous layer@>=
 
-    Choose_Cone_Method(slab, &method);
-
-    if (slab->b <= 0) {
-        Zero_Layer(n, R12, T12);
-        return;
-    }
-
     n = method.quad_pts;
     Init_Layer(*slab, method, R12, T12);
 
     d= 1.0;
-    if (slab->b != HUGE_VAL) 
+    if (slab->b != HUGE_VAL)
         d = method.b_thinnest * slab->b / method.b_calc;
 
     Double_Until(n, R12, T12, d, slab->b);
+
+@ A slab of zero optical thickness is perfectly legitimate --- a bare slide,
+or a window whose index matches what surrounds it.  The adding machinery
+cannot express one, though.  A layer with no thickness reflects and transmits
+specularly, and a specular layer is a delta function in angle, which no
+quadrature matrix represents.  Pushing it through anyway produced a singular
+matrix and killed the program inside |Left_Inverse_Multiply| the moment the
+slab and its boundaries had different indices.
+
+This is why |RT| never sends such a slab through the matrices at all; it hands
+the case to |Sp_RT|.  The code here once tried to build a |Zero_Layer| and
+|return|, which was a fragment lifted from |RT_Matrices|.  That |return| is
+right in |RT_Matrices|, where filling |R| and |T| is all the routine ever
+does, and wrong here, where the boundaries have still to be applied: it threw
+the layer away the instant it was built and left the four fluxes holding the
+$-1$ that marks refused input.  So a slab that merely had no thickness was
+reported as one that could not be understood --- and every matrix leaked on
+the way out.
+
+Oblique incidence needs nothing new.  There |cos_angle| is the direction the
+light arrives from rather than the width of a cone, which is precisely what
+|Sp_RT| already computes.
+
+For a cone the delta function is what makes the answer easy.  Normally
+incident light leaves a specular slab along the normal, so the whole beam is
+caught by any cone of nonzero width and none of it by a cone of no width:
+|UR1| is all or nothing.  The diffuse quantity follows from the definition
+$$
+\hbox{URU} \equiv {n^2\over1-\mu^2} \int_\mu^1\!\!\int_0^1
+R(\nu',\nu'')\,2\nu'd\nu'\,2\nu''d\nu''
+$$
+by collapsing one integral against the delta, which leaves a single sum over
+the quadrature angles that lie inside the cone.  Angles past the critical
+angle are trapped and contribute nothing, which is why |Cos_Snell| returning
+zero is skipped exactly as |Sp_RT| skips it.  At |mu| of zero the cone opens
+to the whole hemisphere, every untrapped angle is included, $1-\mu^2$ is one,
+and the sum reduces term by term to |Sp_RT| --- so the full cone agrees with
+|RT| by construction rather than by luck.
+
+@<|RT_Cone| Handle a slab of zero thickness@>=
+
+    if (slab->b <= 0) {
+        double mu = slab->cos_angle;
+        double mu_slab, mu_outside, r, t;
+        int i;
+
+        if (use_cone != CONE) {
+            Sp_RT(n, *slab, UR1, UT1, URU, UTU);
+            return;
+        }
+
+        if (mu >= 1) {
+            *UR1 = 0;
+            *UT1 = 0;
+            *URU = 0;
+            *UTU = 0;
+            return;
+        }
+
+        Sp_mu_RT(slab->n_top_slide, slab->n_slab, slab->n_bottom_slide,
+                 slab->b_top_slide, 0.0, slab->b_bottom_slide, 1.0, UR1, UT1);
+
+        if (slab->n_slab == 1)
+            mu_slab = mu;
+        else
+            mu_slab = sqrt(slab->n_slab*slab->n_slab - 1 + mu*mu)/slab->n_slab;
+
+        *URU = 0.0;
+        *UTU = 0.0;
+        for (i = 1; i <= n; i++) {
+            if (angle[i] <= mu_slab)
+                continue;
+            mu_outside = Cos_Snell(slab->n_slab, angle[i], 1.0);
+            if (mu_outside == 0)
+                continue;
+            Sp_mu_RT(slab->n_top_slide, slab->n_slab, slab->n_bottom_slide,
+                     slab->b_top_slide, 0.0, slab->b_bottom_slide, mu_outside, &r, &t);
+            *URU += twoaw[i] * r;
+            *UTU += twoaw[i] * t;
+        }
+
+        *URU *= slab->n_slab*slab->n_slab/(1 - mu*mu);
+        *UTU *= slab->n_slab*slab->n_slab/(1 - mu*mu);
+        return;
+    }
 
 @ Create the matrices needed for the top and bottom
 @<|RT_Cone| Allocate and generate top and bottom boundaries@>=

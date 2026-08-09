@@ -9,6 +9,7 @@
 #include "ad_bound.h"
 #include "ad_doubl.h"
 #include "ad_start.h"
+#include "ad_frsnl.h"
 
 void RT_Cone(int n, struct AD_slab_type *slab, int use_cone, double *UR1, double *UT1, double *URU, double *UTU)
 {
@@ -46,6 +47,53 @@ void RT_Cone(int n, struct AD_slab_type *slab, int use_cone, double *UR1, double
         n = 12;
     method.quad_pts = n;
 
+    Choose_Cone_Method(slab, &method);
+
+    if (slab->b <= 0) {
+        double mu = slab->cos_angle;
+        double mu_slab, mu_outside, r, t;
+        int i;
+
+        if (use_cone != CONE) {
+            Sp_RT(n, *slab, UR1, UT1, URU, UTU);
+            return;
+        }
+
+        if (mu >= 1) {
+            *UR1 = 0;
+            *UT1 = 0;
+            *URU = 0;
+            *UTU = 0;
+            return;
+        }
+
+        Sp_mu_RT(slab->n_top_slide, slab->n_slab, slab->n_bottom_slide,
+            slab->b_top_slide, 0.0, slab->b_bottom_slide, 1.0, UR1, UT1);
+
+        if (slab->n_slab == 1)
+            mu_slab = mu;
+        else
+            mu_slab = sqrt(slab->n_slab * slab->n_slab - 1 + mu * mu) / slab->n_slab;
+
+        *URU = 0.0;
+        *UTU = 0.0;
+        for (i = 1; i <= n; i++) {
+            if (angle[i] <= mu_slab)
+                continue;
+            mu_outside = Cos_Snell(slab->n_slab, angle[i], 1.0);
+            if (mu_outside == 0)
+                continue;
+            Sp_mu_RT(slab->n_top_slide, slab->n_slab, slab->n_bottom_slide,
+                slab->b_top_slide, 0.0, slab->b_bottom_slide, mu_outside, &r, &t);
+            *URU += twoaw[i] * r;
+            *UTU += twoaw[i] * t;
+        }
+
+        *URU *= slab->n_slab * slab->n_slab / (1 - mu * mu);
+        *UTU *= slab->n_slab * slab->n_slab / (1 - mu * mu);
+        return;
+    }
+
     R12 = dmatrix(1, n, 1, n);
     T12 = dmatrix(1, n, 1, n);
     R02 = dmatrix(1, n, 1, n);
@@ -58,13 +106,6 @@ void RT_Cone(int n, struct AD_slab_type *slab, int use_cone, double *UR1, double
     T30 = dmatrix(1, n, 1, n);
     atemp = dmatrix(1, n, 1, n);
     btemp = dmatrix(1, n, 1, n);
-
-    Choose_Cone_Method(slab, &method);
-
-    if (slab->b <= 0) {
-        Zero_Layer(n, R12, T12);
-        return;
-    }
 
     n = method.quad_pts;
     Init_Layer(*slab, method, R12, T12);

@@ -23,6 +23,7 @@ code.
 @<Definition for |PrintTestResults|@>@;
 @<Definition for |PrintUnityResults|@>@;
 @<Definition for |CheckConeLimits|@>@;
+@<Definition for |CheckZeroThicknessCone|@>@;
 @<Definition for |RT_Cone_Main|@>@;
 
 @ A simple utility routine to print the results nicely.
@@ -104,8 +105,10 @@ does drift: the same comparison at sixteen points disagrees by $3\times
 10^{-4}$, which is why the tolerance travels with the point count rather than
 being a property of |RT_Cone|.
 
-A slab of zero optical thickness is deliberately not checked.  |RT_Cone|
-returns $-1$ for one, which is a separate defect and not what this is about.
+Slabs of zero optical thickness are checked too, and they are the reason the
+list below ends with three of them.  |RT_Cone| used to return $-1$ for such a
+slab, and once that was repaired it took the specular shortcut instead of the
+matrices, so these rows are the only ones that exercise that shortcut.
 
 @<Definition for |CheckConeLimits|@>=
 static void CheckConeLimits(int N, struct AD_slab_type *slab, int *failures)
@@ -134,13 +137,56 @@ static void CheckConeLimits(int N, struct AD_slab_type *slab, int *failures)
     }
 }
 
+@ The limits above pin down the two ends of the cone but say nothing about
+what happens between them, because a cone of ninety degrees makes the
+$1-\mu^2$ that normalises |URU| equal to one and a cone of no width never
+reaches it.  Dropping that factor altogether leaves both limit checks
+passing.
+
+Continuity supplies the missing reference.  A slab of zero thickness takes
+the specular shortcut, and a slab of thickness $10^{-9}$ goes through the
+adding matrices; they are different routines computing the same physical
+answer, so at intermediate cone angles they must agree to about the thickness
+that separates them.  Nothing here needs a closed form for the cone integral:
+each routine checks the other.
+
+@<Definition for |CheckZeroThicknessCone|@>=
+static void CheckZeroThicknessCone(int N, struct AD_slab_type *slab, int *failures)
+{
+    static const double mus[4] = {0.20, 0.50, 0.80, 0.95};
+    double zUR1, zUT1, zURU, zUTU;
+    double tUR1, tUT1, tURU, tUTU;
+    int i;
+
+    for (i = 0; i < 4; i++) {
+        slab->cos_angle = mus[i];
+
+        slab->b = 0.0;
+        RT_Cone(N, slab, CONE, &zUR1, &zUT1, &zURU, &zUTU);
+
+        slab->b = 1e-9;
+        RT_Cone(N, slab, CONE, &tUR1, &tUT1, &tURU, &tUTU);
+
+        slab->b = 0.0;
+
+        if (fabs(zUR1 - tUR1) > 1e-6 || fabs(zUT1 - tUT1) > 1e-6 ||
+            fabs(zURU - tURU) > 1e-6 || fabs(zUTU - tUTU) > 1e-6) {
+            printf("FAIL n=%.2f nslide=%.2f mu=%.2f: zero thickness gives "
+                   "%.9f %.9f %.9f %.9f, b=1e-9 gives %.9f %.9f %.9f %.9f\n",
+                   slab->n_slab, slab->n_top_slide, mus[i],
+                   zUR1, zUT1, zURU, zUTU, tUR1, tUT1, tURU, tUTU);
+            (*failures)++;
+        }
+    }
+}
+
 @ The slabs below span the cases the rest of the file exercises by hand: no
 scattering, no absorption, forward and backward anisotropy, a matched and an
 unmatched boundary, and one slab thick enough to be nearly diffuse.
 
 @<Check the limiting cone angles@>=
 {
-    static const double cases[7][5] = {
+    static const double cases[10][5] = {
     /*     a       b       g      n_slab  n_slide */
         {0.000,   0.10,   0.000,   1.00,   1.0},
         {0.500,   0.50,   0.875,   1.00,   1.0},
@@ -148,13 +194,16 @@ unmatched boundary, and one slab thick enough to be nearly diffuse.
         {0.990,   2.00,   0.000,   1.40,   1.5},
         {0.900,   5.00,   0.900,   1.33,   1.5},
         {0.950,   1.00,  -0.500,   1.40,   1.5},
-        {0.999,  10.00,   0.000,   1.00,   1.0}
+        {0.999,  10.00,   0.000,   1.00,   1.0},
+        {0.000,   0.00,   0.000,   1.00,   1.0},
+        {0.000,   0.00,   0.000,   1.50,   1.0},
+        {0.000,   0.00,   0.000,   1.33,   1.5}
     };
     int i;
 
     printf("\nLimiting cone angles\n");
 
-    for (i = 0; i < 7; i++) {
+    for (i = 0; i < 10; i++) {
         slab.a = cases[i][0];
         slab.b = cases[i][1];
         slab.g = cases[i][2];
@@ -165,6 +214,20 @@ unmatched boundary, and one slab thick enough to be nearly diffuse.
         slab.b_bottom_slide = 0;
         slab.phase_function = HENYEY_GREENSTEIN;
         CheckConeLimits(N, &slab, &cone_failures);
+    }
+
+    printf("\nZero thickness against a very thin slab\n");
+
+    for (i = 7; i < 10; i++) {
+        slab.a = cases[i][0];
+        slab.g = cases[i][2];
+        slab.n_slab = cases[i][3];
+        slab.n_top_slide = cases[i][4];
+        slab.n_bottom_slide = cases[i][4];
+        slab.b_top_slide = 0;
+        slab.b_bottom_slide = 0;
+        slab.phase_function = HENYEY_GREENSTEIN;
+        CheckZeroThicknessCone(N, &slab, &cone_failures);
     }
 }
 
