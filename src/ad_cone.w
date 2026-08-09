@@ -222,7 +222,10 @@ total amount of light reflected back for light incident only at the cone angle.
     free_dvector(T32, 1, n);
     free_dvector(T23, 1, n);
 
-@ Simple wrapper that avoids data structures
+@ Simple wrapper that avoids data structures.  As with the other |ez_RT|
+routines the slides refract but do not absorb: no slide optical depth can be
+passed and both are set to zero below.  Call |RT_Cone| with a filled-in
+|AD_slab_type| when the slides absorb.
 
 @<Prototype for |ez_RT_Cone|@>=
 void ez_RT_Cone(int n,  
@@ -259,6 +262,9 @@ struct AD_slab_type slab;
 for oblique incidence.  |URx| and |UTx| are the total light
 reflected and transmitted for light incident at |cos_oblique_angle|.
 |URU| and |UTU| are the same thing for diffuse incident light.
+
+The slides refract but do not absorb here too; both slide optical depths are
+set to zero below and there is no argument for them.
 
 @<Prototype for |ez_RT_Oblique|@>=
 void ez_RT_Oblique(int n,   

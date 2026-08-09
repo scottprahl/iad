@@ -493,6 +493,12 @@ double add_to_transmittance_array(double x, double y, double z, double w, double
 fractions and the portions of those totals outside the reflection and
 transmission port radii.
 
+A photon that has just crossed the top slide and entered the sample has not
+scattered yet, but it may already weigh less than one: an absorbing slide
+attenuates it on the way through.  The assertion there checks that the weight
+is still positive and has not grown, not that it is exactly one, which held
+only while every slide was perfectly clear.
+
 @ The two slides are described separately.  The top slide is the one the
 light reaches first; the bottom slide is the one on the far side of the
 sample.  A slide is absent when its index is one, and then its thickness must
@@ -522,7 +528,9 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
 #ifndef NDEBUG
     double cos_critical = Cos_Critical_Angle(n_sample, 1.0);
-    fprintf(stderr, "cos_incidence = %10.5f\n", cos_cone_angle);
+    fprintf(stderr, "illumination  = %s\n",
+            (cos_cone_angle == COLLIMATED) ? "collimated" : "diffuse");
+    fprintf(stderr, "cos_incidence = %10.5f\n", cos_incidence);
     fprintf(stderr, "cos_critical = %10.5f\n", cos_critical);
     fprintf(stderr, "d_beam   = %10.5f\n", d_beam);
     fprintf(stderr, "t_sample = %10.5f\n", t_sample);
@@ -588,7 +596,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
         assert(w > 0);
         assert(cos_critical < w);
         assert(CLOSE(z, 0));
-        assert(weight == 1);
+        assert(weight > 0 && weight <= 1);
         assert(CLOSE(sqr(u) + sqr(v) + sqr(w), 1));
 
         while (weight > 0) {

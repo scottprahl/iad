@@ -43,11 +43,26 @@ libiad.dylib: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 libiad.dll: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 	$(CC) -shared -o libiad.dll $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o
 
-libiad.h : ad iad ad_cone_ez.h ad_layers.h
+# lib_ad.h and lib_iad.h fall out of ctangle alongside ad_prime.c and
+# iad_pub.c, but the %.c %.h pattern rule only knows about matching stems, so
+# make cannot work out how to rebuild them on its own.  They need rules of
+# their own.  Without them the libiad.h recipe below, which used to delete
+# both after use, could not be run twice: `make clean' leaves the committed
+# .c files alone, so ctangle never re-runs and the second `make lib' dies with
+# "cat: lib_ad.h: No such file or directory".  They are left in place now and
+# removed by `make realclean' with the other generated sources.
+
+lib_ad.h : ad_prime.w
+	ctangle -bhp ad_prime.w
+
+lib_iad.h : iad_pub.w
+	ctangle -bhp iad_pub.w
+
+libiad.h : ad iad lib_ad.h lib_iad.h ad_cone_ez.h ad_layers.h
 	cat lib_ad.h lib_iad.h ad_cone_ez.h ad_layers.h > libiad.tmp
 	./cobweb.pl < libiad.tmp > libiad.tmp2
 	$(INDENT) $(INDENT_OPT) < libiad.tmp2 > libiad.h
-	rm -f libiad.tmp lib_ad.h lib_iad.h libiad.tmp2
+	rm -f libiad.tmp libiad.tmp2
 
 ad_doc: ad.w
 	cweave -bph ad || (echo "cweave exited with code $$? - continue anyway"; exit 0)

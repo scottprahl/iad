@@ -9,6 +9,11 @@ Backwards-incompatible changes
 *   remove the faulty power-law forms of ``-F`` (``-F 'P 500 1.0 -1.3'`` and
     ``-F 'R 500 1.0 -1.3'``); the other uses of ``-F`` are unchanged
 *   test fixtures moved from ``test/`` to ``tests/rxt/{0,1,2}_sphere``
+*   remove ``Spheres_Inverse_RT2`` from ``libiad``.  It was an unfinished
+    second pass at ``Spheres_Inverse_RT``: it never read four of its six
+    illumination values, discarded the slide thicknesses it was given, and had
+    no way to report an error, so a failed inversion returned the initial
+    guess as though it were an answer.  Use ``Spheres_Inverse_RT``
 
 Inversion
 ~~~~~~~~~
@@ -29,7 +34,9 @@ Inversion
 *   accept a valid boundary-clamped solution even after the simplex hits its iteration cap
 *   improved single sphere MT calc when unscattered T exits
 *   reset defaults for each data point
-*   use a non-deterministic Monte Carlo seed each run
+*   ``iad`` is fully reproducible: the same input always gives the same answer,
+    since the lost-light Monte Carlo starts from a fixed seed.  The standalone
+    ``mc_lost`` takes ``-s`` to choose a seed, where zero draws one from the clock
 
 Command line and output
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -81,6 +88,18 @@ Fixes
 *   show ``AD`` rather than ``IAD`` above the iterations for ``-x 8``
 *   reallocate redistribution-function cache when quadrature-point count changes
 *   fix ``mc_lost`` build
+*   fix an assertion that aborted debug builds whenever the slides absorbed;
+    a photon crossing an absorbing slide weighs less than one before it has
+    scattered at all
+*   label the Monte Carlo tolerance in 1/mm rather than as a percentage; it is
+    compared against absolute changes in ``mu_a`` and ``mu_s'``
+*   report the illumination and the incidence cosine correctly in the Monte
+    Carlo debug output
+*   fix ``make lib`` failing with "cat: lib_ad.h: No such file or directory".
+    The ``libiad.h`` rule deleted two of its own inputs and neither was a
+    prerequisite, so it could not be run a second time
+*   document that the ``ez_RT`` family treats slides as clear, and add a test
+    that fails if it is ever called from code where slide absorption is set
 *   single-sphere command-line fixes
 *   improve M_T calculation
 *   improve lost-light and sphere debug output

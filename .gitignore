@@ -82,3 +82,5 @@ src/lib*
 libiad.dylib
 libiad.so
 libiad.dll
+libiad.a
+libiad.h

@@ -369,7 +369,8 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
 #ifndef NDEBUG
     double cos_critical = Cos_Critical_Angle(n_sample, 1.0);
-    fprintf(stderr, "cos_incidence = %10.5f\n", cos_cone_angle);
+    fprintf(stderr, "illumination  = %s\n", (cos_cone_angle == COLLIMATED) ? "collimated" : "diffuse");
+    fprintf(stderr, "cos_incidence = %10.5f\n", cos_incidence);
     fprintf(stderr, "cos_critical = %10.5f\n", cos_critical);
     fprintf(stderr, "d_beam   = %10.5f\n", d_beam);
     fprintf(stderr, "t_sample = %10.5f\n", t_sample);
@@ -434,7 +435,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
         assert(w > 0);
         assert(cos_critical < w);
         assert(CLOSE(z, 0));
-        assert(weight == 1);
+        assert(weight > 0 && weight <= 1);
         assert(CLOSE(sqr(u) + sqr(v) + sqr(w), 1));
 
         while (weight > 0) {

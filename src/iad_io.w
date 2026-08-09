@@ -627,7 +627,7 @@ analyze_constant_columns(stdin, m, r, params);
         printf("#                 AD quadrature points = %3d\n",
                 r.method.quad_pts);
         printf("#             AD tolerance for success = %9.5f\n", r.tolerance );
-        printf("#      MC tolerance for mu_a and mu_s' = %7.3f %%\n", r.MC_tolerance );
+        printf("#      MC tolerance for mu_a and mu_s' = %9.5f 1/mm\n", r.MC_tolerance );
 
 
 @ Get the current line number by counting.

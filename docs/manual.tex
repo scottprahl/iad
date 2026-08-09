@@ -938,6 +938,15 @@ is wide enough that nothing is lost.  It also checks that \texttt{-G n} and
 \texttt{-G f} leave the reflection losses alone while changing the transmission
 losses, since lost light is not reciprocal.
 
+\item[\texttt{test\_ez\_rt\_callers.sh}]
+A source check rather than a run.  The \texttt{ez\_RT} family takes indices of
+refraction but no slide optical depths and sets both to zero internally, so
+those routines treat the slides as clear.  This test fails if any file that can
+see slide absorption starts calling them, which would silently drop the
+absorption.  Only \texttt{ad\_layers\_test} and \texttt{mc\_lost\_main} are
+allowed to call them, and it also checks that \texttt{mc\_lost\_main} still
+fixes its slide absorption at zero.
+
 \item[\texttt{test\_ad\_basic.sh}]
 Checks the forward adding-doubling executable \texttt{ad}.  This is not an
 \iadprog{} inversion test, but it validates the forward solver that

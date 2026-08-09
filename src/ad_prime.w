@@ -259,7 +259,21 @@ void RT(int n, struct AD_slab_type * slab, double *UR1, double *UT1, double *URU
 
 @*1 Simple interfaces for Perl, Python, or Mathematica.
 
-|ez_RT| is a top level routine for accessing the adding-doubling algorithm.
+Every routine in this section takes indices of refraction but no slide
+optical depths, and each one sets |b_top_slide| and |b_bottom_slide| to zero.
+{\it The slides refract but never absorb.} That is deliberate --- these are
+deliberately small interfaces for callers that cannot pass a structure --- but
+it means the answers are wrong for a sample whose slides absorb, and nothing
+in the signature warns you.  Use |RT| with a filled-in |AD_slab_type|, or
+|Sp_mu_RT| for the unscattered part, whenever the slides may absorb.
+
+Nothing inside |iad| or |ad| calls these with absorbing slides.  The only
+callers are |ad_layers_test|, which uses clear slides throughout, and
+|mc_lost_main|, whose slide absorption is fixed at zero and cannot be set from
+its command line.  |tests/cli/test_ez_rt_callers.sh| fails if a new caller
+appears somewhere that slide absorption can reach.
+
+@ |ez_RT| is a top level routine for accessing the adding-doubling algorithm.
 This routine was originally created so that I could make a Perl .xs module.
 Since I did not know how to mess around with passing structures, I changed
 the interface to avoid using structures.
@@ -296,7 +310,8 @@ struct AD_slab_type slab;
 |ez_RT_unscattered| is a top level routine for accessing the adding-doubling algorithm.
 This routine was created so that I could make a Perl module.  Since I did
 not know how to mess around with passing structures, I changed the interface
-to avoid using structures.
+to avoid using structures.  Like the rest of this section it treats the
+slides as clear; |Sp_mu_RT| is the one to call when they absorb.
 
 @<Prototype for |ez_RT_unscattered|@>=
 void ez_RT_unscattered(int n,

@@ -52,7 +52,7 @@ TESTCLI = tests/cli/compare_numeric.py       tests/cli/lib.sh                   
         tests/cli/test_iad_one_sphere.sh     tests/cli/test_iad_one_sphere_no_mc.sh  \
         tests/cli/test_iad_options.sh        tests/cli/test_iad_two_sphere.sh        \
         tests/cli/test_iad_two_sphere_no_mc.sh  tests/cli/test_iad_slides.sh         \
-        tests/cli/test_mc_slides.sh
+        tests/cli/test_mc_slides.sh             tests/cli/test_ez_rt_callers.sh
 
 TESTEXP = tests/cli/expected/ad_basic.txt              tests/cli/expected/iad_basic.txt \
         tests/cli/expected/iad_basic_veryshort.txt     tests/cli/expected/iad_one_sphere_no_mc.txt \
@@ -336,11 +336,12 @@ executables:
 veryshorttest: iad
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh veryshort
 
-test shorttest: iad ad mc_lost
+test shorttest: iad ad
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) AD_EXECUTABLE=$(AD_EXECUTABLE) tests/cli/run_cli_tests.sh basic
 
-longtest: iad
+longtest: iad mc_lost
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt nomc
+	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh long
 
 test0: iad
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt/0_sphere
