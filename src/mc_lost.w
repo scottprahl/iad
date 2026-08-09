@@ -741,6 +741,8 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
 
     int slides_differ;
 
+    @<Give up when no sphere describes the ports@>@;
+
     @<Reconcile each slide index with its thickness@>@;
 
     slides_differ = (n_top != n_bottom) || (t_top != t_bottom) || (b_top != b_bottom);
@@ -767,6 +769,36 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
         exit(EXIT_FAILURE);
     }
 }
+
+@ Port sizes come from the sphere descriptions and from nowhere else, so with
+no sphere there is no port and no way to say what missed it.  |measure_OK|
+only validates the sphere parameters when |num_spheres| is nonzero, which
+means |as_r| and |as_t| may still hold whatever |Initialize_Measure| left
+behind.  Deriving |dr_port| and |dt_port| from those gives a port of zero
+diameter, and a port of zero diameter catches nothing: every photon is scored
+as lost and the inversion is handed a correction that is pure fiction.
+
+The command line already declines to enter the Monte Carlo loop without a
+sphere.  The library entry points take the number of runs straight from the
+caller, so the same guard belongs here too, where every caller passes.
+
+Nothing is simulated, so the losses are zero.  The reflectances and
+transmittances are zeroed as well rather than left holding whatever the
+caller had in those variables.
+
+@<Give up when no sphere describes the ports@>=
+
+    if (m.num_spheres <= 0) {
+        *ur1 = 0;
+        *ut1 = 0;
+        *uru = 0;
+        *utu = 0;
+        *ur1_lost = 0;
+        *ut1_lost = 0;
+        *uru_lost = 0;
+        *utu_lost = 0;
+        return;
+    }
 
 @ The geometry needs index and thickness to agree about whether a slide is
 there at all.  A slide of zero thickness cannot refract, and a slide of index

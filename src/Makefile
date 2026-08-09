@@ -122,6 +122,14 @@ oblique_test: $(AD_OBJ) $(NR_OBJ) ad_oblique_test.o version.o
 mc_test: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_test.o
 	$(CC) -o $@ $^ -lm
 
+# lib_test exercises the library entry points against these objects rather
+# than an installed libiad, so it always reports on the tree it was built
+# from.  It deliberately does not depend on lib_iad.h: that header is a
+# by-product of ctangle, and asking for it would re-tangle iad_pub.w and
+# leave raw output in the tidied iad_pub.c and iad_pub.h.
+lib_test: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o lib_test.o
+	$(CC) -o $@ $^ -lm
+
 mc_lost: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) version.o mc_lost.o mc_lost_main.o
 	$(CC) -o $@ $^ -lm
 
@@ -161,6 +169,7 @@ mc_lost.o  :  iad_type.h iad_util.h
 
 mc_lost_main.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
 mc_test.o : iad_type.h ad_globl.h ad_prime.h iad_type.h mc_lost.h ad_cone.h
+lib_test.o : iad_type.h ad_globl.h iad_pub.h mc_lost.h
 
 # version.c is generated from VERSION and VERSION_DATE in ../Makefile
 version.c : ../Makefile
@@ -174,8 +183,8 @@ version.o : version.c version.h
 clean:
 	rm -f $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) iad_main.o
 	rm -f version.o version.c ad_main.o ad_cone_test.o ad_oblique_test.o
-	rm -f mc_lost_main.o ad_layers_test.o
-	rm -f cone_test layer_test mc_test oblique_test mc_lost
+	rm -f mc_lost_main.o ad_layers_test.o lib_test.o
+	rm -f cone_test layer_test mc_test oblique_test mc_lost lib_test
 	rm -f ad iad adchapter
 
 realclean:

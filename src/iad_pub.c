@@ -715,6 +715,9 @@ void Spheres_Inverse_RT(double *setup,
     r.method.quad_pts = (int) analysis[0];
     mc_runs = (int) analysis[1];
 
+    if (m.num_spheres <= 0)
+        mc_runs = 0;
+
     Inverse_RT(m, &r);
     for (i = 0; i < mc_runs; i++) {
         MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu, &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);

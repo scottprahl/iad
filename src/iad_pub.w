@@ -933,7 +933,14 @@ results.
                             double *measurements,
                             double *results)
 
-@ @<Definition for |Spheres_Inverse_RT|@>=
+@ The caller sets the number of Monte Carlo runs in |analysis|, independently
+of how many spheres were described.  Asking for lost light without a sphere
+cannot mean anything --- the ports are what the photons are scored against ---
+so the request is dropped rather than honoured with an invented geometry.
+|MC_Lost| refuses the same case on its own, but clearing |mc_runs| here also
+saves the repeated |Inverse_RT| calls that would surround the empty runs.
+
+@<Definition for |Spheres_Inverse_RT|@>=
     @<Prototype for |Spheres_Inverse_RT|@>
 {
     struct measure_type m;
@@ -955,6 +962,9 @@ results.
     results[2]=0;
 
     @<handle analysis @>@;
+
+    if (m.num_spheres <= 0)
+        mc_runs = 0;
 
     Inverse_RT (m, &r);
     for (i=0; i<mc_runs; i++) {

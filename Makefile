@@ -107,7 +107,7 @@ export NRSRC = src/nr_amoeb.c src/nr_amotr.h     src/nr_gaulg.c        src/nr_mn
         src/nr_amoeb.h      src/nr_brent.c       src/nr_gaulg.h        src/nr_rtsaf.c  \
         src/nr_amotr.c      src/nr_brent.h       src/nr_mnbrk.c        src/nr_rtsaf.h  \
         src/nr_hj.c         src/nr_hj.h          src/nr_zbrent.h       src/nr_zbrent.c \
-        src/mc_lost_main.c  src/version.h        src/mc_test.c
+        src/mc_lost_main.c  src/version.h        src/mc_test.c         src/lib_test.c
 
 export CSRC  = src/ad_frsnl.c      src/ad_globl.c       src/ad_matrx.c        src/ad_start.c        \
         src/iad_main.c      src/ad_doubl.c       src/iad_util.c        src/ad_radau.c        \
@@ -255,7 +255,7 @@ clean:
 	rm -f src/*.aux src/*.dvi src/*.idx src/*.ref src/*.sref src/*.tex src/*.toc src/*.log src/*.scn
 	rm -f iad.exe ad.exe src/iad.exe src/ad.exe
 	rm -f libiad.dll src/libiad.dll
-	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost
+	rm -f src/oblique_test src/mc_test src/cone_test src/layer_test src/mc_lost src/lib_test
 	rm -rf tests/.jupyter tests/.ipynb_checkpoints .jupyter .ipynb_checkpoints
 	rm -rf .pytest_cache .DS_Store __pycache__
 
@@ -331,13 +331,20 @@ executables:
 	cd src; make layer_test
 	cd src; make oblique_test
 	cd src; make cone_test
+	cd src; make lib_test
 	cd src; make mc_lost
 
 veryshorttest: iad
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh veryshort
 
-test shorttest: iad ad
+test shorttest: iad ad lib_test
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) AD_EXECUTABLE=$(AD_EXECUTABLE) tests/cli/run_cli_tests.sh basic
+
+# The library entry points are C, not a command line, so this test is a
+# program rather than a shell script.  It exits nonzero when a check fails.
+lib_test:
+	cd src ; make lib_test
+	src/lib_test
 
 longtest: iad mc_lost
 	IAD_EXECUTABLE=$(IAD_EXECUTABLE) tests/cli/run_cli_tests.sh batch tests/rxt nomc
@@ -420,4 +427,4 @@ help::
         clean-generated-archives-dry-run clean-generated-archives \
         dists docs test lib install tidy dist windist \
         test veryshorttest shorttest longtest test0 test1 test2 test1_nomc test2_nomc \
-        layertest wintest
+        layertest wintest lib_test

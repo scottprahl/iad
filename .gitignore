@@ -79,6 +79,9 @@ src/*.o
 src/ad.*
 src/iad.*
 src/lib*
+# ...but lib_test.c is hand-written, not generated.  The lib_test binary it
+# builds stays ignored by the pattern above.
+!src/lib_test.c
 libiad.dylib
 libiad.so
 libiad.dll

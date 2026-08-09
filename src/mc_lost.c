@@ -555,6 +555,18 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
 
     int slides_differ;
 
+    if (m.num_spheres <= 0) {
+        *ur1 = 0;
+        *ut1 = 0;
+        *uru = 0;
+        *utu = 0;
+        *ur1_lost = 0;
+        *ut1_lost = 0;
+        *uru_lost = 0;
+        *utu_lost = 0;
+        return;
+    }
+
     if (t_top == 0.0)
         n_top = 1.0;
     if (n_top == 1.0)
