@@ -22,6 +22,7 @@ code.
 
 @<Definition for |PrintTestResults|@>@;
 @<Definition for |PrintUnityResults|@>@;
+@<Definition for |CheckConeLimits|@>@;
 @<Definition for |RT_Cone_Main|@>@;
 
 @ A simple utility routine to print the results nicely.
@@ -80,6 +81,93 @@ static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
                                       bUTU - (bUTU-aUTU)/denom);
 }
 
+@ Everything above prints a table and leaves the reader to judge it.  The two
+ends of the cone, though, are exact, and neither depends on the optical
+properties of the slab:
+
+$\bullet$ A cone of zero degrees, which is |cos_angle| of one, collects
+nothing.  Both fluxes must come back zero.
+
+$\bullet$ A cone of ninety degrees, which is |cos_angle| of zero, collects
+everything that leaves the slab.  It must return exactly what |RT| returns
+for the same slab.
+
+Those two are worth asserting rather than eyeballing.  Note that the
+degenerate end is |cos_angle| of one, not zero: a cosine of one is a cone of
+no width at all.  Reading it the other way around is the easy mistake here.
+
+At twenty-four quadrature points the second identity is limited only by
+roundoff --- over the slabs checked below the worst disagreement is
+$2\times10^{-16}$ --- so the tolerance is set far tighter than any error that
+would matter and far looser than bitwise equality.  Coarser quadrature really
+does drift: the same comparison at sixteen points disagrees by $3\times
+10^{-4}$, which is why the tolerance travels with the point count rather than
+being a property of |RT_Cone|.
+
+A slab of zero optical thickness is deliberately not checked.  |RT_Cone|
+returns $-1$ for one, which is a separate defect and not what this is about.
+
+@<Definition for |CheckConeLimits|@>=
+static void CheckConeLimits(int N, struct AD_slab_type *slab, int *failures)
+{
+    double aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU;
+
+    slab->cos_angle = 1;
+    RT(N, slab, &aUR1, &aUT1, &aURU, &aUTU);
+
+    slab->cos_angle = 1;
+    RT_Cone(N, slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+    if (bUR1 != 0.0 || bUT1 != 0.0) {
+        printf("FAIL a=%.3f b=%.2f g=%+.2f n=%.2f: "
+               "a cone of no width collected UR1=%g UT1=%g\n",
+               slab->a, slab->b, slab->g, slab->n_slab, bUR1, bUT1);
+        (*failures)++;
+    }
+
+    slab->cos_angle = 0;
+    RT_Cone(N, slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+    if (fabs(bUR1 - aUR1) > 1e-11 || fabs(bUT1 - aUT1) > 1e-11) {
+        printf("FAIL a=%.3f b=%.2f g=%+.2f n=%.2f: "
+               "full cone gave UR1=%.12f UT1=%.12f, RT gave %.12f %.12f\n",
+               slab->a, slab->b, slab->g, slab->n_slab, bUR1, bUT1, aUR1, aUT1);
+        (*failures)++;
+    }
+}
+
+@ The slabs below span the cases the rest of the file exercises by hand: no
+scattering, no absorption, forward and backward anisotropy, a matched and an
+unmatched boundary, and one slab thick enough to be nearly diffuse.
+
+@<Check the limiting cone angles@>=
+{
+    static const double cases[7][5] = {
+    /*     a       b       g      n_slab  n_slide */
+        {0.000,   0.10,   0.000,   1.00,   1.0},
+        {0.500,   0.50,   0.875,   1.00,   1.0},
+        {0.500,   0.50,   0.875,   1.40,   1.0},
+        {0.990,   2.00,   0.000,   1.40,   1.5},
+        {0.900,   5.00,   0.900,   1.33,   1.5},
+        {0.950,   1.00,  -0.500,   1.40,   1.5},
+        {0.999,  10.00,   0.000,   1.00,   1.0}
+    };
+    int i;
+
+    printf("\nLimiting cone angles\n");
+
+    for (i = 0; i < 7; i++) {
+        slab.a = cases[i][0];
+        slab.b = cases[i][1];
+        slab.g = cases[i][2];
+        slab.n_slab = cases[i][3];
+        slab.n_top_slide = cases[i][4];
+        slab.n_bottom_slide = cases[i][4];
+        slab.b_top_slide = 0;
+        slab.b_bottom_slide = 0;
+        slab.phase_function = HENYEY_GREENSTEIN;
+        CheckConeLimits(N, &slab, &cone_failures);
+    }
+}
+
 @ @<Definition for |RT_Cone_Main|@>=
 int main (int argc, char **argv)
 {
@@ -87,6 +175,7 @@ double aUR1, aURU, aUT1, aUTU, bUR1, bURU, bUT1, bUTU;
 struct AD_slab_type slab;
 int N=24;
 double mua,musp,mus,d;
+int cone_failures = 0;
 
     @<Tests with full cone@>@;
     @<Tests with no scattering@>@;
@@ -94,7 +183,15 @@ double mua,musp,mus,d;
     @<Tests with absorption and scattering@>@;
     @<Tests for Paulo@>@;
     @<Tests that vary g@>@;
-    exit(EXIT_FAILURE);
+    @<Check the limiting cone angles@>@;
+
+    if (cone_failures) {
+        printf("\n%d cone limit check(s) failed\n", cone_failures);
+        return 1;
+    }
+
+    printf("\nall cone limit checks passed\n");
+    return 0;
 }
 
 @ The first set of tests just calls |RT_Cone| with no cone (normal irradiance)

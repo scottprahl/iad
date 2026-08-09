@@ -60,12 +60,38 @@ static void PrintUnityResults(int test, int cas, struct AD_slab_type *slab,
     printf("           total = %10.5f\n", bURU - (bURU - aURU) / denom + bUTU - (bUTU - aUTU) / denom);
 }
 
+static void CheckConeLimits(int N, struct AD_slab_type *slab, int *failures)
+{
+    double aUR1, aUT1, aURU, aUTU, bUR1, bUT1, bURU, bUTU;
+
+    slab->cos_angle = 1;
+    RT(N, slab, &aUR1, &aUT1, &aURU, &aUTU);
+
+    slab->cos_angle = 1;
+    RT_Cone(N, slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+    if (bUR1 != 0.0 || bUT1 != 0.0) {
+        printf("FAIL a=%.3f b=%.2f g=%+.2f n=%.2f: "
+            "a cone of no width collected UR1=%g UT1=%g\n", slab->a, slab->b, slab->g, slab->n_slab, bUR1, bUT1);
+        (*failures)++;
+    }
+
+    slab->cos_angle = 0;
+    RT_Cone(N, slab, CONE, &bUR1, &bUT1, &bURU, &bUTU);
+    if (fabs(bUR1 - aUR1) > 1e-11 || fabs(bUT1 - aUT1) > 1e-11) {
+        printf("FAIL a=%.3f b=%.2f g=%+.2f n=%.2f: "
+            "full cone gave UR1=%.12f UT1=%.12f, RT gave %.12f %.12f\n",
+            slab->a, slab->b, slab->g, slab->n_slab, bUR1, bUT1, aUR1, aUT1);
+        (*failures)++;
+    }
+}
+
 int main(int argc, char **argv)
 {
     double aUR1, aURU, aUT1, aUTU, bUR1, bURU, bUT1, bUTU;
     struct AD_slab_type slab;
     int N = 24;
     double mua, musp, mus, d;
+    int cone_failures = 0;
 
     slab.n_slab = 1.0;
     slab.n_top_slide = 1.0;
@@ -318,5 +344,41 @@ int main(int argc, char **argv)
         printf("%8.3f %8.3f %8.3f %8.3f %8.3f %8.3f\n", d, 70.0, slab.g, slab.b, aUT1, bUT1);
         slab.g += 0.2;
     }
-    exit(EXIT_FAILURE);
+
+    {
+        static const double cases[7][5] = {
+
+            {0.000, 0.10, 0.000, 1.00, 1.0},
+            {0.500, 0.50, 0.875, 1.00, 1.0},
+            {0.500, 0.50, 0.875, 1.40, 1.0},
+            {0.990, 2.00, 0.000, 1.40, 1.5},
+            {0.900, 5.00, 0.900, 1.33, 1.5},
+            {0.950, 1.00, -0.500, 1.40, 1.5},
+            {0.999, 10.00, 0.000, 1.00, 1.0}
+        };
+        int i;
+
+        printf("\nLimiting cone angles\n");
+
+        for (i = 0; i < 7; i++) {
+            slab.a = cases[i][0];
+            slab.b = cases[i][1];
+            slab.g = cases[i][2];
+            slab.n_slab = cases[i][3];
+            slab.n_top_slide = cases[i][4];
+            slab.n_bottom_slide = cases[i][4];
+            slab.b_top_slide = 0;
+            slab.b_bottom_slide = 0;
+            slab.phase_function = HENYEY_GREENSTEIN;
+            CheckConeLimits(N, &slab, &cone_failures);
+        }
+    }
+
+    if (cone_failures) {
+        printf("\n%d cone limit check(s) failed\n", cone_failures);
+        return 1;
+    }
+
+    printf("\nall cone limit checks passed\n");
+    return 0;
 }
