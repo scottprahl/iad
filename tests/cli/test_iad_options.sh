@@ -20,7 +20,24 @@ run_iad_numeric options_refs -V 0 -r 0.2 -t 0.01 -M 0 -S 1 \
     -1 "100 15 13 2 0.95" -2 "100 15 13 2 0.95" -T 0.5 -R 0.5
 run_iad_numeric options_fractions -V 0 -r 0.4 -t 0.1 -u 0.002 -M 0 -c 0.2 -C 0.3 -f 0.5
 run_iad_numeric options_constraints -V 0 -r 0.3 -t 0.1 -M 0 -A 0.6 -g 0.6 -F "P 500 2.0 -1.0" -L 500 -d 1 -D 0 -B 10
-run_iad_numeric options_wall_defaults -V 0 -r 0.2 -t 0.01 -M 0 -S 1 -w 0.95 -W 0.95
+# -w and -W override the wall reflectance that an .rxt file already gave, so
+# they are only meaningful with a file.  Combined with -1 or -2 they have
+# nothing to override and must be refused.
+cp "$ROOT_DIR/tests/rxt/1_sphere/vio_A.rxt" "$TEST_TMP/wall.rxt"
+wall_musp() {
+    "$IAD_EXECUTABLE" -M 0 -l '650 660' "$@" -o "$TEST_TMP/wall.txt" \
+        "$TEST_TMP/wall.rxt" >/dev/null 2>&1 || fail "iad failed for -w test: $*"
+    grep -v '^#' "$TEST_TMP/wall.txt" | head -1 | awk '{print $7}'
+}
+wall_default=$(wall_musp)
+wall_low=$(wall_musp -w 0.80)
+wall_high=$(wall_musp -w 0.99)
+[ "$wall_default" != "$wall_low" ] && [ "$wall_low" != "$wall_high" ] || \
+    fail "-w did not override the wall reflectance in the file: $wall_default $wall_low $wall_high"
+
+assert_fails "$IAD_EXECUTABLE" -r 0.2 -t 0.01 -S 1 -1 "100 15 13 2 0.95" -w 0.95
+assert_fails "$IAD_EXECUTABLE" -r 0.2 -t 0.01 -S 2 -1 "100 15 13 2 0.95" -2 "100 15 0 2 0.95" -W 0.95
+assert_fails "$IAD_EXECUTABLE" -r 0.2 -t 0.01 -S 2 -1 "100 15 13 2 0.95" -2 "100 15 0 2 0.95" -w 0.95
 run_iad_numeric options_search_debug -V 0 -r 0.2 -t 0.01 -M 0 -S 1 -s 2 -H 3 -x 0 \
     -1 "100 15 13 2 0.95" -2 "100 15 13 2 0.95"
 
@@ -59,10 +76,14 @@ stalled="$TEST_TMP/iad_stalled.out"
 assert_matches "$stalled" "0\.9000.*0\.0500.*x"
 assert_contains "$stalled" "stopped early without matching the measurements"
 
-# a failed lost-light correction is 'm' and names the Monte Carlo loop
+# a failed lost-light correction is 'm' and names the Monte Carlo loop.  This
+# needs a real sphere: it used to rely on the default geometry, whose sample
+# port is zero, which is now refused outright.  The geometry below is combo_0's
+# -- a 44.45 mm sample port with a 6.5 mm beam through a 6.5 mm entrance port.
 mc_stalled="$TEST_TMP/iad_mc_stalled.out"
-"$IAD_EXECUTABLE" -r 0.7 -t 0.28 -n 1.33 -S 1 > "$mc_stalled" 2>&1
-assert_matches "$mc_stalled" "0\.7000.*0\.2800.*m"
+"$IAD_EXECUTABLE" -r 0.72 -t 0.26 -n 1.365 -N 1.5875 -d 2 -D 1.075 -B 6.5 -S 1 \
+    -1 '203.2 44.45 6.5 1 0.97' -2 '203.2 44.45 0 1 0.97' > "$mc_stalled" 2>&1
+assert_matches "$mc_stalled" "0\.7200.*0\.2600.*m"
 assert_contains "$mc_stalled" "lost-light correction did not settle"
 
 # A slide removed by -G must not keep the absorption set by -E.  These are

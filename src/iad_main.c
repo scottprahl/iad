@@ -262,6 +262,8 @@ static char what_char(int err)
         return 'P';
     if (err == IAD_BEAM_TOO_BIG_FOR_EXIT_PORT)
         return 'P';
+    if (err == IAD_BEAM_NOT_VALID)
+        return 'P';
     return '?';
 }
 
@@ -288,6 +290,11 @@ static void print_long_error(int err)
         fprintf(stderr, "Failed Search, beam is wider than the entrance port\n");
         fprintf(stderr, "    the beam was clipped entering the sphere;\n");
         fprintf(stderr, "    check the beam diameter and the entrance port size\n");
+        break;
+    case IAD_BEAM_NOT_VALID:
+        fprintf(stderr, "Failed Search, the beam has no width\n");
+        fprintf(stderr, "    a beam diameter must be positive; the default is 1 mm\n");
+        fprintf(stderr, "    and -B sets it explicitly\n");
         break;
     case IAD_BEAM_TOO_BIG_FOR_EXIT_PORT:
         fprintf(stderr, "Failed Search, beam is wider than the exit port\n");
@@ -1162,21 +1169,20 @@ int main(int argc, char **argv)
             m.rstd_r = cl_rstd_t;
     }
 
-    if (cl_rwall_r != UNINITIALIZED) {
-        if (cl_sphere_one[0] != UNINITIALIZED) {
-            fprintf(stderr, "-w is overridden by -1 option. omit.\n");
+    if (cl_rwall_r != UNINITIALIZED || cl_rwall_t != UNINITIALIZED) {
+        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_two[0] != UNINITIALIZED) {
+            fprintf(stderr, "A wall reflectance cannot accompany a sphere description.\n");
+            fprintf(stderr, "    -1 and -2 already carry one as their fifth value\n");
+            fprintf(stderr, "    -w and -W are for overriding the wall in an .rxt file\n");
             exit(EXIT_FAILURE);
         }
-        m.rw_r = cl_rwall_r;
     }
 
-    if (cl_rwall_t != UNINITIALIZED) {
-        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_one[1] != UNINITIALIZED) {
-            fprintf(stderr, "-W is overridden by -1 and -2 options. omit.");
-            exit(EXIT_FAILURE);
-        }
+    if (cl_rwall_r != UNINITIALIZED)
+        m.rw_r = cl_rwall_r;
+
+    if (cl_rwall_t != UNINITIALIZED)
         m.rw_t = cl_rwall_t;
-    }
 
     if (cl_sphere_one[0] != UNINITIALIZED) {
         double d_sample_r, d_third_r, d_detector_r;
@@ -1539,6 +1545,20 @@ int main(int argc, char **argv)
     }
 
     if (process_command_line) {
+
+        if (cl_num_spheres >= 1 && cl_sphere_one[0] == UNINITIALIZED) {
+            fprintf(stderr, "Sphere measurements need the sphere described.\n");
+            fprintf(stderr, "    -S %d was given without -1\n", cl_num_spheres);
+            fprintf(stderr, "    -1 'd_sphere d_sample d_entrance d_detector r_wall'\n");
+            exit(EXIT_FAILURE);
+        }
+
+        if (cl_num_spheres == 2 && cl_sphere_two[0] == UNINITIALIZED) {
+            fprintf(stderr, "Two spheres need both spheres described.\n");
+            fprintf(stderr, "    -S 2 was given without -2\n");
+            fprintf(stderr, "    -2 'd_sphere d_sample d_third d_detector r_wall'\n");
+            exit(EXIT_FAILURE);
+        }
 
         m.num_measures = 3;
         if (m.m_r == 0)
@@ -1978,21 +1998,20 @@ int main(int argc, char **argv)
             m.rstd_r = cl_rstd_t;
     }
 
-    if (cl_rwall_r != UNINITIALIZED) {
-        if (cl_sphere_one[0] != UNINITIALIZED) {
-            fprintf(stderr, "-w is overridden by -1 option. omit.\n");
+    if (cl_rwall_r != UNINITIALIZED || cl_rwall_t != UNINITIALIZED) {
+        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_two[0] != UNINITIALIZED) {
+            fprintf(stderr, "A wall reflectance cannot accompany a sphere description.\n");
+            fprintf(stderr, "    -1 and -2 already carry one as their fifth value\n");
+            fprintf(stderr, "    -w and -W are for overriding the wall in an .rxt file\n");
             exit(EXIT_FAILURE);
         }
-        m.rw_r = cl_rwall_r;
     }
 
-    if (cl_rwall_t != UNINITIALIZED) {
-        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_one[1] != UNINITIALIZED) {
-            fprintf(stderr, "-W is overridden by -1 and -2 options. omit.");
-            exit(EXIT_FAILURE);
-        }
+    if (cl_rwall_r != UNINITIALIZED)
+        m.rw_r = cl_rwall_r;
+
+    if (cl_rwall_t != UNINITIALIZED)
         m.rw_t = cl_rwall_t;
-    }
 
     if (cl_sphere_one[0] != UNINITIALIZED) {
         double d_sample_r, d_third_r, d_detector_r;
@@ -2165,21 +2184,20 @@ int main(int argc, char **argv)
                 m.rstd_r = cl_rstd_t;
         }
 
-        if (cl_rwall_r != UNINITIALIZED) {
-            if (cl_sphere_one[0] != UNINITIALIZED) {
-                fprintf(stderr, "-w is overridden by -1 option. omit.\n");
+        if (cl_rwall_r != UNINITIALIZED || cl_rwall_t != UNINITIALIZED) {
+            if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_two[0] != UNINITIALIZED) {
+                fprintf(stderr, "A wall reflectance cannot accompany a sphere description.\n");
+                fprintf(stderr, "    -1 and -2 already carry one as their fifth value\n");
+                fprintf(stderr, "    -w and -W are for overriding the wall in an .rxt file\n");
                 exit(EXIT_FAILURE);
             }
-            m.rw_r = cl_rwall_r;
         }
 
-        if (cl_rwall_t != UNINITIALIZED) {
-            if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_one[1] != UNINITIALIZED) {
-                fprintf(stderr, "-W is overridden by -1 and -2 options. omit.");
-                exit(EXIT_FAILURE);
-            }
+        if (cl_rwall_r != UNINITIALIZED)
+            m.rw_r = cl_rwall_r;
+
+        if (cl_rwall_t != UNINITIALIZED)
             m.rw_t = cl_rwall_t;
-        }
 
         if (cl_sphere_one[0] != UNINITIALIZED) {
             double d_sample_r, d_third_r, d_detector_r;

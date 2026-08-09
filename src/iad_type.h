@@ -73,6 +73,8 @@
 
 #define IAD_BEAM_TOO_BIG_FOR_EXIT_PORT 45 \
 
+#define IAD_BEAM_NOT_VALID 46 \
+
 #define UNINITIALIZED -99 \
 
 #define DEBUG_A_LITTLE 1

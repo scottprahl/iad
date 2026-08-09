@@ -253,16 +253,19 @@ int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
         if (m.rstd_t < 0 || m.rstd_t > 1.0)
             return IAD_TSTD_NOT_VALID;
 
-        if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.as_r))
+        if (m.d_beam <= 0)
+            return IAD_BEAM_NOT_VALID;
+
+        if (2 * m.d_sphere_r * sqrt(m.as_r) <= m.d_beam)
             return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
 
-        if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.at_r))
+        if (2 * m.d_sphere_t * sqrt(m.as_t) <= m.d_beam)
+            return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
+
+        if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.at_r) * (1 + 1e-9))
             return IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT;
 
-        if (m.num_spheres == 2 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.as_t))
-            return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
-
-        if (m.at_t > 0 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.at_t))
+        if (m.at_t > 0 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.at_t) * (1 + 1e-9))
             return IAD_BEAM_TOO_BIG_FOR_EXIT_PORT;
 
         if (m.num_spheres == 2) {
@@ -578,7 +581,7 @@ void Initialize_Measure(struct measure_type *m)
     m->rstd_t = 1.0;
 
     m->lambda = 0.0;
-    m->d_beam = 0.0;
+    m->d_beam = 1.0;
     m->ur1_lost = 0;
     m->uru_lost = 0;
     m->ut1_lost = 0;

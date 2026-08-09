@@ -104,6 +104,12 @@ beam would reach the standard sitting in the port.
 
 @d IAD_BEAM_TOO_BIG_FOR_EXIT_PORT      45
 
+@ A beam has to have a width.  Zero was quietly accepted for years because it
+is the value |Initialize_Measure| leaves behind, so every comparison against a
+port passed trivially and no geometry was checked at all.
+
+@d IAD_BEAM_NOT_VALID                  46
+
 @d UNINITIALIZED                -99
 
 @d DEBUG_A_LITTLE                 1

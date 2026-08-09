@@ -47,6 +47,7 @@ int main (int argc, char **argv)
     @<prepare file for reading@>@;
 
     if (process_command_line) {
+        @<Insist that the spheres be described@>@;
         @<Count command-line measurements@>@;
         @<Calculate and write optical properties@>@;
         @<Explain the single command-line error@>@;
@@ -1440,21 +1441,7 @@ properties can be determined.
             m.rstd_r = cl_rstd_t;
     }
 
-    if (cl_rwall_r != UNINITIALIZED) {
-        if (cl_sphere_one[0] != UNINITIALIZED) {
-            fprintf(stderr, "-w is overridden by -1 option. omit.\n");
-            exit(EXIT_FAILURE);
-        }
-        m.rw_r = cl_rwall_r;
-    }
-
-    if (cl_rwall_t != UNINITIALIZED) {
-        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_one[1] != UNINITIALIZED) {
-            fprintf(stderr, "-W is overridden by -1 and -2 options. omit.");
-            exit(EXIT_FAILURE);
-        }
-        m.rw_t = cl_rwall_t;
-    }
+    @<Refuse a wall reflectance alongside a sphere description@>@;
 
     if (cl_sphere_one[0] != UNINITIALIZED) {
         double d_sample_r, d_third_r, d_detector_r;
@@ -1582,6 +1569,60 @@ two absorbing films that do not refract, and the regression tests rely on it.
         fprintf(stderr, "is specified to hit the sphere wall first.  This situation\n");
         fprintf(stderr, "is not supported by iad.  Sorry.\n");
         exit(EXIT_SUCCESS);
+    }
+
+@ \.{-w} and \.{-W} are only good for one thing: overriding the wall
+reflectance that an \.{.rxt} file already gave.  The file describes the whole
+sphere and the command line adjusts one number of it.  Paired with \.{-1} or
+\.{-2} they have nothing to override --- those options carry a wall
+reflectance of their own as their fifth value --- so the combination says two
+different things at once and is refused.
+
+The test for \.{-W} read |cl_sphere_one[1]|, which is the sample port of the
+first sphere rather than anything to do with the second sphere at all, so
+\.{-2} never conflicted with either shorthand.
+
+@<Refuse a wall reflectance alongside a sphere description@>=
+
+    if (cl_rwall_r != UNINITIALIZED || cl_rwall_t != UNINITIALIZED) {
+        if (cl_sphere_one[0] != UNINITIALIZED || cl_sphere_two[0] != UNINITIALIZED) {
+            fprintf(stderr, "A wall reflectance cannot accompany a sphere description.\n");
+            fprintf(stderr, "    -1 and -2 already carry one as their fifth value\n");
+            fprintf(stderr, "    -w and -W are for overriding the wall in an .rxt file\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
+    if (cl_rwall_r != UNINITIALIZED)
+        m.rw_r = cl_rwall_r;
+
+    if (cl_rwall_t != UNINITIALIZED)
+        m.rw_t = cl_rwall_t;
+
+@ Saying a sphere was used says nothing about its size.  Without \.{-1} the
+sphere keeps whatever |Initialize_Measure| left behind, and its sample port is
+zero --- a sphere with no hole for the sample.  Every geometry test then reads
+from placeholders instead of from the experiment, so ask for the description
+rather than invent one.
+
+This belongs to the command line alone.  An \.{.rxt} file always carries both
+sphere blocks, so a file supplies the geometry whether or not \.{-S} appears
+alongside it.
+
+@<Insist that the spheres be described@>=
+
+    if (cl_num_spheres >= 1 && cl_sphere_one[0] == UNINITIALIZED) {
+        fprintf(stderr, "Sphere measurements need the sphere described.\n");
+        fprintf(stderr, "    -S %d was given without -1\n", cl_num_spheres);
+        fprintf(stderr, "    -1 'd_sphere d_sample d_entrance d_detector r_wall'\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (cl_num_spheres == 2 && cl_sphere_two[0] == UNINITIALIZED) {
+        fprintf(stderr, "Two spheres need both spheres described.\n");
+        fprintf(stderr, "    -S 2 was given without -2\n");
+        fprintf(stderr, "    -2 'd_sphere d_sample d_third d_detector r_wall'\n");
+        exit(EXIT_FAILURE);
     }
 
 @ Put the command-line values for reflection and transmission into the measurement record.
@@ -1984,6 +2025,7 @@ static char what_char(int err)
     if (err == IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT) return 'P';
     if (err == IAD_SAMPLE_PORTS_DIFFER)            return 'P';
     if (err == IAD_BEAM_TOO_BIG_FOR_EXIT_PORT)     return 'P';
+    if (err == IAD_BEAM_NOT_VALID)                 return 'P';
     return '?';
 }
 
@@ -2013,6 +2055,10 @@ static void print_long_error(int err)
         fprintf(stderr, "Failed Search, beam is wider than the entrance port\n");
         fprintf(stderr, "    the beam was clipped entering the sphere;\n");
         fprintf(stderr, "    check the beam diameter and the entrance port size\n"); break;
+    case IAD_BEAM_NOT_VALID:
+        fprintf(stderr, "Failed Search, the beam has no width\n");
+        fprintf(stderr, "    a beam diameter must be positive; the default is 1 mm\n");
+        fprintf(stderr, "    and -B sets it explicitly\n"); break;
     case IAD_BEAM_TOO_BIG_FOR_EXIT_PORT:
         fprintf(stderr, "Failed Search, beam is wider than the exit port\n");
         fprintf(stderr, "    only part of the direct beam would reach the standard;\n");

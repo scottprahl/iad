@@ -442,10 +442,26 @@ unscattered contribution must fall between zero and |M_T|.
 stored as fractions of the sphere area, so a diameter comes back out as
 $2 D\sqrt{a}$.
 
-The sample port is checked for the reflection sphere always, and for the
-transmission sphere only when there really are two spheres: with one sphere
-the sample sits at a single port that serves both measurements, and the
-unused second block in the \.{.rxt} file is often left as zeros.
+That round trip loses a little.  A beam that exactly fills its entrance port
+is a perfectly ordinary arrangement --- \.{combo\_0} and its siblings are
+written that way, 6.5\thinspace mm through 6.5\thinspace mm --- but squaring
+and taking the root again returns a diameter an ulp under the original, so a
+bare comparison declares the beam too wide.  Where equality is allowed the
+comparison therefore carries a slop of a part in $10^9$, far below any real
+port tolerance and far above the rounding.  The sample ports are a different
+matter: there the beam must be strictly smaller, so no slop is wanted.
+
+A beam has to have a width, and the sample has to be wider than the beam or
+part of it misses the sample altogether.  Both sample ports are therefore
+required to be strictly larger than the beam --- not merely no smaller --- and
+whichever sphere made a measurement, its own sample port is the one that
+counts.  Requiring this of both ports also disposes of a sample port of zero,
+which cannot mean anything and used to sail through the range test below
+because zero is neither negative nor larger than 0.2.
+
+Zero was for years the value |Initialize_Measure| left in |d_beam|, so a
+command line that never mentioned \.{-B} compared every port against nothing
+and no geometry was checked at all.  The default is now 1\thinspace mm.
 
 A port of zero area meaning ``covered over'' is a convention of the
 transmission sphere alone, where the derivation keys off |at_t==0| to decide
@@ -462,16 +478,19 @@ standard in the port and the calibration it defines would be wrong.
 
 @<Check sphere parameters@>=
 
-    if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.as_r))
+    if (m.d_beam <= 0)
+        return IAD_BEAM_NOT_VALID;
+
+    if (2 * m.d_sphere_r * sqrt(m.as_r) <= m.d_beam)
         return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
 
-    if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.at_r))
+    if (2 * m.d_sphere_t * sqrt(m.as_t) <= m.d_beam)
+        return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
+
+    if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.at_r) * (1 + 1e-9))
         return IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT;
 
-    if (m.num_spheres == 2 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.as_t))
-        return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
-
-    if (m.at_t > 0 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.at_t))
+    if (m.at_t > 0 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.at_t) * (1 + 1e-9))
         return IAD_BEAM_TOO_BIG_FOR_EXIT_PORT;
 
     @<Check that both spheres see the same sample port@>@;
@@ -894,7 +913,7 @@ void Initialize_Measure(struct measure_type *m)
     m->rstd_t = 1.0;
 
     m->lambda = 0.0;
-    m->d_beam = 0.0;
+    m->d_beam = 1.0;
     m->ur1_lost = 0;
     m->uru_lost = 0;
     m->ut1_lost = 0;
