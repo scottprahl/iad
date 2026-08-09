@@ -830,12 +830,13 @@ validation, and the basic \texttt{ad} forward-calculation checks.  Use this
 target after ordinary code changes.
 
 \item[\texttt{make longtest}]
-Builds \iadprog{} and processes every \texttt{.rxt} file under
-\texttt{tests/rxt} with Monte Carlo disabled.  This is a broad compatibility
-test for the file parser, header interpretation, wavelength-row processing,
-output-file creation, and the many historical data-file formats represented in
-the test directory.  Because it disables Monte Carlo updates, it is slower than
-\texttt{make test} but still deterministic.
+Builds \iadprog{} and \texttt{mc\_lost}, processes every \texttt{.rxt} file
+under \texttt{tests/rxt} with Monte Carlo disabled, and then runs the Monte
+Carlo slide tests.  The batch pass is a broad compatibility test for the file
+parser, header interpretation, wavelength-row processing, output-file creation,
+and the many historical data-file formats represented in the test directory.
+Everything here is deterministic, but it takes far longer than
+\texttt{make test}.
 
 \item[\texttt{make test0}]
 Runs the batch file workflow only for \texttt{tests/rxt/0\_sphere}.  These
@@ -928,16 +929,6 @@ reproduce \texttt{-G t} and \texttt{-G b} exactly, that a slide on the near face
 is not the same experiment as one on the far face, and that one absorbing slide
 passes more light than two and less than none.
 
-\item[\texttt{test\_mc\_slides.sh}]
-Checks that the Monte Carlo lost-light estimate treats the two slides
-separately.  It verifies that a slide on either face changes the answer, that
-the loss is ordered no slides $<$ one slide $<$ two slides, that a top slide
-spreads reflected light more while a bottom slide spreads transmitted light
-more, and that the Monte Carlo totals agree with adding-doubling when the port
-is wide enough that nothing is lost.  It also checks that \texttt{-G n} and
-\texttt{-G f} leave the reflection losses alone while changing the transmission
-losses, since lost light is not reciprocal.
-
 \item[\texttt{test\_ez\_rt\_callers.sh}]
 A source check rather than a run.  The \texttt{ez\_RT} family takes indices of
 refraction but no slide optical depths and sets both to zero internally, so
@@ -952,6 +943,28 @@ Checks the forward adding-doubling executable \texttt{ad}.  This is not an
 \iadprog{} inversion test, but it validates the forward solver that
 \iadprog{} depends on.  It covers normal illumination, oblique illumination,
 glass slides, help/version output, and file input/output for \texttt{ad}.
+\end{description}
+
+\subsection{What the long test suite covers}
+
+Beyond processing every \texttt{.rxt} file, \texttt{make longtest} runs one
+script that is too slow for the short suite because it launches millions of
+photons.
+
+\begin{description}
+\item[\texttt{test\_mc\_slides.sh}]
+Checks that the Monte Carlo lost-light estimate treats the two slides
+separately.  It verifies that a slide on either face changes the answer, that
+the loss is ordered no slides $<$ one slide $<$ two slides, that a top slide
+spreads reflected light more while a bottom slide spreads transmitted light
+more, and that the Monte Carlo totals agree with adding-doubling when the port
+is wide enough that nothing is lost.  It also checks that \texttt{-G n} and
+\texttt{-G f} leave the reflection losses alone while changing the transmission
+losses, since lost light is not reciprocal.
+
+Because this is the only test covering how the Monte Carlo handles the two
+slides, a change to \texttt{mc\_lost} that \texttt{make test} passes may still
+be wrong.  Run \texttt{make longtest} after touching the lost-light code.
 \end{description}
 
 \subsection{Monte Carlo and helper executable targets}
