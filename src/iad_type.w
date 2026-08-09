@@ -82,6 +82,14 @@ many.  The two codes below cover the searches that stop early.
 @d IAD_SEARCH_STALLED            40
 @d IAD_MC_DID_NOT_CONVERGE       41
 
+@ A beam wider than the port it has to pass through describes an experiment
+that cannot have happened.  If the sample port is the narrower one then part
+of the beam missed the sample altogether and the measurement means nothing;
+if the entrance port is, then the beam was clipped on its way into the sphere.
+
+@d IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT    42
+@d IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT  43
+
 @d UNINITIALIZED                -99
 
 @d DEBUG_A_LITTLE                 1

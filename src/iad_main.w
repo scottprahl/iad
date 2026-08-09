@@ -1840,7 +1840,8 @@ static void print_error_legend(void)
     fprintf(stderr, "   !  ==> M_R + M_T > 1    ");
     fprintf(stderr, "   +  ==> Hit iteration limit\n");
     fprintf(stderr, "   x  ==> No solution found");
-    fprintf(stderr, "   m  ==> Lost-light correction failed\n\n");
+    fprintf(stderr, "   m  ==> Lost-light correction failed\n");
+    fprintf(stderr, "   P  ==> Beam wider than a port\n\n");
 }
 
 
@@ -1979,6 +1980,8 @@ static char what_char(int err)
     if (err == IAD_TOO_MUCH_LIGHT)      return '!';
     if (err == IAD_SEARCH_STALLED)      return 'x';
     if (err == IAD_MC_DID_NOT_CONVERGE) return 'm';
+    if (err == IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT)   return 'P';
+    if (err == IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT) return 'P';
     return '?';
 }
 
@@ -2000,6 +2003,14 @@ static void print_long_error(int err)
         fprintf(stderr, "Failed Search, stopped early without matching the measurements\n");
         fprintf(stderr, "    no combination of a, b, and g reproduced M_R and M_T;\n");
         fprintf(stderr, "    compare the measured and fitted values above\n"); break;
+    case IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT:
+        fprintf(stderr, "Failed Search, beam is wider than the sample port\n");
+        fprintf(stderr, "    part of the beam missed the sample entirely;\n");
+        fprintf(stderr, "    check the beam diameter and the sample port size\n"); break;
+    case IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT:
+        fprintf(stderr, "Failed Search, beam is wider than the entrance port\n");
+        fprintf(stderr, "    the beam was clipped entering the sphere;\n");
+        fprintf(stderr, "    check the beam diameter and the entrance port size\n"); break;
     case IAD_MC_DID_NOT_CONVERGE:
         fprintf(stderr, "Failed Search, lost-light correction did not settle\n");
         fprintf(stderr, "    the Monte Carlo re-inversion stopped converging;\n");

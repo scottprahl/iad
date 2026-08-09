@@ -438,6 +438,33 @@ unscattered contribution must fall between zero and |M_T|.
     if (m.rstd_t < 0 || m.rstd_t > 1.0)
         return IAD_TSTD_NOT_VALID;
 
+@ The beam has to fit through the ports it passes through.  The port areas are
+stored as fractions of the sphere area, so a diameter comes back out as
+$2 D\sqrt{a}$.
+
+The sample port is checked for the reflection sphere always, and for the
+transmission sphere only when there really are two spheres: with one sphere
+the sample sits at a single port that serves both measurements, and the
+unused second block in the \.{.rxt} file is often left as zeros.
+
+A port of zero area meaning ``covered over'' is a convention of the
+transmission sphere alone, where the derivation keys off |at_t==0| to decide
+what the third port was during calibration.  It says nothing about the
+reflection sphere, whose entrance port is where the beam gets in: if that is
+zero while a beam exists, the geometry is impossible and is reported like any
+other beam that does not fit.
+
+@<Check sphere parameters@>=
+
+    if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.as_r))
+        return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
+
+    if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.at_r))
+        return IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT;
+
+    if (m.num_spheres == 2 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.as_t))
+        return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
+
 @*1 Searching Method.
 
 The original idea was that this routine would automatically determine

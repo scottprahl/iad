@@ -742,6 +742,7 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     int slides_differ;
 
     @<Reconcile each slide index with its thickness@>@;
+    @<Find the port the transmitted light has to hit@>@;
 
     slides_differ = (n_top != n_bottom) || (t_top != t_bottom) || (b_top != b_bottom);
 
@@ -785,6 +786,27 @@ both is what made \.{-G t} model slides on both faces and \.{-G b} model none.
         n_bottom = 1.0;
     if (n_bottom == 1.0)
         t_bottom = 0.0;
+
+@ With fewer than two spheres there is no separate transmission sphere.  The
+sample sits at one port and that same port is what the transmitted light has
+to hit, so the reflection port describes both.
+
+Reading |as_t| regardless was quietly disastrous.  The \.{.rxt} format demands
+a transmission sphere block even when only one sphere is used, so anyone with
+a single sphere may reasonably write zeros in the block they do not have.
+That gives a port of zero diameter, every transmitted photon then lies outside
+it, and the lost-light estimate jumps from |ut1_lost| of 0.0007 to 0.4721.
+Nothing complains: |measure_OK| tests |as_t| for being negative or larger than
+0.2, and zero is neither.  The recovered absorption came out nearly four times
+too small with a confident \.{*} beside it.
+
+A zero port is meaningless even when two spheres really are present, so it
+falls back as well rather than declaring that all the light was lost.
+
+@<Find the port the transmitted light has to hit@>=
+
+    if (m.num_spheres < 2 || dt_port <= 0.0)
+        dt_port = dr_port;
 
 @ \.{-G n} and \.{-G f} describe a sample that is physically turned over
 between the two measurements, so the slide stays either against the sphere or
