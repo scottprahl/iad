@@ -108,6 +108,12 @@ ports_status() {
     "$IAD_EXECUTABLE" -r 0.4 -t 0.18 -S 2 "$@" 2>/dev/null |
         grep -v '^#' | tail -1 | awk '{print $NF}'
 }
+ports_status_n() {
+    n=$1
+    shift
+    "$IAD_EXECUTABLE" -r 0.4 -t 0.18 -S "$n" "$@" 2>/dev/null |
+        grep -v '^#' | tail -1 | awk '{print $NF}'
+}
 mismatch="$TEST_TMP/ports_mismatch.out"
 "$IAD_EXECUTABLE" -r 0.4 -t 0.18 -S 2 \
     -1 '203.2 31.75 6.35 3.18 0.975' -2 '203.2 15.9 6.35 3.18 0.975' \
@@ -118,6 +124,39 @@ assert_contains "$mismatch" "the two spheres disagree about the sample port"
     fail "two spheres with different sample ports were accepted"
 [ "$(ports_status -1 '203.2 31.75 6.35 3.18 0.975' -2 '101.6 31.75 6.35 3.18 0.975')" = "*" ] || \
     fail "same sample port in differently sized spheres was rejected"
+
+# "One sphere" means one sphere at a time, not one sphere in the experiment:
+# the reflectance may be measured on one sphere and the transmittance on
+# another of a different size with a different sample port.  That must be
+# allowed.  The very same geometry has to be refused when both spheres are
+# declared present at once, because then the sample faces both through a
+# single hole.
+[ "$(ports_status_n 1 -1 '203.2 25.4 12.7 1 0.97' -2 '101.6 12.7 0 1 0.97')" = "*" ] || \
+    fail "one sphere at a time: different spheres for R and T were rejected"
+[ "$(ports_status_n 2 -1 '203.2 25.4 12.7 1 0.97' -2 '101.6 12.7 0 1 0.97')" = "P" ] || \
+    fail "two spheres at once: mismatched sample ports were accepted"
+
+# The transmission sphere's exit port may be any size including none.  Closed
+# over, the direct beam lands on the sphere wall.  Open but narrower than the
+# beam cannot work, since only part of the direct beam would reach the
+# standard sitting in the port.
+exit_status() {
+    port=$1
+    "$IAD_EXECUTABLE" -r 0.3 -t 0.1 -S 1 -1 '203.2 25.4 12.7 1 0.97' \
+        -2 "203.2 25.4 $port 1 0.97" -B 6.5 2>/dev/null |
+        grep -v '^#' | tail -1 | awk '{print $NF}'
+}
+[ "$(exit_status 0)" = "*" ] || \
+    fail "a closed exit port was rejected; zero must mean the beam hits the wall"
+[ "$(exit_status 3)" = "P" ] || \
+    fail "an exit port narrower than the beam was accepted"
+[ "$(exit_status 12.7)" = "*" ] || \
+    fail "an exit port wider than the beam was rejected"
+
+narrow_exit="$TEST_TMP/exit_narrow.out"
+"$IAD_EXECUTABLE" -r 0.3 -t 0.1 -S 1 -1 '203.2 25.4 12.7 1 0.97' \
+    -2 '203.2 25.4 3 1 0.97' -B 6.5 > "$narrow_exit" 2>&1
+assert_contains "$narrow_exit" "beam is wider than the exit port"
 
 assert_fails "$IAD_EXECUTABLE" -a 2 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -q 5 -r 0.2

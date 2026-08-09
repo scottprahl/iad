@@ -454,6 +454,12 @@ reflection sphere, whose entrance port is where the beam gets in: if that is
 zero while a beam exists, the geometry is impossible and is reported like any
 other beam that does not fit.
 
+The transmission sphere's exit port is where that convention does apply.  Any
+size is allowed, zero included: closed over, the direct beam simply lands on
+the sphere wall.  What cannot be right is a port that exists but is narrower
+than the beam, since then only a fraction of the direct beam would reach the
+standard in the port and the calibration it defines would be wrong.
+
 @<Check sphere parameters@>=
 
     if (m.d_beam > 2 * m.d_sphere_r * sqrt(m.as_r))
@@ -464,6 +470,9 @@ other beam that does not fit.
 
     if (m.num_spheres == 2 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.as_t))
         return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
+
+    if (m.at_t > 0 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.at_t))
+        return IAD_BEAM_TOO_BIG_FOR_EXIT_PORT;
 
     @<Check that both spheres see the same sample port@>@;
 

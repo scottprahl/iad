@@ -11,7 +11,7 @@ IAD1   # Must be first four characters
 5.0        # [mm] F220SMA-B; THEORETICAL 1/e2 OUTPUT BEAM DIAMETER 2.1mm
 0.99       # Thorlabs IS236A-4
 
-1          # Number of spheres used during each measurement
+1          # Number of spheres used at a time to make a measurement
 
            # Sphere configuration for reflectance measurements
 50.8       # [mm] Sphere Diameter

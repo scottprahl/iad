@@ -262,6 +262,9 @@ int measure_OK(struct measure_type m, struct invert_type r, int flag_bad)
         if (m.num_spheres == 2 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.as_t))
             return IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT;
 
+        if (m.at_t > 0 && m.d_beam > 2 * m.d_sphere_t * sqrt(m.at_t))
+            return IAD_BEAM_TOO_BIG_FOR_EXIT_PORT;
+
         if (m.num_spheres == 2) {
             double d_sample_r = 2 * m.d_sphere_r * sqrt(m.as_r);
             double d_sample_t = 2 * m.d_sphere_t * sqrt(m.as_t);

@@ -71,6 +71,8 @@
 
 #define IAD_SAMPLE_PORTS_DIFFER 44 \
 
+#define IAD_BEAM_TOO_BIG_FOR_EXIT_PORT 45 \
+
 #define UNINITIALIZED -99 \
 
 #define DEBUG_A_LITTLE 1

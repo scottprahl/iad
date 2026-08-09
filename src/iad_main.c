@@ -260,6 +260,8 @@ static char what_char(int err)
         return 'P';
     if (err == IAD_SAMPLE_PORTS_DIFFER)
         return 'P';
+    if (err == IAD_BEAM_TOO_BIG_FOR_EXIT_PORT)
+        return 'P';
     return '?';
 }
 
@@ -286,6 +288,11 @@ static void print_long_error(int err)
         fprintf(stderr, "Failed Search, beam is wider than the entrance port\n");
         fprintf(stderr, "    the beam was clipped entering the sphere;\n");
         fprintf(stderr, "    check the beam diameter and the entrance port size\n");
+        break;
+    case IAD_BEAM_TOO_BIG_FOR_EXIT_PORT:
+        fprintf(stderr, "Failed Search, beam is wider than the exit port\n");
+        fprintf(stderr, "    only part of the direct beam would reach the standard;\n");
+        fprintf(stderr, "    use an exit port of zero to close it off entirely\n");
         break;
     case IAD_SAMPLE_PORTS_DIFFER:
         fprintf(stderr, "Failed Search, the two spheres disagree about the sample port\n");

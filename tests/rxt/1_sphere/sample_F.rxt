@@ -7,7 +7,7 @@ IAD1   # Must be first four characters
 5.0        # [mm] Beam diameter
 0.96       # Reflectivity of the reflectance calibration standard
 
-1          # Number of spheres used during each measurement
+1          # Number of spheres used at a time to make a measurement
 
            # Sphere configuration for reflectance measurements
 203.2      # [mm] Sphere Diameter

@@ -96,6 +96,14 @@ diameters have to agree even though the sphere diameters need not.
 
 @d IAD_SAMPLE_PORTS_DIFFER             44
 
+@ The transmission sphere's exit port may be any size at all, including none.
+Closed over, the whole direct beam lands on the sphere wall, which is one of
+the configurations the transmittance derivation is built around.  Open but
+narrower than the beam is the case that cannot work: only part of the direct
+beam would reach the standard sitting in the port.
+
+@d IAD_BEAM_TOO_BIG_FOR_EXIT_PORT      45
+
 @d UNINITIALIZED                -99
 
 @d DEBUG_A_LITTLE                 1

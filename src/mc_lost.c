@@ -565,9 +565,6 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     if (n_bottom == 1.0)
         t_bottom = 0.0;
 
-    if (m.num_spheres < 2 || dt_port <= 0.0)
-        dt_port = dr_port;
-
     slides_differ = (n_top != n_bottom) || (t_top != t_bottom) || (b_top != b_bottom);
 
     set_photon_seed(lost_base_seed);
