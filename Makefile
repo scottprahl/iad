@@ -213,27 +213,27 @@ windist: ad.exe iad.exe libiad.dll
 	rm -rf iad-win-$(VERSION)
 	cp archives/iad-win-$(VERSION).zip archives/iad-win-latest.zip
 
-ad: $(WSRC) $(NRSRC) Makefile
+ad: $(WSRC) $(NRSRC) $(CSRC) $(HSRC) Makefile
 	cd src ; make ad
 	cp src/ad ad
 
-iad: $(WSRC) $(NRSRC) Makefile
+iad: $(WSRC) $(NRSRC) $(CSRC) $(HSRC) Makefile
 	cd src ; make iad
 	cp src/iad iad
 
-ad.exe: $(WSRC) $(NRSRC)
+ad.exe: $(WSRC) $(NRSRC) $(CSRC) $(HSRC)
 	cd src ; make clean
 	cd src ; make CC="x86_64-w64-mingw32-gcc" ad
 	mv src/ad.exe ad.exe
 	cd src ; make clean
 
-iad.exe: $(WSRC) $(NRSRC)
+iad.exe: $(WSRC) $(NRSRC) $(CSRC) $(HSRC)
 	cd src ; make clean
 	cd src ; make CC="x86_64-w64-mingw32-gcc" iad
 	mv src/iad.exe iad.exe
 	cd src ; make clean
 
-libiad.dll: $(WSRC) $(NRSRC)
+libiad.dll: $(WSRC) $(NRSRC) $(CSRC) $(HSRC)
 	cd src ; make clean
 	cd src ; make CC="x86_64-w64-mingw32-gcc" libiad.dll
 	mv src/libiad.dll .

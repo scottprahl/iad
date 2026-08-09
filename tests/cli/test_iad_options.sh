@@ -88,6 +88,37 @@ matched=$(t_total -E 0.5)
 [ "$matched" = "$two_slide_e5" ] || \
     fail "default two-slide absorption changed: $matched vs $two_slide_e5"
 
+# The beam has to fit through the ports it passes through.
+beam_status() {
+    "$IAD_EXECUTABLE" -r 0.3 -t 0.1 -S 1 "$@" 2>/dev/null |
+        grep -v '^#' | tail -1 | awk '{print $NF}'
+}
+[ "$(beam_status -1 '203.2 44.45 6.3 1 0.97' -B 6.5)" = "P" ] || \
+    fail "beam wider than the entrance port was not rejected"
+[ "$(beam_status -1 '203.2 5 12.7 1 0.97' -B 6.5)" = "P" ] || \
+    fail "beam wider than the sample port was not rejected"
+[ "$(beam_status -1 '203.2 44.45 12.7 1 0.97' -B 6.5)" = "*" ] || \
+    fail "a beam that fits through both ports was rejected"
+
+# With two spheres the sample sits in one hole, so both blocks must give it
+# the same diameter.  The port areas are fractions of their own sphere, so
+# this has to compare diameters -- the second case below has area fractions
+# differing by a factor of four yet describes the same physical port.
+ports_status() {
+    "$IAD_EXECUTABLE" -r 0.4 -t 0.18 -S 2 "$@" 2>/dev/null |
+        grep -v '^#' | tail -1 | awk '{print $NF}'
+}
+mismatch="$TEST_TMP/ports_mismatch.out"
+"$IAD_EXECUTABLE" -r 0.4 -t 0.18 -S 2 \
+    -1 '203.2 31.75 6.35 3.18 0.975' -2 '203.2 15.9 6.35 3.18 0.975' \
+    > "$mismatch" 2>&1
+assert_contains "$mismatch" "the two spheres disagree about the sample port"
+
+[ "$(ports_status -1 '203.2 31.75 6.35 3.18 0.975' -2 '203.2 15.9 6.35 3.18 0.975')" = "P" ] || \
+    fail "two spheres with different sample ports were accepted"
+[ "$(ports_status -1 '203.2 31.75 6.35 3.18 0.975' -2 '101.6 31.75 6.35 3.18 0.975')" = "*" ] || \
+    fail "same sample port in differently sized spheres was rejected"
+
 assert_fails "$IAD_EXECUTABLE" -a 2 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -q 5 -r 0.2
 assert_fails "$IAD_EXECUTABLE" -S 3 -r 0.2
