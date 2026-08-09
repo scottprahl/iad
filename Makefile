@@ -314,7 +314,7 @@ mc_lost_test: mc_lost
 
 layer_test:
 	cd src ; make layer_test
-	src/mc_test
+	src/layer_test
 
 cone_test:
 	cd src ; make cone_test

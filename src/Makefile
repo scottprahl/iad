@@ -106,11 +106,15 @@ iad_doc: iad.w
 adchapter: $(AD_OBJ) $(NR_OBJ) ad_chapter.o version.o
 	$(CC) -o $@ $^ -lm
 
-layer_test: $(AD_OBJ) $(NR_OBJ) version.o ad_layers.o ad_layers_test.o
-	ctangle -bhp ad_layers.w
-	$(CC) -c -o ad_layers.o ad_layers.c
-	ctangle -bhp ad_layers_test.w
-	$(CC) -c -o ad_layers_test.o ad_layers_test.c
+# The recipe used to re-tangle ad_layers.w and ad_layers_test.w and rebuild
+# their objects by hand.  Every one of those steps is already covered -- the
+# %.c %.h: %.w pattern rule regenerates the sources when a .w is newer, the
+# built-in %.o: %.c rule compiles them, and ad_layers.o is part of AD_OBJ --
+# so the only thing the extra lines added was an unconditional ctangle.  That
+# ran on every invocation, whether or not the .w had changed, and replaced the
+# tidied ad_layers.c, ad_layers.h and ad_layers_test.c with raw ctangle
+# output.  `make executables' left three modified files behind for no reason.
+layer_test: $(AD_OBJ) $(NR_OBJ) version.o ad_layers_test.o
 	$(CC) -o $@ $^ -lm
 
 cone_test: $(AD_OBJ) $(NR_OBJ) ad_cone_test.o version.o
