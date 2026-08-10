@@ -87,20 +87,23 @@ static void no_sphere_means_no_monte_carlo(void)
     struct measure_type m;
     struct invert_type r;
     double ur1 = -1, ut1 = -1, uru = -1, utu = -1;
-    double ur1_lost = -1, ut1_lost = -1, uru_lost = -1, utu_lost = -1;
+    struct lost_type lost_r, lost_t;
+    double utu_lost = -1;
 
     build_sample(&m, &r);
     m.num_spheres = 0;
 
-    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &ur1_lost, &ut1_lost, &uru_lost, &utu_lost);
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
 
-    if (ur1_lost != 0.0 || ut1_lost != 0.0 || uru_lost != 0.0 || utu_lost != 0.0)
+    if (lost_r.direct != 0.0 || lost_t.direct != 0.0 || lost_r.diffuse != 0.0 || utu_lost != 0.0
+        || lost_t.diffuse != 0.0)
         complain("no spheres: MC_Lost reported lost light with no port to lose it through");
 
     if (ur1 != 0.0 || ut1 != 0.0 || uru != 0.0 || utu != 0.0)
         complain("no spheres: MC_Lost left the reflectances holding stale values");
 
-    printf("  no spheres          : losses %.4f %.4f %.4f %.4f\n", ur1_lost, ut1_lost, uru_lost, utu_lost);
+    printf("  no spheres          : losses %.4f %.4f %.4f %.4f\n", lost_r.direct, lost_t.direct, lost_r.diffuse,
+        utu_lost);
 }
 
 /* The guard must not fire when a sphere really was described, or the lost
@@ -111,20 +114,22 @@ static void one_sphere_still_runs(void)
     struct measure_type m;
     struct invert_type r;
     double ur1, ut1, uru, utu;
-    double ur1_lost, ut1_lost, uru_lost, utu_lost;
+    struct lost_type lost_r, lost_t;
+    double utu_lost;
 
     build_sample(&m, &r);
     m.num_spheres = 1;
 
-    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &ur1_lost, &ut1_lost, &uru_lost, &utu_lost);
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
 
-    if (ur1_lost <= 0.0 || ut1_lost <= 0.0)
+    if (lost_r.direct <= 0.0 || lost_t.direct <= 0.0)
         complain("one sphere: collimated lost light came back zero");
 
-    if (uru_lost <= 0.0 || utu_lost <= 0.0)
+    if (lost_r.diffuse <= 0.0 || utu_lost <= 0.0)
         complain("one sphere: diffuse lost light came back zero");
 
-    printf("  one sphere          : UR1=%.4f UT1=%.4f URU=%.4f UTU=%.4f\n", ur1_lost, ut1_lost, uru_lost, utu_lost);
+    printf("  one sphere          : UR1=%.4f UT1=%.4f URU=%.4f UTU=%.4f\n", lost_r.direct, lost_t.direct,
+        lost_r.diffuse, utu_lost);
 }
 
 /* One sphere means one sphere at a time, so the reflectance may be measured
@@ -139,40 +144,43 @@ static void each_side_uses_its_own_port(void)
     struct measure_type m;
     struct invert_type r;
     double wide_ur1, wide_ut1, wide_uru, wide_utu;
-    double wide_ur1_lost, wide_ut1_lost, wide_uru_lost, wide_utu_lost;
+    struct lost_type wide_lost_r, wide_lost_t;
+    double wide_utu_lost;
     double ur1, ut1, uru, utu;
-    double ur1_lost, ut1_lost, uru_lost, utu_lost;
+    struct lost_type lost_r, lost_t;
+    double utu_lost;
 
     build_sample(&m, &r);
     m.num_spheres = 1;
-    MC_Lost(m, r, TEST_PHOTONS, &wide_ur1, &wide_ut1, &wide_uru, &wide_utu,
-        &wide_ur1_lost, &wide_ut1_lost, &wide_uru_lost, &wide_utu_lost);
+    MC_Lost(m, r, TEST_PHOTONS, &wide_ur1, &wide_ut1, &wide_uru, &wide_utu, &wide_lost_r, &wide_lost_t, &wide_utu_lost);
 
     /* shrink only the transmission sample port */
     build_sample(&m, &r);
     m.num_spheres = 1;
     m.as_t = port_fraction(4.0, m.d_sphere_t);
-    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &ur1_lost, &ut1_lost, &uru_lost, &utu_lost);
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
 
-    if (ut1_lost <= wide_ut1_lost)
+    if (lost_t.direct <= wide_lost_t.direct)
         complain("halving the transmission sample port did not increase UT1 loss");
-    if (ur1_lost != wide_ur1_lost)
+    if (lost_r.direct != wide_lost_r.direct)
         complain("the transmission sample port changed the reflection loss");
 
-    printf("  T port  8 -> 4 mm   : UT1 %.4f -> %.4f, UR1 held at %.4f\n", wide_ut1_lost, ut1_lost, ur1_lost);
+    printf("  T port  8 -> 4 mm   : UT1 %.4f -> %.4f, UR1 held at %.4f\n", wide_lost_t.direct, lost_t.direct,
+        lost_r.direct);
 
     /* shrink only the reflection sample port */
     build_sample(&m, &r);
     m.num_spheres = 1;
     m.as_r = port_fraction(4.0, m.d_sphere_r);
-    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &ur1_lost, &ut1_lost, &uru_lost, &utu_lost);
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
 
-    if (ur1_lost <= wide_ur1_lost)
+    if (lost_r.direct <= wide_lost_r.direct)
         complain("halving the reflection sample port did not increase UR1 loss");
-    if (ut1_lost != wide_ut1_lost)
+    if (lost_t.direct != wide_lost_t.direct)
         complain("the reflection sample port changed the transmission loss");
 
-    printf("  R port  8 -> 4 mm   : UR1 %.4f -> %.4f, UT1 held at %.4f\n", wide_ur1_lost, ur1_lost, ut1_lost);
+    printf("  R port  8 -> 4 mm   : UR1 %.4f -> %.4f, UT1 held at %.4f\n", wide_lost_r.direct, lost_r.direct,
+        lost_t.direct);
 }
 
 /* The two spheres may differ in size while describing the same physical
@@ -187,25 +195,134 @@ static void port_size_follows_the_diameter(void)
     struct measure_type m;
     struct invert_type r;
     double big_ur1, big_ut1, big_uru, big_utu;
-    double big_ur1_lost, big_ut1_lost, big_uru_lost, big_utu_lost;
+    struct lost_type big_lost_r, big_lost_t;
+    double big_utu_lost;
     double ur1, ut1, uru, utu;
-    double ur1_lost, ut1_lost, uru_lost, utu_lost;
+    struct lost_type lost_r, lost_t;
+    double utu_lost;
 
     build_sample(&m, &r);
     m.num_spheres = 1;
-    MC_Lost(m, r, TEST_PHOTONS, &big_ur1, &big_ut1, &big_uru, &big_utu,
-        &big_ur1_lost, &big_ut1_lost, &big_uru_lost, &big_utu_lost);
+    MC_Lost(m, r, TEST_PHOTONS, &big_ur1, &big_ut1, &big_uru, &big_utu, &big_lost_r, &big_lost_t, &big_utu_lost);
 
     build_sample(&m, &r);
     m.num_spheres = 1;
     m.d_sphere_t = 100.0;
     m.as_t = port_fraction(8.0, m.d_sphere_t);
-    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &ur1_lost, &ut1_lost, &uru_lost, &utu_lost);
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
 
-    if (ut1_lost != big_ut1_lost)
+    if (lost_t.direct != big_lost_t.direct)
         complain("the same port in a smaller sphere changed the transmission loss");
 
-    printf("  T sphere 200->100 mm: same  8 mm port, UT1 held at %.4f\n", ut1_lost);
+    printf("  T sphere 200->100 mm: same  8 mm port, UT1 held at %.4f\n", lost_t.direct);
+}
+
+/* Both spheres bounce diffuse light off the sample, and each loses some of it
+   past the rim of its own sample port.  The transmission sphere uses its
+   figure in the gain of M_T, so narrowing only that port has to raise only
+   that loss and leave the reflection figure untouched.  Equal ports must give
+   bit-identical answers, since then the second Monte Carlo run is skipped and
+   the reflection value is simply copied.
+
+   Handing the transmission sphere the reflection loss was the old behaviour,
+   and it under-corrected by the full ratio below whenever the ports differed. */
+
+static void each_sphere_loses_through_its_own_port(void)
+{
+    static const double t_ports[3] = { 8.0, 4.0, 2.0 };
+    double ur1, ut1, uru, utu;
+    struct lost_type lost_r, lost_t;
+    double utu_lost;
+    double base_r_diffuse = 0, prev = 0;
+    struct measure_type m;
+    struct invert_type r;
+    int i;
+
+    build_sample(&m, &r);
+    m.num_spheres = 1;
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
+
+    if (lost_t.diffuse != lost_r.diffuse)
+        complain("equal ports: the transmission loss is not a copy of the reflection loss");
+    base_r_diffuse = lost_r.diffuse;
+    prev = lost_t.diffuse;
+    printf("  T port 8 mm (equal)  : R sphere=%.4f  T sphere=%.4f\n", lost_r.diffuse, lost_t.diffuse);
+
+    for (i = 0; i < 3; i++) {
+        build_sample(&m, &r);
+        m.num_spheres = 1;
+        m.as_t = port_fraction(t_ports[i], m.d_sphere_t);
+        MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
+
+        if (lost_r.diffuse != base_r_diffuse)
+            complain("narrowing the transmission port moved the reflection loss");
+        if (i > 0 && lost_t.diffuse <= prev)
+            complain("narrowing the transmission port did not raise its own loss");
+
+        printf("  T port %4.1f mm       : R sphere=%.4f  T sphere=%.4f  ratio %.2f\n",
+            t_ports[i], lost_r.diffuse, lost_t.diffuse, (lost_r.diffuse > 0) ? lost_t.diffuse / lost_r.diffuse : 0.0);
+        prev = lost_t.diffuse;
+    }
+}
+
+/* The beam enters the top of the sample and the transmission sphere collects
+   what leaves the bottom, so the diffuse light rattling around inside that
+   sphere strikes the sample from below.  Its loss is therefore the loss for
+   light entering the bottom face, not the top.
+
+   With matching slides the two faces are interchangeable and the two losses
+   must be identical.  Put a slide on one face only and they must swap when
+   the sample is turned over: whatever the reflection sphere saw with the
+   slide on top, the transmission sphere must see with the slide on the
+   bottom.  That mirror is the strongest statement available here, since it
+   holds whatever the actual numbers are. */
+
+static void transmission_sphere_sees_the_bottom_face(void)
+{
+    struct measure_type m;
+    struct invert_type r;
+    double ur1, ut1, uru, utu;
+    struct lost_type lost_r, lost_t;
+    double utu_lost;
+    double top_r, top_t, bot_r, bot_t;
+
+    build_sample(&m, &r);
+    m.num_spheres = 1;
+    m.slab_top_slide_index = 1.5;
+    m.slab_top_slide_thickness = 1.0;
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
+    top_r = lost_r.diffuse;
+    top_t = lost_t.diffuse;
+
+    if (top_t >= top_r)
+        complain("slide on top: the bottom face did not lose less than the top");
+
+    build_sample(&m, &r);
+    m.num_spheres = 1;
+    m.slab_bottom_slide_index = 1.5;
+    m.slab_bottom_slide_thickness = 1.0;
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
+    bot_r = lost_r.diffuse;
+    bot_t = lost_t.diffuse;
+
+    if (bot_r != top_t || bot_t != top_r)
+        complain("turning the sample over did not swap the two diffuse losses");
+
+    printf("  slide on top         : R sphere=%.4f  T sphere=%.4f\n", top_r, top_t);
+    printf("  slide on bottom      : R sphere=%.4f  T sphere=%.4f (mirrored)\n", bot_r, bot_t);
+
+    build_sample(&m, &r);
+    m.num_spheres = 1;
+    m.slab_top_slide_index = 1.5;
+    m.slab_top_slide_thickness = 1.0;
+    m.slab_bottom_slide_index = 1.5;
+    m.slab_bottom_slide_thickness = 1.0;
+    MC_Lost(m, r, TEST_PHOTONS, &ur1, &ut1, &uru, &utu, &lost_r, &lost_t, &utu_lost);
+
+    if (lost_t.diffuse != lost_r.diffuse)
+        complain("matching slides: the two faces gave different diffuse losses");
+
+    printf("  matching slides      : R sphere=%.4f  T sphere=%.4f (identical)\n", lost_r.diffuse, lost_t.diffuse);
 }
 
 /* Spheres_Inverse_RT takes the number of Monte Carlo runs straight from the
@@ -270,6 +387,8 @@ int main(void)
     one_sphere_still_runs();
     each_side_uses_its_own_port();
     port_size_follows_the_diameter();
+    each_sphere_loses_through_its_own_port();
+    transmission_sphere_sees_the_bottom_face();
     library_ignores_runs_without_a_sphere();
 
     if (failures) {

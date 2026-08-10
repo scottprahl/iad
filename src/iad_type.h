@@ -75,6 +75,8 @@
 
 #define IAD_BEAM_NOT_VALID 46 \
 
+#define IAD_UNREACHABLE_WITH_LOST_LIGHT 47 \
+
 #define UNINITIALIZED -99 \
 
 #define DEBUG_A_LITTLE 1
@@ -97,6 +99,11 @@
 #define MC_USE_EXISTING 1
 #define MC_REDO 2 \
  \
+
+typedef struct lost_type {
+    double direct;
+    double diffuse;
+} IAD_lost_type;
 
 typedef struct measure_type {
     double slab_index;
@@ -126,7 +133,9 @@ typedef struct measure_type {
     double lambda;
     double as_r, ad_r, at_r, aw_r, rd_r, rw_r, rstd_r, f_r;
     double as_t, ad_t, at_t, aw_t, rd_t, rw_t, rstd_t;
-    double ur1_lost, uru_lost, ut1_lost, utu_lost;
+    struct lost_type lost_r;
+    struct lost_type lost_t;
+    double utu_lost;
     double d_sphere_r, d_sphere_t;
 } IAD_measure_type;
 
@@ -174,9 +183,8 @@ typedef struct guess_t {
     double a;
     double b;
     double g;
-    double ur1_lost;
-    double ut1_lost;
-    double uru_lost;
+    struct lost_type lost_r;
+    struct lost_type lost_t;
     double utu_lost;
 } guess_type;
 

@@ -535,7 +535,7 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
 
 void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     double *ur1, double *ut1, double *uru, double *utu,
-    double *ur1_lost, double *ut1_lost, double *uru_lost, double *utu_lost)
+    struct lost_type *lost_r, struct lost_type *lost_t, double *utu_lost)
 {
     double n_sample = m.slab_index;
     double t_sample = m.slab_thickness;
@@ -560,9 +560,10 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
         *ut1 = 0;
         *uru = 0;
         *utu = 0;
-        *ur1_lost = 0;
-        *ut1_lost = 0;
-        *uru_lost = 0;
+        lost_r->direct = 0;
+        lost_r->diffuse = 0;
+        lost_t->direct = 0;
+        lost_t->diffuse = 0;
         *utu_lost = 0;
         return;
     }
@@ -582,16 +583,32 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     set_photon_seed(lost_base_seed);
     MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
         COLLIMATED, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
-        dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
+        dr_port, dt_port, d_beam, ur1, ut1, &lost_r->direct, &lost_t->direct);
 
-    *uru_lost = 0;
+    lost_r->diffuse = 0;
+    lost_t->diffuse = 0;
     *utu_lost = 0;
 
     if (m.method == SUBSTITUTION) {
         set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
         MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
             DIFFUSE, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
-            dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
+            dr_port, dt_port, d_beam, uru, utu, &lost_r->diffuse, utu_lost);
+
+        {
+            if (dt_port == dr_port && !slides_differ) {
+                lost_t->diffuse = lost_r->diffuse;
+            }
+            else {
+                double flooded_uru, flooded_utu, flooded_utu_lost;
+
+                set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
+                MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
+                    DIFFUSE, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
+                    dt_port, dt_port, d_beam, &flooded_uru, &flooded_utu, &lost_t->diffuse, &flooded_utu_lost);
+            }
+        }
+
     }
 
     if (m.flip_sample && slides_differ) {
@@ -600,7 +617,7 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
         set_photon_seed(lost_base_seed);
         MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
             COLLIMATED, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
-            dr_port, dt_port, d_beam, &flipped_ur1, ut1, &flipped_ur1_lost, ut1_lost);
+            dr_port, dt_port, d_beam, &flipped_ur1, ut1, &flipped_ur1_lost, &lost_t->direct);
 
         if (m.method == SUBSTITUTION) {
             set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
@@ -610,7 +627,7 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
         }
     }
 
-    if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
+    if (lost_r->direct < 0 || lost_t->direct < 0 || lost_r->diffuse < 0 || *utu_lost < 0) {
         exit(EXIT_FAILURE);
     }
 }

@@ -498,9 +498,10 @@ void U_Find_AB(struct measure_type m, struct invert_type *r)
             fprintf(stderr, "\n");
         }
         if (Debug(DEBUG_MC)) {
-            m.ur1_lost = guess[kk].ur1_lost;
-            m.ut1_lost = guess[kk].ut1_lost;
-            m.uru_lost = guess[kk].uru_lost;
+            m.lost_r.direct = guess[kk].lost_r.direct;
+            m.lost_t.direct = guess[kk].lost_t.direct;
+            m.lost_r.diffuse = guess[kk].lost_r.diffuse;
+            m.lost_t.diffuse = guess[kk].lost_t.diffuse;
             m.utu_lost = guess[kk].utu_lost;
         }
     }

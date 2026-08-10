@@ -137,9 +137,9 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
     double Ru, double Tu, double URU, double UTU, double *M_R, double *M_T, double *dev)
 {
 
-    double UR1_calc, UT1_calc, URU_calc, UTU_calc;
+    double UR1_calc, UT1_calc, URU_calc, UTU_calc, URU_t_calc;
 
-    URU_calc = URU - MM.uru_lost;
+    URU_calc = URU - MM.lost_r.diffuse;
     if (!SKIP_DISTANCE_CLAMP && URU_calc < 0)
         URU_calc = 0;
 
@@ -147,11 +147,15 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
     if (!SKIP_DISTANCE_CLAMP && UTU_calc < 0)
         UTU_calc = 0;
 
-    UR1_calc = UR1 - (1.0 - MM.fraction_of_ru_in_mr) * Ru - MM.ur1_lost;
+    URU_t_calc = URU - MM.lost_t.diffuse;
+    if (!SKIP_DISTANCE_CLAMP && URU_t_calc < 0)
+        URU_t_calc = 0;
+
+    UR1_calc = UR1 - (1.0 - MM.fraction_of_ru_in_mr) * Ru - MM.lost_r.direct;
     if (!SKIP_DISTANCE_CLAMP && UR1_calc < 0)
         UR1_calc = 0;
 
-    UT1_calc = UT1 - (1.0 - MM.fraction_of_tu_in_mt) * Tu - MM.ut1_lost;
+    UT1_calc = UT1 - (1.0 - MM.fraction_of_tu_in_mt) * Tu - MM.lost_t.direct;
     if (!SKIP_DISTANCE_CLAMP && UT1_calc < 0)
         UT1_calc = 0;
 
@@ -182,7 +186,7 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
             if (MM.baffle_r)
                 r_first = MM.rw_r * (1 - MM.at_r);
 
-            UR1_calc = UR1 - Ru - MM.ur1_lost;
+            UR1_calc = UR1 - Ru - MM.lost_r.direct;
             if (!SKIP_DISTANCE_CLAMP && UR1_calc < 0)
                 UR1_calc = 0;
 
@@ -212,10 +216,10 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
                 fprintf(stderr, "SPHERE:       R_u = %7.3f\n", Ru);
                 fprintf(stderr, "SPHERE:       G_0 = %7.3f        P_0 = %7.3f\n", G_0, P_0);
                 fprintf(stderr, "SPHERE:         G = %7.3f          P = %7.3f\n", G, P);
-                if (MM.uru_lost > 0)
+                if (MM.lost_r.diffuse > 0)
                     fprintf(stderr, "SPHERE: G_no_lost = %7.3f  P_no_lost = %7.3f\n", G_none, P_none);
                 fprintf(stderr, "SPHERE:     G_cal = %7.3f      P_cal = %7.3f\n", G_std, P_std);
-                if (MM.uru_lost > 0)
+                if (MM.lost_r.diffuse > 0)
                     fprintf(stderr, "SPHERE: M_no_lost = %7.3f\n", M_none);
                 fprintf(stderr, "SPHERE:       M_R = %7.3f\n", *M_R);
             }
@@ -240,11 +244,11 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
                 if (MM.baffle_t)
                     r_first = MM.rw_t * (1 - MM.at_t) + r_third * MM.at_t;
 
-                UT1_calc = UT1 - Tu - MM.ut1_lost;
+                UT1_calc = UT1 - Tu - MM.lost_t.direct;
                 if (!SKIP_DISTANCE_CLAMP && UT1_calc < 0)
                     UT1_calc = 0;
 
-                G = Gain(TRANSMISSION_SPHERE, MM, URU_calc, r_third);
+                G = Gain(TRANSMISSION_SPHERE, MM, URU_t_calc, r_third);
                 G_std = Gain(TRANSMISSION_SPHERE, MM, 0, r_cal);
 
                 P_su = r_third * Tu * MM.fraction_of_tu_in_mt;
@@ -261,17 +265,17 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
                     fprintf(stderr, "SPHERE:       baffle = %d\n", MM.baffle_t);
                     fprintf(stderr, "SPHERE:       T_u collected = %5.1f%%\n", MM.fraction_of_tu_in_mt * 100);
                     fprintf(stderr, "SPHERE:       UR1 = %7.3f   UR1_calc = %7.3f\n", UR1, UR1_calc);
-                    fprintf(stderr, "SPHERE:       URU = %7.3f   URU_calc = %7.3f\n", URU, URU_calc);
+                    fprintf(stderr, "SPHERE:       URU = %7.3f URU_t_calc = %7.3f\n", URU, URU_t_calc);
                     fprintf(stderr, "SPHERE:       UT1 = %7.3f   UT1_calc = %7.3f\n", UT1, UT1_calc);
                     fprintf(stderr, "SPHERE:       T_u = %7.3f\n", Tu);
                     fprintf(stderr, "SPHERE:         G = %7.3f          P = %7.3f\n", G, P_su + P_ss);
-                    if (MM.uru_lost > 0)
+                    if (MM.lost_r.diffuse > 0)
                         fprintf(stderr, "SPHERE: G_no_lost = %7.3f  P_no_lost = %7.3f\n", G_none, P_none);
                     fprintf(stderr, "SPHERE:     G_cal = %7.3f      P_cal = %7.3f\n", G_std, 1.0);
                     fprintf(stderr, "SPHERE:   r_third = %7.3f      r_cal = %7.3f\n", r_third, r_cal);
                     fprintf(stderr, "SPHERE:   r_first = %7.3f\n", r_first);
                     fprintf(stderr, "SPHERE:       Psu = %7.3f        Pss = %7.3f\n", P_su, P_ss);
-                    if (MM.uru_lost > 0)
+                    if (MM.lost_r.diffuse > 0)
                         fprintf(stderr, "SPHERE: M_no_lost = %7.3f\n", M_none);
                     fprintf(stderr, "SPHERE:       M_T = %7.3f\n", *M_T);
                     fprintf(stderr, "\n");
@@ -481,10 +485,11 @@ void abg_sphere_mr_mt(double a, double b, double g,
     RR.slab.b = (b < 1e-6) ? 1e-6 : b;
     RR.slab.g = g;
 
-    MM.ur1_lost = 0.0;
-    MM.ut1_lost = 0.0;
-    MM.uru_lost = 0.0;
+    MM.lost_r.direct = 0.0;
+    MM.lost_t.direct = 0.0;
+    MM.lost_r.diffuse = 0.0;
     MM.utu_lost = 0.0;
+    MM.lost_t.diffuse = 0.0;
 
     Sp_mu_RT_Flip(MM.flip_sample,
         RR.slab.n_top_slide, RR.slab.n_slab, RR.slab.n_bottom_slide,
@@ -619,8 +624,8 @@ double maxloss(double f)
     Get_Calc_State(&m_old, &r_old);
 
     RR.slab.a = 1.0;
-    MM.ur1_lost *= f;
-    MM.ut1_lost *= f;
+    MM.lost_r.direct *= f;
+    MM.lost_t.direct *= f;
 
     Calculate_Distance(&m_r, &m_t, &deviation);
 
@@ -635,8 +640,8 @@ void Max_Light_Loss(struct measure_type m, struct invert_type r, double *ur1_los
     struct measure_type m_old;
     struct invert_type r_old;
 
-    *ur1_loss = m.ur1_lost;
-    *ut1_loss = m.ut1_lost;
+    *ur1_loss = m.lost_r.direct;
+    *ut1_loss = m.lost_t.direct;
 
     if (Debug(DEBUG_LOST_LIGHT))
         fprintf(stderr, "\nlost before ur1=%7.5f, ut1=%7.5f\n", *ur1_loss, *ut1_loss);
@@ -649,8 +654,8 @@ void Max_Light_Loss(struct measure_type m, struct invert_type r, double *ur1_los
         double frac;
         frac = zbrent(maxloss, 0.00, 1.0, 0.001);
 
-        *ur1_loss = m.ur1_lost * frac;
-        *ut1_loss = m.ut1_lost * frac;
+        *ur1_loss = m.lost_r.direct * frac;
+        *ut1_loss = m.lost_t.direct * frac;
     }
 
     Set_Calc_State(m_old, r_old);

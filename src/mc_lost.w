@@ -718,7 +718,7 @@ is then a prefix of the longer one, which keeps the estimates correlated.
 @ @<Prototype for |MC_Lost|@>=
 void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     double *ur1, double *ut1, double *uru, double *utu,
-    double *ur1_lost, double *ut1_lost, double *uru_lost, double *utu_lost)
+    struct lost_type *lost_r, struct lost_type *lost_t, double *utu_lost)
 
 @ @<Definition for |MC_Lost|@>=
 @<Prototype for |MC_Lost|@>
@@ -750,22 +750,26 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     set_photon_seed(lost_base_seed);
     MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
         COLLIMATED, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
-        dr_port, dt_port, d_beam, ur1, ut1, ur1_lost, ut1_lost);
+        dr_port, dt_port, d_beam, ur1, ut1, &lost_r->direct, &lost_t->direct);
 
-    *uru_lost = 0;
+    lost_r->diffuse = 0;
+    lost_t->diffuse = 0;
     *utu_lost = 0;
 
     if (m.method == SUBSTITUTION) {
         set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
         MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_top, n_bottom,
             DIFFUSE, mu, t_sample, t_top, t_bottom, b_top, b_bottom,
-            dr_port, dt_port, d_beam, uru, utu, uru_lost, utu_lost);
+            dr_port, dt_port, d_beam, uru, utu, &lost_r->diffuse, utu_lost);
+
+        @<Find the diffuse reflectance loss seen by the transmission sphere@>@;
     }
 
     if (m.flip_sample && slides_differ)
         @<Take the transmission losses from the flipped sample@>@;
 
-    if (*ur1_lost < 0 || *ut1_lost < 0 || *uru_lost < 0 || *utu_lost < 0) {
+    if (lost_r->direct < 0 || lost_t->direct < 0 ||
+        lost_r->diffuse < 0 || *utu_lost < 0) {
         exit(EXIT_FAILURE);
     }
 }
@@ -793,9 +797,10 @@ caller had in those variables.
         *ut1 = 0;
         *uru = 0;
         *utu = 0;
-        *ur1_lost = 0;
-        *ut1_lost = 0;
-        *uru_lost = 0;
+        lost_r->direct = 0;
+        lost_r->diffuse = 0;
+        lost_t->direct = 0;
+        lost_t->diffuse = 0;
         *utu_lost = 0;
         return;
     }
@@ -817,6 +822,49 @@ both is what made \.{-G t} model slides on both faces and \.{-G b} model none.
         n_bottom = 1.0;
     if (n_bottom == 1.0)
         t_bottom = 0.0;
+
+@ Both spheres bounce diffuse light off the sample and both lose some of it
+out past the rim of their own sample port, so each needs its own figure.  Two
+things separate them.
+
+The first is the port.  The run above floods the reflection port and scores
+what comes back inside it, which is what |M_R| wants.  The transmission sphere
+asks the same question through a port that need not be the same size, and with
+one sphere at a time it often is not.  A port half the diameter loses a great
+deal more light, so handing the transmission sphere the reflection number was
+wrong by roughly the size of the whole correction.
+
+The second is the face.  The beam enters the top of the sample and the
+transmission sphere collects what comes out the bottom, so the light rattling
+around inside that sphere strikes the sample from {\it below}.  The loss it
+suffers is the loss for diffuse light entering the bottom face, which is why
+the slides are exchanged below exactly as they are for a flipped sample.  How
+much this matters depends entirely on how different the two faces are: with a
+slide on top and none underneath the two figures stand at 0.23 and 0.07, a
+factor of three apart.  The total |uru| barely moves --- reciprocity holds it
+near 0.742 either way --- but its radial spread does not have to be reciprocal,
+and it is the spread that decides what clears the rim.
+
+So the second run is skipped only when the geometry makes it redundant: equal
+ports, which |measure_OK| guarantees for two spheres, and slides alike, which
+makes the two faces interchangeable.  The photon seed is reset to the value
+the first diffuse run used, so the two share their random histories and any
+difference between them reflects the change in geometry rather than noise.
+
+@<Find the diffuse reflectance loss seen by the transmission sphere@>=
+{
+    if (dt_port == dr_port && !slides_differ) {
+        lost_t->diffuse = lost_r->diffuse;
+    } else {
+        double flooded_uru, flooded_utu, flooded_utu_lost;
+
+        set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);
+        MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
+            DIFFUSE, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
+            dt_port, dt_port, d_beam, &flooded_uru, &flooded_utu,
+            &lost_t->diffuse, &flooded_utu_lost);
+    }
+}
 
 @ \.{-G n} and \.{-G f} describe a sample that is physically turned over
 between the two measurements, so the slide stays either against the sphere or
@@ -845,7 +893,7 @@ cases --- no slides, matching slides, every \.{.rxt} file --- cost nothing.
     set_photon_seed(lost_base_seed);
     MC_Radial(n_photons / 2, r.a, r.b, r.g, n_sample, n_bottom, n_top,
         COLLIMATED, mu, t_sample, t_bottom, t_top, b_bottom, b_top,
-        dr_port, dt_port, d_beam, &flipped_ur1, ut1, &flipped_ur1_lost, ut1_lost);
+        dr_port, dt_port, d_beam, &flipped_ur1, ut1, &flipped_ur1_lost, &lost_t->direct);
 
     if (m.method == SUBSTITUTION) {
         set_photon_seed(lost_base_seed + DIFFUSE_SEED_OFFSET);

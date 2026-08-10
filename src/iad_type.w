@@ -110,6 +110,15 @@ port passed trivially and no geometry was checked at all.
 
 @d IAD_BEAM_NOT_VALID                  46
 
+@ A sample cannot be brighter than one that absorbs nothing.  Subtracting the
+lost light asks the sample to have been brighter still, and past a point no
+albedo and no optical thickness can oblige: the measurements then lie outside
+anything the corrected model can produce.  The search cannot say so --- it
+runs to the |a=1| edge, stops there, and reports only that it did not settle
+--- so the condition is tested for separately and named.
+
+@d IAD_UNREACHABLE_WITH_LOST_LIGHT     47
+
 @d UNINITIALIZED                -99
 
 @d DEBUG_A_LITTLE                 1
@@ -133,11 +142,38 @@ port passed trivially and no geometry was checked at all.
 @d MC_REDO                        2
 
 
+@ Lost light belongs to a measurement, not to a sample.  The reflectance and
+the transmittance are two different experiments: the sample sits on a
+different sphere, looks out through a different port, and presents a different
+face to it.  Light that misses one sphere has nothing to do with light that
+misses the other, so each measurement carries its own pair.
+
+|direct| is the collimated beam that never reaches the sphere; |diffuse| is
+the light the sphere threw at the sample and did not get back.  For |M_R| the
+beam strikes the top and the reflection sphere floods the top; for |M_T| the
+beam still strikes the top --- it always does --- but the transmission sphere
+is on the far side and floods the {\it bottom}.  So the two are not one
+another mirrored: only the diffuse half turns over.
+
+@s lost_type int
+
+@<Structs to export from IAD Types@>=
+typedef struct lost_type {
+    double direct;
+    double diffuse;
+} IAD_lost_type;
+
 @ The idea of the structure |measure_type| is collect
 all the information regarding a single measurement together
 in one spot.    No information regarding how the inversion
 procedure is supposed to be done is contained in this
 structure, unlike in previous incarnations of this program.
+
+|utu_lost| stands apart from the two pairs.  It is diffuse light that crossed
+the sample instead of coming back from it, and with one sphere that light is
+simply gone --- there is nothing on the far side to return it.  It earns its
+keep only when a second sphere is there to catch it and send it back, which is
+the $t_s^2$ term in |Gain_11|.
 
 @s measure_type int
 
@@ -170,7 +206,9 @@ typedef struct measure_type {
     double lambda;
     double as_r, ad_r, at_r, aw_r, rd_r, rw_r, rstd_r, f_r;
     double as_t, ad_t, at_t, aw_t, rd_t, rw_t, rstd_t;
-    double ur1_lost, uru_lost, ut1_lost, utu_lost;
+    struct lost_type lost_r;
+    struct lost_type lost_t;
+    double utu_lost;
     double d_sphere_r, d_sphere_t;
 } IAD_measure_type;
 
@@ -232,9 +270,8 @@ typedef struct guess_t {
     double a;
     double b;
     double g;
-    double ur1_lost;
-    double ut1_lost;
-    double uru_lost;
+    struct lost_type lost_r;
+    struct lost_type lost_t;
     double utu_lost;
 } guess_type;
 

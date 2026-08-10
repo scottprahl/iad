@@ -232,5 +232,6 @@ void Print_Measure_Type(struct measure_type m)
     fprintf(stderr, "area_t as=%10.5f  ad=%10.5f    ae=%10.5f  aw=%10.5f\n", m.as_t, m.ad_t, m.at_t, m.aw_t);
     fprintf(stderr, "refls  rd=%10.5f  rw=%10.5f  rstd=%10.5f\n", m.rd_t, m.rw_t, m.rstd_t);
     fprintf(stderr, "lost  ur1=%10.5f ut1=%10.5f   uru=%10.5f  utu=%10.5f\n",
-        m.ur1_lost, m.ut1_lost, m.utu_lost, m.utu_lost);
+        m.lost_r.direct, m.lost_t.direct, m.lost_r.diffuse, m.utu_lost);
+    fprintf(stderr, "lost  uru seen by the transmission sphere=%10.5f\n", m.lost_t.diffuse);
 }

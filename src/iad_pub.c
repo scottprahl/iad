@@ -115,7 +115,7 @@ void Inverse_RT(struct measure_type m, struct invert_type *r)
         fprintf(stderr, "            a=%6.4f, b=%.4f, g=%.4f,", r->slab.a, r->slab.b, r->slab.g);
         fprintf(stderr, " mu_a=%6.4f, mu_s=%6.4f, mus'=%6.4f\n", mua, mus, musp);
 
-        fprintf(stderr, "    M_R loss           %8.5f  M_T loss           %8.5f", m.ur1_lost, m.ut1_lost);
+        fprintf(stderr, "    M_R loss           %8.5f  M_T loss           %8.5f", m.lost_r.direct, m.lost_t.direct);
         if (r->MC_iterations == 0)
             fprintf(stderr, " (none yet)\n");
         else
@@ -582,9 +582,10 @@ void Initialize_Measure(struct measure_type *m)
 
     m->lambda = 0.0;
     m->d_beam = 1.0;
-    m->ur1_lost = 0;
-    m->uru_lost = 0;
-    m->ut1_lost = 0;
+    m->lost_r.direct = 0;
+    m->lost_r.diffuse = 0;
+    m->lost_t.diffuse = 0;
+    m->lost_t.direct = 0;
     m->utu_lost = 0;
 }
 
@@ -720,7 +721,7 @@ void Spheres_Inverse_RT(double *setup,
 
     Inverse_RT(m, &r);
     for (i = 0; i < mc_runs; i++) {
-        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu, &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+        MC_Lost(m, r, num_photons, &ur1, &ut1, &uru, &utu, &m.lost_r, &m.lost_t, &m.utu_lost);
         Inverse_RT(m, &r);
     }
 
@@ -741,16 +742,17 @@ void Calculate_MR_MT(struct measure_type m,
     struct invert_type old_rr;
 
     if (include_MC == MC_NONE) {
-        m.ur1_lost = 0;
-        m.ut1_lost = 0;
-        m.uru_lost = 0;
+        m.lost_r.direct = 0;
+        m.lost_t.direct = 0;
+        m.lost_r.diffuse = 0;
+        m.lost_t.diffuse = 0;
         m.utu_lost = 0;
     }
 
     if (include_MC == MC_REDO) {
         double ur1, ut1, uru, utu;
         long n_photons = 100000;
-        MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu, &m.ur1_lost, &m.ut1_lost, &m.uru_lost, &m.utu_lost);
+        MC_Lost(m, r, n_photons, &ur1, &ut1, &uru, &utu, &m.lost_r, &m.lost_t, &m.utu_lost);
     }
 
     if (!include_spheres) {

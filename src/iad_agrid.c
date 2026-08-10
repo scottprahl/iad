@@ -752,9 +752,10 @@ int AGrid_Fill_Guesses(double m_r, double m_t, guess_type *guesses, int max_n)
         guesses[i].b = e->b;
         guesses[i].g = e->g;
         guesses[i].distance = best_dist[i];
-        guesses[i].ur1_lost = 0.0;
-        guesses[i].ut1_lost = 0.0;
-        guesses[i].uru_lost = 0.0;
+        guesses[i].lost_r.direct = 0.0;
+        guesses[i].lost_t.direct = 0.0;
+        guesses[i].lost_r.diffuse = 0.0;
+        guesses[i].lost_t.diffuse = 0.0;
         guesses[i].utu_lost = 0.0;
     }
 

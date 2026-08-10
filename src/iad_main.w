@@ -874,9 +874,10 @@ if (cl_grid_calc != UNINITIALIZED) {
         exit(EXIT_FAILURE);
     }
 
-    m.ur1_lost = 0;
-    m.uru_lost = 0;
-    m.ut1_lost = 0;
+    m.lost_r.direct = 0;
+    m.lost_r.diffuse = 0;
+    m.lost_t.diffuse = 0;
+    m.lost_t.direct = 0;
     m.utu_lost = 0;
 
     if (r.default_g != UNINITIALIZED) {
@@ -1072,9 +1073,10 @@ measurements.
         @<Warn and quit for bad options@>@;
         @<Write Header @>@;
 
-        m.ur1_lost = 0;
-        m.uru_lost = 0;
-        m.ut1_lost = 0;
+        m.lost_r.direct = 0;
+        m.lost_r.diffuse = 0;
+    m.lost_t.diffuse = 0;
+        m.lost_t.direct = 0;
         m.utu_lost = 0;
 
         Inverse_RT (m, &r);
@@ -1224,6 +1226,8 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
 
     {
     int mc_failed = 0;
+    int mc_unreachable = 0;
+    int pinned = 0;
     double mc_prev_a = r.slab.a;
     double mc_prev_b = r.slab.b;
     double mc_prev_g = r.slab.g;
@@ -1241,8 +1245,10 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
     while (r.MC_iterations < MAX_MC_iterations) {
         long n_photons_this;
         double last_mu_sp, last_mu_a;
-        double current_ur1_lost, current_ut1_lost, current_uru_lost, current_utu_lost;
+        struct lost_type current_r, current_t;
+        double current_utu_lost;
         double diff_ur1_lost, diff_ut1_lost, diff_uru_lost, diff_utu_lost;
+        double diff_uru_lost_t;
         double factor = 0.3;
         int too_much_lost;
         double tol = r.MC_tolerance;
@@ -1264,10 +1270,11 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
             n_photons_this = (n_photons * 5 < 10000000) ? n_photons * 5 : 10000000;
 
         MC_Lost(m, r, n_photons_this, &ur1, &ut1, &uru, &utu,
-                &current_ur1_lost, &current_ut1_lost, &current_uru_lost, &current_utu_lost);
-        diff_ur1_lost= current_ur1_lost - m.ur1_lost;
-        diff_uru_lost= current_uru_lost - m.uru_lost;
-        diff_ut1_lost= current_ut1_lost - m.ut1_lost;
+                &current_r, &current_t, &current_utu_lost);
+        diff_ur1_lost= current_r.direct - m.lost_r.direct;
+        diff_uru_lost= current_r.diffuse - m.lost_r.diffuse;
+        diff_uru_lost_t= current_t.diffuse - m.lost_t.diffuse;
+        diff_ut1_lost= current_t.direct - m.lost_t.direct;
         diff_utu_lost= current_utu_lost - m.utu_lost;
         prev_abs_diff_ur1_lost = fabs(diff_ur1_lost);
         has_prev_diff_ur1_lost = 1;
@@ -1277,9 +1284,10 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
         else
             too_much_lost = 0;
 
-        m.ur1_lost +=  factor * diff_ur1_lost;
-        m.uru_lost +=  factor * diff_uru_lost;
-        m.ut1_lost +=  factor * diff_ut1_lost;
+        m.lost_r.direct +=  factor * diff_ur1_lost;
+        m.lost_r.diffuse +=  factor * diff_uru_lost;
+        m.lost_t.diffuse +=  factor * diff_uru_lost_t;
+        m.lost_t.direct +=  factor * diff_ut1_lost;
         m.utu_lost +=  factor * diff_utu_lost;
 
         mc_total++;
@@ -1309,14 +1317,16 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
         if (0) {
             fprintf(stderr, "%2d %2d %2d | %7.4f %7.4f %7.4f | %7.4f %7.4f %7.4f\n",
                 r.MC_iterations, too_much_lost, r.found,
-                m.m_r, current_ur1_lost, m.ur1_lost,
-                m.m_t, current_ut1_lost, m.ut1_lost);
+                m.m_r, current_r.direct, m.lost_r.direct,
+                m.m_t, current_t.direct, m.lost_t.direct);
         }
 
         if (Debug(DEBUG_LOST_LIGHT))
             print_optical_property_result(stderr,m,r,LR,LT,mu_a,mu_sp,rt_total);
         else
             print_dot(start_time, r.error, mc_total, FALSE, cl_verbosity);
+
+        @<Give up early once the absorption is spent@>@;
 
         if (r.found) {
             if (fabs(last_mu_a-mu_a)>tol) {
@@ -1349,12 +1359,155 @@ if (m.num_spheres > 0 && r.found && r.error == IAD_NO_ERROR) {
         }
     }
 
-    if (mc_failed) {
+    if (mc_unreachable) {
         r.found = 0;
+        r.error = IAD_UNREACHABLE_WITH_LOST_LIGHT;
+    } else if (mc_failed) {
+        r.found = 0;
+        @<Report when the data lies beyond the corrected model@>@;
         if (r.error == IAD_NO_ERROR)
             r.error = IAD_MC_DID_NOT_CONVERGE;
     }
     }
+}
+
+@ Absorption is the only thing the search can spend to absorb a growing
+lost-light estimate.  Once |mu_a| has been driven to zero it has nothing left,
+and if the estimate is still moving then every further pass asks for light the
+sample cannot supply.  Iterating on is pointless: the answer will not improve
+and the loop merely runs out its budget before reporting that it did not
+settle.
+
+One pinned iteration is not enough to act on, since the estimate may still be
+finding its level and may yet come back.  Two in a row with the losses still
+moving is the signal.  At that point the reachability test is run --- the only
+place it costs anything, and it costs nothing at all on a measurement that
+converges --- and the loop stops if the data really is out of reach.  If it is
+not, the pin was incidental and the loop carries on as before.
+
+@<Give up early once the absorption is spent@>=
+
+    if (mu_a <= 0.0 && too_much_lost)
+        pinned++;
+    else
+        pinned = 0;
+
+    if (pinned >= 2) {
+        @<Report when the data lies beyond the corrected model@>@;
+        if (r.error == IAD_UNREACHABLE_WITH_LOST_LIGHT) {
+            mc_unreachable = 1;
+            if (Debug(DEBUG_ITERATIONS))
+                fprintf(stderr, "absorption is spent and the data is out of reach — stopping\n");
+            break;
+        }
+    }
+
+@ When the loop gives up it is worth asking whether it was ever possible to
+succeed.  Set the albedo to one, so the sample absorbs nothing and is as bright
+as a sample can be, and ask what optical thickness would then reproduce the
+measured |M_T|.  At that thickness, does the sample also give at least the
+measured |M_R|?  If it falls short, more reflectance would have to come from a
+thicker sample, and a thicker sample transmits less than was measured.  Nothing
+is left to give: the albedo is already at its limit.
+
+Only |M_T| is inverted, and that is deliberate.  |M_T| falls with thickness
+without exception, so one bisection finds the thickness and there is no
+ambiguity.  |M_R| does {\it not\/} climb without exception --- for a thin
+sample it dips first, running 0.0426, 0.0426, 0.0423, 0.0411 before turning
+and climbing to 0.19 --- because the specular reflection that dominates a
+nearly clear sample fades faster than scattering replaces it.  Bisecting on
+|M_R| would land anywhere in that dip.  So the thickness comes from |M_T|
+alone and |M_R| is merely evaluated there, with neighbours either side checked
+to confirm |M_R| really is climbing at that thickness before any conclusion is
+drawn from it.
+
+The lost light is held at the estimate the loop finished with rather than
+recomputed at each trial thickness.  That is the point: the question is whether
+the data can be reconciled with {\it that\/} correction, not whether some other
+correction would fit.
+
+The test only ever runs on a measurement that has already failed, so it can
+relabel a failure but never create one.  Failing it does not say which side is
+at fault --- it says the two are inconsistent and prints by how much, which is
+the number worth collecting across many files.
+
+@<Report when the data lies beyond the corrected model@>=
+{
+    double b_thin = 1e-6;
+    double b_t, mr_at, mt_at, mr_thin, mt_thin, mr_dn, mt_dn, mr_up, mt_up;
+    int unreachable = 0;
+
+    bright_mr_mt(m, r, b_thin, &mr_thin, &mt_thin);
+
+    if (m.m_t > mt_thin) {
+        @<Even a vanishing sample transmits too little@>@;
+    } else {
+        b_t = solve_for_b_from_mt(m, r, m.m_t);
+        bright_mr_mt(m, r, b_t, &mr_at, &mt_at);
+        bright_mr_mt(m, r, b_t * 0.9, &mr_dn, &mt_dn);
+        bright_mr_mt(m, r, b_t * 1.1, &mr_up, &mt_up);
+
+        if (m.m_r > mr_at && mr_up > mr_at && mr_at > mr_dn)
+            unreachable = 1;
+    }
+
+    if (unreachable) {
+        r.error = IAD_UNREACHABLE_WITH_LOST_LIGHT;
+        if (Debug(DEBUG_LOST_LIGHT) || Debug(DEBUG_A_LITTLE) || Debug(DEBUG_ITERATIONS)) {
+            fprintf(stderr, "The lost light puts the measurements out of reach.\n");
+            fprintf(stderr, "    with no absorption at b = %.4f the model gives\n", b_t);
+            fprintf(stderr, "    M_R %8.5f  measured %8.5f  short by %8.5f\n",
+                mr_at, m.m_r, m.m_r - mr_at);
+            fprintf(stderr, "    M_T %8.5f  measured %8.5f\n", mt_at, m.m_t);
+        }
+    }
+}
+
+@ A sample of no thickness at all is the most transmitting one there is, so a
+measurement above that is beyond reach whatever else is true.  The reported
+thickness is the vanishing one, which is where the shortfall was found.
+
+@<Even a vanishing sample transmits too little@>=
+{
+    unreachable = 1;
+    b_t = b_thin;
+    mr_at = mr_thin;
+    mt_at = mt_thin;
+}
+
+@ |bright_mr_mt| evaluates the corrected measurements for a sample of the given
+optical thickness that absorbs nothing, keeping the lost light already
+estimated.  |solve_for_b_from_mt| inverts it by bisection on the geometric
+mean, which suits a bracket spanning decades; forty halvings leave an interval
+far narrower than anything that matters here.
+
+@<calculate coefficients function@>=
+
+static void bright_mr_mt(struct measure_type m, struct invert_type r,
+                         double b, double *m_r, double *m_t)
+{
+    r.slab.a = 1.0;
+    r.slab.b = b;
+    r.a = 1.0;
+    r.b = b;
+    Calculate_MR_MT(m, r, MC_USE_EXISTING, TRUE, m_r, m_t);
+}
+
+static double solve_for_b_from_mt(struct measure_type m, struct invert_type r,
+                                  double target)
+{
+    double lo = 1e-6, hi = 1e4, mid, m_r, m_t;
+    int i;
+
+    for (i = 0; i < 40; i++) {
+        mid = sqrt(lo * hi);
+        bright_mr_mt(m, r, mid, &m_r, &m_t);
+        if (m_t > target)
+            lo = mid;
+        else
+            hi = mid;
+    }
+    return sqrt(lo * hi);
 }
 
 @ Stuff the command-line arguments that should be constant over the entire
@@ -1840,8 +1993,8 @@ if (Debug(DEBUG_LOST_LIGHT)) {
     fprintf(fp, "%6.3f ", mu_sp);
     fprintf(fp, "%6.3f |", r.g);
 
-    fprintf(fp, " %6.4f %6.4f ", m.ur1_lost, m.uru_lost);
-    fprintf(fp, "%6.4f %6.4f | ", m.ut1_lost, m.utu_lost);
+    fprintf(fp, " %6.4f %6.4f ", m.lost_r.direct, m.lost_r.diffuse);
+    fprintf(fp, "%6.4f %6.4f | ", m.lost_t.direct, m.utu_lost);
     fprintf(fp, "%2d  ", r.MC_iterations);
     fprintf(fp, "%3d", r.AD_iterations);
 
@@ -1882,7 +2035,8 @@ static void print_error_legend(void)
     fprintf(stderr, "   +  ==> Hit iteration limit\n");
     fprintf(stderr, "   x  ==> No solution found");
     fprintf(stderr, "   m  ==> Lost-light correction failed\n");
-    fprintf(stderr, "   P  ==> Port geometry is wrong\n\n");
+    fprintf(stderr, "   P  ==> Port geometry is wrong");
+    fprintf(stderr, "   L  ==> Lost light puts data out of reach\n\n");
 }
 
 
@@ -2021,6 +2175,7 @@ static char what_char(int err)
     if (err == IAD_TOO_MUCH_LIGHT)      return '!';
     if (err == IAD_SEARCH_STALLED)      return 'x';
     if (err == IAD_MC_DID_NOT_CONVERGE) return 'm';
+    if (err == IAD_UNREACHABLE_WITH_LOST_LIGHT) return 'L';
     if (err == IAD_BEAM_TOO_BIG_FOR_SAMPLE_PORT)   return 'P';
     if (err == IAD_BEAM_TOO_BIG_FOR_ENTRANCE_PORT) return 'P';
     if (err == IAD_SAMPLE_PORTS_DIFFER)            return 'P';
@@ -2071,6 +2226,14 @@ static void print_long_error(int err)
         fprintf(stderr, "Failed Search, lost-light correction did not settle\n");
         fprintf(stderr, "    the Monte Carlo re-inversion stopped converging;\n");
         fprintf(stderr, "    try -M 0 to skip the lost-light correction\n"); break;
+    case IAD_UNREACHABLE_WITH_LOST_LIGHT:
+        fprintf(stderr, "Failed Search, lost light puts the data out of reach\n");
+        fprintf(stderr, "    once the estimated lost light is subtracted, no sample\n");
+        fprintf(stderr, "    reproduces these measurements: even one that absorbs\n");
+        fprintf(stderr, "    nothing is too dim.  Either the measurements or the\n");
+        fprintf(stderr, "    sphere and port description do not describe the same\n");
+        fprintf(stderr, "    experiment.  Use -x 8 to see the shortfall, or -M 0 to\n");
+        fprintf(stderr, "    invert without the lost-light correction\n"); break;
     case IAD_MR_TOO_BIG:
         fprintf(stderr, "Failed Search, M_R is too big\n"); break;
     case IAD_MR_TOO_SMALL:

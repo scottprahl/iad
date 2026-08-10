@@ -76,15 +76,38 @@ stalled="$TEST_TMP/iad_stalled.out"
 assert_matches "$stalled" "0\.9000.*0\.0500.*x"
 assert_contains "$stalled" "stopped early without matching the measurements"
 
-# a failed lost-light correction is 'm' and names the Monte Carlo loop.  This
-# needs a real sphere: it used to rely on the default geometry, whose sample
-# port is zero, which is now refused outright.  The geometry below is combo_0's
-# -- a 44.45 mm sample port with a 6.5 mm beam through a 6.5 mm entrance port.
-mc_stalled="$TEST_TMP/iad_mc_stalled.out"
+# When the lost-light estimate leaves the measurements beyond anything the
+# model can produce, the row is 'L' rather than the vaguer 'm'.  This geometry
+# is combo_0's -- a 44.45 mm sample port with a 6.5 mm beam through a 6.5 mm
+# entrance port -- and the measurements are already at the no-absorption edge
+# without any correction at all, so subtracting lost light puts them past it.
+unreachable="$TEST_TMP/iad_unreachable.out"
 "$IAD_EXECUTABLE" -r 0.72 -t 0.26 -n 1.365 -N 1.5875 -d 2 -D 1.075 -B 6.5 -S 1 \
-    -1 '203.2 44.45 6.5 1 0.97' -2 '203.2 44.45 0 1 0.97' > "$mc_stalled" 2>&1
-assert_matches "$mc_stalled" "0\.7200.*0\.2600.*m"
-assert_contains "$mc_stalled" "lost-light correction did not settle"
+    -1 '203.2 44.45 6.5 1 0.97' -2 '203.2 44.45 0 1 0.97' > "$unreachable" 2>&1
+assert_matches "$unreachable" "0\.7200.*0\.2600.*L"
+assert_contains "$unreachable" "lost light puts the data out of reach"
+
+# the shortfall is reported so it can be collected across many files
+unreachable_x8="$TEST_TMP/iad_unreachable_x8.out"
+"$IAD_EXECUTABLE" -r 0.72 -t 0.26 -n 1.365 -N 1.5875 -d 2 -D 1.075 -B 6.5 -S 1 \
+    -1 '203.2 44.45 6.5 1 0.97' -2 '203.2 44.45 0 1 0.97' -x 8 > "$unreachable_x8" 2>&1
+assert_contains "$unreachable_x8" "short by"
+
+# The same measurements invert without complaint when the correction is off,
+# which is the whole point: 'L' says the data and the correction disagree, not
+# that the data is bad.
+no_mc="$TEST_TMP/iad_unreachable_nomc.out"
+"$IAD_EXECUTABLE" -M 0 -r 0.72 -t 0.26 -n 1.365 -N 1.5875 -d 2 -D 1.075 -B 6.5 -S 1 \
+    -1 '203.2 44.45 6.5 1 0.97' -2 '203.2 44.45 0 1 0.97' > "$no_mc" 2>&1
+assert_matches "$no_mc" "0\.7200.*0\.2600.*\*"
+
+# A measurement the model can reproduce must never be called unreachable.
+# These come from -z, so they are consistent with the corrected model by
+# construction and have to come back '*' with the properties recovered.
+reachable="$TEST_TMP/iad_reachable.out"
+"$IAD_EXECUTABLE" -r 0.1489 -t 0.5751 -n 1.3382 -N 1.5 -d 2.735 -D 2 -B 2 -S 1 \
+    -1 '76.2 25.4 12.7 1 0.98' -2 '76.2 25.4 0 1 0.98' -R 0.98 > "$reachable" 2>&1
+assert_matches "$reachable" "0\.1489.*0\.5751.*\*"
 
 # A slide removed by -G must not keep the absorption set by -E.  These are
 # relationships between runs rather than frozen numbers, so they stay valid
