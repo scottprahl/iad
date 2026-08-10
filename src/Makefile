@@ -51,12 +51,32 @@ libiad.dll: $(AD_OBJ) $(IAD_OBJ) $(NR_OBJ) libiad.h version.o
 # .c files alone, so ctangle never re-runs and the second `make lib' dies with
 # "cat: lib_ad.h: No such file or directory".  They are left in place now and
 # removed by `make realclean' with the other generated sources.
+#
+# ctangle is run in a scratch directory rather than here.  Asked for one of
+# these headers it writes the whole set -- ad_prime.c and ad_prime.h too --
+# in raw form, without the cobweb and indent passes that tidy-src applies, so
+# running it in place left four committed files rewritten as untidied output
+# every time anyone typed `make lib'.  Both .w files are self-contained, so a
+# copy in an empty directory tangles just as well and only the wanted header
+# is brought back.
+
+LIBHDR_DIR = .libhdr
 
 lib_ad.h : ad_prime.w
-	ctangle -bhp ad_prime.w
+	@rm -rf $(LIBHDR_DIR)
+	@mkdir $(LIBHDR_DIR)
+	@cp ad_prime.w $(LIBHDR_DIR)/
+	@cd $(LIBHDR_DIR) && ctangle -bhp ad_prime.w
+	@cp $(LIBHDR_DIR)/lib_ad.h .
+	@rm -rf $(LIBHDR_DIR)
 
 lib_iad.h : iad_pub.w
-	ctangle -bhp iad_pub.w
+	@rm -rf $(LIBHDR_DIR)
+	@mkdir $(LIBHDR_DIR)
+	@cp iad_pub.w $(LIBHDR_DIR)/
+	@cd $(LIBHDR_DIR) && ctangle -bhp iad_pub.w
+	@cp $(LIBHDR_DIR)/lib_iad.h .
+	@rm -rf $(LIBHDR_DIR)
 
 libiad.h : ad iad lib_ad.h lib_iad.h ad_cone_ez.h ad_layers.h
 	cat lib_ad.h lib_iad.h ad_cone_ez.h ad_layers.h > libiad.tmp
@@ -190,6 +210,7 @@ clean:
 	rm -f mc_lost_main.o ad_layers_test.o lib_test.o
 	rm -f cone_test layer_test mc_test oblique_test mc_lost lib_test
 	rm -f ad iad adchapter
+	rm -rf $(LIBHDR_DIR)
 
 realclean:
 	make clean

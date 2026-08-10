@@ -185,7 +185,7 @@ $$
 
 
 @<Prototype for |Gain_11|@>=
-double Gain_11(struct measure_type m, double URU, double tdiffuse)
+double Gain_11(struct measure_type m, double URU, double URU_t, double tdiffuse)
 
 @ @<Definition for |Gain_11|@>=
     @<Prototype for |Gain_11|@>
@@ -193,7 +193,7 @@ double Gain_11(struct measure_type m, double URU, double tdiffuse)
     double G, GP, G11;
 
     G        = Gain(REFLECTION_SPHERE, m, URU, 0);
-    GP       = Gain(TRANSMISSION_SPHERE, m, URU, 0);
+    GP       = Gain(TRANSMISSION_SPHERE, m, URU_t, 0);
 
     G11 = G / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.at_r) * (1-m.at_t)
                * G * GP * tdiffuse * tdiffuse);
@@ -210,7 +210,7 @@ G_{2\rightarrow2}(r_s,t_s) = {G'(r_s) \over 1-a_s a_s' r_w r_w'
 $$
 
 @<Prototype for |Gain_22|@>=
-double Gain_22(struct measure_type m, double URU, double tdiffuse)
+double Gain_22(struct measure_type m, double URU, double URU_t, double tdiffuse)
 
 @ @<Definition for |Gain_22|@>=
     @<Prototype for |Gain_22|@>
@@ -218,7 +218,7 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
     double G, GP, G22;
 
     G        = Gain(REFLECTION_SPHERE, m, URU, 0);
-    GP       = Gain(TRANSMISSION_SPHERE, m, URU, 0);
+    GP       = Gain(TRANSMISSION_SPHERE, m, URU_t, 0);
 
     G22 = GP / (1-m.as_r * m.as_t * m.aw_r * m.aw_t * (1-m.at_r) * (1-m.at_t)
                * G * GP * tdiffuse * tdiffuse);
@@ -255,24 +255,28 @@ $$
 
 @<Prototype for |Two_Sphere_R|@>=
 double Two_Sphere_R(struct measure_type m,
-                    double UR1, double URU, double UT1, double UTU)
+                    double UR1, double URU, double URU_t, double UT1, double UTU)
 
-@ Note that |URU| arrives here already reduced by the reflection sphere's
-diffuse loss, and |GP| below then hands that same number to the transmission
-sphere.  With two spheres the ports must match, so the two losses differ only
-when the sample presents unlike faces --- a slide on one side and not the
-other.  |m.lost_t.diffuse| holds the figure the transmission sphere ought to
-use and is computed whether one sphere is in play or two; wiring it in means
-changing the signatures of both |Two_Sphere_R| and |Two_Sphere_T|, which is
-work for whoever next reviews these two formulas.
+@ The sample is seen by both spheres at once here, but not in the same way:
+the reflection sphere looks at the top face and the transmission sphere at the
+bottom.  |URU| is the diffuse reflectance the first sees and |URU_t| the
+second, each already reduced by the light that wandered out past its own port.
+With two spheres the ports must match, so the two differ only when the faces
+do --- a slide on one side and not the other --- and for a symmetric sample
+they are the same number and nothing below changes.
+
+Every gain is therefore given the reflectance belonging to its own sphere.
+|Gain| for the reflection sphere takes |URU|, |Gain| for the transmission
+sphere takes |URU_t|, and |Gain_11| and |Gain_22| take both because each of
+them contains one of each.
 
 @ @<Definition for |Two_Sphere_R|@>=
     @<Prototype for |Two_Sphere_R|@>
 {
     double x, GP;
-    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
+    GP = Gain(TRANSMISSION_SPHERE, m, URU_t, 0);
 
-    x = m.ad_r*(1-m.at_r)*m.rw_r*Gain_11(m,URU,UTU);
+    x = m.ad_r*(1-m.at_r)*m.rw_r*Gain_11(m,URU,URU_t,UTU);
     x *= (1-m.f_r)*UR1+m.rw_r*m.f_r+(1-m.f_r)*m.as_t*(1-m.at_t)*m.rw_t*UT1*UTU*GP;
     return x;
 }
@@ -301,14 +305,14 @@ $$
 
 @<Prototype for |Two_Sphere_T|@>=
 double Two_Sphere_T(struct measure_type m,
-                    double UR1, double URU, double UT1, double UTU)
+                    double UR1, double URU, double URU_t, double UT1, double UTU)
 
 @ @<Definition for |Two_Sphere_T|@>=
     @<Prototype for |Two_Sphere_T|@>
 {
     double x, G;
     G = Gain(REFLECTION_SPHERE, m, URU, 0);
-    x = m.ad_t*(1-m.at_t)*m.rw_t*Gain_22(m,URU,UTU);
+    x = m.ad_t*(1-m.at_t)*m.rw_t*Gain_22(m,URU,URU_t,UTU);
     x *= (1-m.f_r)*UT1+(1-m.at_r)*m.rw_r*m.as_r*UTU*(m.f_r*m.rw_r+(1-m.f_r)*UR1)*G;
     return x;
 }
@@ -1054,13 +1058,13 @@ set the fraction |m.f_r| or |m.f_t| to be non-zero.
 @<Calc |M_R| and |M_T| for two spheres@>=
 {
 double R_0, T_0;
-R_0 = Two_Sphere_R(MM, 0, 0, 0, 0);
-T_0 = Two_Sphere_T(MM, 0, 0, 0, 0);
+R_0 = Two_Sphere_R(MM, 0, 0, 0, 0, 0);
+T_0 = Two_Sphere_T(MM, 0, 0, 0, 0, 0);
 
-*M_R = MM.rstd_r * (Two_Sphere_R(MM, UR1_calc, URU_calc, UT1_calc, UTU_calc) - R_0)/
-                   (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r, 0, 0) - R_0);
-*M_T =  (Two_Sphere_T(MM, UR1_calc, URU_calc, UT1_calc, UTU_calc) - T_0)/
-                   (Two_Sphere_T(MM, 0, 0, 1, 1) - T_0);
+*M_R = MM.rstd_r * (Two_Sphere_R(MM, UR1_calc, URU_calc, URU_t_calc, UT1_calc, UTU_calc) - R_0)/
+                   (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r, MM.rstd_r, 0, 0) - R_0);
+*M_T =  (Two_Sphere_T(MM, UR1_calc, URU_calc, URU_t_calc, UT1_calc, UTU_calc) - T_0)/
+                   (Two_Sphere_T(MM, 0, 0, 0, 1, 1) - T_0);
 }
 
 @ There are at least three things that need to be considered here.

@@ -88,12 +88,12 @@ double Gain(int sphere, struct measure_type m, double uru_sample, double uru_thi
     return 1.0 / inv_gain;
 }
 
-double Gain_11(struct measure_type m, double URU, double tdiffuse)
+double Gain_11(struct measure_type m, double URU, double URU_t, double tdiffuse)
 {
     double G, GP, G11;
 
     G = Gain(REFLECTION_SPHERE, m, URU, 0);
-    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
+    GP = Gain(TRANSMISSION_SPHERE, m, URU_t, 0);
 
     G11 = G / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.at_r) * (1 - m.at_t)
         * G * GP * tdiffuse * tdiffuse);
@@ -101,12 +101,12 @@ double Gain_11(struct measure_type m, double URU, double tdiffuse)
     return G11;
 }
 
-double Gain_22(struct measure_type m, double URU, double tdiffuse)
+double Gain_22(struct measure_type m, double URU, double URU_t, double tdiffuse)
 {
     double G, GP, G22;
 
     G = Gain(REFLECTION_SPHERE, m, URU, 0);
-    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
+    GP = Gain(TRANSMISSION_SPHERE, m, URU_t, 0);
 
     G22 = GP / (1 - m.as_r * m.as_t * m.aw_r * m.aw_t * (1 - m.at_r) * (1 - m.at_t)
         * G * GP * tdiffuse * tdiffuse);
@@ -114,21 +114,21 @@ double Gain_22(struct measure_type m, double URU, double tdiffuse)
     return G22;
 }
 
-double Two_Sphere_R(struct measure_type m, double UR1, double URU, double UT1, double UTU)
+double Two_Sphere_R(struct measure_type m, double UR1, double URU, double URU_t, double UT1, double UTU)
 {
     double x, GP;
-    GP = Gain(TRANSMISSION_SPHERE, m, URU, 0);
+    GP = Gain(TRANSMISSION_SPHERE, m, URU_t, 0);
 
-    x = m.ad_r * (1 - m.at_r) * m.rw_r * Gain_11(m, URU, UTU);
+    x = m.ad_r * (1 - m.at_r) * m.rw_r * Gain_11(m, URU, URU_t, UTU);
     x *= (1 - m.f_r) * UR1 + m.rw_r * m.f_r + (1 - m.f_r) * m.as_t * (1 - m.at_t) * m.rw_t * UT1 * UTU * GP;
     return x;
 }
 
-double Two_Sphere_T(struct measure_type m, double UR1, double URU, double UT1, double UTU)
+double Two_Sphere_T(struct measure_type m, double UR1, double URU, double URU_t, double UT1, double UTU)
 {
     double x, G;
     G = Gain(REFLECTION_SPHERE, m, URU, 0);
-    x = m.ad_t * (1 - m.at_t) * m.rw_t * Gain_22(m, URU, UTU);
+    x = m.ad_t * (1 - m.at_t) * m.rw_t * Gain_22(m, URU, URU_t, UTU);
     x *= (1 - m.f_r) * UT1 + (1 - m.at_r) * m.rw_r * m.as_r * UTU * (m.f_r * m.rw_r + (1 - m.f_r) * UR1) * G;
     return x;
 }
@@ -289,13 +289,13 @@ void Calculate_Distance_With_Corrections(double UR1, double UT1,
 
         {
             double R_0, T_0;
-            R_0 = Two_Sphere_R(MM, 0, 0, 0, 0);
-            T_0 = Two_Sphere_T(MM, 0, 0, 0, 0);
+            R_0 = Two_Sphere_R(MM, 0, 0, 0, 0, 0);
+            T_0 = Two_Sphere_T(MM, 0, 0, 0, 0, 0);
 
-            *M_R = MM.rstd_r * (Two_Sphere_R(MM, UR1_calc, URU_calc, UT1_calc, UTU_calc) - R_0) /
-                (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r, 0, 0) - R_0);
-            *M_T = (Two_Sphere_T(MM, UR1_calc, URU_calc, UT1_calc, UTU_calc) - T_0) /
-                (Two_Sphere_T(MM, 0, 0, 1, 1) - T_0);
+            *M_R = MM.rstd_r * (Two_Sphere_R(MM, UR1_calc, URU_calc, URU_t_calc, UT1_calc, UTU_calc) - R_0) /
+                (Two_Sphere_R(MM, MM.rstd_r, MM.rstd_r, MM.rstd_r, 0, 0) - R_0);
+            *M_T = (Two_Sphere_T(MM, UR1_calc, URU_calc, URU_t_calc, UT1_calc, UTU_calc) - T_0) /
+                (Two_Sphere_T(MM, 0, 0, 0, 1, 1) - T_0);
         }
 
         break;

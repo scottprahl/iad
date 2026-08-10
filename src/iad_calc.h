@@ -2,13 +2,13 @@
 
 double Gain(int sphere, struct measure_type m, double uru_sample, double uru_third);
 
-double Gain_11(struct measure_type m, double URU, double tdiffuse);
+double Gain_11(struct measure_type m, double URU, double URU_t, double tdiffuse);
 
-double Gain_22(struct measure_type m, double URU, double tdiffuse);
+double Gain_22(struct measure_type m, double URU, double URU_t, double tdiffuse);
 
-double Two_Sphere_R(struct measure_type m, double UR1, double URU, double UT1, double UTU);
+double Two_Sphere_R(struct measure_type m, double UR1, double URU, double URU_t, double UT1, double UTU);
 
-double Two_Sphere_T(struct measure_type m, double UR1, double URU, double UT1, double UTU);
+double Two_Sphere_T(struct measure_type m, double UR1, double URU, double URU_t, double UT1, double UTU);
 
 void Set_Calc_State(struct measure_type m, struct invert_type r);
 
