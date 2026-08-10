@@ -113,13 +113,69 @@ def add_x_label(lambda0):
     else:
         plt.xlabel('Measurement Number', fontsize=axis_label_size)
 
+# The last column of an iad .txt file says how the row turned out.  A '*' is
+# a fit; every other letter is a way of not fitting, and they do not all mean
+# the same thing, so they are not all drawn the same way.
+#
+# 'L' and 'm' are the lost-light failures and they matter most here.  Rows
+# marked that way still carry the last set of properties that did fit, so the
+# points are worth looking at -- they are an estimate that the lost-light
+# correction could not confirm, not a hole in the data.  They are drawn in
+# orange to say "usable but flagged".
+#
+# 'x' and '+' mean the search itself never landed, and the red letters mean
+# the measurements or the sphere description were rejected before the search
+# began.  Anything unrecognised falls through to the last entry, so a new
+# letter in iad shows up as a visible red diamond rather than vanishing.
+STATUS_STYLES = [
+    ('L', 'v', 'darkorange', 'lost light out of reach'),
+    ('m', '^', 'orange', 'lost light unsettled'),
+    ('x', 'x', 'red', 'no solution found'),
+    ('+', '+', 'red', 'hit iteration limit'),
+    ('P', 's', 'purple', 'port geometry'),
+]
+UNKNOWN_STATUS_STYLE = ('D', 'red', 'rejected data')
+
+def plot_failures(x, y, status):
+    """Draw the rows that did not fit, one symbol per kind of failure.
+
+    Args:
+        x: Array-like x coordinates.
+        y: Array-like y coordinates.
+        status: Array of one-character status codes, one per row.
+
+    Returns:
+        True when at least one failed row was drawn.
+    """
+    drawn = False
+    named = set()
+
+    for code, marker, color, label in STATUS_STYLES:
+        mask = status == code
+        if mask.any():
+            plt.plot(x[mask], y[mask], marker=marker, markersize=5,
+                     markerfacecolor='none', markeredgecolor=color,
+                     color=color, linestyle='None', label=label)
+            drawn = True
+        named.add(code)
+
+    other = ~np.isin(status, list(named) + ['*'])
+    if other.any():
+        marker, color, label = UNKNOWN_STATUS_STYLE
+        plt.plot(x[other], y[other], marker=marker, markersize=5,
+                 markerfacecolor='none', markeredgecolor=color,
+                 color=color, linestyle='None', label=label)
+        drawn = True
+
+    return drawn
+
 def plot_good(x, y, success, big_points=False):
     """Plot successful fit points on the current axes.
 
     Args:
         x: Array-like x coordinates.
         y: Array-like y coordinates.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         big_points: When true, draw larger hollow markers for overlays.
     """
     if big_points:
@@ -134,15 +190,17 @@ def plot_good(x, y, success, big_points=False):
                  label='fit')
     plt.grid(True)
 
-def plot_good_and_bad(x, y, success, big_points=False):
-    """Plot successful and failed fit points on the current axes.
+def plot_good_and_bad(x, y, status, big_points=False):
+    """Plot fitted and failed points on the current axes.
 
     Args:
         x: Array-like x coordinates.
         y: Array-like y coordinates.
-        success: Boolean mask selecting successful rows.
-        big_points: When true, draw larger hollow markers for successful rows.
+        status: Array of one-character status codes, one per row.
+        big_points: When true, draw larger hollow markers for fitted rows.
     """
+    success = status == '*'
+
     if big_points:
         size = 7
         fc = 'none'
@@ -154,8 +212,7 @@ def plot_good_and_bad(x, y, success, big_points=False):
                  markerfacecolor=fc, markeredgecolor='blue', linestyle='None',
                  label='fit')
 
-    if any(~success):
-        plt.plot(x[~success], y[~success], 'xr', label='failed')
+    if plot_failures(x, y, status):
         plt.legend()
     plt.grid(True)
 
@@ -216,7 +273,7 @@ def plot_gridlines(filename_base):
     plt.title(os.path.basename(filename_base) + ".rxt (assuming g=%.3f)" % g_value)
     plt.grid(False)
 
-def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
+def plot_grid(mr, cr, mt, ct, status, filename_base, figure_ext):
     """Create the reflection/transmission grid plot.
 
     Args:
@@ -224,7 +281,7 @@ def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
         cr: Calculated reflectance fit values.
         mt: Measured transmittance values.
         ct: Calculated transmittance fit values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
 
@@ -238,10 +295,10 @@ def plot_grid(mr, cr, mt, ct, success, filename_base, figure_ext):
     plt.ylim(-0.05,1.05)
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
+    success = status == '*'
     plot_good(cr, ct, success, True)
     plt.plot(mr[success], mt[success], 'o', markersize=2, color=azure, label='measured')
-    if any(~success):
-        plt.plot(mr[~success], mt[~success], 'x', markersize=5, color='red', label='failed')
+    plot_failures(mr, mt, status)
     poly = plt.Polygon([[0,0],[0,1],[1,0]], closed=True, facecolor=yellow, edgecolor='none', alpha=1)
     plt.gca().add_patch(poly)
     plot_gridlines(filename_base)
@@ -278,14 +335,67 @@ def plot_rt(lam, mr, mt, filename_base, figure_ext):
     plt.close()
     return os.path.basename(out_filename)
 
-def plot_r(lam, mr, cr, success, filename_base, figure_ext):
+def plot_rt_sum(lam, mr, mt, status, filename_base, figure_ext):
+    """Plot the measured total ``M_R + M_T``.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        mr: Measured reflectance values.
+        mt: Measured transmittance values.
+        status: Array of one-character status codes, one per row.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
+    out_filename = filename_base + '_RTsum' + figure_ext
+    plt.figure(figsize=(8, 4.5))
+    plot_good_and_bad(lam, mr + mt, status)
+    plt.axhline(1.0, color='black', linewidth=0.5, linestyle=':')
+    add_x_label(lam)
+    plt.ylabel('$M_R + M_T$', fontsize=axis_label_size)
+    plt.savefig(out_filename, dpi=300)
+    plt.close()
+    return os.path.basename(out_filename)
+
+def plot_rt_missing(lam, mr, mt, status, filename_base, figure_ext):
+    """Plot the measured shortfall ``1 - M_R - M_T``.
+
+    This is the light the two measurements did not account for.  For a sample
+    measured without spheres it is the absorbed fraction, so it cannot be
+    negative; once sphere gains are involved ``M_R + M_T`` can exceed one and
+    the curve dips below zero, which is worth seeing rather than hiding.
+
+    Args:
+        lam: Wavelength or measurement-number coordinates.
+        mr: Measured reflectance values.
+        mt: Measured transmittance values.
+        status: Array of one-character status codes, one per row.
+        filename_base: Output filename without extension.
+        figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
+
+    Returns:
+        Basename of the saved figure.
+    """
+    out_filename = filename_base + '_RTmissing' + figure_ext
+    plt.figure(figsize=(8, 4.5))
+    plot_good_and_bad(lam, 1 - mr - mt, status)
+    plt.axhline(0.0, color='black', linewidth=0.5, linestyle=':')
+    add_x_label(lam)
+    plt.ylabel('$1 - M_R - M_T$', fontsize=axis_label_size)
+    plt.savefig(out_filename, dpi=300)
+    plt.close()
+    return os.path.basename(out_filename)
+
+def plot_r(lam, mr, cr, status, filename_base, figure_ext):
     """Plot measured and fitted reflectance.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         mr: Measured reflectance values.
         cr: Calculated reflectance fit values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
 
@@ -294,7 +404,7 @@ def plot_r(lam, mr, cr, success, filename_base, figure_ext):
     """
     out_filename = filename_base + '_R' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, cr, success, True)
+    plot_good_and_bad(lam, cr, status, True)
     plt.plot(lam, mr, 'ok', markersize=2, label='measured')
     add_x_label(lam)
     plt.ylabel('$M_R$ (Normalized Reflectance)',fontsize=axis_label_size)
@@ -304,14 +414,14 @@ def plot_r(lam, mr, cr, success, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 
-def plot_t(lam, mt, ct, success, filename_base, figure_ext):
+def plot_t(lam, mt, ct, status, filename_base, figure_ext):
     """Plot measured and fitted transmittance.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         mt: Measured transmittance values.
         ct: Calculated transmittance fit values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
 
@@ -320,7 +430,7 @@ def plot_t(lam, mt, ct, success, filename_base, figure_ext):
     """
     out_filename = filename_base + '_T' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, ct, success, True)
+    plot_good_and_bad(lam, ct, status, True)
     plt.plot(lam, mt, 'ok', markersize=2, label='measured')
     add_x_label(lam)
     plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=axis_label_size)
@@ -330,13 +440,13 @@ def plot_t(lam, mt, ct, success, filename_base, figure_ext):
     return os.path.basename(out_filename)
 
 
-def plot_mua(lam, mua, success, filename_base, figure_ext):
+def plot_mua(lam, mua, status, filename_base, figure_ext):
     """Plot estimated absorption coefficient.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         mua: Absorption coefficient values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
 
@@ -345,7 +455,7 @@ def plot_mua(lam, mua, success, filename_base, figure_ext):
     """
     out_filename = filename_base + '_mua' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, mua, success)
+    plot_good_and_bad(lam, mua, status)
     add_x_label(lam)
     plt.ylabel('Absorption Coefficient (mm⁻¹)', fontsize=axis_label_size)
     plt.savefig(out_filename, dpi=300)
@@ -372,7 +482,7 @@ def add_scattering_fit(lam, values, success, label):
     Args:
         lam: Wavelength or measurement-number coordinates.
         values: Scattering values to fit.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         label: Name to use in the plotted fit label.
 
     Returns:
@@ -389,13 +499,13 @@ def add_scattering_fit(lam, values, success, label):
     plt.legend()
     return True
 
-def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
+def plot_musp(lam, musp, status, filename_base, figure_ext, fit=False):
     """Plot estimated reduced scattering coefficient.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         musp: Reduced scattering coefficient values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
         fit: When true, fit successful wavelength rows to a power law.
@@ -405,9 +515,9 @@ def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
     """
     out_filename = filename_base + '_musp' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, musp, success)
+    plot_good_and_bad(lam, musp, status)
     if fit:
-        add_scattering_fit(lam, musp, success, 'musp')
+        add_scattering_fit(lam, musp, status == '*', 'musp')
 
     plt.ylabel('Reduced Scattering Coefficient (mm⁻¹)', fontsize=axis_label_size)
     add_x_label(lam)
@@ -416,13 +526,13 @@ def plot_musp(lam, musp, success, filename_base, figure_ext, fit=False):
     return os.path.basename(out_filename)
 
 
-def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
+def plot_mus(lam, mus, status, filename_base, figure_ext, fit=False):
     """Plot estimated scattering coefficient.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         mus: Scattering coefficient values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
         fit: When true, fit successful wavelength rows to a power law.
@@ -432,9 +542,9 @@ def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
     """
     out_filename = filename_base + '_mus' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, mus, success)
+    plot_good_and_bad(lam, mus, status)
     if fit:
-        add_scattering_fit(lam, mus, success, 'mus')
+        add_scattering_fit(lam, mus, status == '*', 'mus')
     plt.ylabel('Scattering Coefficient (mm⁻¹)', fontsize=axis_label_size)
     add_x_label(lam)
     plt.savefig(out_filename, dpi=300)
@@ -442,13 +552,13 @@ def plot_mus(lam, mus, success, filename_base, figure_ext, fit=False):
     return os.path.basename(out_filename)
 
 
-def plot_g(lam, g, success, filename_base, figure_ext):
+def plot_g(lam, g, status, filename_base, figure_ext):
     """Plot estimated scattering anisotropy.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         g: Scattering anisotropy values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
 
@@ -457,20 +567,20 @@ def plot_g(lam, g, success, filename_base, figure_ext):
     """
     out_filename = filename_base + '_g' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, g, success)
+    plot_good_and_bad(lam, g, status)
     add_x_label(lam)
     plt.ylabel('Scattering Anisotropy', fontsize=axis_label_size)
     plt.savefig(out_filename, dpi=300)
     plt.close()
     return os.path.basename(out_filename)
 
-def plot_a(lam, a, success, filename_base, figure_ext):
+def plot_a(lam, a, status, filename_base, figure_ext):
     """Plot estimated single-scattering albedo.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         a: Single-scattering albedo values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
 
@@ -479,7 +589,7 @@ def plot_a(lam, a, success, filename_base, figure_ext):
     """
     out_filename = filename_base + '_a' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, a, success)
+    plot_good_and_bad(lam, a, status)
     add_x_label(lam)
     plt.ylabel(r'Single Scattering Albedo $\mu_s/(\mu_a+\mu_s)$',
                fontsize=axis_label_size)
@@ -487,13 +597,13 @@ def plot_a(lam, a, success, filename_base, figure_ext):
     plt.close()
     return os.path.basename(out_filename)
 
-def plot_b(lam, b, success, filename_base, figure_ext):
+def plot_b(lam, b, status, filename_base, figure_ext):
     """Plot estimated optical thickness.
 
     Args:
         lam: Wavelength or measurement-number coordinates.
         b: Optical thickness values.
-        success: Boolean mask selecting successful rows.
+        status: Array of one-character status codes, one per row.
         filename_base: Output filename without extension.
         figure_ext: Figure extension, such as ``'.svg'`` or ``'.pdf'``.
 
@@ -502,7 +612,7 @@ def plot_b(lam, b, success, filename_base, figure_ext):
     """
     out_filename = filename_base + '_b' + figure_ext
     plt.figure(figsize=(8, 4.5))
-    plot_good_and_bad(lam, b, success)
+    plot_good_and_bad(lam, b, status)
     add_x_label(lam)
     plt.ylabel(r'Optical Thickness $(\mu_a+\mu_s)d$', fontsize=axis_label_size)
     plt.savefig(out_filename, dpi=300)
@@ -1969,15 +2079,17 @@ Examples:
             shutil.copy(base_path + '.grid', artifact_base_path + '.grid')
 
         rt_graph = plot_rt(lam, mr, mt, artifact_base_path, figure_ext)
-        r_graph = plot_r(lam, mr, cr, success, artifact_base_path, figure_ext)
-        t_graph = plot_t(lam, mt, ct, success, artifact_base_path, figure_ext)
-        mua_graph = plot_mua(lam, mua, success, artifact_base_path, figure_ext)
-        musp_graph = plot_musp(lam, musp, success, artifact_base_path, figure_ext, fit=args.fit)
-        mus_graph = plot_mus(lam, mus, success, artifact_base_path, figure_ext, fit=args.fit)
-        a_graph = plot_a(lam, a, success, artifact_base_path, figure_ext)
-        b_graph = plot_b(lam, b, success, artifact_base_path, figure_ext)
-        g_graph = plot_g(lam, g, success, artifact_base_path, figure_ext)
-        grid_graph = plot_grid(mr, cr, mt, ct, success, artifact_base_path, figure_ext)
+        r_graph = plot_r(lam, mr, cr, status, artifact_base_path, figure_ext)
+        t_graph = plot_t(lam, mt, ct, status, artifact_base_path, figure_ext)
+        mua_graph = plot_mua(lam, mua, status, artifact_base_path, figure_ext)
+        musp_graph = plot_musp(lam, musp, status, artifact_base_path, figure_ext, fit=args.fit)
+        mus_graph = plot_mus(lam, mus, status, artifact_base_path, figure_ext, fit=args.fit)
+        a_graph = plot_a(lam, a, status, artifact_base_path, figure_ext)
+        b_graph = plot_b(lam, b, status, artifact_base_path, figure_ext)
+        g_graph = plot_g(lam, g, status, artifact_base_path, figure_ext)
+        grid_graph = plot_grid(mr, cr, mt, ct, status, artifact_base_path, figure_ext)
+        rtsum_graph = plot_rt_sum(lam, mr, mt, status, artifact_base_path, figure_ext)
+        rtmissing_graph = plot_rt_missing(lam, mr, mt, status, artifact_base_path, figure_ext)
 
         graph_groups = [
             [('', rt_graph)],
@@ -1987,6 +2099,7 @@ Examples:
             [('Absorption Coefficient', mua_graph),
              ('Scattering Anisotropy', g_graph)],
             [('Single Scattering Albedo', a_graph), ('Optical Thickness', b_graph)],
+            [('Measured Total', rtsum_graph), ('Unaccounted Light', rtmissing_graph)],
             [('Grid Graph', grid_graph)],
         ]
 
