@@ -101,6 +101,23 @@ no_mc="$TEST_TMP/iad_unreachable_nomc.out"
     -1 '203.2 44.45 6.5 1 0.97' -2 '203.2 44.45 0 1 0.97' > "$no_mc" 2>&1
 assert_matches "$no_mc" "0\.7200.*0\.2600.*\*"
 
+# A failed row keeps the last fit that worked rather than reporting zeros.
+# The lost-light loop gives up on its first pass here, so the numbers left
+# behind must be exactly the ones the uncorrected inversion produced; only
+# the status letter should differ.
+failed_row=$(grep -E '^[[:space:]]*[0-9]' "$unreachable" | tail -1 | awk '{$NF=""; print}')
+nomc_row=$(grep -E '^[[:space:]]*[0-9]' "$no_mc" | tail -1 | awk '{$NF=""; print}')
+if [ "$failed_row" != "$nomc_row" ]; then
+    fail "a failed row did not keep the last working fit
+  failed: $failed_row
+  -M 0  : $nomc_row"
+fi
+
+# and in particular it is not a row of zeros
+case "$failed_row" in
+    *0.0000?0.0000?0.0000?0.0000*) fail "a failed row reported zeros: $failed_row" ;;
+esac
+
 # A measurement the model can reproduce must never be called unreachable.
 # These come from -z, so they are consistent with the corrected model by
 # construction and have to come back '*' with the properties recovered.

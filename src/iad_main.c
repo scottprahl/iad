@@ -457,12 +457,13 @@ static double solve_for_b_from_mt(struct measure_type m, struct invert_type r, d
 static void calculate_coefficients(struct measure_type m,
     struct invert_type r, double *LR, double *LT, double *musp, double *mua)
 {
-    double delta, mus;
+    double mus;
     *LR = 0;
     *LT = 0;
     if (r.error == IAD_NO_ERROR || r.error == IAD_TOO_MANY_ITERATIONS ||
-        r.error == IAD_SEARCH_STALLED || r.error == IAD_MC_DID_NOT_CONVERGE) {
-        Calculate_Distance(LR, LT, &delta);
+        r.error == IAD_SEARCH_STALLED || r.error == IAD_MC_DID_NOT_CONVERGE ||
+        r.error == IAD_UNREACHABLE_WITH_LOST_LIGHT) {
+        Calculate_MR_MT(m, r, MC_USE_EXISTING, TRUE, LR, LT);
         Calculate_Mua_Musp(m, r, &mus, musp, mua);
     }
     else {
@@ -1761,6 +1762,8 @@ int main(int argc, char **argv)
                         int mc_failed = 0;
                         int mc_unreachable = 0;
                         int pinned = 0;
+                        struct measure_type good_m = m;
+                        struct invert_type good_r = r;
                         double mc_prev_a = r.slab.a;
                         double mc_prev_b = r.slab.b;
                         double mc_prev_g = r.slab.g;
@@ -1847,6 +1850,11 @@ int main(int argc, char **argv)
                             }
 
                             calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
+
+                            if (r.found && r.error == IAD_NO_ERROR) {
+                                good_m = m;
+                                good_r = r;
+                            }
 
                             if (0) {
                                 fprintf(stderr, "%2d %2d %2d | %7.4f %7.4f %7.4f | %7.4f %7.4f %7.4f\n",
@@ -1950,6 +1958,15 @@ int main(int argc, char **argv)
                         if (mc_unreachable) {
                             r.found = 0;
                             r.error = IAD_UNREACHABLE_WITH_LOST_LIGHT;
+
+                            {
+                                int why = r.error;
+                                m = good_m;
+                                r = good_r;
+                                r.error = why;
+                                r.found = 0;
+                            }
+
                         }
                         else if (mc_failed) {
                             r.found = 0;
@@ -1995,6 +2012,15 @@ int main(int argc, char **argv)
 
                             if (r.error == IAD_NO_ERROR)
                                 r.error = IAD_MC_DID_NOT_CONVERGE;
+
+                            {
+                                int why = r.error;
+                                m = good_m;
+                                r = good_r;
+                                r.error = why;
+                                r.found = 0;
+                            }
+
                         }
                     }
                 }
@@ -2575,6 +2601,8 @@ int main(int argc, char **argv)
                         int mc_failed = 0;
                         int mc_unreachable = 0;
                         int pinned = 0;
+                        struct measure_type good_m = m;
+                        struct invert_type good_r = r;
                         double mc_prev_a = r.slab.a;
                         double mc_prev_b = r.slab.b;
                         double mc_prev_g = r.slab.g;
@@ -2661,6 +2689,11 @@ int main(int argc, char **argv)
                             }
 
                             calculate_coefficients(m, r, &LR, &LT, &mu_sp, &mu_a);
+
+                            if (r.found && r.error == IAD_NO_ERROR) {
+                                good_m = m;
+                                good_r = r;
+                            }
 
                             if (0) {
                                 fprintf(stderr, "%2d %2d %2d | %7.4f %7.4f %7.4f | %7.4f %7.4f %7.4f\n",
@@ -2764,6 +2797,15 @@ int main(int argc, char **argv)
                         if (mc_unreachable) {
                             r.found = 0;
                             r.error = IAD_UNREACHABLE_WITH_LOST_LIGHT;
+
+                            {
+                                int why = r.error;
+                                m = good_m;
+                                r = good_r;
+                                r.error = why;
+                                r.found = 0;
+                            }
+
                         }
                         else if (mc_failed) {
                             r.found = 0;
@@ -2809,6 +2851,15 @@ int main(int argc, char **argv)
 
                             if (r.error == IAD_NO_ERROR)
                                 r.error = IAD_MC_DID_NOT_CONVERGE;
+
+                            {
+                                int why = r.error;
+                                m = good_m;
+                                r = good_r;
+                                r.error = why;
+                                r.found = 0;
+                            }
+
                         }
                     }
                 }
