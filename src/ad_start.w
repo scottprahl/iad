@@ -209,17 +209,29 @@ a couple of special cases.
     @<Radau quadrature from the cone angle to 1@>@;
 }
 
-@ @<print angles@>=
+@ This table is a debugging aid, and it used to go to |stdout|.  Every
+quadrature chosen for a cone printed two dozen lines there, so \.{ad -i 45}
+buried its four numbers under the table and anything reading that output got
+the table first.  Diagnostics belong on |stderr|, where they can be watched or
+discarded without disturbing the answer.
+
+The running total exists to be looked at: |twoaw| should sum to one, and a
+sum that does not is the quickest sign that the quadrature is wrong.  Its
+declaration used to sit after the first statement of the block, which is not
+allowed in the C this project claims to be written in.
+
+@<print angles@>=
     {
-        printf("****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
+        double sum = 0;
+
+        fprintf(stderr, "****Cone Angle          = %6.2f degrees, Cosine()=%6.4f\n",
                 acos(slab->cos_angle)*180.0/M_PI,slab->cos_angle);
-        double sum=0;
         for (i = 1; i <=n; i++) {
             sum += twoaw[i];
-            printf("%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
+            fprintf(stderr, "%02d theta=%6.2f cos(theta)=%6.4f w=%6.4f 2aw=%6.4f\n",
                i, acos(angle[i])/M_PI*180.0, angle[i], weight[i],twoaw[i]);
         }
-        printf("twoaw sum = %8.4f\n",sum);
+        fprintf(stderr, "twoaw sum = %8.4f\n",sum);
     }
 
 @ When the cone angle is zero or ninety degrees then we can just use the
