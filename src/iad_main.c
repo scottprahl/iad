@@ -1974,7 +1974,14 @@ int main(int argc, char **argv)
 
                             {
                                 int why = r.error;
+                                struct lost_type lost_r = m.lost_r;
+                                struct lost_type lost_t = m.lost_t;
+                                double utu_lost = m.utu_lost;
+
                                 m = good_m;
+                                m.lost_r = lost_r;
+                                m.lost_t = lost_t;
+                                m.utu_lost = utu_lost;
                                 r = good_r;
                                 r.error = why;
                                 r.found = 0;
@@ -2028,7 +2035,14 @@ int main(int argc, char **argv)
 
                             {
                                 int why = r.error;
+                                struct lost_type lost_r = m.lost_r;
+                                struct lost_type lost_t = m.lost_t;
+                                double utu_lost = m.utu_lost;
+
                                 m = good_m;
+                                m.lost_r = lost_r;
+                                m.lost_t = lost_t;
+                                m.utu_lost = utu_lost;
                                 r = good_r;
                                 r.error = why;
                                 r.found = 0;
@@ -2829,7 +2843,14 @@ int main(int argc, char **argv)
 
                             {
                                 int why = r.error;
+                                struct lost_type lost_r = m.lost_r;
+                                struct lost_type lost_t = m.lost_t;
+                                double utu_lost = m.utu_lost;
+
                                 m = good_m;
+                                m.lost_r = lost_r;
+                                m.lost_t = lost_t;
+                                m.utu_lost = utu_lost;
                                 r = good_r;
                                 r.error = why;
                                 r.found = 0;
@@ -2883,7 +2904,14 @@ int main(int argc, char **argv)
 
                             {
                                 int why = r.error;
+                                struct lost_type lost_r = m.lost_r;
+                                struct lost_type lost_t = m.lost_t;
+                                double utu_lost = m.utu_lost;
+
                                 m = good_m;
+                                m.lost_r = lost_r;
+                                m.lost_t = lost_t;
+                                m.utu_lost = utu_lost;
                                 r = good_r;
                                 r.error = why;
                                 r.found = 0;

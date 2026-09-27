@@ -1488,20 +1488,35 @@ died in --- or worse, reporting zeros --- throws that away and tells the reader
 nothing except that something went wrong.
 
 So the last state in which the inverse actually converged is kept as the loop
-runs, starting from the fit made before any lost light was applied, and it is
-what gets reported when the loop gives up.  The measurement record goes back
-with it, since the lost light in it is what those optical properties were
-fitted against; restoring one without the other would pair a set of properties
-with a correction they never saw and print a residual that means nothing.
+runs, starting from the fit made before any lost light was applied, and its
+optical properties are what get reported when the loop gives up.
 
-The error code is not restored.  The row still says why the loop failed --- the
-status letter is unchanged --- so the numbers are labelled as the last good
-estimate rather than passed off as a converged answer.
+The lost light is {\it not\/} taken back with them.  Each of those earlier fits
+matched the measurements exactly, but only against the lost light of its own
+pass, which was still growing.  Printing them with that estimate shows a
+measured and fitted |M_R| and |M_T| that agree to every digit beside a status
+letter saying the row failed.  The newest estimate is the one to keep: it is
+the one the failed inversion and the reachability test were given, and it came
+from a Monte Carlo run on (nearly) these very properties.  Paired with it, the
+fitted columns show what these properties predict once the light they lose is
+accounted for --- and the gap between that and the measurements is the
+failure, in numbers.
+
+The error code is not restored either.  The row still says why the loop
+failed --- the status letter is unchanged --- so the numbers are labelled as
+the last good estimate rather than passed off as a converged answer.
 
 @<Fall back on the last fit that worked@>=
 {
     int why = r.error;
+    struct lost_type lost_r = m.lost_r;
+    struct lost_type lost_t = m.lost_t;
+    double utu_lost = m.utu_lost;
+
     m = good_m;
+    m.lost_r = lost_r;
+    m.lost_t = lost_t;
+    m.utu_lost = utu_lost;
     r = good_r;
     r.error = why;
     r.found = 0;

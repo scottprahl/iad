@@ -102,13 +102,26 @@ no_mc="$TEST_TMP/iad_unreachable_nomc.out"
 assert_matches "$no_mc" "0\.7200.*0\.2600.*\*"
 
 # A failed row keeps the last fit that worked rather than reporting zeros.
-# The lost-light loop gives up on its first pass here, so the numbers left
-# behind must be exactly the ones the uncorrected inversion produced; only
-# the status letter should differ.
+# The lost-light loop gives up on its first pass here, so the optical
+# properties left behind must be exactly the ones the uncorrected inversion
+# produced.
 failed_row=$(grep -E '^[[:space:]]*[0-9]' "$unreachable" | tail -1 | awk '{$NF=""; print}')
 nomc_row=$(grep -E '^[[:space:]]*[0-9]' "$no_mc" | tail -1 | awk '{$NF=""; print}')
-if [ "$failed_row" != "$nomc_row" ]; then
+failed_props=$(echo "$failed_row" | awk '{print $6, $7, $8}')
+nomc_props=$(echo "$nomc_row" | awk '{print $6, $7, $8}')
+if [ "$failed_props" != "$nomc_props" ]; then
     fail "a failed row did not keep the last working fit
+  failed: $failed_row
+  -M 0  : $nomc_row"
+fi
+
+# Its fitted M_R and M_T, though, include the lost light the loop gave up on,
+# so they must not repeat the uncorrected fit -- that would show a failed row
+# matching the measurements as well as a converged one.
+failed_fit=$(echo "$failed_row" | awk '{print $3, $5}')
+nomc_fit=$(echo "$nomc_row" | awk '{print $3, $5}')
+if [ "$failed_fit" = "$nomc_fit" ]; then
+    fail "a failed row reported the fit without its lost light
   failed: $failed_row
   -M 0  : $nomc_row"
 fi
