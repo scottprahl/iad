@@ -1010,19 +1010,21 @@ release.
 \subsection{Numerical Validation}
 
 This program has been validated in a number of different ways.  The first is using the
-test files \texttt{basic1.rxt}, \texttt{basic2.rxt} and \texttt{basic3.rxt}.
+test files \texttt{basic\_A.rxt}, \texttt{basic\_B.rxt} and \texttt{basic\_C.rxt}
+in \texttt{tests/rxt/0\_sphere}.
 These contain total reflectance and transmittance values for known optical properties.
 
-For example \texttt{basic1.rxt} contains
+For example \texttt{basic\_A.rxt} contains
 \begin{verbatim}
-#M_R                #mua  mus  g
-0.2992621379268361  #0.1  1.0  0.0
-0.1722475379306846  #0.3  1.0  0.0
-0.1308339701159747  #0.5  1.0  0.0
-0.1096241197070925  #0.7  1.0  0.0
-0.0966223181570366  #0.9  1.0  0.0
+#M_R
+r
+0.299262138 # 0.1  1.0  0.0
+0.172247538 # 0.3  1.0  0.0
+0.130833970 # 0.5  1.0  0.0
+0.109624120 # 0.7  1.0  0.0
+0.096622318 # 0.9  1.0  0.0
 \end{verbatim}
-and the output of \texttt{iad basic1} is
+and the output of \texttt{iad basic\_A} is
 \begin{verbatim}
 Meas    Calc    Meas    Calc    Calc    Calc    Calc    Error
 M_R     M_R     M_T     M_T     mu_a    mu_s'   g       Number
@@ -1074,7 +1076,7 @@ $\mu_a$ & $\mu_a$ & $\mu_s'$ & $\mu_s'$\\
 0.9 & 0.9042 & 25 & 24.8947  \\
 \end{tabular}
 \end{center}
-\caption{Analysis of \texttt{basic2.rxt} that shows an inversion error
+\caption{Analysis of \texttt{basic\_B.rxt} that shows an inversion error
 of approximately 0.5\% when two measurements $M_R$ and $M_T$
 are available. }
 \end{table}
@@ -1111,7 +1113,7 @@ $\mu_a$ & $\mu_a$ & $\mu_s'$ & $\mu_s'$ & $g$ &$g$\\
 0.5 & 0.5033 & 2.5 & 2.4880 & 0.9 & 0.9005\\
 0.7 & 0.7047 & 2.5 & 2.4862 & 0.9 & 0.9005\\
 \end{tabular}
-\caption{Analysis of \texttt{basic3.rxt} that shows an inversion error
+\caption{Analysis of \texttt{basic\_C.rxt} that shows an inversion error
 of approximately 0.5\% when three measurements $M_R$, $M_T$ and $M_U$ are
 used.}
 \end{center}
@@ -1836,19 +1838,20 @@ The header was designed to be
 These goals were achieved by carefully specifying a minimal set of
 parameters that describe a particular experiment and developing a
 simple comment style.  At its simplest, the header consists of the
-identifying tag \texttt{IAD1} followed by eighteen numbers.
+identifying tag \texttt{IAD1} followed by seventeen numbers and a line of
+column labels.
 
 The first four characters of the file must be \texttt{IAD1}.  
 This allows the program to do basic sanity checking of the file before 
 beginning to parse the file.  The final digit may one day be used as
 a version number.  I hope not.  Anyway, one example of a valid
 header is the sequence
-\texttt{IAD1} followed by 18 numbers,
+\texttt{IAD1} followed by 17 numbers and the labels \texttt{r t},
 \begin{center}
-\begin{minipage}{8cm}
+\begin{minipage}{10cm}
 \scriptsize
 \begin{verbatim}
-IAD1 1.34 1.5 1 1 5 .96 1 203.2 25.4 12.7 1 .96 203.2 25.4 12.7 1 .96 2 
+IAD1 1.34 1.5 1 1 5 .96 1 203.2 25.4 12.7 1 .96 203.2 25.4 12.7 1 .96 r t
 \end{verbatim}
 \end{minipage}
 \end{center}
@@ -1864,15 +1867,15 @@ is no difference between comments, tabs, spaces, linefeeds, or carriage returns;
 one will end a number. 
 
 \begin{center}
-\begin{minipage}{11.5cm}
+\begin{minipage}{9.5cm}
 \scriptsize
 \begin{verbatim}
-IAD1   # Must be first four characters
+IAD1       # required first four characters
 
 # Input Example with a single set of sphere coefficients
-# The order of entries is important 
+# The order of entries is important
 # Anything after a '#' is ignored, blank lines are also ignored
- 
+
 1.34       # Index of refraction of the sample
 1.50       # Index of refraction of the top and bottom slides
 1.0        # [mm] Thickness of sample
@@ -1896,7 +1899,8 @@ IAD1   # Must be first four characters
 1.00       # [mm] Detector Port Diameter
 0.96       # Reflectance of the sphere wall
 
-2          # Number of measurements, M_R, M_T
+#M_R        M_T
+r           t
 \end{verbatim}
 \end{minipage}
 \end{center}
@@ -1907,7 +1911,11 @@ the 12.7\,mm diameter sample was illuminated by a 5\,mm diameter beam.
 We also know that the sample was sandwiched between glass slides
 ($n=1.5$) that were 1\,mm thick.
 
-The last number in the header determines how many measurements are available.  This number may vary from 1 to 6 depending on the experimental circumstances.  
+The header ends with a line of column labels that says what each column of
+the data section holds; here \texttt{r t} means every data line has $M_R$
+followed by $M_T$.  The labels are described in section~\ref{columnlabels}.
+Older files end the header with the number of measurements instead; that
+form is deprecated (section~\ref{nummeasures}).
 
 When using one reflectance sphere, the entrance port diameter defined as the size of the
 port though which light enters the sphere.  The sample port is the size of the hole
@@ -1980,48 +1988,186 @@ The same rules for white space and comments that apply in the header section
 also apply to the data section.  This means that you can liberally comment your
 data (or not) by using \texttt{\#} to start a comment.
 
+\subsubsection{Column labels}
+\label{columnlabels}
+
+The line right after the header is a line of single-letter \emph{column
+labels}, one letter per column of data.  They say what each number on a data
+line is, so columns can be given in any order and those without a
+measurement are simply left out,
+\begin{center}
+\begin{minipage}{6cm}
+\scriptsize
+\begin{verbatim}
+#lambda     M_R         M_T         r_w
+L           r           t           w
+800         0.16830     0.24974     0.951
+810         0.16271     0.25613     0.952
+\end{verbatim}
+\end{minipage}
+\end{center}
+The rules are
+\begin{itemize}
+\item The labels are on a single line.  White space between the letters is
+ignored and a comment may follow them.
+\item Letters are case sensitive; \texttt{r} and \texttt{R} are different columns.
+\item At least one of \texttt{r}, \texttt{t}, or \texttt{u} must be present.
+\item Every data line must then have exactly one number per label, in the same order.
+\item If the data include wavelengths, label that column \texttt{L}.
+\item \texttt{w} sets the wall reflectance of both spheres unless \texttt{W}
+is also present, in which case \texttt{W} sets the transmittance sphere.
+\end{itemize}
+A label line can also supply, line by line, values that are otherwise fixed
+in the header or on the command line (the sample thickness, the anisotropy,
+the incidence angle, and so on).  This is how a single file can hold
+measurements of several different samples.  Table~\ref{labeltable} lists
+every label.  The comment line above the labels is not required, but
+\texttt{rxtformat.py} writes one naming each column, as in all the examples
+in this manual.
+
+\begin{table}
+\centering
+\small
+\begin{tabular}{clll}
+\textbf{Label} & \textbf{Name} & \textbf{Quantity} & \textbf{Option}\\\hline
+\texttt{L} & lambda & wavelength (only copied to the output) & \\
+\texttt{r} & M\_R & measured total reflectance $M_R$ & \texttt{-r}\\
+\texttt{t} & M\_T & measured total transmittance $M_T$ & \texttt{-t}\\
+\texttt{u} & M\_U & measured unscattered transmittance $M_U$ & \texttt{-u}\\
+\texttt{w} & r\_w & wall reflectance of both spheres & \\
+\texttt{W} & t\_w & wall reflectance of the transmittance sphere & \\
+\texttt{R} & rstd & value of the 100\% reflection standard & \texttt{-R}\\
+\texttt{T} & tstd & value of the 100\% transmission standard & \texttt{-T}\\[2mm]
+\texttt{n} & n\_sample & index of refraction of the sample & \texttt{-n}\\
+\texttt{N} & n\_slide & index of refraction of the slides & \texttt{-N}\\
+\texttt{d} & d\_sample & thickness of the sample [mm] & \texttt{-d}\\
+\texttt{D} & d\_slide & thickness of the slides [mm] & \texttt{-D}\\
+\texttt{E} & b\_slide & optical absorption depth of the slides & \texttt{-E}\\
+\texttt{B} & beam diam & diameter of the illumination beam [mm] & \texttt{-B}\\
+\texttt{i} & incid angle & angle of incidence [degrees, 0--90] & \texttt{-i}\\
+\texttt{c} & unscat R & unscattered fraction of $M_R$ & \texttt{-c}\\
+\texttt{C} & unscat T & unscattered fraction of $M_T$ & \texttt{-C}\\
+\texttt{f} & wall first & fraction of light hitting the wall first & \texttt{-f}\\
+\texttt{S} & spheres & number of spheres used at a time & \texttt{-S}\\
+\texttt{M} & spheres & same as \texttt{S} & \\[2mm]
+\texttt{a} & albedo & fixed albedo $a$ & \texttt{-a}\\
+\texttt{b} & opt depth & fixed optical thickness $b$ & \texttt{-b}\\
+\texttt{g} & anisotropy & fixed anisotropy $g$ & \texttt{-g}\\
+\texttt{A} & mu\_a & fixed absorption coefficient $\mu_a$ [1/mm] & \texttt{-A}\\
+\texttt{F} & mu\_s & fixed scattering coefficient $\mu_s$ [1/mm] & \texttt{-F}\\[2mm]
+\texttt{e} & tolerance & error tolerance & \texttt{-e}\\
+\texttt{q} & quad pts & number of quadrature points & \texttt{-q}\\
+\end{tabular}
+\caption{Column labels for the data section of an \texttt{.rxt} file.  The
+name is the one \texttt{rxtformat.py} writes in the comment above the labels;
+the option is the command-line switch that sets the same quantity for every
+line.  With \texttt{i}, the number of quadrature points is rounded up to a
+multiple of 12.  The label \texttt{M} is the number of spheres, not the
+Monte Carlo iteration count set by \texttt{-M}.\label{labeltable}}
+\end{table}
+
+\subsubsection{Number of measurements (deprecated)}
+\label{nummeasures}
+
+Older \texttt{.rxt} files end the header with a single number from 1 to 7
+instead of column labels.  The number says how many measurements are on each
+data line, always in the fixed order $M_R$, $M_T$, $M_U$, $r_w$, $t_w$, rstd,
+tstd, and a wavelength is recognized by the rule given in the next section.
+\iadprog{} still reads these files, but the form is deprecated: the order
+cannot be changed, so a file with $r_w$ but no $M_U$ must still carry a
+column of zeros for $M_U$, and nothing in the file says what the fifth or
+sixth column means.
+
+Each count is the same as a label line: \texttt{1}--\texttt{7} correspond to
+\texttt{r}, \texttt{r t}, \texttt{r t u}, \texttt{r t u w}, \texttt{r t u w W},
+\texttt{r t u w W R}, and \texttt{r t u w W R T}, preceded by \texttt{L} when
+the first column is a wavelength.  For example, the deprecated
+\begin{center}
+\begin{minipage}{6cm}
+\scriptsize
+\begin{verbatim}
+4          # Number of measurements
+
+#lambda M_R      M_T      M_U     r_w
+800     0.16830  0.24974  0.0000  0.951
+810     0.16271  0.25613  0.0000  0.952
+\end{verbatim}
+\end{minipage}
+\end{center}
+is written with labels as
+\begin{center}
+\begin{minipage}{6cm}
+\scriptsize
+\begin{verbatim}
+#lambda     M_R         M_T         r_w
+L           r           t           w
+800         0.16830     0.24974     0.951
+810         0.16271     0.25613     0.952
+\end{verbatim}
+\end{minipage}
+\end{center}
+where the column of zeros for $M_U$ is no longer needed.  The script
+\texttt{rxtformat.py} in the top-level directory converts old files: it
+rewrites the header of an existing \texttt{.rxt} file, replacing the count
+with the equivalent label line and a comment naming each column.  It keeps
+every column, so the example above would become \texttt{L r t u w}; removing
+the unused \texttt{u} column is left to you.
+
+The oldest files begin with \texttt{IAD} rather than \texttt{IAD1} and have
+three more header values after the sphere blocks: the fraction of light that
+hits the sphere wall first, whether $M_R$ includes the specular reflection, and
+whether $M_T$ includes the unscattered transmission.  \iadprog{} no longer reads
+these files.  \texttt{rxtformat.py} converts them, moving the three values into
+constant columns labeled \texttt{f}, \texttt{c}, and \texttt{C} so that
+nothing the old file said is lost.
+\begin{verbatim}
+    prompt> python3 rxtformat.py --in-place old.rxt
+\end{verbatim}
+
 \subsubsection{Optional wavelength entry}
 
 The \iadprog{} program is mainly intended to analyze spectral measurements of reflectance
 and transmittance.  For a number of reasons (e.g., graphing) it is convenient to 
 precede the measured values by the appropriate wavelength,
 \begin{center}
-\begin{minipage}{4cm}
+\begin{minipage}{5cm}
 \scriptsize
 \begin{verbatim}
-#lambda	   M_R      M_T
- 800     0.16830  0.24974
- 810     0.16271  0.26479
- 820     0.16289  0.25530
+#lambda     M_R         M_T
+L           r           t
+800         0.16830     0.24974
+810         0.16271     0.26479
+820         0.16289     0.25530
 \end{verbatim}
 \end{minipage}
 \end{center}
 Since we don't want to require wavelength data, it would be nice if \iadprog{} should also give identical results for input data like this
 \begin{center}
-\begin{minipage}{3.5cm}
+\begin{minipage}{3cm}
 \scriptsize
 \begin{verbatim}
-#  M_R      M_T
-0.16830  0.24974
-0.16271  0.26479
-0.16289  0.25530
+#M_R        M_T
+r           t
+0.16830     0.24974
+0.16271     0.26479
+0.16289     0.25530
 \end{verbatim}
 \end{minipage}
 \end{center}
-There are at least two possible solutions to solve this problem: add another parameter to the header or auto-recognize
-the presence of a wavelength.  Since I wanted to keep the number of parameters in the
-header to a minimum, I went with the second option.  This leads to the following rule.
-
-\textit{If the first
-number on a line is greater than one, that number is assumed to be a wavelength, 
-otherwise it is interpreted as $M_R$.}  
-
+With column labels this is simple: the wavelength column is labeled
+\texttt{L}, and without an \texttt{L} there is none.
 The value of the wavelength is not used anywhere
 except for being copied to the output file.
-The above rule means that you cannot measure your wavelength in microns if that forces
+
+Files that give the deprecated number of measurements (section~\ref{nummeasures})
+have no labels, so there the wavelength is recognized automatically by the rule
+\textit{if the first
+number on a line is greater than one, that number is assumed to be a wavelength,
+otherwise it is interpreted as $M_R$.}
+This rule means that you cannot measure your wavelength in microns if that forces
 the wavelength to fall between 0 and 1.  For example 532.8 is fine as a wavelength
 but 0.5328 will be interpreted as a value for $M_R$.  This is why all the example
-files in the test directory use nanometers for the wavelength range.
+files in \texttt{tests/rxt} use nanometers for the wavelength range.
 
 \subsubsection{One measurement}
 
@@ -2029,10 +2175,11 @@ files in the test directory use nanometers for the wavelength range.
 \begin{minipage}{3cm}
 \scriptsize
 \begin{verbatim}
-#lambda	   M_R  
- 800     0.16830
- 810     0.16271
- 820     0.16289
+#lambda     M_R
+L           r
+800         0.16830
+810         0.16271
+820         0.16289
 \end{verbatim}
 \end{minipage}
 \end{center}
@@ -2069,13 +2216,14 @@ the scattering coefficient will be found.
 \subsubsection{Two measurements}
 
 \begin{center}
-\begin{minipage}{6cm}
+\begin{minipage}{9cm}
 \scriptsize
 \begin{verbatim}
-#lambda	   M_R      M_T
- 800     0.16830  0.24974
- 810     0.16271  0.00000  #treated as one measurement
- 820     0.16289  0.25530
+#lambda     M_R         M_T
+L           r           t
+800         0.16830     0.24974
+810         0.16271     0.00000     # only M_R used
+820         0.16289     0.25530
 \end{verbatim}
 \end{minipage}
 \end{center}
@@ -2098,13 +2246,14 @@ in exactly the same way.
 \subsubsection{Three or more measurements}
 
 \begin{center}
-\begin{minipage}{8cm}
+\begin{minipage}{11cm}
 \scriptsize
 \begin{verbatim}
-#lambda	   M_R      M_T      M_U
- 800     0.16830  0.24974  0.0012
- 810     0.16271  0.00000  0.0000 #treated as one measurement
- 820     0.16289  0.25530  0.0000 #treated as two measurements
+#lambda     M_R         M_T         M_U
+L           r           t           u
+800         0.16830     0.24974     0.0012
+810         0.16271     0.00000     0.0000      # only M_R used
+820         0.16289     0.25530     0.0000      # M_R and M_T used
 \end{verbatim}
 \end{minipage}
 \end{center}
@@ -2122,22 +2271,22 @@ case above applies.
 \subsubsection{Four measurements}
 
 \begin{center}
-\begin{minipage}{8cm}
+\begin{minipage}{12cm}
 \scriptsize
 \begin{verbatim}
-#lambda	   M_R      M_T      M_U     r_w
- 800     0.16830  0.24974  0.0012   0.951
- 810     0.16271  0.00000  0.0000   0.952 #treated as one measurement
- 820     0.16289  0.25530  0.0000   0.953 #treated as two measurements
+#lambda     M_R         M_T         M_U         r_w
+L           r           t           u           w
+800         0.16830     0.24974     0.0012      0.951
+810         0.16271     0.00000     0.0000      0.952       # only M_R used
+820         0.16289     0.25530     0.0000      0.953       # M_R and M_T used
 \end{verbatim}
 \end{minipage}
 \end{center}
 This is how \iadprog{} handles the situation in which the sphere wall reflectance varies
 with each measurement (e.g., as a function of wavelength).  Both the
 reflectance sphere and the transmittance sphere wall reflectances are
-changed by this value.  If you want to use this option when you only
-have one or two measurements, then indicate that you have four measurements
-and enter 0.00 for the unknown values (as in the 810\,nm line above).
+changed by this value.  If you only have one or two measurements, leave
+out the columns you do not have, e.g., \texttt{L r t w}.
 This option was originally needed because we needed to use a sphere that was coated
 for use in the visible with wavelengths from 1,000--1,600\,nm.  In this region the wall reflectance
 changed significantly over the wavelength range that we were using.
@@ -2155,13 +2304,14 @@ more appropriate for analyzing your integrating sphere measurements.
 \subsubsection{Five measurements}
 
 \begin{center}
-\begin{minipage}{8cm}
+\begin{minipage}{12cm}
 \scriptsize
 \begin{verbatim}
-#lambda	   M_R      M_T      M_U     r_w    t_w
- 800     0.16830  0.24974  0.0012   0.951   0.980
- 810     0.16271  0.00000  0.0000   0.952   0.981 #treated as one measurement
- 820     0.16289  0.25530  0.0000   0.953   0.982 #treated as two measurements
+#lambda     M_R         M_T         M_U         r_w         t_w
+L           r           t           u           w           W
+800         0.16830     0.24974     0.0012      0.951       0.980
+810         0.16271     0.00000     0.0000      0.952       0.981       # only M_R used
+820         0.16289     0.25530     0.0000      0.953       0.982       # M_R and M_T used
 \end{verbatim}
 \end{minipage}
 \end{center}
@@ -2169,36 +2319,38 @@ This is how \iadprog{} handles the case of spheres with
 different reflectances as a function of wavelength.  Typically if the
 wall re is changing, then so will the sphere wall reflectance.  Of course,
 if the wall reflectance is not changing then just fill in the same value
-each time.  Like the four measurement case, if $M_U$ or $M_T$ is unknown,
-then just enter zero.
+each time.  Like the four measurement case, a measurement you do not have
+is simply left out of the labels.
 
 \subsubsection{Six measurements}
 The insanity continues and we allow the reflectance
 standard to have some spectral character.
 \begin{center}
-\begin{minipage}{8cm}
+\begin{minipage}{11cm}
 \scriptsize
 \begin{verbatim}
-# nm    M_R    M_T    M_U    r_w   t_w    rstd
- 550  0.0731 0.9307 0.0000 0.9788 0.9788 0.9800
+#lambda     M_R         M_T         M_U         r_w         t_w         rstd
+L           r           t           u           w           W           R
+550         0.0731      0.9307      0.0000      0.9788      0.9788      0.9800
 \end{verbatim}
 \end{minipage}
 \end{center}
 Typically if the wall reflectance is changing, then so will the 
 standard reflectance.  Of course,
 if the wall reflectance is not changing then just fill in the same value
-each time.  Like the five measurement case, if $M_U$ or $M_T$ is unknown,
-then just enter zeros.
+each time.  Like the five measurement case, a measurement you do not have
+is simply left out of the labels.
 
 \subsubsection{Seven measurements!}
 The insanity finally ends.  The default transmittance for
 100\% transmission gets specified also.
 \begin{center}
-\begin{minipage}{8cm}
+\begin{minipage}{12cm}
 \scriptsize
 \begin{verbatim}
-# nm    M_R    M_T    M_U    r_w   t_w    rstd   tstd
- 550  0.0731 0.9307 0.0000 0.9788 0.9788 0.9800 1.0000
+#lambda     M_R         M_T         M_U         r_w         t_w         rstd        tstd
+L           r           t           u           w           W           R           T
+550         0.0731      0.9307      0.0000      0.9788      0.9788      0.9800      1.0000
 \end{verbatim}
 \end{minipage}
 \end{center}
@@ -2206,20 +2358,22 @@ The insanity finally ends.  The default transmittance for
 \subsubsection{Putting it all together}
 \begin{table}
 \begin{center}
-\begin{minipage}{12cm}
+\begin{minipage}{10cm}
 \scriptsize
 \begin{verbatim}
-IAD1
+IAD1       # required first four characters
+
 #
 # Tests using calculated values for M_R and M_T
 # by Scott Prahl
 #
-1.4        # Index of refraction of sample
-1.0        # Index of refraction of top slide
+
+1.4        # Index of refraction of the sample
+1.0        # Index of refraction of the top and bottom slides (none)
 1.0        # [mm] Thickness of sample
 1.0        # [mm] Thickness of slides
 2.0        # [mm] Diameter of illumination beam
-1.00       # Reflectance of calibration standard
+1.00       # Reflectance of the calibration standard
 
 0          # Number of spheres used at a time to make a measurement
 
@@ -2237,28 +2391,27 @@ IAD1
 12.7       # [mm] Detector Port Diameter
 0.96       # Reflectance of the sphere wall
 
-2          # Number of measurements
-
-#       M_R     	       M_T        	a	   b    g
-2.77865808457e-2	  1.73065997660e-2 # 0.00 4.0000 0.00
-4.20236699283e-2	  1.91254597157e-2 # 0.19 4.0000 0.00
-6.00960999727e-2	  2.19067707658e-2 # 0.36 4.0000 0.00
-8.34695920348e-2	  2.63617299497e-2 # 0.51 4.0000 0.00
-1.14361397922e-1	  3.38563099504e-2 # 0.64 4.0000 0.00
-1.56228601933e-1	  4.70846891403e-2 # 0.75 4.0000 0.00
-2.14577898383e-1	  7.13708102703e-2 # 0.84 4.0000 0.00
-2.97877311707e-1	  1.16591498256e-1 # 0.91 4.0000 0.00
-4.15349513292e-1	  1.96420803666e-1 # 0.96 4.0000 0.00
-5.54938077927e-1	  3.06980103254e-1 # 0.99 4.0000 0.00
-6.29535913467e-1	  3.70464086533e-1 # 1.00 4.0000 0.00
-
+#M_R        M_T
+r           t
+0.027786581 0.017306600 # 0.00 4.0000 0.00
+0.042023670 0.019125460 # 0.19 4.0000 0.00
+0.060096100 0.021906771 # 0.36 4.0000 0.00
+0.083469592 0.026361730 # 0.51 4.0000 0.00
+0.114361398 0.033856310 # 0.64 4.0000 0.00
+0.156228602 0.047084689 # 0.75 4.0000 0.00
+0.214577898 0.071370810 # 0.84 4.0000 0.00
+0.297877312 0.116591498 # 0.91 4.0000 0.00
+0.415349513 0.196420804 # 0.96 4.0000 0.00
+0.554938078 0.306980103 # 0.99 4.0000 0.00
+0.629535913 0.370464087 # 1.00 4.0000 0.00
 \end{verbatim}
 \end{minipage}
 \end{center}
-\caption{One of the test files \texttt{basic4.rxt}.  This is a test file
+\caption{One of the test files \texttt{basic\_D.rxt}.  This is a test file
 with accurately calculated values for $M_R$ and $M_T$.  As a consequence
 the number of spheres has been set to zero.  Other test files in the
-\texttt{test} directory may be helpful starting templates for your data.}
+\texttt{tests/rxt} directory, grouped by the number of spheres used, may be
+helpful starting templates for your data.}
 \end{table}
 
 \clearpage
@@ -2269,13 +2422,13 @@ data files that contain values of $M_R$ and $M_T$ as a function of wavelength.
 \iadprog{} can be used without a data file by using various command-line 
 options or switches (see Table~ref{switches}), but it is reasonably clumsy.  
 In its simplest form 
-one could analyze the data file \texttt{basic1.rxt} by typing
+one could analyze the data file \texttt{basic\_A.rxt} by typing
 \begin{verbatim}
-                prompt> iad basic1
+                prompt> iad basic_A
 \end{verbatim}
 Note that the extension\texttt{.rxt} is automatically appended if necessary.
-This command will process the data file \texttt{basic1.rxt} and produce a
-file named \texttt{basic1.txt}.
+This command will process the data file \texttt{basic\_A.rxt} and produce a
+file named \texttt{basic\_A.txt}.
 
 \clearpage
 \subsection{Command-line options}
@@ -2371,8 +2524,10 @@ behavior.
                  only in the Monte Carlo simulations for lost light.\\[1mm]
                  There are two ways of specifying that glass slides were not used in a calculation.  The first is
                  to use \texttt{-D 0} to indicate no thickness.  The second is to set the index
-                 of refraction of the slides to unity \texttt{-N 1}.\\[1mm]
-                 \textit{The default assumes no glass slides, \texttt{-D 0}.}
+                 of refraction of the slides to unity \texttt{-N 1}.  A thickness of zero, whether from
+                 \texttt{-D 0} or a \texttt{D} column, means no slides whatever index is given.\\[1mm]
+                 \textit{The default thickness is 1\,mm; with the default slide index of 1 there are
+                 still no slides.}
 
     \item[-e \#] The error tolerance for success.\\[1mm]
                  This value determines when the calculated values are close enough. When a single optical
@@ -2485,6 +2640,8 @@ behavior.
     \item[-N \#] Specify the index of refraction of the slides.\\[1mm]
                  The value must be between \texttt{0.1} and \texttt{10}.  The same value is applied to
                  both slides unless the slide configuration removes one of them.
+                 If the file header describes no slides (thickness zero) and neither \texttt{-D} nor a
+                 \texttt{D} column gives a thickness, the slides are taken to be 1\,mm thick.
     \item[-o filename] Explicitly specify the output filename.\\[1mm]
                  This may be used for a single input file or a command-line calculation, but it cannot
                  be used when one command processes multiple \texttt{.rxt} files.
@@ -2726,11 +2883,20 @@ that does not read wavelength rows from an \texttt{.rxt} file.
 
 \subsubsection{Writing a Grid}
 
-The \texttt{-J} option asks \iadprog{} to write a small grid of calculated
+The \texttt{-J} option asks \iadprog{} to write a grid of calculated
 $M_R$ and $M_T$ values after the inverse calculation.  The grid is written next
 to the normal output file with a \texttt{.grid} suffix.  This is mainly a
 developer and plotting aid for inspecting the search surface; it does not
 change the fitted optical properties.
+
+Each row holds $a'$, $b'$, $g$, $M_R$, $M_T$, and $\rho_{12}$.  The last
+column is the correlation between the estimated $\mu_a$ and $\mu_s'$ predicted
+by the Cram\'er--Rao lower bound, assuming equal independent noise on $M_R$ and
+$M_T$.  It is $-\cos\theta$, where $\theta$ is the angle between the changes in
+$(M_R, M_T)$ caused by $\mu_a$ and by $\mu_s'$.  Values near zero mean that the
+two measurements separate absorption from scattering well; values near $\pm1$
+mean that they cannot.  It is written as \texttt{nan} where it is undefined,
+such as at $b'=0$.  \texttt{iadplus} uses this column to shade its grid graph.
 
 \subsubsection{Overriding the Search Type}
 
