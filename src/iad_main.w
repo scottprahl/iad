@@ -198,7 +198,7 @@ irrelevant.  |last_error| is therefore the only error there was.
 
     clock_t start_time=clock();
     char command_line_options[] =
-             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:j:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
+             "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:j:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:XYz";
     char *command_line = NULL;
 
 @ I want to include the command line to the output file.  To do this, we need to save
@@ -635,6 +635,10 @@ that this strips any quotes from the command line.
                 cl_method=COMPARISON;
                 break;
 
+            case 'Y':
+                MC_Include_Diffuse_Loss(0);
+                break;
+
             case 'z':
                 cl_forward_calc = 1;
                 process_command_line=1;
@@ -856,14 +860,31 @@ The old call also overwrote |uru| and |utu|, which |RT| had just computed.
 
 @*1 Calculating a grid for graphing.
 
-We will start simple.  Just vary $a'$ and $b'$.
+The grid spans reduced albedo $a'$ and reduced optical thickness $b'$ at the
+anisotropy used for the inversion.  Every point records the $M_R$ and $M_T$
+that would be measured and also $\rho_{12}$, the correlation that the
+Cram\'er--Rao lower bound predicts between the estimated absorption and
+reduced scattering coefficients.  Near $\pm1$ the two measurements cannot tell
+changes in one coefficient from changes in the other; near zero they are
+effectively independent.
+
+The $a'$ and $b'$ lists are finer than the handful of contour lines that
+\.{iadplus} draws, so that $\rho_{12}$ can be shown as a density.  The contour
+values ($a'=0$, 0.8, 0.9, 0.95, 0.98, 0.99, 1 and $b'=0$, 0.2, 0.5, 1, 3, 10,
+100) must remain in these lists.
 
 @<Generate and write grid@>=
 if (cl_grid_calc != UNINITIALIZED) {
-    double m_r, m_t, aprime, bprime, g;
-    double aa[] = {0, 0.8, 0.9, 0.95, 0.98, 0.99, 1.0};
-    double bb[] = {0, 0.2, 0.5, 1.0,  3.0, 10.0, 100};
-    int i, j;
+    double aa[] = {0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85,
+                   0.9, 0.93, 0.95, 0.97, 0.98, 0.99, 0.995, 1.0};
+    double bb[] = {0, 0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0,
+                   3.0, 5.0, 7.0, 10.0, 20.0, 30.0, 50.0, 100.0};
+    int na = (int) (sizeof(aa) / sizeof(aa[0]));
+    int nb = (int) (sizeof(bb) / sizeof(bb[0]));
+    double grid_step = 1e-3;
+    int use_mc = (MAX_MC_iterations != 0 && m.num_spheres != 0);
+    double g;
+    int i, j, k;
     int count=0;
 
     FILE *grid;
@@ -888,36 +909,116 @@ if (cl_grid_calc != UNINITIALIZED) {
         g = 0;
     }
     fprintf(grid, "# %s (g=%6.4f)\n", command_line, g);
-    fprintf(grid, "#    a'          b'          g           M_R         M_T\n");
+    fprintf(grid, "#    a'          b'          g           M_R         M_T         rho12\n");
     fprintf(stderr, "\ndoing grid calculation\n");
-    for (i=0; i<7; i++) {
-        aprime = aa[i];
-        for (j=0; j<7; j++) {
-            fprintf(stderr, "*");
-            bprime = bb[j];
-            r.a = aprime / (1 - g + aprime * g);
-            r.b = bprime / (1 - r.slab.a * g);
-            r.g = g;
-            r.slab.a = r.a;
-            r.slab.b = r.b;
-            r.slab.g = r.g;
-            if (MAX_MC_iterations==0 || m.num_spheres==0) {
-                Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
-            } else {
-                Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
+    for (i=0; i<na; i++) {
+        for (j=0; j<nb; j++) {
+            double ap[3], bp[3], m_r[3], m_t[3];
+            @<Choose the grid point and its two neighbours@>@;
+            @<Find lost light at this grid point@>@;
+            for (k=0; k<3; k++) {
+                @<Calculate |M_R| and |M_T| at grid point |k|@>@;
             }
+            fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f, ", \
+                    ap[0], bp[0], g, m_r[0], m_t[0]);
+            @<Write CRLB correlation for this grid point@>@;
+
             count++;
+            fprintf(stderr, "*");
             if (count % 10 == 0)
                 fprintf(stderr, " ");
             if (count % 50 == 0)
                 fprintf(stderr, "\n");
-
-            fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", \
-                    aprime, bprime, g, m_r, m_t);
         }
     }
     fclose(grid);
     fprintf(stderr, "\n");
+}
+
+@ The derivatives are forward differences in $a'$ and $b'$.  The $a'$ step
+turns backwards at $a'=1$ so that the albedo never exceeds one.  The $b'$
+step is relative, and at $b'=0$ it is zero, which later marks the correlation
+as undefined.
+
+@<Choose the grid point and its two neighbours@>=
+ap[0] = aa[i];
+bp[0] = bb[j];
+ap[1] = (aa[i] + grid_step <= 1) ? aa[i] + grid_step : aa[i] - grid_step;
+bp[1] = bb[j];
+ap[2] = aa[i];
+bp[2] = bb[j] * (1 + grid_step);
+
+@ Light lost out the sides is found once, by Monte Carlo, at the grid point
+itself and then held fixed for the two neighbours.  This takes a third of the
+time and keeps Monte Carlo noise out of the finite differences.
+
+@<Find lost light at this grid point@>=
+if (use_mc) {
+    double ur1, ut1, uru, utu;
+    r.slab.a = ap[0] / (1 - g + ap[0] * g);
+    r.slab.b = bp[0] / (1 - r.slab.a * g);
+    r.slab.g = g;
+    r.a = r.slab.a;
+    r.b = r.slab.b;
+    r.g = g;
+    MC_Lost(m, r, 100000, &ur1, &ut1, &uru, &utu,
+            &m.lost_r, &m.lost_t, &m.utu_lost);
+}
+
+@ Convert the reduced values back to $a$ and $b$ at this $g$ using
+$a = a'/(1-g+a'g)$ and $b = b'/(1-ag)$.
+
+@<Calculate |M_R| and |M_T| at grid point |k|@>=
+r.slab.a = ap[k] / (1 - g + ap[k] * g);
+r.slab.b = bp[k] / (1 - r.slab.a * g);
+r.slab.g = g;
+r.a = r.slab.a;
+r.b = r.slab.b;
+r.g = g;
+Calculate_MR_MT(m, r, use_mc ? MC_USE_EXISTING : MC_NONE, TRUE,
+                &m_r[k], &m_t[k]);
+
+@ The unknowns are the absorption and reduced scattering optical thicknesses
+$b_a=(1-a')b'$ and $b_s'=a'b'$.  They are the coefficients times the sample
+thickness, and since the thickness scales both equally their correlation is
+that of $\mu_a$ and $\mu_s'$.  The chain rule gives
+$$
+{\partial\over\partial b_a} = {\partial\over\partial b'}-{a'\over b'}{\partial\over\partial a'}
+\qquad\hbox{and}\qquad
+{\partial\over\partial b_s'} = {\partial\over\partial b'}+{1-a'\over b'}{\partial\over\partial a'}.
+$$
+Let $u$ and $v$ be the vectors $(\partial M_R, \partial M_T)$ with respect to
+$b_a$ and $b_s'$.  With equal, independent noise on $M_R$ and $M_T$ the Fisher
+information is $J^TJ$ with $J=[u\;v]$, and the correlation read off its inverse is
+$$
+\rho_{12} = -{u\cdot v \over |u|\,|v|},
+$$
+minus the cosine of the angle between the two sensitivity vectors.  It does not
+depend on the noise level.  When either vector vanishes, as it does at $b'=0$,
+the correlation is written as \.{nan}.
+
+@<Write CRLB correlation for this grid point@>=
+{
+    double dMR_da, dMT_da, dMR_db, dMT_db, u_r, u_t, v_r, v_t, uu, vv;
+    u_r = u_t = v_r = v_t = 0;
+    uu = 0;
+    vv = 0;
+    if (bp[0] > 0) {
+        dMR_da = (m_r[1] - m_r[0]) / (ap[1] - ap[0]);
+        dMT_da = (m_t[1] - m_t[0]) / (ap[1] - ap[0]);
+        dMR_db = (m_r[2] - m_r[0]) / (bp[2] - bp[0]);
+        dMT_db = (m_t[2] - m_t[0]) / (bp[2] - bp[0]);
+        u_r = dMR_db - ap[0] / bp[0] * dMR_da;
+        u_t = dMT_db - ap[0] / bp[0] * dMT_da;
+        v_r = dMR_db + (1 - ap[0]) / bp[0] * dMR_da;
+        v_t = dMT_db + (1 - ap[0]) / bp[0] * dMT_da;
+        uu = u_r * u_r + u_t * u_t;
+        vv = v_r * v_r + v_t * v_t;
+    }
+    if (uu > 1e-20 && vv > 1e-20)
+        fprintf(grid, "%10.5f\n", -(u_r * v_r + u_t * v_t) / sqrt(uu * vv));
+    else
+        fprintf(grid, "%10s\n", "nan");
 }
 
 @ Make sure that the file is not named '-' and warn about too many files.
@@ -1570,6 +1671,7 @@ properties can be determined.
     if (cl_slide_n != UNINITIALIZED) {
         m.slab_bottom_slide_index = cl_slide_n;
         m.slab_top_slide_index    = cl_slide_n;
+        @<Give slides named by \.{-N} a thickness@>@;
     }
 
     if (cl_slide_OD != UNINITIALIZED) {
@@ -1719,7 +1821,21 @@ must not, because an index-matched absorbing slide is a real thing to want:
 \.{iad -r 0 -t 0.135335 -E 0.5} describes a slab of optical depth one between
 two absorbing films that do not refract, and the regression tests rely on it.
 
-@<Discard the absorption of slides that are not there@>=
+@ A header that describes no slides reads its thickness as zero.  Asking for
+slides with \.{-N} on such a file means the slides are there, so they get the
+default 1\thinspace mm.  A thickness that was actually given --- \.{-D}, or a
+\.{D} column in the data --- is left as it is, zero included: an explicit zero
+means no slide, and overrides any index.
+
+@<Give slides named by \.{-N} a thickness@>=
+    if (cl_slide_d == UNINITIALIZED && !Column_Label_Present('D')) {
+        if (m.slab_top_slide_thickness == 0)
+            m.slab_top_slide_thickness = 1.0;
+        if (m.slab_bottom_slide_thickness == 0)
+            m.slab_bottom_slide_thickness = 1.0;
+    }
+
+@ @<Discard the absorption of slides that are not there@>=
 
     if (cl_slides == NO_SLIDES) {
         m.slab_top_slide_b    = 0.0;
@@ -1903,6 +2019,7 @@ fprintf(stdout, "  -w #             wall reflectivity for reflection sphere\n");
 fprintf(stdout, "  -W #             wall reflectivity for transmission sphere\n");
 fprintf(stdout, "  -x #             set debugging level\n");
 fprintf(stdout, "  -X               dual beam configuration\n");
+fprintf(stdout, "  -Y               ignore the diffuse lost-light correction (temporary)\n");
 fprintf(stdout, "  -z               do forward calculation\n");
 fprintf(stdout, "Examples:\n");
 fprintf(stdout, "  iad file.rxt              Results will be put in file.txt\n");
