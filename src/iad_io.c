@@ -134,6 +134,8 @@ double column_value_from_state(char c, struct measure_type m, struct invert_type
         return m.slab_thickness;
     case 'D':
         return m.slab_top_slide_thickness;
+    case 'f':
+        return m.f_r;
     case 'n':
         return m.slab_index;
     case 'N':
@@ -277,6 +279,9 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
         case 'E':
             m->slab_bottom_slide_b = x;
             m->slab_top_slide_b = x;
+            break;
+        case 'f':
+            m->f_r = x;
             break;
         case 'F':
             r->default_mus = x;
@@ -711,4 +716,9 @@ int Read_Data_Line(FILE *fp, struct measure_type *m, struct invert_type *r, int 
     if (read_number(fp, &m->rstd_t))
         return 1;
     return 0;
+}
+
+int Column_Label_Present(char c)
+{
+    return strchr(COLUMN_LABELS, c) != NULL;
 }

@@ -17,3 +17,5 @@ void MC_Radial(long photons, double a, double b, double g, double n_sample,
     double dr_port, double dt_port, double d_beam, double *r_total, double *t_total, double *r_lost, double *t_lost);
 
 void MC_Print_RT_Arrays(int status);
+
+void MC_Include_Diffuse_Loss(int status);

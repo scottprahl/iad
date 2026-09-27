@@ -39,11 +39,13 @@ double COLUMN_CONSTANT_VALUE[MAX_COLUMNS] = {0};
 @<Definition for |Read_Header|@>@;
 @<Definition for |Write_Header|@>@;
 @<Definition for |Read_Data_Line|@>@;
+@<Definition for |Column_Label_Present|@>@;
 
 @ @(iad_io.h@>=
 @<Prototype for |Read_Header|@>;
 @<Prototype for |Write_Header|@>;
 @<Prototype for |Read_Data_Line|@>;
+@<Prototype for |Column_Label_Present|@>;
 
 @*1 Reading the file header.
 
@@ -244,6 +246,9 @@ int Read_Data_Line_Per_Labels(FILE *fp, struct measure_type *m, struct invert_ty
             case 'E':
                 m->slab_bottom_slide_b = x;
                 m->slab_top_slide_b = x;
+                break;
+            case 'f':
+                m->f_r = x;
                 break;
             case 'F':
                 r->default_mus = x;
@@ -696,6 +701,7 @@ double column_value_from_state(char c, struct measure_type m, struct invert_type
         case 'C': return m.fraction_of_tu_in_mt;
         case 'd': return m.slab_thickness;
         case 'D': return m.slab_top_slide_thickness;
+        case 'f': return m.f_r;
         case 'n': return m.slab_index;
         case 'N': return m.slab_top_slide_index;
         case 'R': return m.rstd_r;
@@ -755,6 +761,19 @@ void analyze_constant_columns(FILE *fp, struct measure_type m, struct invert_typ
                 COLUMN_IS_CONSTANT[label] = FALSE;
         }
     }
+}
+
+@ Whether the data section has a column with label |c|.  The command line
+uses this to tell a value given on every data line from one that was merely
+left at its default.
+
+@<Prototype for |Column_Label_Present|@>=
+int Column_Label_Present(char c)
+
+@ @<Definition for |Column_Label_Present|@>=
+@<Prototype for |Column_Label_Present|@>
+{
+    return strchr(COLUMN_LABELS, c) != NULL;
 }
 
 @ @<Definition for |print_maybe|@>=

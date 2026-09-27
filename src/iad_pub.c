@@ -513,8 +513,8 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
     r->slab.g = 0;
     r->slab.phase_function = HENYEY_GREENSTEIN;
     r->slab.n_slab = m.slab_index;
-    r->slab.n_top_slide = m.slab_top_slide_index;
-    r->slab.n_bottom_slide = m.slab_bottom_slide_index;
+    r->slab.n_top_slide = (m.slab_top_slide_thickness == 0) ? 1.0 : m.slab_top_slide_index;
+    r->slab.n_bottom_slide = (m.slab_bottom_slide_thickness == 0) ? 1.0 : m.slab_bottom_slide_index;
     r->slab.b_top_slide = m.slab_top_slide_b;
     r->slab.b_bottom_slide = m.slab_bottom_slide_b;
     r->slab.cos_angle = m.slab_cos_angle;
@@ -538,10 +538,10 @@ void Initialize_Measure(struct measure_type *m)
     m->slab_index = 1.0;
     m->slab_top_slide_index = 1.0;
     m->slab_top_slide_b = 0.0;
-    m->slab_top_slide_thickness = 0.0;
+    m->slab_top_slide_thickness = 1.0;
     m->slab_bottom_slide_index = 1.0;
     m->slab_bottom_slide_b = 0.0;
-    m->slab_bottom_slide_thickness = 0.0;
+    m->slab_bottom_slide_thickness = 1.0;
     m->slab_thickness = 1.0;
     m->slab_cos_angle = 1.0;
 

@@ -278,6 +278,11 @@ int AGrid_Valid(struct measure_type m, struct invert_type r)
     if (AGrid_Search != r.search)
         return 0;
 
+    if (m.m_r != AGrid_target_mr)
+        return 0;
+    if (m.m_t != AGrid_target_mt)
+        return 0;
+
     if (m.slab_index != AGrid_slab_n)
         return 0;
     if (m.slab_cos_angle != AGrid_slab_cos_angle)

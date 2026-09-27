@@ -50,6 +50,7 @@ the reflection or transmission port.
 @<Definition for |MC_Lost|@>@;
 @<Definition for |MC_RT|@>@;
 @<Definition for |MC_Print_RT_Arrays|@>@;
+@<Definition for |MC_Include_Diffuse_Loss|@>@;
 
 @ The header exposes the Monte Carlo services used by |iad| and by the
 standalone |mc_lost| diagnostic program.
@@ -60,6 +61,7 @@ standalone |mc_lost| diagnostic program.
 @<Prototype for |MC_RT|@>;
 @<Prototype for |MC_Radial|@>;
 @<Prototype for |MC_Print_RT_Arrays|@>;
+@<Prototype for |MC_Include_Diffuse_Loss|@>;
 
 @*1 Constants and state.
 
@@ -87,6 +89,7 @@ unsigned long photon_seed = 12345678;
 unsigned long lost_base_seed = 12345678;
 
 int print_radial_arrays = FALSE;
+int include_diffuse_loss = TRUE;
 double R_radial[N_RADIAL_BINS] = { 0 };
 double T_radial[N_RADIAL_BINS] = { 0 };
 
@@ -768,10 +771,43 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
     if (m.flip_sample && slides_differ)
         @<Take the transmission losses from the flipped sample@>@;
 
+    @<Drop the diffuse losses when they are not wanted@>@;
+
     if (lost_r->direct < 0 || lost_t->direct < 0 ||
         lost_r->diffuse < 0 || *utu_lost < 0) {
         exit(EXIT_FAILURE);
     }
+}
+
+@ The diffuse losses are under suspicion.  They are the ones computed by
+flooding the whole sample port, which sends light in at every angle including
+the grazing ones that leave again almost at once, and on weakly absorbing
+samples they are large enough to push the corrected measurements past what any
+sample could produce.  Whether the model is right is an open question; being
+able to switch them off and rerun is how to find out.
+
+Dropping them here rather than at the call sites means every caller is
+covered, including the forward calculation \.{-z}.  The direct losses are
+untouched: only the flood is in doubt.
+
+This is a switch for an experiment, not a modelling choice anyone should have
+to make, and it should go once the question it exists to answer is settled.
+
+@<Drop the diffuse losses when they are not wanted@>=
+
+    if (!include_diffuse_loss) {
+        lost_r->diffuse = 0;
+        lost_t->diffuse = 0;
+        *utu_lost = 0;
+    }
+
+@ @<Prototype for |MC_Include_Diffuse_Loss|@>=
+void MC_Include_Diffuse_Loss(int status)
+
+@ @<Definition for |MC_Include_Diffuse_Loss|@>=
+@<Prototype for |MC_Include_Diffuse_Loss|@>
+{
+    include_diffuse_loss = status;
 }
 
 @ Port sizes come from the sphere descriptions and from nowhere else, so with

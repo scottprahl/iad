@@ -431,6 +431,8 @@ int AGrid_Valid(struct measure_type m, struct invert_type r)
     if (!AGrid_Initialized || AGrid_N == 0) return 0;
     if (AGrid_Search != r.search) return 0;
 
+    @<Rebuild when the measurement moves@>@;
+
     if (m.slab_index             != AGrid_slab_n)        return 0;
     if (m.slab_cos_angle         != AGrid_slab_cos_angle) return 0;
     if (m.slab_top_slide_index   != AGrid_slab_n_top)    return 0;
@@ -459,6 +461,38 @@ int AGrid_Valid(struct measure_type m, struct invert_type r)
 
     return 1;
 }
+
+@ The table is not a neutral map of the parameter space.  Cells that bracket
+the measurement being fitted are subdivided further than the rest, so the
+table is shaped around one particular |M_R| and |M_T|.  That shaping is what
+makes the starting guess good, and it is why a table built for one row is the
+wrong table for the next.
+
+Leaving the target out of this test had a consequence that was easy to miss:
+the table was built once, for the first row of a file, and every row after it
+was started from a table refined around a measurement that was not its own.
+The answer for a given row then depended on which rows had been processed
+before it.  The same row could invert cleanly on its own and fail inside a
+batch --- |combo_1| at 486 nm gives |mu_a| of 0.0009 when the run starts at
+485 nm and fails when the same run starts at 365 nm.  Results that cannot be
+reproduced by rerunning one wavelength are not results anyone can check.
+
+Comparing the target exactly, rather than within a tolerance, is deliberate.
+A tolerance would make the decision to rebuild depend on how close the
+previous row happened to be, which is the same disease.  With an exact
+comparison the table depends on nothing but this row and the sample geometry,
+so a row inverts the same way wherever it appears.
+
+Rebuilding costs roughly one grid fill per row --- a 486-row file goes from
+3.3 to 7.3 seconds.  Monte Carlo iterations do not pay it again: they change
+the lost light, not |m_r| or |m_t|, and the stored table holds raw
+adding-doubling results with the sphere and loss corrections applied at query
+time.
+
+@<Rebuild when the measurement moves@>=
+
+    if (m.m_r != AGrid_target_mr) return 0;
+    if (m.m_t != AGrid_target_mt) return 0;
 
 @ |AGrid_Build| resets the cache and fills it via adaptive quadtree
 subdivision.  Call |AGrid_Valid| first to avoid unnecessary rebuilds.

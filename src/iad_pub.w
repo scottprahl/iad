@@ -783,6 +783,17 @@ void Initialize_Result(struct measure_type m, struct invert_type *r, int overwri
 
 @ It is necessary to set up the slab correctly so, I stuff reasonable
 values into this record as well.
+
+A slide of zero thickness is no slide at all, whatever index it was given, so
+its boundary is dropped here rather than left in the calculation as a glass
+surface of no depth.  This is the one place the slab handed to the
+adding-doubling code is built, so a zero from the header, from \.{-D 0}, or
+from a \.{D} column is treated the same way.  The index in |m| is left alone:
+|m| carries over from one data line to the next, and a later line with a
+non-zero thickness must still find the index it was given.  The default
+thickness is 1\thinspace mm, so a slide index set without any thickness ---
+\.{-N} alone, or |ez_Inverse_RT| --- still describes a real slide.
+
 @<Fill |r| with reasonable values@>=
 
     r->slab.a = 0.5;
@@ -790,8 +801,10 @@ values into this record as well.
     r->slab.g = 0;
     r->slab.phase_function = HENYEY_GREENSTEIN;
     r->slab.n_slab = m.slab_index;
-    r->slab.n_top_slide = m.slab_top_slide_index;
-    r->slab.n_bottom_slide = m.slab_bottom_slide_index;
+    r->slab.n_top_slide = (m.slab_top_slide_thickness == 0) ?
+        1.0 : m.slab_top_slide_index;
+    r->slab.n_bottom_slide = (m.slab_bottom_slide_thickness == 0) ?
+        1.0 : m.slab_bottom_slide_index;
     r->slab.b_top_slide = m.slab_top_slide_b;
     r->slab.b_bottom_slide = m.slab_bottom_slide_b;
     r->slab.cos_angle = m.slab_cos_angle;
@@ -870,10 +883,10 @@ void Initialize_Measure(struct measure_type *m)
     m->slab_index=1.0;
     m->slab_top_slide_index=1.0;
     m->slab_top_slide_b=0.0;
-    m->slab_top_slide_thickness=0.0;
+    m->slab_top_slide_thickness=1.0;
     m->slab_bottom_slide_index=1.0;
     m->slab_bottom_slide_b=0.0;
-    m->slab_bottom_slide_thickness=0.0;
+    m->slab_bottom_slide_thickness=1.0;
     m->slab_thickness=1.0;
     m->slab_cos_angle=1.0;
 

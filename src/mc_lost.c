@@ -22,6 +22,7 @@ unsigned long photon_seed = 12345678;
 unsigned long lost_base_seed = 12345678;
 
 int print_radial_arrays = FALSE;
+int include_diffuse_loss = TRUE;
 double R_radial[N_RADIAL_BINS] = { 0 };
 double T_radial[N_RADIAL_BINS] = { 0 };
 
@@ -627,6 +628,12 @@ void MC_Lost(struct measure_type m, struct invert_type r, long n_photons,
         }
     }
 
+    if (!include_diffuse_loss) {
+        lost_r->diffuse = 0;
+        lost_t->diffuse = 0;
+        *utu_lost = 0;
+    }
+
     if (lost_r->direct < 0 || lost_t->direct < 0 || lost_r->diffuse < 0 || *utu_lost < 0) {
         exit(EXIT_FAILURE);
     }
@@ -655,4 +662,9 @@ void MC_RT(struct AD_slab_type s, long n_photons, double t_sample,
 void MC_Print_RT_Arrays(int status)
 {
     print_radial_arrays = status;
+}
+
+void MC_Include_Diffuse_Loss(int status)
+{
+    include_diffuse_loss = status;
 }

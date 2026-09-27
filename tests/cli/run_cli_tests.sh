@@ -14,6 +14,7 @@ case "${1:-full}" in
         "$(dirname "$0")/test_iad_two_sphere_no_mc.sh"
         "$(dirname "$0")/test_iad_files.sh"
         "$(dirname "$0")/test_iad_options.sh"
+        "$(dirname "$0")/test_iad_order.sh"
         "$(dirname "$0")/test_iad_slides.sh"
         "$(dirname "$0")/test_ez_rt_callers.sh"
         "$(dirname "$0")/test_ad_basic.sh"

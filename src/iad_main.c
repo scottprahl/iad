@@ -112,6 +112,7 @@ static void print_usage(void)
     fprintf(stdout, "  -W #             wall reflectivity for transmission sphere\n");
     fprintf(stdout, "  -x #             set debugging level\n");
     fprintf(stdout, "  -X               dual beam configuration\n");
+    fprintf(stdout, "  -Y               ignore the diffuse lost-light correction (temporary)\n");
     fprintf(stdout, "  -z               do forward calculation\n");
     fprintf(stdout, "Examples:\n");
     fprintf(stdout, "  iad file.rxt              Results will be put in file.txt\n");
@@ -671,7 +672,7 @@ int main(int argc, char **argv)
     double cl_wave_limit[2] = { UNINITIALIZED, UNINITIALIZED };
 
     clock_t start_time = clock();
-    char command_line_options[] = "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:j:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:Xz";
+    char command_line_options[] = "1:2:a:A:b:B:c:C:d:D:e:E:f:F:g:G:hH:i:j:Jl:L:M:n:N:o:p:q:r:R:s:S:t:T:u:vV:w:W:x:XYz";
     char *command_line = NULL;
 
     {
@@ -1105,6 +1106,10 @@ int main(int argc, char **argv)
             cl_method = COMPARISON;
             break;
 
+        case 'Y':
+            MC_Include_Diffuse_Loss(0);
+            break;
+
         case 'z':
             cl_forward_calc = 1;
             process_command_line = 1;
@@ -1142,6 +1147,14 @@ int main(int argc, char **argv)
     if (cl_slide_n != UNINITIALIZED) {
         m.slab_bottom_slide_index = cl_slide_n;
         m.slab_top_slide_index = cl_slide_n;
+
+        if (cl_slide_d == UNINITIALIZED && !Column_Label_Present('D')) {
+            if (m.slab_top_slide_thickness == 0)
+                m.slab_top_slide_thickness = 1.0;
+            if (m.slab_bottom_slide_thickness == 0)
+                m.slab_bottom_slide_thickness = 1.0;
+        }
+
     }
 
     if (cl_slide_OD != UNINITIALIZED) {
@@ -2103,6 +2116,14 @@ int main(int argc, char **argv)
     if (cl_slide_n != UNINITIALIZED) {
         m.slab_bottom_slide_index = cl_slide_n;
         m.slab_top_slide_index = cl_slide_n;
+
+        if (cl_slide_d == UNINITIALIZED && !Column_Label_Present('D')) {
+            if (m.slab_top_slide_thickness == 0)
+                m.slab_top_slide_thickness = 1.0;
+            if (m.slab_bottom_slide_thickness == 0)
+                m.slab_bottom_slide_thickness = 1.0;
+        }
+
     }
 
     if (cl_slide_OD != UNINITIALIZED) {
@@ -2289,6 +2310,14 @@ int main(int argc, char **argv)
         if (cl_slide_n != UNINITIALIZED) {
             m.slab_bottom_slide_index = cl_slide_n;
             m.slab_top_slide_index = cl_slide_n;
+
+            if (cl_slide_d == UNINITIALIZED && !Column_Label_Present('D')) {
+                if (m.slab_top_slide_thickness == 0)
+                    m.slab_top_slide_thickness = 1.0;
+                if (m.slab_bottom_slide_thickness == 0)
+                    m.slab_bottom_slide_thickness = 1.0;
+            }
+
         }
 
         if (cl_slide_OD != UNINITIALIZED) {
@@ -2889,10 +2918,18 @@ int main(int argc, char **argv)
         goto read_next_file;
 
     if (cl_grid_calc != UNINITIALIZED) {
-        double m_r, m_t, aprime, bprime, g;
-        double aa[] = { 0, 0.8, 0.9, 0.95, 0.98, 0.99, 1.0 };
-        double bb[] = { 0, 0.2, 0.5, 1.0, 3.0, 10.0, 100 };
-        int i, j;
+        double aa[] = { 0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.85,
+            0.9, 0.93, 0.95, 0.97, 0.98, 0.99, 0.995, 1.0
+        };
+        double bb[] = { 0, 0.05, 0.1, 0.2, 0.3, 0.5, 0.7, 1.0, 1.5, 2.0,
+            3.0, 5.0, 7.0, 10.0, 20.0, 30.0, 50.0, 100.0
+        };
+        int na = (int) (sizeof(aa) / sizeof(aa[0]));
+        int nb = (int) (sizeof(bb) / sizeof(bb[0]));
+        double grid_step = 1e-3;
+        int use_mc = (MAX_MC_iterations != 0 && m.num_spheres != 0);
+        double g;
+        int i, j, k;
         int count = 0;
 
         FILE *grid;
@@ -2919,32 +2956,72 @@ int main(int argc, char **argv)
             g = 0;
         }
         fprintf(grid, "# %s (g=%6.4f)\n", command_line, g);
-        fprintf(grid, "#    a'          b'          g           M_R         M_T\n");
+        fprintf(grid, "#    a'          b'          g           M_R         M_T         rho12\n");
         fprintf(stderr, "\ndoing grid calculation\n");
-        for (i = 0; i < 7; i++) {
-            aprime = aa[i];
-            for (j = 0; j < 7; j++) {
-                fprintf(stderr, "*");
-                bprime = bb[j];
-                r.a = aprime / (1 - g + aprime * g);
-                r.b = bprime / (1 - r.slab.a * g);
-                r.g = g;
-                r.slab.a = r.a;
-                r.slab.b = r.b;
-                r.slab.g = r.g;
-                if (MAX_MC_iterations == 0 || m.num_spheres == 0) {
-                    Calculate_MR_MT(m, r, MC_NONE, TRUE, &m_r, &m_t);
+        for (i = 0; i < na; i++) {
+            for (j = 0; j < nb; j++) {
+                double ap[3], bp[3], m_r[3], m_t[3];
+
+                ap[0] = aa[i];
+                bp[0] = bb[j];
+                ap[1] = (aa[i] + grid_step <= 1) ? aa[i] + grid_step : aa[i] - grid_step;
+                bp[1] = bb[j];
+                ap[2] = aa[i];
+                bp[2] = bb[j] * (1 + grid_step);
+
+                if (use_mc) {
+                    double ur1, ut1, uru, utu;
+                    r.slab.a = ap[0] / (1 - g + ap[0] * g);
+                    r.slab.b = bp[0] / (1 - r.slab.a * g);
+                    r.slab.g = g;
+                    r.a = r.slab.a;
+                    r.b = r.slab.b;
+                    r.g = g;
+                    MC_Lost(m, r, 100000, &ur1, &ut1, &uru, &utu, &m.lost_r, &m.lost_t, &m.utu_lost);
                 }
-                else {
-                    Calculate_MR_MT(m, r, MC_REDO, TRUE, &m_r, &m_t);
+
+                for (k = 0; k < 3; k++) {
+
+                    r.slab.a = ap[k] / (1 - g + ap[k] * g);
+                    r.slab.b = bp[k] / (1 - r.slab.a * g);
+                    r.slab.g = g;
+                    r.a = r.slab.a;
+                    r.b = r.slab.b;
+                    r.g = g;
+                    Calculate_MR_MT(m, r, use_mc ? MC_USE_EXISTING : MC_NONE, TRUE, &m_r[k], &m_t[k]);
+
                 }
+                fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f, ", ap[0], bp[0], g, m_r[0], m_t[0]);
+
+                {
+                    double dMR_da, dMT_da, dMR_db, dMT_db, u_r, u_t, v_r, v_t, uu, vv;
+                    u_r = u_t = v_r = v_t = 0;
+                    uu = 0;
+                    vv = 0;
+                    if (bp[0] > 0) {
+                        dMR_da = (m_r[1] - m_r[0]) / (ap[1] - ap[0]);
+                        dMT_da = (m_t[1] - m_t[0]) / (ap[1] - ap[0]);
+                        dMR_db = (m_r[2] - m_r[0]) / (bp[2] - bp[0]);
+                        dMT_db = (m_t[2] - m_t[0]) / (bp[2] - bp[0]);
+                        u_r = dMR_db - ap[0] / bp[0] * dMR_da;
+                        u_t = dMT_db - ap[0] / bp[0] * dMT_da;
+                        v_r = dMR_db + (1 - ap[0]) / bp[0] * dMR_da;
+                        v_t = dMT_db + (1 - ap[0]) / bp[0] * dMT_da;
+                        uu = u_r * u_r + u_t * u_t;
+                        vv = v_r * v_r + v_t * v_t;
+                    }
+                    if (uu > 1e-20 && vv > 1e-20)
+                        fprintf(grid, "%10.5f\n", -(u_r * v_r + u_t * v_t) / sqrt(uu * vv));
+                    else
+                        fprintf(grid, "%10s\n", "nan");
+                }
+
                 count++;
+                fprintf(stderr, "*");
                 if (count % 10 == 0)
                     fprintf(stderr, " ");
                 if (count % 50 == 0)
                     fprintf(stderr, "\n");
-
-                fprintf(grid, "%10.5f, %10.5f, %10.5f, %10.5f, %10.5f\n", aprime, bprime, g, m_r, m_t);
             }
         }
         fclose(grid);

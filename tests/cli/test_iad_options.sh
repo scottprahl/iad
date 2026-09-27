@@ -118,6 +118,25 @@ case "$failed_row" in
     *0.0000?0.0000?0.0000?0.0000*) fail "a failed row reported zeros: $failed_row" ;;
 esac
 
+# -Y drops the diffuse half of the lost-light correction.  It exists to test
+# whether that half is what makes weakly absorbing samples unreachable, and it
+# is meant to be removed once that is settled -- but an experiment switch that
+# silently does nothing is worse than none, so check it still bites.
+diffuse_on="$TEST_TMP/iad_diffuse_on.out"
+diffuse_off="$TEST_TMP/iad_diffuse_off.out"
+"$IAD_EXECUTABLE" -r 0.4 -t 0.18 -S 1 -d 5 -n 1.4 \
+    -1 '203.2 16 6 1 0.97' -2 '203.2 16 0 1 0.97' > "$diffuse_on" 2>&1
+"$IAD_EXECUTABLE" -Y -r 0.4 -t 0.18 -S 1 -d 5 -n 1.4 \
+    -1 '203.2 16 6 1 0.97' -2 '203.2 16 0 1 0.97' > "$diffuse_off" 2>&1
+on_row=$(grep -E '^[[:space:]]*[0-9]' "$diffuse_on" | tail -1)
+off_row=$(grep -E '^[[:space:]]*[0-9]' "$diffuse_off" | tail -1)
+[ -n "$on_row" ] || fail "no data row with the diffuse correction on"
+[ -n "$off_row" ] || fail "no data row with -Y"
+[ "$on_row" != "$off_row" ] || \
+    fail "-Y did not change anything
+  with diffuse: $on_row
+  with -Y     : $off_row"
+
 # A measurement the model can reproduce must never be called unreachable.
 # These come from -z, so they are consistent with the corrected model by
 # construction and have to come back '*' with the properties recovered.

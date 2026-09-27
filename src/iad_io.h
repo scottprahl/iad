@@ -5,3 +5,5 @@ int Read_Header(FILE * fp, struct measure_type *m, int *params);
 void Write_Header(struct measure_type m, struct invert_type r, int params, char *cmd);
 
 int Read_Data_Line(FILE * fp, struct measure_type *m, struct invert_type *r, int params);
+
+int Column_Label_Present(char c);
