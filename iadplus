@@ -74,22 +74,37 @@ ocean= '#009dc4'
 azure = '#1520a6'
 axis_label_size = 12
 
+GRID_HEADER = 'Derived Values Correlation'
+
 GRID_EXPLANATION = (
-    "The yellow triangular region shows all possible reflection and transmission "
-    "values.  The blue region includes all values that can be reached for the "
-    "measurement parameters specified. The black curves show curves of constant "
-    "reduced albedo $a'$ or reduced optical thickness $b'$ for the value of $g$ shown in "
-    "the graph title. Reduced values mitigate anisotropic scattering "
-    "effects for data points with different $g$ values. The measured $M_R$ and $M_T$ "
-    "values (along with fits) are included to show their relationship "
-    "to the boundaries. Appropriate corrections are applied when integrating "
-    "spheres are used. \n\n"
-    "Exposed yellow along the vertical axis are created when unscattered reflectance "
-    "is not collected.  Yellow next to the horizontal axis occurs when unscattered "
-    "transmittance is not included or for very thick samples with extremely low "
-    "absorption.  Yellow along the diagonal boundary arises when "
-    "lost light effects are included. "
+    "Every point in the graph is a possible pair of measurements $M_R$ and $M_T$. "
+    "The shaded region holds every pair that a sample could produce with this "
+    "measurement setup, so the measured values (blue dots) and their fits "
+    "(circles) should fall inside it.  The black curves show curves of constant "
+    "reduced albedo $a'=\\mu_s'/(\\mu_s'+\\mu_a)$ or reduced optical thickness "
+    "$b'=d(\\mu_s'+\\mu_a)$.\n\n"
+    "Yellow along the vertical axis is created when unscattered reflectance is "
+    "not collected.  Yellow along the horizontal axis occurs when unscattered "
+    "transmittance is not included (or very thick samples with extremely low "
+    "absorption).  Yellow along the diagonal boundary arises when lost light "
+    "effects are included.\n\n"
+    "The shading is the Cramér–Rao lower bound (CRLB) correlation between the "
+    "$\\mu_a$ and $\\mu_s'$ recovered from $M_R$ and $M_T$.  Near zero (gray) "
+    "the two measurements pin down $\\mu_a$ and $\\mu_s'$ independently; near "
+    "$\\pm1$ (red or blue) an error in one coefficient is traded almost entirely "
+    "for an error in the other.  A measurement in a strongly colored area can be "
+    "fitted perfectly and still give poorly determined $\\mu_a$ and $\\mu_s'$, "
+    "because small errors in $M_R$ or $M_T$ move both coefficients together."
 )
+
+# contour values drawn on the grid graph; ``iad -J`` samples a finer grid
+# that contains these so that the CRLB correlation can be shaded
+GRID_A_LINES = [0, 0.8, 0.9, 0.95, 0.98, 0.99, 1.0]
+GRID_B_LINES = [0, 0.2, 0.5, 1.0, 3.0, 10.0, 100.0]
+
+# diverging blue <-> red with a neutral gray midpoint for rho in [-1, 1]
+RHO_CMAP = matplotlib.colors.LinearSegmentedColormap.from_list(
+    'crlb_rho', ['#2a78d6', '#f0efec', '#e34948'])
 
 def active_polygon():
     """Create the active measurement-region polygon.
@@ -216,8 +231,49 @@ def plot_good_and_bad(x, y, status, big_points=False):
         plt.legend()
     plt.grid(True)
 
+def fill_nan_neighbors(z):
+    """Replace NaN entries by the mean of their finite 4-neighbors.
+
+    Args:
+        z: Two-dimensional array, modified in place.
+    """
+    while np.isnan(z).any() and not np.isnan(z).all():
+        padded = np.pad(z, 1, constant_values=np.nan)
+        neighbors = np.stack([padded[:-2, 1:-1], padded[2:, 1:-1],
+                              padded[1:-1, :-2], padded[1:-1, 2:]])
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', RuntimeWarning)
+            mean = np.nanmean(neighbors, axis=0)
+        nan = np.isnan(z)
+        z[nan] = mean[nan]
+
+def plot_crlb_density(a, b, mr, mt, rho):
+    """Shade the reachable region by the CRLB correlation.
+
+    Args:
+        a, b: Reduced albedo and optical thickness of each grid point, with
+            ``b`` varying fastest as written by ``iad -J``.
+        mr, mt: Calculated ``M_R`` and ``M_T`` at each grid point.
+        rho: CRLB correlation between ``mu_a`` and ``mu_s'`` at each point.
+    """
+    na = len(np.unique(a))
+    nb = len(np.unique(b))
+    shape = (na, nb)
+    z = rho.reshape(shape).copy()
+    fill_nan_neighbors(z)
+    mesh = plt.pcolormesh(mr.reshape(shape), mt.reshape(shape), z,
+                          shading='gouraud', cmap=RHO_CMAP, vmin=-1, vmax=1,
+                          zorder=1, rasterized=True)
+    cbar = plt.colorbar(mesh, ax=plt.gca(), shrink=0.8, pad=0.03)
+    cbar.set_label(r"CRLB correlation $\rho(\mu_a, \mu_s')$",
+                   fontsize=axis_label_size)
+    cbar.set_ticks([-1, -0.5, 0, 0.5, 1])
+
 def plot_gridlines(filename_base):
     """Draw grid contours from an ``iad`` ``.grid`` file.
+
+    Grid files with a sixth ``rho12`` column are shaded by the CRLB
+    correlation; older five-column files get a plain blue region.
 
     Args:
         filename_base: Output filename without extension. The function reads
@@ -229,7 +285,8 @@ def plot_gridlines(filename_base):
         print('no grid file "%s"' % gridname)
         return
 
-    a,b,g,mr,mt = np.loadtxt(gridname, skiprows=2, delimiter=',').T
+    data = np.loadtxt(gridname, skiprows=2, delimiter=',').T
+    a, b, g, mr, mt = data[:5]
 
     with open(gridname, 'r') as file:
         cmd = file.readline()
@@ -238,37 +295,36 @@ def plot_gridlines(filename_base):
     match = re.search(r"g=([0-9.]+)", cmd)
     g_value = float(match.group(1)) if match else None
 
-    N = len(a)
-
-    a_list = list(set(a))
-    for aa in a_list:
-        r = [mr[i] for i in range(N) if a[i] == aa]
-        t = [mt[i] for i in range(N) if a[i] == aa]
+    for aa in GRID_A_LINES:
+        on = np.isclose(a, aa)
+        if not on.any():
+            continue
+        r, t = mr[on], mt[on]
         plt.plot(r, t, 'k', lw=0.5)
         if aa==0:
             plt.text(r[-1],t[-1]-0.01, "a'=%4.2f" % aa, ha='center', va='top')
         else:
             plt.text(r[-1],t[-1]-0.01, '%4.2f' % aa, ha='center', va='top')
 
-    b_list = list(set(b))
-    for bb in b_list:
-        r = [mr[i] for i in range(N) if b[i] == bb]
-        t = [mt[i] for i in range(N) if b[i] == bb]
+    for bb in GRID_B_LINES:
+        on = np.isclose(b, bb)
+        if not on.any():
+            continue
+        r, t = mr[on], mt[on]
         plt.plot(r, t, 'k', lw=0.5)
         plt.text(r[-1],t[-1], "b'=%g" % bb)
 
-    r = [mr[i] for i in range(N) if a[i] == 1]
-    t = [mt[i] for i in range(N) if a[i] == 1]
-    r1 = [mr[i] for i in range(N) if b[i] == 100]
-    t1 = [mt[i] for i in range(N) if b[i] == 100]
-    r2 = [mr[i] for i in range(N) if a[i] == 0]
-    t2 = [mt[i] for i in range(N) if a[i] == 0]
-    r = r + r1[::-1] + r2[::-1]
-    t = t + t1[::-1] + t2[::-1]
-    rt = np.array([r,t]).T
-    poly = plt.Polygon(rt, closed=True, facecolor=skyblue, edgecolor='none')
-    plt.gca().add_patch(poly)
-    
+    top, thick, bottom = a == 1, b == b.max(), a == 0
+    r = np.concatenate([mr[top], mr[thick][::-1], mr[bottom][::-1]])
+    t = np.concatenate([mt[top], mt[thick][::-1], mt[bottom][::-1]])
+
+    if len(data) > 5:
+        plot_crlb_density(a, b, mr, mt, data[5])
+    else:
+        rt = np.array([r,t]).T
+        poly = plt.Polygon(rt, closed=True, facecolor=skyblue, edgecolor='none')
+        plt.gca().add_patch(poly)
+
     plt.plot(r, t, 'k', lw=0.5)
     plt.title(os.path.basename(filename_base) + ".rxt (assuming g=%.3f)" % g_value)
     plt.grid(False)
@@ -296,8 +352,11 @@ def plot_grid(mr, cr, mt, ct, status, filename_base, figure_ext):
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     success = status == '*'
-    plot_good(cr, ct, success, True)
-    plt.plot(mr[success], mt[success], 'o', markersize=2, color=azure, label='measured')
+    if any(success):
+        plt.plot(cr[success], ct[success], 'o', markersize=7, markerfacecolor='white',
+                 markeredgecolor='black', linestyle='None', label='fit', zorder=3)
+    plt.plot(mr[success], mt[success], 'o', markersize=2, color=azure, label='measured',
+             zorder=4)
     plot_failures(mr, mt, status)
     poly = plt.Polygon([[0,0],[0,1],[1,0]], closed=True, facecolor=yellow, edgecolor='none', alpha=1)
     plt.gca().add_patch(poly)
@@ -305,7 +364,7 @@ def plot_grid(mr, cr, mt, ct, status, filename_base, figure_ext):
     plt.xlabel('$M_R$ (Normalized Reflectance)',fontsize=axis_label_size)
     plt.ylabel('$M_T$ (Normalized Transmittance)',fontsize=axis_label_size)
     plt.legend()
-    plt.savefig(out_filename, dpi=300)
+    plt.savefig(out_filename, dpi=300, bbox_inches='tight')
     plt.close()
     return os.path.basename(out_filename)
 
@@ -631,7 +690,7 @@ def append_graph_cell(nb, header, graph):
     cell_text = ''
     if header and header.strip('# '):
         cell_text = header + "\n"
-        if header.strip('# ') == 'Grid Graph':
+        if header.strip('# ') == GRID_HEADER:
             cell_text += "\n" + GRID_EXPLANATION + "\n\n"
     url_encoded_filename = urllib.parse.quote(graph)
     cell_text += "<center>\n"
@@ -920,33 +979,6 @@ def latex_escape(text):
         '^': r'\textasciicircum{}',
     }
     return ''.join(replacements.get(char, char) for char in text)
-
-
-def latex_grid_explanation():
-    """Return the grid explanation with optical-property symbols in math mode.
-
-    Returns:
-        LaTeX-safe prose explaining the grid graph.
-    """
-    text = latex_escape(GRID_EXPLANATION)
-    text = text.replace("a'", r"$a'$")
-    text = text.replace("b'", r"$b'$")
-    text = text.replace("M_R", r"$M_R$")
-    text = text.replace("M_T'", r"$M_T$")
-    text = text.replace('anisotropy g,', r'anisotropy $g$,')
-    return text
-
-
-def latex_path(filename):
-    """Return a LaTeX-safe path argument.
-
-    Args:
-        filename: Path to include in a LaTeX command.
-
-    Returns:
-        A ``\\detokenize{...}`` wrapper around the path.
-    """
-    return r'\detokenize{%s}' % filename
 
 
 def latex_artifact_name(name):
@@ -1569,16 +1601,14 @@ def write_latex_graph_group(file, graph_group):
         file: Open writable text file for the generated ``.tex`` report.
         graph_group: Iterable of ``(header, graph_filename)`` pairs.
     """
-    max_height = r'0.78\textheight' if len(graph_group) == 1 else r'0.42\textheight'
     for header, graph in graph_group:
         if header:
             file.write(r'\section*{%s}' % latex_escape(header) + '\n')
-            if header == 'Grid Graph':
+            if header == GRID_HEADER:
                 file.write(GRID_EXPLANATION+ '\n\n')
         file.write(r'\begin{figure}[H]' + '\n')
         file.write(r'\centering' + '\n')
-        file.write(r'\includegraphics[width=\linewidth,height=%s,keepaspectratio]{%s}' %
-                   (max_height, latex_path(graph)) + '\n')
+        file.write(r'\includegraphics[width=\linewidth]{%s}' % graph + '\n')
         file.write(r'\end{figure}' + '\n\n')
 
 
@@ -1723,7 +1753,7 @@ def write_html_report(html_path, input_filename, output_filename, graph_groups, 
             for header, graph in graph_group:
                 if header:
                     file.write('<h2>%s</h2>\n' % html_escape(header))
-                    if header == 'Grid Graph':
+                    if header == GRID_HEADER:
                         file.write('<p>%s</p>\n' %
                                    html_escape(GRID_EXPLANATION).replace('\n\n', '</p>\n<p>'))
                 quoted_graph = urllib.parse.quote(graph)
@@ -2100,7 +2130,7 @@ Examples:
              ('Scattering Anisotropy', g_graph)],
             [('Single Scattering Albedo', a_graph), ('Optical Thickness', b_graph)],
             [('Measured Total', rtsum_graph), ('Unaccounted Light', rtmissing_graph)],
-            [('Grid Graph', grid_graph)],
+            [(GRID_HEADER, grid_graph)],
         ]
 
         if args.output_mode == 'pdf':
